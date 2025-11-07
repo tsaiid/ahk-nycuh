@@ -59,6 +59,7 @@ Return
 ;  Send {Del}
 ;Return
 
+/*
 ;; Ctrl + Y
 ;; Delete current line
 ^y::
@@ -90,6 +91,7 @@ Return
     Edit_Clear(hEdit)
   }
 Return
+*/
 
 
 #a::
@@ -138,39 +140,11 @@ Return
 */
 
 
-!1::
-  global ABNORMAL_VALUE_1_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_1_CONTROL%
-  }
-Return
-
-!2::
-  global ABNORMAL_VALUE_2_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_2_CONTROL%
-  }
-Return
-
-!3::
-  global ABNORMAL_VALUE_3_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_3_CONTROL%
-  }
-Return
-
-!4::
-  global ABNORMAL_VALUE_4_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_4_CONTROL%
-  }
-Return
 
 GetExamnameFromRIS()
 {
   global EXAMNAME_CONTROL
   ControlGetText, t, %EXAMNAME_CONTROL%
-  ;MsgBox, %t%
   examname := StrReplace(t, "檢查項目: ", "")
   Return examname
 }
@@ -180,6 +154,7 @@ InsertExamname()
   global FINDING_CONTROL, IMPRESSION_CONTROL
   If WinActive("報告作業(frmRISReport)") {
     ControlGetFocus, FocusedControl
+    MsgBox, %FocusedControl%
     If (FocusedControl = FINDING_CONTROL || FocusedControl = IMPRESSION_CONTROL) {
       ControlGet, hFindingEdit, Hwnd,, %FINDING_CONTROL%
       Edit_GetSel(hFindingEdit, currStartSel, currEndSel)
@@ -197,21 +172,6 @@ InsertExamname()
   }
 }
 
-
-;; Insert Exam Name
-!e::
-  InsertExamname()
-  ;ExamNamePath := "4.1.4.1.4.2.4.1.4.8.4"
-  ;examname := Acc_Get("Value", ExamNamePath, 0, ahk_exe XRay.exe)
-  ;examname := GetExamnameFromRIS()
-  ;Paste(examname . ":`n`n")
-  ;Paste(examname)
-
-  ;ControlGetText, t, WindowsForms10.EDIT.app.0.2780b98_r24_ad114, 報告作業(frmRISReport)
-  ;ControlGetText, t, WindowsForms10.EDIT.app.0.2780b98_r24_ad114
-  ;t := GetExamnameFromRIS()
-  ;msgbox, %t%
-Return
 
 ;; Remap Kana Key
 ;;; Formatting IMPRESSION
@@ -283,7 +243,7 @@ UnorderListForFindingsOfCrUs()
       ;MsgBox % startSel
       Edit_SetFocus(hEdit)
       Edit_SetSel(hEdit, startSel, -1)
-      ;Sleep, 10
+      Sleep, 100
       ReorderSelectedText(false, true, "-", false)
     }
   }
@@ -332,12 +292,14 @@ SC079::
   OrderListForFindings()
 Return
 
-;;; Append previous report to FINDINGS
+/*
+
+;;; Append previous report to FINDINGS and IMPRESSION
 ^ESC::
   ;global FINDING_CONTROL
   ;PrevReportControl := "WindowsForms10.RichEdit20W.app.0.2780b98_r24_ad16"
   ;ControlFocus, %FindingControl%  ; need to get focus. ReorderSelectedText() use focused edit.
-  ControlGet, hEdit, Hwnd,, %PREV_REPORT_CONTROL%
+  ControlGet, hEdit, Hwnd,, %PREV_REPORT_FINDINGS_CONTROL%
   if (hEdit) {
     prevReportTxt := Edit_GetText(hEdit)
     ;MsgBox, %prevReportTxt%
@@ -350,7 +312,22 @@ Return
       Edit_SetSel(hEdit, 0, 0)
     }
   }
+
+  ControlGet, hEdit, Hwnd,, %PREV_REPORT_IMPRESSION_CONTROL%
+  if (hEdit) {
+    prevReportTxt := Edit_GetText(hEdit)
+    ;MsgBox, %prevReportTxt%
+    ControlGet, hEdit, Hwnd,, %IMPRESSION_CONTROL%
+    if (hEdit) {
+      ControlFocus, , ahk_id %hEdit%
+      ; Append to finding
+      Edit_SetSel(hEdit, Edit_GetTextLength(hEdit))
+      Edit_ReplaceSel(hEdit, prevReportTxt)
+      Edit_SetSel(hEdit, 0, 0)
+    }
+  }
 Return
+*/
 
 FindPrevCRLF(text) {
   found_pos := InStr(text, "`r`n",, 0)
@@ -380,6 +357,7 @@ FindPrevText(text_to_find, needle_text, start_pos) {
   Return found_pos_space
 }
 
+/*
 ;; Ctrl + W
 ;; delete previous word
 ^w::
@@ -398,6 +376,8 @@ FindPrevText(text_to_find, needle_text, start_pos) {
     }
   }
 Return
+
+*/
 
 /*
 
@@ -476,6 +456,67 @@ SC07B::
   }
 Return
 */
+
+/*
+
+^1::
+  global FILTER_ALL_RADIO_CONTROL
+  ControlClick %FILTER_ALL_RADIO_CONTROL%
+Return
+^2::
+  global FILTER_MODALITY_RADIO_CONTROL
+  ControlClick %FILTER_MODALITY_RADIO_CONTROL%
+Return
+^3::
+  global FILTER_MYOWN_RADIO_CONTROL
+  ControlClick %FILTER_MYOWN_RADIO_CONTROL%
+Return
+*/
+^4::
+  Send !q
+Return
+!1::
+Return
+!2::
+Return
+#IfWinActive  ; end of ahk_group RIS
+
+
+#IfWinActive 檢查結果(frmPos)
+!1::
+  global ABNORMAL_VALUE_1_CONTROL
+  If (WinActive("檢查結果(frmPos)")) {
+    ControlClick %ABNORMAL_VALUE_1_CONTROL%
+  }
+Return
+
+!2::
+  global ABNORMAL_VALUE_2_CONTROL
+  If (WinActive("檢查結果(frmPos)")) {
+    ControlClick %ABNORMAL_VALUE_2_CONTROL%
+  }
+Return
+
+!3::
+  global ABNORMAL_VALUE_3_CONTROL
+  If (WinActive("檢查結果(frmPos)")) {
+    ControlClick %ABNORMAL_VALUE_3_CONTROL%
+  }
+Return
+
+!4::
+  global ABNORMAL_VALUE_4_CONTROL
+  If (WinActive("檢查結果(frmPos)")) {
+    ControlClick %ABNORMAL_VALUE_4_CONTROL%
+  }
+Return
+
+!c::
+  global ABNORMAL_VALUE_SAVE_BUTTON_CONTROL
+  If (WinActive("檢查結果(frmPos)")) {
+    ControlClick %ABNORMAL_VALUE_SAVE_BUTTON_CONTROL%
+  }
+Return
 #IfWinActive  ; end of ahk_group RIS
 
 
@@ -494,13 +535,19 @@ SC029::
     WinActivate, 報告作業(frmRISReport)
     WinWaitActive, 報告作業(frmRISReport)
     ;ControlFocus, %FINDING_CONTROL%
-  }
-  ControlGetFocus, FocusedControl
-  ;MsgBox, %FocusedControl%
-  If (FocusedControl = FINDING_CONTROL) {
-    ControlFocus, %IMPRESSION_CONTROL%
+    ControlGetFocus, FocusedControl
+    ;MsgBox, %FocusedControl%, %FINDING_CONTROL%, %IMPRESSION_CONTROL%
+    If (FocusedControl != FINDING_CONTROL && FocusedControl != IMPRESSION_CONTROL) {
+      ControlFocus, %FINDING_CONTROL%
+    }
   } Else {
-    ControlFocus, %FINDING_CONTROL%
+    ControlGetFocus, FocusedControl
+    ;MsgBox, %FocusedControl%
+    If (FocusedControl = FINDING_CONTROL) {
+      ControlFocus, %IMPRESSION_CONTROL%
+    } Else {
+      ControlFocus, %FINDING_CONTROL%
+    }
   }
 Return
 

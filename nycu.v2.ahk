@@ -13,17 +13,170 @@ Global PRESERVE_CLIPBOARD := 0
 
 #Include <UIA.v2>
 #Include <Paste.v2>
+#Include <Edit.v2>
 
 Global RISReportWinTitle := "報告作業(frmRISReport)" ; 替換成您的程式標題
+Global RISCTMRAbnormalWinTitle := "檢查結果(frmPos)"
 Global UIA_PastReportTable := {AutomationId: "dgvPastReport"}
 Global UIA_AutoNextCheckbox := {AutomationId: "chkAutoNext"}
 Global UIA_ReportSaveButton := {AutomationId: "btnReportSave"}
 Global UIA_ExamNameTxt := {AutomationId: "txtExamName"}
+Global UIA_FindingEdit := {AutomationId: "txtReport"}
+Global UIA_ImpressionEdit := {AutomationId: "txtImpression"}
+Global UIA_PastAllRadio := {AutomationId: "rdoPastALL"}
+Global UIA_PastModalityRadio := {AutomationId: "rdoClassify"}
+Global UIA_PastOnlyMyRadio := {AutomationId: "rdoPastOnlyMy"}
+Global UIA_PastReportFindingTxt := {AutomationId: "rtxtPastReport"}
+Global UIA_PastReportImpressionTxt := {AutomationId: "rtxtPastImpression"}
 Global FINDING_CONTROL := "WindowsForms10.EDIT.app.0.2780b98_r24_ad12"
 Global IMPRESSION_CONTROL := "WindowsForms10.EDIT.app.0.2780b98_r24_ad11"
+Global ABNORMAL_VALUE_1_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13"
+Global ABNORMAL_VALUE_2_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad15"
+Global ABNORMAL_VALUE_3_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad16"
+Global ABNORMAL_VALUE_4_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad14"
+Global ABNORMAL_VALUE_SAVE_BUTTON_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad12"
 
 #HotIf WinActive(RISReportWinTitle)
+^9::{
+}
+
+^1::{
+  winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+  radioEle := winEle.FindFirst(UIA_PastAllRadio)
+  radioEle.Select()
+}
+^2::{
+  winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+  radioEle := winEle.FindFirst(UIA_PastModalityRadio)
+  radioEle.Select()
+}
+^3::{
+  winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+  radioEle := winEle.FindFirst(UIA_PastOnlyMyRadio)
+  radioEle.Select()
+}
+;;; Append previous report to FINDINGS and IMPRESSION
+^ESC::{
+  winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+  pFdEle := winEle.FindFirst(UIA_PastReportFindingTxt)
+  if (hEdit := pFdEle.NativeWindowHandle) {
+    pastFinding := Edit_GetText(hEdit)
+    fdEle := winEle.FindFirst(UIA_FindingEdit)
+    if (hFdEdit := fdEle.NativeWindowHandle) {
+      Edit_SetSel(hFdEdit, Edit_GetTextLength(hFdEdit))
+      Edit_ReplaceSel(hFdEdit, pastFinding)
+      Edit_SetSel(hFdEdit, 0, 0)
+    }
+  }
+
+  pImpEle := winEle.FindFirst(UIA_PastReportImpressionTxt)
+  if (hEdit := pImpEle.NativeWindowHandle) {
+    pastImpression := Edit_GetText(hEdit)
+    impEle := winEle.FindFirst(UIA_ImpressionEdit)
+    if (hImpEdit := impEle.NativeWindowHandle) {
+      Edit_SetSel(hImpEdit, Edit_GetTextLength(hImpEdit))
+      Edit_ReplaceSel(hImpEdit, pastImpression)
+    }
+  }
+}
+;; Ctrl + Y
+;; Delete current line
+^y::{
+  focusedEle := UIA.GetFocusedElement()
+  if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
+    hEdit := focusedEle.NativeWindowHandle
+    Edit_GetSel(hEdit, &currStartSel)
+    l_text := Edit_GetTextRange(hEdit, 0, currStartSel)
+    l_FoundPos := InStr(l_Text, "`r`n",, -1)
+    if (l_FoundPos > 0) {
+      startSel := l_FoundPos + 1
+    } else {
+      startSel := 0
+    }
+    r_text := Edit_GetTextRange(hEdit, currStartSel, -1)
+    r_FoundPos := InStr(r_Text, "`r`n")
+    if (r_FoundPos > 0) {
+      endSel := currStartSel + r_FoundPos + 1
+    } else {
+      endSel := -1
+      ;MsgBox, %currStartSel% %r_FoundPos%
+    }
+    Edit_SetSel(hEdit, startSel, endSel)
+    ;text_len := Edit_GetTextLength(hEdit)
+    ;MsgBox, %startSel% %endSel% %text_len%
+    Edit_Clear(hEdit)
+  }
+}
+FindPrevCRLF(text) {
+  found_pos := InStr(text, "`r`n",, -1)
+  if (found_pos > 0) {
+    found_pos := found_pos + 1
+  } else {
+    found_pos := 0
+  }
+  return found_pos
+}
+
+FindPrevText(text_to_find, needle_text, start_pos) {
+  found_pos_space := InStr(text_to_find, needle_text,, -1)
+  if (found_pos_space > 0) {
+    if (found_pos_space = start_pos) {
+      sub_text := SubStr(text_to_find, 1, found_pos_space - 1)
+      found_pos_space := FindPrevText(sub_text, needle_text, found_pos_space - 1)
+    }
+  }
+
+  ; should not cross to previous line
+  found_pos_crlf := FindPrevCRLF(text_to_find)
+  if (found_pos_crlf >= found_pos_space) {
+    found_pos_space := found_pos_crlf
+  }
+
+  return found_pos_space
+}
+;; Ctrl + W
+;; delete previous word
+^w::{
+  focusedEle := UIA.GetFocusedElement()
+  if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
+    hEdit := focusedEle.NativeWindowHandle
+    Edit_GetSel(hEdit, &currStartSel)
+    If (currStartSel > 0) { ; if at the beginning of text, do nothing
+      l_text := Edit_GetTextRange(hEdit, 0, currStartSel - 1)
+      l_FoundPos := FindPrevText(l_text, " ", currStartSel)
+      ;MsgBox, %currStartSel% %l_FoundPos%
+      Edit_SetSel(hEdit, l_FoundPos, currStartSel)
+      Edit_Clear(hEdit)
+    }
+  }
+}
+
+
+InsertExamname() {
+  winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+  fdEle := winEle.FindFirst(UIA_FindingEdit)
+  impEle := winEle.FindFirst(UIA_ImpressionEdit)
+  focusedEle := UIA.GetFocusedElement()
+  if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
+    hEdit := focusedEle.NativeWindowHandle
+    currStartSel := 0
+    currEndSel := 0
+    Edit_GetSel(hEdit, &currStartSel, &currEndSel)
+    examname_text := GetCurrExamName() . ":`r`n`r`n"
+    Edit_SetText(hEdit, examname_text . Edit_GetText(hEdit))
+    newStartSel := currStartSel + StrLen(examname_text)
+    newEndSel := currEndSel + StrLen(examname_text)
+    Edit_SetSel(hEdit, newStartSel, newEndSel)
+    ;MsgBox(examname)
+  }
+}
+
+;; Insert Exam Name
+!e::{
+  InsertExamname()
+}
 !c::{
+  ;MsgBox("Auto Next & Save Report")
   CheckNextAuto(false)
   SaveReport()
 }
@@ -214,6 +367,7 @@ FindSimilarReport(examName := "")
     }
 }
 
+/*
 ^2::{
   Send "!q"
 }
@@ -221,11 +375,12 @@ FindSimilarReport(examName := "")
 ^3::{
   Send "!a"
 }
-
+  */
 !q::{
   Send "^e"
 }
 
+/*
 SC029::{
   If (!WinActive(RISReportWinTitle)) {
     WinActivate(RISReportWinTitle)
@@ -240,10 +395,16 @@ SC029::{
     ControlFocus(FINDING_CONTROL)
   }
 }
+*/
 
 ;; Insert Selected Prev Exam Date
 !d::{
   InsertSelectedPrevExamDate()
+}
+
+;; Insert Selected Prev Exam Name
+^!e::{
+  InsertSelectedPrevExamName()
 }
 
 ConvertRISDate(inputString) {
@@ -302,11 +463,52 @@ InsertSelectedPrevExamDate() {
   }
 }
 
-#HotIf ; 關閉上一個條件
+InsertSelectedPrevExamName() {
+  Local STATE_SYSTEM_SELECTED := 0x2
+  try {
+    ; 2. 獲取視窗元素
+    winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+    if !IsObject(winEle)
+      throw Error("找不到視窗: " . RISReportWinTitle)
+
+    ; 3. 尋找「表格」元素
+    tableEle := winEle.FindFirst(UIA_PastReportTable)
+    if !IsObject(tableEle)
+      throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
+
+    rowElements := tableEle.FindAll({ Type: 'Custom' })
+    if (rowElements.Length = 0)
+      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+
+    for i, rowEle in rowElements {
+      if IsObject(rowEle.LegacyIAccessiblePattern) {
+        Local legacyState := rowEle.LegacyIAccessiblePattern.State
+        if (legacyState & STATE_SYSTEM_SELECTED) {
+          examnameText := ""
+          dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 3)
+          if IsObject(dateCellEle) {
+            examnameText := dateCellEle.Value
+          }
+          ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
+          Paste(examnameText)
+          return
+        }
+      }
+    }
+    ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
+  }
+  catch as e {
+    MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+  }
+}
+
+#HotIf ; WinActive(RISReportWinTitle)
 
 Global simReportMap := Map(
   "CHEST PA/AP", Map("CHEST PA/AP+LAT",1),
   "CHEST PA/AP+LAT", Map("CHEST PA/AP",1),
   "KUB", Map("KUB+ABD LAT",1),
   "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing",1),
+  "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST",1),
+  "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST",1),
 )
