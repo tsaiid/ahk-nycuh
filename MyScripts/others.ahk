@@ -164,10 +164,10 @@
 ;  Clipboard := tmpClip
 ;Return
 
-;:c:CMP::COMPARISON: `
-:c:CMP::
-  Send COMPARISON: ^!d
-Return
+:c:CMP::COMPARISON: `
+;:c:CMP::
+;  Send COMPARISON: ^!d
+;Return
 :c:IM::IMPRESSION:`n
 :c:IM2::IMPRESSION:`nAs aforementioned.
 :c:IM3::IMPRESSION:`nNo evidence of liver metastasis.

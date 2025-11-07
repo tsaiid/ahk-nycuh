@@ -303,7 +303,7 @@ execute_shuttlepro(key,layer)
       } Else If (key = 6) {
 				Send, l
       } Else If (key = 7) {
-        Send, 1
+        Send, {F1}		; Brain window
       } Else If (key = 8) {
         Send, {F7}		; Liver window
       } Else If (key = 9) {
