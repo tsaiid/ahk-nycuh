@@ -1,4 +1,4 @@
-;; for INFINITT PACS
+﻿;; for INFINITT PACS
 #IfWinActive ahk_exe G3PACS.exe
 w::
   ControlGetFocus, FocusedControl

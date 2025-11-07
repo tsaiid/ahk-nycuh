@@ -1,4 +1,4 @@
-;
+﻿;
 ; Solid PACS Viewer
 ;
 #IfWinActive ahk_exe WEBVIE~1.EXE
