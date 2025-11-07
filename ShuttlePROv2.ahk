@@ -283,11 +283,11 @@ execute_shuttlepro(key,layer)
       If (key = 1) {
         Send, q
       } Else If (key = 2) {
-        Send, 7
+        Send, 7		; Skull window
       } Else If (key = 3) {
-        Send, {F5}		; Bone window
+        Send, 5		; Bone window
       } Else If (key = 4) {
-        Send, {F6}		; Chest window
+        Send, 6		; Lung window
       } Else If (key = 5) {
 				/*
 				; move mouse to RIS finding edit
@@ -301,13 +301,13 @@ execute_shuttlepro(key,layer)
 				*/
         Send, d
       } Else If (key = 6) {
-				Send, l
+				Send, 6		; Neck window
       } Else If (key = 7) {
-        Send, {F1}		; Brain window
+        Send, 1		; Brain window
       } Else If (key = 8) {
-        Send, {F7}		; Liver window
+        Send, 9		; Liver window
       } Else If (key = 9) {
-        Send, {F2}		; Abdomen window
+        Send, 4		; Abdomen window
       } Else If (key = 10) {
         Send, x
       } Else If (key = 11) {

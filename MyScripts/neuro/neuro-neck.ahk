@@ -244,9 +244,12 @@ The bilateral ossicle chains, cochlear and semicircular canals show no obvious a
 No osteolytic foci around the cochlear noted, and thus no CT imaging evidence of cochlear otosclerosis.
 
 Presence of mucoperiosteal thickening in the bilateral ethmoid and maxillary sinuses, mild sinusitis considered.
-
-IMPRESSION:
-No CT imaging evidence of cholesteatoma or otosclerosis noted. Clinical correlation is suggested.
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
+No CT imaging evidence of cholesteatoma or otosclerosis noted.
 )
   Paste(MyForm)
 Return

@@ -153,7 +153,7 @@ Return
   MyForm =
 (
 Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
+SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
 
 COMPARISON:
 Applicable previous CT of brain: no
@@ -176,9 +176,6 @@ The visible paranasal sinuses and mastoids are unremarkable.
 
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 The mastoids are unremarkable.
-
-REMARKS:
-* Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
 )
   Paste(MyForm)
   SleepThenTab()
@@ -187,6 +184,7 @@ REMARKS:
 No definite acute ICH, SAH, EDH, or SDH.
 No obvious acute intracranial findings.
 No remarkable intracranial findings on noncontrast CT.
+No significant intracranial organic lesion.
 )
   Paste(MyForm)
 Return
@@ -196,7 +194,7 @@ Return
   MyForm =
 (
 Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
+SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
 
 COMPARISON:
 Applicable previous CT of brain: no
@@ -208,9 +206,6 @@ FINDINGS:
 - The bilateral lateral ventricles show no dilatation, and no midline shift is noted.
 - No definite bony lesion in the skull.
 - The visible paranasal sinuses and mastoids are unremarkable.
-
-REMARKS:
-* Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
 )
   Paste(MyForm)
   SleepThenTab()
@@ -240,9 +235,6 @@ The visible paranasal sinuses and mastoids are unremarkable.
 
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 The mastoids are unremarkable.
-
-REMARKS:
-* Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
 )
   Paste(MyForm)
   SleepThenTab()
@@ -269,9 +261,6 @@ FINDINGS:
 - The bilateral lateral ventricles show symmetrical without dilatation.
 - No obvious fracture of the skull base and the skull.
 - The visible paranasal sinuses and mastoids are unremarkable.
-
-REMARKS:
-* Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
 )
   Paste(MyForm)
   SleepThenTab()
@@ -330,7 +319,7 @@ Return
   MyForm =
 (
 Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness; coronal reconstruction.
+SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness; coronal reconstruction.
 
 COMPARISON:
 Applicable previous CT of brain: no
