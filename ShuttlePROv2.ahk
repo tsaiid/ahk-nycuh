@@ -311,13 +311,19 @@ execute_shuttlepro(key,layer)
       } Else If (key = 10) {
         Send, x
       } Else If (key = 11) {
-        ;Send, f
-				ToggleDiffExamSync()
+				If (WinActive("172.17.12.174 - 遠端桌面連線")) {
+					Send, f				;Send Sync others in Remote Desktop
+				} Else {
+					ToggleDiffExamSync()
+				}
       } Else If (key = 12) {
 				;Reload
       } Else If (key = 13) {
-        ;Send, w
-				ToggleSync()
+				If (WinActive("172.17.12.174 - 遠端桌面連線")) {
+					Send, w				; Send Sync in Remote Desktop
+				} Else {
+					ToggleSync()
+				}
       } Else If (key = 14) {
         ;Send, {Up}
 				Send, o
