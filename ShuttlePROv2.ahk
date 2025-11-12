@@ -279,7 +279,7 @@ execute_shuttlepro(key,layer)
       } Else If (key = 15) {
         Send, ^!w			; Sync Window Center/Level
       }
-    } Else If (WinActive("ahk_exe G3PACS.exe")) {
+    } Else If (WinActive("ahk_exe G3PACS.exe") || WinActive("172.17.12.174 - 遠端桌面連線")) {
       If (key = 1) {
         Send, q
       } Else If (key = 2) {
@@ -368,7 +368,11 @@ execute_shuttlepro_speed(speed,layer)
 		timer_active_hwnd := WinExist("A")
 		;a .= "timer_active_hwnd: " . timer_active_hwnd
 
-    If (WinActive("ahk_exe G3PACS.exe")) {
+    If (WinActive("172.17.12.174 - 遠端桌面連線")) {
+      a .= "Remote Desktop: "
+      ; send the first key, because SetTimer will wait for the first period
+			set_scroll_speed(corrected_speed_saved, speed, 800, 600, 333, 200, 100, 50, 20)
+		} Else If (WinActive("ahk_exe G3PACS.exe")) {
       a .= "GEUV: "
       ; send the first key, because SetTimer will wait for the first period
 			set_scroll_speed(corrected_speed_saved, speed, 800, 600, 333, 200, 100, 50, 20)
@@ -393,7 +397,14 @@ execute_shuttlepro_shuttle(shuttle_value,layer)
 		global
 		; Do what needs to be done here
 		; at the moment, just add to the global string
-    If (WinActive("ahk_exe G3PACS.exe")) {
+    If (WinActive("172.17.12.174 - 遠端桌面連線")) {
+      a .= "Remote Desktop "
+      If (is_shuttle_clockwise(shuttle_value, shuttlepro_shuttle_saved)) {
+        Click, WheelDown
+      } Else {
+        Click, WheelUp
+      }
+		} Else If (WinActive("ahk_exe G3PACS.exe")) {
       a .= "GEUV "
       If (is_shuttle_clockwise(shuttle_value, shuttlepro_shuttle_saved)) {
         Click, WheelDown
