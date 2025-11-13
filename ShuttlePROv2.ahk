@@ -301,7 +301,7 @@ execute_shuttlepro(key,layer)
 				*/
         Send, d
       } Else If (key = 6) {
-				Send, 6		; Neck window
+				Send, 8		; Neck window
       } Else If (key = 7) {
         Send, 1		; Brain window
       } Else If (key = 8) {
