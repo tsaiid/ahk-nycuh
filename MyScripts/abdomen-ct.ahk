@@ -85,6 +85,8 @@
 ::natf::No definite acute intrathoracic findings.
 ::nataf::No definite acute intrathoracic or intraabdominal findings.
 ::nacraf::No definite acute intracranial findings.
+::ntif::No definite intrathoracic infectious focus.
+::naif::No definite intraabdominal infectious focus.
 ::actapn::Edematous left renal parenchyma, with multifocal hypo-enhanced areas and perirenal fat stranding, suggestive of acute pyelonephritis.
 ::cdiv::colonic diverticula
 ::cdivs::colonic diverticulosis
@@ -294,6 +296,7 @@ No retroperitoneal or mesenteric lymphadenopathy.
 No pelvic, retroperitoneal or mesenteric lymphadenopathy.
 No pelvic or retroperitoneal lymphadenopathy.
 No obvious intraabdominal lymphadenopathy.
+No pelvic lymphadenopathy.
 )
   Paste(MyForm)
 Return
@@ -1357,13 +1360,6 @@ Return
 ::actacc::
   MyForm =
 (
-TECHNIQUE:
-Non-contrast and contrast-enhanced abdominal CT scans.
-Scanning range: Liver to symphysis, 5-mm contiguous scan.
-
-Previous abdominal CT: none.
-
-FINDINGS:
 Diffuse gallbladder wall thickening and edematous changes with gallbladder stones, GB distention, and pericholecystic fat stranding are noted. Acute cholecystitis is considered.
 Diffuse gallbladder wall thickening and edematous changes with gallbladder stones and GB distention are noted. Acute cholecystitis is considered.
 Diffuse gallbladder wall thickening and edematous changes with pericholecystic fluid accumulation, and tiny gallbladder stones are noted. Even though, no obvious GB distention. Acute cholecystitis is still considered.
@@ -1378,8 +1374,11 @@ The liver, spleen, pancreas, adrenals, kidneys, and bowels are unremarkable.
 The lower abdomen and pelvis are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
-
-IMPRESSION:
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
 C/W acute cholecystitis.
 C/W acute calculus cholecystitis.
 Early changes of acute cholecystitis is suspected. Suggest correlate with sonography and Murphy sign.

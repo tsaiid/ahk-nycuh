@@ -7,7 +7,7 @@ PTCCD is indicated and has been arranged.
   Paste(MyForm)
 Return
 
-::1sg-ptccd::
+::1sg-ptgbd::
   FormatTime, currDateStr, L1033, M/d tt
   MyForm =
 (
@@ -29,7 +29,7 @@ P.T.C.C.D:
   Paste(MyForm)
 Return
 
-::sg-ptccd::
+::sg-ptgbd::
   MyForm =
 (
 Under sonography guidance, the gallbladder was localized.
@@ -42,6 +42,12 @@ Brown, sandy, mucinous, pus like fluid was aspirated and collected for examinati
 
 The fluoroscopy confirmed the drain's location. Then, the drain was fixed with Nylon.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
+PTGBD (8F pigtail drain without string lock) was performed.
 )
   Paste(MyForm)
 Return

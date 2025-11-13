@@ -24,6 +24,7 @@
 ::ctmast::Presence of soft tissue density in the ---- mastoid air sinus, R/O mastoiditis or fluid collection in the mastoid.
 ::ctcmast::Underdeveloped pneumatization and sclerotic changes of right/left/bilateral mastoid air cells, suspicious chronic mastoiditis.
 ::atrv::Diffuse atrophy of bilateral cerebral hemispheres, with compensatory dilatation of bilateral lateral ventricles, deepening and widening of cortical sulci.
+::matrv::Mild enlargement of the ventricular system, in favor of mild brain atrophy.
 ::atrvs::Enlargement of the ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of brain atrophy.
 ::matrvs::Mild enlargement of the ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of mild brain atrophy.
 ::atrssa::Sulcal widening of bilateral cerebral hemispheres and enlargement of the subarachnoid space noted, in favor of mild brain atrophy.
@@ -126,6 +127,8 @@
 ::msl::midline shift to left
 ::noms::No midline shift is noted.
 ::sgh::subgaleal hematoma
+::ntci::No definite traumatic intracranial injury.
+::nacf::No definite acute intracranial findings.
 
 ::li1::
   MyForm =
@@ -327,14 +330,6 @@ Return
 ::mricvaok::
   MyForm =
 (
-The MR of the brain performed with Sagittal T2WI, Coronal T1WI
-Axial T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
-Diffusion-weighted Imaging (DWI) and Apparent Diffusion Coefficient (ADC) map
-Intracranial MRA with 3D TOF and focus on the circle of Willis showed:
-
-Previous MRI of brain: none
-
-FINDINGS:
 No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
 
 No definite abnormal signal intensity changes or tumor mass lesion in the brain noted.
@@ -357,15 +352,6 @@ Return
 ::mrbok::
   MyForm =
 (
-The MR of the brain performed with Sagittal T2WI, Coronal T1WI
-Axial T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
-Diffusion-weighted Imaging (DWI) and Apparent Diffusion Coefficient (ADC) map
-And post Gadolinium (0.1 mmol/kg) enhancement with axial, coronal, and sagittal T1 weighted image
-Intracranial MRA with 3D TOF and focus on the circle of Willis show:
-
-Previous MRI of brain: none
-
-FINDINGS:
 No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
 
 No definite abnormal signal intensity or tumor mass lesion in the brain noted.
@@ -386,6 +372,7 @@ MRA shows no significant vascular stenosis in the major intracranial arteries or
   MyForm =
 (
 No remarkable intracranial findings.
+No evidence of intracranial metastasis.
 )
   Paste(MyForm)
 Return

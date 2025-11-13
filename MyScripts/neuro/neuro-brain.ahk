@@ -152,13 +152,6 @@ Return
 ::ctn2ok::
   MyForm =
 (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
 
@@ -216,16 +209,9 @@ No remarkable intracranial findings on noncontrast CT.
   Paste(MyForm)
 Return
 
-::ctn2oktr::
+::ctn2trok::
   MyForm =
 (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
@@ -235,38 +221,36 @@ The visible paranasal sinuses and mastoids are unremarkable.
 
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 The mastoids are unremarkable.
+
+- No obvious fracture or dislocation of the cervical spine.
 )
   Paste(MyForm)
   SleepThenTab()
   MyForm =
 (
 No definite acute ICH, SAH, EDH, or SDH.
+- No obvious fracture or dislocation of the cervical spine.
 )
   Paste(MyForm)
 Return
 
-::ctn2oktr0::
+::ctn2trok0::
   MyForm =
 (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 - No definite area of obvious abnormal density in the brain noted.
 - No definite abnormal mass lesion in the brain noted.
 - No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 - The bilateral lateral ventricles show symmetrical without dilatation.
 - No obvious fracture of the skull base and the skull.
 - The visible paranasal sinuses and mastoids are unremarkable.
+- No obvious fracture or dislocation of the cervical spine.
 )
   Paste(MyForm)
   SleepThenTab()
   MyForm =
 (
 No definite acute ICH, SAH, EDH, or SDH.
+- No obvious fracture or dislocation of the cervical spine.
 )
   Paste(MyForm)
 Return
@@ -476,13 +460,6 @@ Return
 ::ctn2hie::
   MyForm =
 (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 diffuse edema with effacement of the CSF-containing spaces
 decreased bilateral basal ganglia attenuation
 reversal of the normal CT attenuation of grey and white matter (reversal sign)
@@ -687,16 +664,6 @@ Return
 ::mricva::
   MyForm =
 (
-The MR of the brain performed with Sagittal T2WI, Coronal T1WI
-Axial T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
-Diffusion-weighted Imaging (DWI) and Apparent Diffusion Coefficient (ADC) map
-And post Gadolinium (0.1 mmol/kg) enhancement with axial, coronal, and sagittal T1 weighted image
-Intracranial MRA with 3D TOF and focus on the circle of Willis show:
-Intracranial MRA with 3D TOF and focus on the circle of Willis, intracranial MR venography (MRV) show:
-
-Previous MRI of brain: none
-
-FINDINGS:
 No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
 
 No evidence of high signal intensity lesion in the brain stem on DWI.

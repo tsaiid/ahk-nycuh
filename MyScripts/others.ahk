@@ -140,6 +140,7 @@
 ::sp::status post `
 ::ma::measures approximately `
 ::ma1::measuring approximately `
+::ua::unavailable
 
 ::pl::possibly `
 ::pb::probably `
