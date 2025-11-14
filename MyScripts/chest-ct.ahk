@@ -40,18 +40,18 @@
 ::ccttrok::
   MyForm =
 (
-No pneumothorax or hemothorax.
-No lung contusion, pneumothorax, or hemothorax.
-The heart and great vessels appear unremarkable.
-The thoracic cage and bones appear intact.
+- No pneumothorax or hemothorax.
+- No lung contusion, pneumothorax, or hemothorax.
+- The heart and great vessels appear unremarkable.
+- The thoracic cage and bones appear intact.
 )
   Paste(MyForm)
 Return
 ::cctlapok::
   MyForm =
 (
-No mediastinal or pulmonary hilar lymphadenopathy.
-No axillary, supraclavicular, mediastinal or pulmonary hilar lymphadenopathy.
+- No mediastinal or pulmonary hilar lymphadenopathy.
+- No axillary, supraclavicular, mediastinal or pulmonary hilar lymphadenopathy.
 )
   Paste(MyForm)
 Return
@@ -65,10 +65,10 @@ Return
 ::cctok::
   MyForm =
 (
-No pulmonary nodule.
-No mediastinal lymphadenopathy.
-The heart and great vessels appear unremarkable.
-The thoracic cage and bones appear intact.
+- No pulmonary nodule.
+- No mediastinal lymphadenopathy.
+- The heart and great vessels appear unremarkable.
+- The thoracic cage and bones appear intact.
 )
   Paste(MyForm)
 Return
@@ -758,6 +758,92 @@ Remark: Some heart motion might mimic pseudo-stenotic lesions in Volume Renderin
   MyForm =
 (
 No evidence of coronary stenosis or plaque by Coronary CT Angiography.
+)
+  Paste(MyForm)
+Return
+
+::cctnhi::
+  MyForm =
+(
+國健署低劑量CT肺癌篩檢 (without contrast):
+
+----
+LDCT Quality: [+] Good □Acceptable □Not Acceptable
+CTDIvol: _ mGy Total DLP: _ mGy*cm
+In comparison with the prior CT, Date (Y/M/D) _ □No prior chest CT available
+
+Lung nodule findings related to cancer screening
+詳細規範請參閱 Lung-RADS v2022
+
+□No lung nodule
+□Nodule with benign features.
+□Lung nodule(s) (<6mm) (選填 SE: , IM:   )
+□Juxtapleural nodule.
+□Lung nodule(s) (≧6mm or enlarging>1.5mm or new≧4mm): total number □1 □2 □3 □≥4, and described as followings:
+請依序描述最懷疑之肺結節(至多 3 個) (Describe the most suspicious 3 nodules in order)
+
+  □Lung nodule 1 (size, character and location)
+    Entire Nodule: ______mm
+    Density: □non-solid □part-solid (solid part: ___ mm) □solid
+    Lobe: (SE:___, IM:___) □RUL □RML □RLL □LUL □LLL
+    The nodule is □unchanged □enlarging (>1.5 mm) □newly found (≧4 mm) in follow-up □No prior chest CT comparison
+
+  □Lung nodule 2 (size, character and location)
+    Entire Nodule: ______mm
+    Density: □non-solid □part-solid (solid part: ___ mm) □solid
+    Lobe: (SE:___, IM:___) □RUL □RML □RLL □LUL □LLL
+    The nodule is □unchanged □enlarging (>1.5 mm) □newly found (≧4 mm) in follow-up □No prior chest CT comparison
+
+  □Lung nodule 3 (size, character and location)
+    Entire Nodule: ______mm
+    Density: □non-solid □part-solid (solid part: ___ mm) □solid
+    Lobe: (SE:___, IM:___) □RUL □RML □RLL □LUL □LLL
+    The nodule is □unchanged □enlarging (>1.5 mm) □newly found (≧4 mm) in follow-up □No prior chest CT comparison
+  □Lung nodules else □RUL □RML □RLL □LUL □LLL (SE:____________, IM:____________)
+
+□Airway nodule
+  □Subsegmental (Category 2)
+  □Segmental or more proximal
+    □Favors secretions (Category 2)
+    □At baseline (Category 4A)
+    □Stable or growing (Category 4B)
+
+□Atypical pulmonary cyst
+  □Category 3. Lobe: (SE: , IM: ) □RUL □RML □RLL □LUL □LLL
+  □Category 4A. Lobe: (SE: , IM: ) □RUL □RML □RLL □LUL □LLL
+  □Category 4B. Lobe: (SE: , IM: ) □RUL □RML □RLL □LUL □LLL
+
+□The pattern of lung nodules has a higher probability of metastases
+
+----
+Other Lung Findings (選填)
+□Emphysema □Bronchiectasis □Bronchitis/bronchiolitis □Tree-in-bud pattern
+□Centrilobular nodules □Old pulmonary TB □Interstitial lung disease (ILD) □Other____________
+
+Other Findings (選填)
+□Enlarged lymph nodes, location____________
+□Coronary artery calcification____________
+□Other significant abnormal chest findings ____________
+□Other significant abnormal abdominal or neck findings in this chest CT scan ____________
+
+----
+Overall recommendation
+Lung-RADS v2022 Category Descriptor
+  □Category 0: Incomplete.
+    □Prior chest CT examination being located for comparison.
+    □Part or all of lungs cannot be evaluated.
+    □Findings suggestive of an inflammatory or infectious process.
+    □Category 1: Negative.
+  □Category 2: Benign - Based on imaging features or indolent behavior.
+  □Category 3: Probably Benign - Based on imaging features or behavior.
+  □Category 4A: Suspicious.
+  □Category 4B: Very suspicious.
+  □Category 4X: Category 3 or 4 nodules with additional features or imaging findings that increase suspicion for lung cancer.
+
+----
+(選填)
+□Modifier S: May add to category 0-4 for clinically significant or potentially clinically significant findings unrelated to lung cancer.
+□請至門診就診
 )
   Paste(MyForm)
 Return

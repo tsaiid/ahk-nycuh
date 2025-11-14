@@ -35,7 +35,7 @@
 ::rec::recurrence
 ::ret::retention
 :c:imp::improvement
-::imp2::As aforementioned.
+::im::As aforementioned.
 ::impd::improved
 ::w::with `
 ::wo::without `
@@ -188,6 +188,7 @@
 ::fu0::follow-up
 ::ccfu::Clinical correlation and follow-up are suggested.
 ::fufe::Follow-up or further evaluation is suggested.
+::ccolon::Correlation with colonoscopy is suggested.
 ::cpes::Correlation with panendoscopy is suggested.
 ::csono::Correlation with sonography is suggested.
 ::ccsono::Clinical and sonographic correlation are suggested.
