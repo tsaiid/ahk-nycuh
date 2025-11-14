@@ -10,11 +10,11 @@ ReorderSelectedText(deOrder = False, keepEmptyLine = False, itemChar = "", disca
     ClipSaved := ClipboardAll
     Clipboard := ""
     Send ^c
-    Sleep 400 ; Probably more than enough. Depends on the system.
+    Sleep 300 ; Probably more than enough. Depends on the system.
   } Else {
     Clipboard := ""
     Send ^c
-    Sleep, 400
+    Sleep, 300
   }
   selectedText := Clipboard
 
@@ -107,6 +107,7 @@ ReorderSelectedText(deOrder = False, keepEmptyLine = False, itemChar = "", disca
     }
     ;MsgBox, "%finalText%"
     Clipboard := finalText
+    Sleep 100
     Send ^v
     ;MsgBox, %leftText%%finalText%%rightText%
     ;Edit_SetText(hEdit, leftText . finalText . rightText)
@@ -117,7 +118,7 @@ ReorderSelectedText(deOrder = False, keepEmptyLine = False, itemChar = "", disca
     Return 0
   } Else {
     ; No selection. Do nothing.
-    ;MsgBox, No content in the selection.
+    MsgBox, No content in the selection.
     Return -1
   }
 }
