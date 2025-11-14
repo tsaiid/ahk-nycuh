@@ -151,6 +151,7 @@ PRESERVE_CLIPBOARD := 0
 ;  Send {Home}+{End}{Del}
 ;Return
 
+/*
 ; Reorder Seleted Text And Discard SeIm
 ^!o::
   ReorderSelectedText()
@@ -177,6 +178,7 @@ Return
 ^!>::
   ReorderSelectedText(false, true, "->")
 Return
+*/
 #IfWinActive  ; ahk_group RIS
 
 #IfWinActive ahk_exe XRay.exe

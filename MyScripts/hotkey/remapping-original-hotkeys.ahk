@@ -173,6 +173,7 @@ InsertExamname()
 }
 
 
+/*
 ;; Remap Kana Key
 ;;; Formatting IMPRESSION
 ;;;; Reorder Seleted Text And Discard SeIm
@@ -197,6 +198,8 @@ SC070::
     }
   }
 Return
+
+*/
 
 GetExamTypeFromRIS()
 {
@@ -243,7 +246,7 @@ UnorderListForFindingsOfCrUs()
       ;MsgBox % startSel
       Edit_SetFocus(hEdit)
       Edit_SetSel(hEdit, startSel, -1)
-      Sleep, 100
+      ;Sleep, 100
       ReorderSelectedText(false, true, "-", false)
     }
   }
@@ -288,9 +291,11 @@ UnorderListForFindingsOfCtOrMr()
 
 ;;; Formatting FINDINGS
 ;;;; Reorder Seleted Text And Keep SeIm
+/*
 SC079::
   OrderListForFindings()
 Return
+*/
 
 /*
 
@@ -529,6 +534,7 @@ Return
 Return
 
 ;; for JIS keyboard
+/*
 SC029::
   global FINDING_CONTROL, IMPRESSION_CONTROL
   If (!WinActive("報告作業(frmRISReport)")) {
@@ -550,6 +556,7 @@ SC029::
     }
   }
 Return
+*/
 
 SC07B::LButton
 
