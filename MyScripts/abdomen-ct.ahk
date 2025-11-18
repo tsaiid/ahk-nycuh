@@ -386,24 +386,18 @@ Return
 ::actppu::
   MyForm =
 (
-TECHNIQUE:
-Non-contrast and contrast-enhanced abdominal CT scans.
-Scanning range: Liver to symphysis, 5-mm contiguous scan.
-Contrast medium: Yes, 80 ml, 1-2 ml/sec, with 100 seconds scanning delay.
-
-Previous abdominal CT: none.
-
-FINDINGS:
 Presence of intraperitoneal free air with turbid ascites, predominantly at the upper abdomen, suggestive of hollow organ perforation.
 Abnormal wall thickness over the duodenal bulb region with loss of wall integrity. Perforated peptic ulcer is suspected.
 
-The liver, spleen, pancreas, adrenals, kidneys, and bowels are unremarkable.
-The lower abdomen and pelvis are unremarkable.
+The liver, spleen, pancreas, adrenals, and kidneys are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
-
-IMPRESSION:
-Hollow organ perforation, suspicious perforated peptic ulcer.
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
+Hollow organ perforation. Perforated peptic ulcer may be suspected.
 )
   Paste(MyForm)
 Return

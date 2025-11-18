@@ -3,10 +3,10 @@
 ::mrposts::Mild soft tissue swelling in the right periorbital region.
 ::lposts::Soft tissue swelling in the left periorbital region.
 ::mlposts::Mild soft tissue swelling in the left periorbital region.
-::ra1hp::Hypoplasia of right A1 anterior cerebral artery.
-::la1hp::Hypoplasia of left A1 anterior cerebral artery.
-::rv4hp::Hypoplasia of right V4 vertebral artery.
-::lv4hp::Hypoplasia of left V4 vertebral artery.
+::ra1hp::hypoplasia of right A1 anterior cerebral artery.
+::la1hp::hypoplasia of left A1 anterior cerebral artery.
+::rv4hp::hypoplasia of right V4 vertebral artery.
+::lv4hp::hypoplasia of left V4 vertebral artery.
 
 ;; CTN1
 ::ctn1::
@@ -217,7 +217,7 @@ No definite abnormal mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 The bilateral lateral ventricles show symmetrical without dilatation.
 No obvious fracture of the skull base and the skull.
-The visible paranasal sinuses and mastoids are unremarkable.
+The paranasal sinuses and mastoids are unremarkable.
 
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 The mastoids are unremarkable.

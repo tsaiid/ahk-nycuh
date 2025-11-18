@@ -35,27 +35,29 @@ Under CT guide, tissue specimens were smoothly taken for pathology examination.
 
 1. Position:
 2. Target lesions
--> A. Location lobe:
--> B. Main lesion size:  mm
--> C. Cavity or central necrosis: Yes / No
--> D. Pleural distance:  mm
+--> A. Location lobe:
+--> B. Main lesion size:  mm
+--> C. Cavity or central necrosis: Yes / No
+--> D. Pleural distance:  mm
 3. Focal emphysema of lung parenchyma: No / Mild / Moderate / Severe
 4. Patient cooperation: good / fair / poor
 5. Complications:
--> A. Pneumothorax: No / Minimal / Mild / Moderate / Severe; Aspiration for pneumothorax: Yes / No
--> B. Focal hemorrhage: Yes, mild / No
--> C. Hemoptysis: No
--> D. Chest tightness: No
--> E. Asthma: No
+--> A. Pneumothorax: No / Minimal / Mild / Moderate / Severe; Aspiration for pneumothorax: Yes / No
+--> B. Focal hemorrhage: Yes, mild / No
+--> C. Hemoptysis: No
+--> D. Chest tightness: No
+--> E. Asthma: No
 6. Specimen: (4 attempts to biopsy)
--> Formalin: x3; normal saline: x1 (part of one sample);
--> Bacterial culture swab: aerobic x1; anaerobic x1.
+--> Formalin: x3; cytology: x4
 
 The patient was sent back to the ward under stable condition without complaint.
 Recommend close f/u patient's vital signs, bed rest and compression for at least 4 hours.
 F/U CXR 6 hours later.
-
-IMPRESSION:
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
 CT guide lung biopsy of  tumor was performed.
 Mild pneumothorax was noted. Follow-up is suggested.
 )
