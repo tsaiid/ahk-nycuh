@@ -486,46 +486,6 @@ Return
 Return
 #IfWinActive  ; end of ahk_group RIS
 
-
-#IfWinActive 檢查結果(frmPos)
-!1::
-  global ABNORMAL_VALUE_1_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_1_CONTROL%
-  }
-Return
-
-!2::
-  global ABNORMAL_VALUE_2_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_2_CONTROL%
-  }
-Return
-
-!3::
-  global ABNORMAL_VALUE_3_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_3_CONTROL%
-  }
-Return
-
-!4::
-  global ABNORMAL_VALUE_4_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_4_CONTROL%
-  }
-Return
-
-!c::
-  global ABNORMAL_VALUE_SAVE_BUTTON_CONTROL
-  If (WinActive("檢查結果(frmPos)")) {
-    ControlClick %ABNORMAL_VALUE_SAVE_BUTTON_CONTROL%
-  }
-Return
-#IfWinActive  ; end of ahk_group RIS
-
-
-
 ;
 ; Global Remap
 ;

@@ -43,6 +43,9 @@ Global PAST_MODALITY_RADIO_HWND := 0
 Global PAST_ONLY_MY_RADIO_HWND := 0
 Global PAST_FINDING_HWND := 0
 Global PAST_IMPRESSION_HWND := 0
+Global risEle := ""
+Global autoNextEle := ""
+Global reportSaveEle := ""
 
 #HotIf WinActive(RISReportWinTitle)
 ^9::{
@@ -252,12 +255,12 @@ InsertExamname() {
 !c::{
   ;MsgBox("Auto Next & Save Report")
   CheckNextAuto(false)
-  SaveReport()
+  ClickSaveReport()
 }
 
 ^s::{
   CheckNextAuto(true)
-  SaveReport()
+  ClickSaveReport()
 }
 
 CheckNextAuto(checked := true){
@@ -285,17 +288,26 @@ CheckNextAuto(checked := true){
   ;MsgBox(autoNextEle.ToggleState)
 }
 
-SaveReport(){
+ClickSaveReport(){
+  global reportSaveEle
+  if (!IsObject(reportSaveEle)) {
+    try {
+        global risEle
+        winEle := risEle
+        if !IsObject(winEle)
+            throw Error("找不到視窗: " . RISReportWinTitle)
+
+        reportSaveEle := winEle.FindElement(UIA_ReportSaveButton)
+        if !IsObject(reportSaveEle)
+            throw Error("找不到 '報告存檔按鈕' 物件！`n請檢查您的 UIA_ReportSaveButton 查詢條件。`n`n目前條件: " . UIA_ReportSaveButton)
+
+    }
+    catch as e {
+        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+    }
+  }
   try {
-      winEle := risEle
-      if !IsObject(winEle)
-          throw Error("找不到視窗: " . RISReportWinTitle)
-
-      saveBtnEle := winEle.FindFirst(UIA_ReportSaveButton)
-      if !IsObject(saveBtnEle)
-          throw Error("找不到 '報告存檔按鈕' 物件！`n請檢查您的 UIA_ReportSaveButton 查詢條件。`n`n目前條件: " . UIA_ReportSaveButton)
-
-      saveBtnEle.Click()
+      reportSaveEle.ControlClick()
   }
   catch as e {
       MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
@@ -488,6 +500,75 @@ ConvertRISDate(inputString) {
   outputDate := gregorianYear . "-" . month . "-" . day
 
   Return outputDate
+}
+
+InsertSelectedPrevExamDateCached() {
+  global risEle
+  Local STATE_SYSTEM_SELECTED := 0x2
+  try {
+    ;local cacheRequest := UIA.CreateCacheRequest(["ControlType", "Value"], ["LegacyIAccessiblePattern"], UIA.TreeScope.Descendants)
+    local cacheRequest := UIA.CreateCacheRequest()
+    cacheRequest.TreeScope := UIA.TreeScope.Subtree
+    cacheRequest.AddProperty("ControlType")
+    cacheRequest.AddProperty("Value")
+    cacheRequest.AddProperty("Name")
+    cacheRequest.AddPattern("LegacyIAccessible")
+
+    ; 2. 獲取視窗元素
+    winEle := risEle
+    ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+    if !IsObject(winEle)
+      throw Error("找不到視窗: " . RISReportWinTitle)
+
+    ; 3. 尋找「表格」元素
+    ;tableEle := winEle.FindFirst(UIA_PastReportTable)
+    tableEle := winEle.FindElement(UIA_PastReportTable, , , , , cacheRequest)
+    if !IsObject(tableEle)
+      throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
+
+    ;rowElements := tableEle.FindElements({ ControlType: 'Custom' })
+    ;rowElements := tableEle.FindElements({ ControlType: 'Custom' }, , , , cacheRequest)
+    rowElements := tableEle.FindCachedElements({ ControlType: 'Custom' })
+    ;MsgBox(rowElements.Length)
+    if (rowElements.Length = 0)
+      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+
+    for i, rowEle in rowElements {
+      ;MsgBox(rowEle.CachedControlType)
+      if IsObject(rowEle.CachedLegacyIAccessiblePattern) {
+      ;if IsObject(rowEle.LegacyIAccessiblePattern) {
+        ;Local legacyState := rowEle.LegacyIAccessiblePattern.State
+        Local legacyState := rowEle.CachedLegacyIAccessiblePattern.State
+        ;MsgBox(legacyState)
+        if (legacyState & STATE_SYSTEM_SELECTED) {
+          dateText := ""
+          ;MsgBox(rowEle.CachedChildren.Length)
+          ;for cell in rowEle.CachedChildren {
+          ;  MsgBox(cell.CachedValue)
+          ;  if (cell.CachedControlType = UIA.ControlType.DataItem) {
+          ;      dateText := cell.CachedValue
+          ;      break
+          ;  }
+          ;}
+          ;dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 1)
+          dateCellEle := rowEle.FindCachedElement({ControlType: "DataItem"}, , 1)
+          ;MsgBox(dateCellEle.CachedValue)
+          if IsObject(dateCellEle) {
+            dateText := dateCellEle.CachedValue
+            ;dateText := dateCellEle.Value
+          }
+          ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
+          ;MsgBox(dateText)
+          Paste(ConvertRISDate(dateText))
+          return
+        }
+      }
+    }
+    ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
+  }
+  catch as e {
+    MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+  }
 }
 
 InsertSelectedPrevExamDate() {
@@ -783,7 +864,7 @@ SC029::{
 
 UpdateRisElements()
 {
-  global risEle, autoNextEle
+  global risEle, autoNextEle, reportSaveEle
   global FINDING_CONTROL_HWND, IMPRESSION_CONTROL_HWND, EXAMNAME_HWND
   global PAST_ALL_RADIO_HWND, PAST_MODALITY_RADIO_HWND, PAST_ONLY_MY_RADIO_HWND
   global PAST_FINDING_HWND, PAST_IMPRESSION_HWND
@@ -817,6 +898,7 @@ UpdateRisElements()
     PAST_IMPRESSION_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
     autoNextEle := risEle.FindFirst(UIA_AutoNextCheckbox)
+    reportSaveEle := risEle.FindElement(UIA_ReportSaveButton)
   }
   catch as e
   {
@@ -974,6 +1056,7 @@ Global simReportMap := Map(
 UpdateRisElements()
 SetTimer(UpdateRisElements, 5000)
 
+;-----------------------------------------------------------
 ; Mouse Remapping
 #HotIf WinActive(RISReportWinTitle)
 
@@ -985,3 +1068,24 @@ XButton2::{
 }
 
 #HotIf ; WinActive(RISReportWinTitle)
+
+;-----------------------------------------------------------
+#HotIf WinActive(RISCTMRAbnormalWinTitle)
+!1::{
+  global ABNORMAL_VALUE_1_CONTROL
+  ControlClick(ABNORMAL_VALUE_1_CONTROL)
+}
+!2::{
+  global ABNORMAL_VALUE_2_CONTROL
+  ControlClick(ABNORMAL_VALUE_2_CONTROL)
+}
+!3::{
+  global ABNORMAL_VALUE_3_CONTROL
+  ControlClick(ABNORMAL_VALUE_3_CONTROL)
+}
+!4::{
+  global ABNORMAL_VALUE_4_CONTROL
+  ControlClick(ABNORMAL_VALUE_4_CONTROL)
+}
+
+#HotIf ; WinActive(RISCTMRAbnormalWinTitle)
