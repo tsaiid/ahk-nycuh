@@ -160,7 +160,27 @@ FindPrevText(text_to_find, needle_text, start_pos) {
 }
 ;; Ctrl + W
 ;; delete previous word
-^w::{
+cacheRequest := UIA.CreateCacheRequest(["AutomationId", "NativeWindowHandle"])
+
+DeletePrevWordUsingCache() {
+  global cacheRequest
+  ;focusedEle := UIA.GetFocusedElement()
+  focusedEle := UIA.GetFocusedElement(cacheRequest)
+  ;if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
+  if (focusedEle.CachedAutomationId = UIA_FindingEdit.AutomationId || focusedEle.CachedAutomationId = UIA_ImpressionEdit.AutomationId) {
+    hEdit := focusedEle.CachedNativeWindowHandle
+    Edit_GetSel(hEdit, &currStartSel)
+    If (currStartSel > 0) { ; if at the beginning of text, do nothing
+      l_text := Edit_GetTextRange(hEdit, 0, currStartSel - 1)
+      l_FoundPos := FindPrevText(l_text, " ", currStartSel)
+      ;MsgBox, %currStartSel% %l_FoundPos%
+      Edit_SetSel(hEdit, l_FoundPos, currStartSel)
+      Edit_Clear(hEdit)
+    }
+  }
+}
+
+DeletePrevWord() {
   focusedEle := UIA.GetFocusedElement()
   if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
     hEdit := focusedEle.NativeWindowHandle
@@ -173,6 +193,37 @@ FindPrevText(text_to_find, needle_text, start_pos) {
       Edit_Clear(hEdit)
     }
   }
+}
+
+^w::{
+  DeletePrevWord()
+}
+
+; ==============================================================================
+; 3. Benchmark 工具函數 (高精確度)
+; ==============================================================================
+; 參數:
+; funcObj: 要測試的函數物件 (使用 CallbackCreate 或 Func.Bind)
+; times: 執行的次數
+; 回傳: 執行總耗時 (毫秒, ms)
+; ==============================================================================
+Benchmark(funcObj, times := 1) {
+    ; 1. 獲取計時器頻率 (每秒多少 ticks)
+    DllCall("QueryPerformanceFrequency", "Int64*", &freq := 0)
+
+    ; 2. 記錄開始時間
+    DllCall("QueryPerformanceCounter", "Int64*", &start := 0)
+
+    ; 3. 執行迴圈
+    Loop times {
+        funcObj()
+    }
+
+    ; 4. 記錄結束時間
+    DllCall("QueryPerformanceCounter", "Int64*", &end := 0)
+
+    ; 5. 計算耗時 ( (結束-開始) / 頻率 * 1000 轉換為毫秒 )
+    return (end - start) / freq * 1000
 }
 
 
@@ -598,43 +649,42 @@ OrderListForFindings()
 
 UnorderListForFindingsOfCtOrMr()
 {
-  examtype := GetCurrExamType()
-  If (examtype = "CT" || examtype = "MR") {
-    ;ControlGet, hEdit, Hwnd,, %FINDING_CONTROL%
-    ;fdEle := risEle.FindFirst(UIA_FindingEdit)
-    ;hEdit := fdEle.NativeWindowHandle
-    ;MsgBox(FINDING_CONTROL_HWND)
-    if (hEdit := FINDING_CONTROL_HWND) {
-      startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|The study shows:`r`n`r`n|show the following findings:`r`n`r`n|which revealed:`r`n`r`n", , , "RegEx", &matchedText)
+  ;ControlGet, hEdit, Hwnd,, %FINDING_CONTROL%
+  ;fdEle := risEle.FindFirst(UIA_FindingEdit)
+  ;hEdit := fdEle.NativeWindowHandle
+  ;MsgBox(FINDING_CONTROL_HWND)
+  if (hEdit := FINDING_CONTROL_HWND) {
+    startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|The study shows:`r`n`r`n|show the following findings:`r`n`r`n|which revealed:`r`n`r`n", , , "RegEx", &matchedText)
 
-      If (startSel > -1) {
-        ;startSel += StrLen(matchedText)
-        startSel += matchedText.Len
-        Loop 3 {
-          newStartSel := startSel
-          startText := Edit_GetTextRange(hEdit, newStartSel, newStartSel + 1)
-          ;MsgBox % startText
-          if (startText = "* ") {
-            newStartSel := Edit_FindText(hEdit, "`r`n", newStartSel)
-            ;MsgBox % startSel
-            if (newStartSel > -1) {
-              startSel := newStartSel + 2
-            }
-          } else {
-            break
+    If (startSel > -1) {
+      ;startSel += StrLen(matchedText)
+      startSel += matchedText.Len
+      Loop 3 {
+        newStartSel := startSel
+        startText := Edit_GetTextRange(hEdit, newStartSel, newStartSel + 1)
+        ;MsgBox % startText
+        if (startText = "* ") {
+          newStartSel := Edit_FindText(hEdit, "`r`n", newStartSel)
+          ;MsgBox % startSel
+          if (newStartSel > -1) {
+            startSel := newStartSel + 2
           }
+        } else {
+          break
         }
-
-        endSel := Edit_FindText(hEdit, "REMARKS?:|RECOMMENDATION:", , , "RegEx")  ; -1 if not found
-        if (endSel > -1) {
-          endSel -= 2
-        }
-        Edit_SetFocus(hEdit)
-        Edit_SetSel(hEdit, startSel, endSel)
-        ReorderSelectedText(false, true, "-")
-        ;MsgBox % regex_out
       }
+
+      endSel := Edit_FindText(hEdit, "REMARKS?:|RECOMMENDATION:", , , "RegEx")  ; -1 if not found
+      if (endSel > -1) {
+        endSel -= 2
+      }
+      Edit_SetFocus(hEdit)
+      Edit_SetSel(hEdit, startSel, endSel)
+      ReorderSelectedText(false, false, "-")
+      ;MsgBox % regex_out
     }
+  } else {
+    MsgBox("FINDING_CONTROL_HWND is invalid!")
   }
 }
 
@@ -691,6 +741,7 @@ CopyPathologyReport() {
   if (!IsObject(risEle)) {
     UpdateRisElements()
     MsgBox("請先打開病理報告視窗。")
+    return
   }
   pathoEle := risEle.FindFirst(UIA_PathoDiagnosisTxt)
   pathoDateEle := risEle.FindFirst(UIA_PathoDateTxt)
@@ -700,7 +751,7 @@ CopyPathologyReport() {
   }
   if (reportText != "") {
     A_Clipboard := reportText
-    ;MsgBox("病理報告已複製到剪貼簿。")
+    MsgBox("病理報告已複製到剪貼簿。")
   } else {
     MsgBox("找不到病理報告內容。")
   }
@@ -816,7 +867,7 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
     Send "^c"
 
     ; 等待剪貼簿包含資料
-    if !ClipWait(0.8, 1) {
+    if !ClipWait(0.8) {
         MsgBox "複製文字到剪貼簿失敗 (逾時)。"
         if (PRESERVE_CLIPBOARD)
             ClipboardAll := ClipSaved ; v2 (正確): 還原
@@ -897,6 +948,7 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
                     }
                 }
                 if (keepEmptyLine) {
+                  /*
                     if (isFirstLineEmpty) {
                         if (!Mod(index, 2)) {
                             finalText .= "`r`n"
@@ -906,6 +958,8 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
                             finalText .= "`r`n"
                         }
                     }
+                  */
+                    finalText .= "`r`n"
                 }
             }
         }

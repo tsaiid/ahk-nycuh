@@ -9,8 +9,8 @@ CoordMode "Mouse", "Screen"
 ; Initialize global variables
 global shuttlepro_speed_saved := 0
 global shuttlepro_shuttle_start := True
-global shuttlepro_old_4 := 0
-global shuttlepro_old_5 := 0
+global shuttlepro_old_4 := 255
+global shuttlepro_old_5 := 255
 global shuttlepro_shuttle_saved := 0
 global timer_active_hwnd := -1
 global hlbxInput := 0
@@ -357,10 +357,14 @@ DownScroll() {
 
 ToggleSync() {
     try {
-        FocusedControl := ControlGetFocus("A")
+        focusedHwnd := ControlGetFocus("A")
+        FocusedClassNN := ""
+        if (focusedHwnd)
+            FocusedClassNN := ControlGetClassNN(focusedHwnd)
         OutputVar := WinGetTitle("A")
 
-        if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) == "Afx") {
+        if (OutputVar = "INFINITT PACS" && SubStr(FocusedClassNN, 1, 3) == "Afx") {
+            ;MsgBox("Toggling Sync Button")
             DiffSyncBtns := ["Button1", "Button85"]
             for idx, btn in DiffSyncBtns {
                 try {
@@ -377,10 +381,13 @@ ToggleSync() {
 
 ToggleDiffExamSync() {
     try {
-        FocusedControl := ControlGetFocus("A")
+        focusedHwnd := ControlGetFocus("A")
+        FocusedClassNN := ""
+        if (focusedHwnd)
+            FocusedClassNN := ControlGetClassNN(focusedHwnd)
         OutputVar := WinGetTitle("A")
 
-        if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) == "Afx") {
+        if (OutputVar = "INFINITT PACS" && SubStr(FocusedClassNN, 1, 3) == "Afx") {
             DiffSyncBtns := ["Button2", "Button86", "Button91"]
             for idx, btn in DiffSyncBtns {
                 try {

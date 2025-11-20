@@ -58,15 +58,15 @@ Return
 ::ctcs2::
   MyForm =
 (
-SPINE Cervical CT without contrast medium:
-
-FINDINGS:
 - No obvious fracture or dislocation of the cervical spine.
 - No evidence of the C1-C2 anterior and lateral subluxation.
 - No obvious hyperdense hematoma in the prevertebral region and epidural space.
 - The lung fields within the scanning range appear normal.
-
-IMPRESSION:
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
 No obvious fracture or dislocation of the cervical spine.
 )
   Paste(MyForm)
