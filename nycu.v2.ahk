@@ -30,8 +30,6 @@ Global UIA_PastReportFindingTxt := {AutomationId: "rtxtPastReport"}
 Global UIA_PastReportImpressionTxt := {AutomationId: "rtxtPastImpression"}
 Global UIA_PathoDiagnosisTxt := {AutomationId: "txtDiagnosist"}
 Global UIA_PathoDateTxt := {AutomationId: "mtxtRcpDTM"}
-Global FINDING_CONTROL := "WindowsForms10.EDIT.app.0.2780b98_r24_ad12"
-Global IMPRESSION_CONTROL := "WindowsForms10.EDIT.app.0.2780b98_r24_ad11"
 Global ABNORMAL_VALUE_1_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13"
 Global ABNORMAL_VALUE_2_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad15"
 Global ABNORMAL_VALUE_3_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad16"
@@ -461,23 +459,6 @@ FindSimilarReport(examName := "")
   Send "^e"
 }
 
-/*
-SC029::{
-  If (!WinActive(RISReportWinTitle)) {
-    WinActivate(RISReportWinTitle)
-    WinWaitActive(RISReportWinTitle)
-    ;ControlFocus, %FINDING_CONTROL%
-  }
-  FocusedControl := ControlGetFocus()
-  ;MsgBox, %FocusedControl%
-  If (FocusedControl = FINDING_CONTROL) {
-    ControlFocus(IMPRESSION_CONTROL)
-  } Else {
-    ControlFocus(FINDING_CONTROL)
-  }
-}
-*/
-
 ;; Insert Selected Prev Exam Date
 !d::{
   InsertSelectedPrevExamDate()
@@ -649,10 +630,6 @@ OrderListForFindings()
 
 UnorderListForFindingsOfCtOrMr()
 {
-  ;ControlGet, hEdit, Hwnd,, %FINDING_CONTROL%
-  ;fdEle := risEle.FindFirst(UIA_FindingEdit)
-  ;hEdit := fdEle.NativeWindowHandle
-  ;MsgBox(FINDING_CONTROL_HWND)
   if (hEdit := FINDING_CONTROL_HWND) {
     startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|The study shows:`r`n`r`n|show the following findings:`r`n`r`n|which revealed:`r`n`r`n", , , "RegEx", &matchedText)
 
@@ -792,7 +769,7 @@ SC029::{
         }
       }
     } else {
-      if (FINDING_CONTROL) {
+      if (FINDING_CONTROL_HWND) {
         ControlFocus(FINDING_CONTROL_HWND)
       } else {
         fdEle := risEle.FindFirst(UIA_FindingEdit)
