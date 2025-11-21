@@ -335,13 +335,6 @@ Return
 ::ctn2hich::
   MyForm =
 (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 - Acute intracranial hemorrhage in the right lentiform nucleus, size about 2.7 x 2.4 x 3 cm, suspicious hypertensive ICH.
 - Mild mass effect compressing the right lateral ventricle.
 - The bilateral lateral ventricles show symmetrical without dilatation.
@@ -350,9 +343,6 @@ FINDINGS:
 
 - No definite bony lesion in the skull.
 - The visible paranasal sinuses, mastoids and skull base are unremarkable.
-
-REMARKS:
-* Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
 )
   Paste(MyForm)
   SleepThenTab()

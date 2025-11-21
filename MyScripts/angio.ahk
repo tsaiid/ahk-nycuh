@@ -815,8 +815,11 @@ Clear light yellow urine was sampled, and sent back to ward for examination.
 Under fluoroscopy guidance and using Seldinger's technique, a 8Fr pigtail drain was placed into the renal pelvis.
 Its patency was confirmed, and then, the drain was fixed with Nylon at external mark 18 cm.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
-
-IMPRESSION:
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
 Left PCN (8F pigtail) was successfully performed.
 Right PCN (8F pigtail) was successfully performed.
 Bilateral PCN (8F pigtail) was successfully performed.

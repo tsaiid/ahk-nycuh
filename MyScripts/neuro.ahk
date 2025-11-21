@@ -129,6 +129,7 @@
 ::sgh::subgaleal hematoma
 ::ntci::No definite traumatic intracranial injury.
 ::nacf::No definite acute intracranial findings.
+::csptrok::No obvious fracture or dislocation of the cervical spine.
 
 ::li1::
   MyForm =

@@ -751,6 +751,9 @@ UnorderListForFindingsOfCtOrMr()
 SC079::{
   OrderListForFindings()
 }
+^!,::{
+  OrderListForFindings()
+}
 
 ;;; Formatting IMPRESSION
 ;;;; Reorder Seleted Text And Discard SeIm
@@ -768,6 +771,9 @@ FormatImpressionText() {
 }
 
 SC070::{
+  FormatImpressionText()
+}
+^!.::{
   FormatImpressionText()
 }
 
