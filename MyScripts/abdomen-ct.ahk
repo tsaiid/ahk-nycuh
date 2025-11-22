@@ -405,13 +405,6 @@ Return
 ::actdiv::
   MyForm =
 (
-TECHNIQUE:
-Non-contrast and contrast-enhanced abdominal CT scans.
-Scanning range: lower abdomen to symphysis, 5-mm contiguous scan.
-
-Previous abdominal CT: none.
-
-FINDINGS:
 - Mild wall thickening and submucosal edema in the the ascending colon, with mesocolic fat stranding, most likely diverticulitis.
 - Small amount of ascites in the pelvis and right paracolic gutter.
 - No obvious ascites.
@@ -422,8 +415,11 @@ FINDINGS:
 - The liver, gallbladder, spleen, pancreas, kidneys are unremarkable.
 - No retroperitoneal or mesenteric lymphadenopathy.
 - The lungs covered in the scanning range are unremarkable.
-
-IMPRESSION:
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
 Ascending colon diverticulitis, without rupture.
 )
   Paste(MyForm)

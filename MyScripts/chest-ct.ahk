@@ -37,6 +37,12 @@
 ::aook::No evidence of aortic dissection or aneurysm.
 ::paok::No definite filling defect in the major pulmonary arteries.
 ::plok::No pleural effusion.
+::lu1::Lung-RADS Category 1: Negative.
+::lu2::Lung-RADS Category 2: Benign - Based on imaging features or indolent behavior.
+::lu3::Lung-RADS Category 3: Probably Benign - Based on imaging features or behavior.
+::lu4a::Lung-RADS Category 4A: Suspicious.
+::lu4b::Lung-RADS Category 4B: Very suspicious.
+::lu4x::Lung-RADS Category 4X: Category 3 or 4 nodules with additional features or imaging findings that increase suspicion for lung cancer.
 ::ccttrok::
   MyForm =
 (

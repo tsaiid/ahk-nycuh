@@ -57,15 +57,6 @@ Return
 ::mrse::
   MyForm =
 (
-MRI of the sella performed with:
-- Axial T2WI for whole brain
-- Sagittal and Coronal T1WI
-- Post contrast dynamic Coronal and conventional Sagittal T1WI
-
-PREVIOUS MRI of the sella: no
-
-FINDINGS:
-
 Pituitary gland height about 5 mm.
 
 No evidence of ectopic post pituitary lobe noted.
@@ -92,17 +83,15 @@ No evidence of low signal intensity nodule noted within the pituitary gland in t
 4. Presence of hyposignal intensity nodule over the right/left pituitary gland in the conventional/dynamic scan
 5. No evidence of hyposignal intensity nodule noted within the pituitary gland in the conventional and dynamic scan
 6. Suggest correlate with serum prolactin level.
-
-IMPRESSION:
+)
+  Paste(MyForm)
+  SleepThenTab()
+  MyForm =
+(
 No evidence of mass lesion on the sellar or suprasellar or hypothalamus regions.
 
 From the imaging finding and clinical history, compatible with pituitary microadenoma over the right side pituitary gland and status post treatment.
 No obvious interval changes compared to the previous last study.
-
-SUGGESTION:
-Check hormone profile.
-Suggest correlate with serum prolactin level.
-Suggest correlate with serum prolactin and other pituitary gland hormone level.
 )
   Paste(MyForm)
 Return

@@ -173,7 +173,7 @@
 :c:IM2::IMPRESSION:`nAs aforementioned.
 :c:IM3::IMPRESSION:`nNo evidence of liver metastasis.
 :c:SG::SUGGESTION:`n
-:c:FD::FINDINGS:
+:c:FD::FINDINGS:`n
 ::ci::clinical information: `
 
 ; recommendations

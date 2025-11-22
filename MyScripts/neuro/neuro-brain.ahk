@@ -186,13 +186,6 @@ Return
 ::ctn2ok0::
   MyForm =
 (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 - No definite area of obvious abnormal density in the brain noted.
 - No definite abnormal mass lesion in the brain noted.
 - No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
