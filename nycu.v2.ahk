@@ -51,6 +51,14 @@ Global reportSaveEle := ""
 ^9::{
 }
 
+!f::{
+  Send "^{Right}"
+}
+
+!b::{
+  Send "^{Left}"
+}
+
 ^1::{
   global PAST_ALL_RADIO_HWND
   if (PAST_ALL_RADIO_HWND) {
