@@ -1,0 +1,1003 @@
+#Requires AutoHotkey v2.0
+
+#Include ..\Lib\Paste.v2.ahk
+#Include lib\ris-common.v2.ahk
+
+; Chest CT Forms
+
+;; Hotstrings
+::ist::interlobular septal thickening
+::6mcct::Follow up chest CT scan 6 months later.
+::tacal::Atherosclerotic changes and calcification of the aortic wall.
+::tacal1::Atherosclerotic changes and calcification of the aortic and branches walls.
+::tacalt::Atherosclerotic changes and calcification of the aortic wall with aortic tortuosity.
+::macal::mild calcification of the aortic wall.
+::mtacal::mild atherosclerotic changes and calcification of the aortic wall.
+::mtacalt::mild atherosclerotic changes and calcification of the aortic wall with aortic tortuosity.
+::accal::Atherosclerotic changes of the aorta and coronary arteries.
+::cctcad::Calcification of the coronary arteries, suspicious of coronary artery disease.
+::cad0::calcification of the coronary arteries.
+::mcad0::mild calcification of the coronary arteries.
+::cad1::calcification of the coronary arteries, suspicious coronary artery disease.
+::mcad1::mild calcification of the coronary arteries, suspicious coronary artery disease.
+::amvcal::calcification of the aortic and mitral valves.
+::avcal::calcification of the aortic valve.
+::mvcal::calcification of the mitral valve.
+::mamvcal::mild calcification of the aortic and mitral valves.
+::mavcal::mild calcification of the aortic valve.
+::mmvcal::mild calcification of the mitral valve.
+::cctnc::*PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
+::cctnat::No abnormal air trapping in both inspiratory and expiratory phases.
+::cadr0::CAD-RADS 0: Documented absence of CAD.
+::cadr1::CAD-RADS 1: Minimal non-obstructive CAD. Consider preventive therapy and risk factor modification.
+::cadr2::CAD-RADS 2: Mild non-obstructive CAD. Consider preventive therapy and risk factor modification, particularly for patients with non-obstructive plaque in multiple segments.
+::cadr3::CAD-RADS 3: Moderate stenosis. Consider functional assessment.
+::cadr4::CAD-RADS 4: Severe stenosis. Consider invasive coronary angiography or functional assessment.
+::cadr5::CAD-RADS 5: Total coronary occlusion. Consider ICA and/or viability assessment.
+::ncldcic::a tiny irregular subpleural lesion with adjacent pleural thickening at the right upper thorax, in favor of chronic inflammatory changes.
+::ncldmi::a small soft tissue density lesion in the bronchiole of _, in favor of mucoid impaction.
+::ncldhc::a small hypodense nodular lesion in the liver, in favor of hepatic cyst.
+::ncldhcs::small hypodense nodular lesions in the liver, in favor of hepatic cysts.
+::cctpulhtn::Engorged pulmonary trunk with A/P ratio <1. Pulmonary hypertension may be suspected.
+::aook::No evidence of aortic dissection or aneurysm.
+::paok::No definite filling defect in the major pulmonary arteries.
+::plok::No pleural effusion.
+::lu1::Lung-RADS Category 1: Negative.
+::lu2::Lung-RADS Category 2: Benign - Based on imaging features or indolent behavior.
+::lu3::Lung-RADS Category 3: Probably Benign - Based on imaging features or behavior.
+::lu4a::Lung-RADS Category 4A: Suspicious.
+::lu4b::Lung-RADS Category 4B: Very suspicious.
+::lu4x::Lung-RADS Category 4X: Category 3 or 4 nodules with additional features or imaging findings that increase suspicion for lung cancer.
+
+::ccttrok::
+{
+  MyForm := "
+  (
+- No pneumothorax or hemothorax.
+- No lung contusion, pneumothorax, or hemothorax.
+- The heart and great vessels appear unremarkable.
+- The thoracic cage and bones appear intact.
+  )"
+  Paste(MyForm)
+}
+
+::cctlapok::
+{
+  MyForm := "
+  (
+- No mediastinal or pulmonary hilar lymphadenopathy.
+- No axillary, supraclavicular, mediastinal or pulmonary hilar lymphadenopathy.
+  )"
+  Paste(MyForm)
+}
+
+;; Show helper to insert Fleischner guideline
+::fsg::
+{
+  hParentWnd := WinExist("A")
+  Fleischner2017Form()
+}
+
+::cctok::
+{
+  MyForm := "
+  (
+- No pulmonary nodule.
+- No mediastinal lymphadenopathy.
+- The heart and great vessels appear unremarkable.
+- The thoracic cage and bones appear intact.
+  )"
+  Paste(MyForm)
+}
+
+;; Lung Routine
+::cctlr::
+{
+  MyForm := "
+  (
+CT scan of the thorax was performed with a multi-slice CT scanner.
+
+TECHNIQUE:
+- (1) Noncontrast survey (2) contrast enhancement (inspiration/expiration) were performed
+- (1) Noncontrast survey (2) contrast enhancement were performed
+- Scan range: lower neck to adrenal gland
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+- Lung: negative
+- Airway: not unusual for age
+- Mediastinum: not unusual
+- Lymph node enlargement > 1 cm: none
+- Pleura: not unusual for age
+- Pericardium and heart: not unusual for age
+- Aorta and pulmonary artery: not unusual for age
+- Chest wall and bony structure: not unusual for age
+- Upper abdomen and adrenals: not unusual for age
+  )"
+  Paste(MyForm)
+}
+
+;; NCSD
+::cctncsd::
+{
+  MyForm := "
+  (
+CT scan of the thorax was performed with a multi-slice CT scanner.
+
+TECHNIQUE:
+- (1) HRCT (inspiration and expiration) (2) Noncontrast survey
+- (1) Noncontrast survey (inspiration and expiration)
+- (1) Noncontrast survey
+- Scan range: lower neck to adrenal gland
+- Coronal and sagittal reconstruction
+- 3D VRT for thoracic cage
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+- Lung and large airways: no pulmonary nodules.
+- Pleura: no visible nodularity or pleural thickening.
+- Great vessels: within normal limits.
+- Heart: within normal limits.
+- Mediastinum: unremarkable.
+- Lymph node: no LNs > 1 cm.
+- Lower neck: unremarkable.
+- Chest wall: unremarkable.
+- Thoracic spine: unremarkable.
+- Abdomen: within normal limits in visualized range.
+
+*PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+No obvious traumatic intrathoracic injury.
+  )"
+  Paste(MyForm)
+}
+
+::cctncsd+a::
+{
+  MyForm := "
+  (
+CT scan of the thorax and abdomen was performed with a multi-slice CT scanner.
+
+TECHNIQUE:
+- (1) Noncontrast survey
+- Scan range: lower neck to hip
+
+COMPARISON:
+Applicable previous CT of chest: no
+Applicable previous CT of abdomen: no
+
+FINDINGS:
+- Lung and large airways: no pulmonary nodules.
+- Pleura: no visible nodularity or pleural thickening.
+- Great vessels: within normal limits.
+- Heart: within normal limits.
+- Mediastinum and hila: no LNs > 1 cm.
+- Chest Wall and low neck: within normal limits.
+- Abdomen:
+  > The liver, spleen, pancreas, adrenals, kidneys, and pelvis are normal.
+  > No retroperitoneal or mesenteric lymphadenopathy.
+
+*PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
+  )"
+  Paste(MyForm)
+}
+
+;; NCLD
+::cctncld::
+{
+  MyForm := "
+  (
+Lower dose, high resolution (2-mm slice thickness) non-contrast CT scan for screening pulmonary nodule.
+Scanner: Multi-detector CT scanner.
+Scan range: thoracic inlet to diaphragm.
+Reconstruction: axial and coronal reconstruction.
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+1. Lung parenchyma:
+* Computer assisted detection shows the following pulmonary lesions:
+- Mark L1:
+- Mark L2:
+- Mark L3:
+- Mark L4:
+- Mark L5:
+
+* Other pulmonary lesions:
+- No remarkable nodular lesions in bilateral lungs.
+
+2. Other lung and extrapulmonary findings:
+- Airway: normal.
+- Mediastinum: no lymph node enlargement > 1 cm.
+- Heart: normal size. No obvious coronary artery calcification.
+- Heart: normal size. Mild coronary artery calcification.
+- Great vessels: normal diameter.
+- Pleura: unremarkable.
+- Chest wall: unremarkable.
+- Thoracic spine: unremarkable.
+- Upper abdomen: unremarkable.
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+No remarkable nodular lesions in bilateral lungs.
+
+----
+Measurement of pulmonary solid nodule is based on RECIST 1.1, the largest diameter in an axial plane. RECIST: Response Evaluation Criteria in Solid Tumors
+
+If a solid nodule < 6 mm, follow-up at 12 months may be considered.
+If a solid nodule 6-8 mm, a single follow-up at 6-12 months is advised, with a third CT scan at 18-24 months to be considered.
+If a solid nodules > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
+If multiple nodules > 6 mm, follow-up at 3-6 months and then 18-24 months.
+
+If ground-glass nodules greater than 6 mm, follow-up at 6-12 months and then every 2 years until the 5-year mark.
+
+If subsolid nodules greater than 6 mm, should have CT follow-up at 3-6 months and then every year for 5 years.
+
+If any change in size, morphology and density suspicious for malignancy, please reevaluate the lesion at the chest or chest surgical outpatient clinic.
+
+Remarks: A majority of the nodules less than 6 mm may not be cancer (risk <1% in heavy smokers and <0.15% in non-smokers). However, to exclude any possibility of malignancy, we recommend that (1) a complete evaluation by the chest specialist and/or (2) a follow-up study based on personal risk factors.
+
+Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmonary Nodules in Adults.
+  )"
+  Paste(MyForm)
+}
+
+::cctncldok::
+{
+  MyForm := "
+  (
+Lower dose, high resolution (2-mm slice thickness) non-contrast CT scan for screening pulmonary nodule.
+Scanner: Multi-detector CT scanner.
+Scan range: thoracic inlet to diaphragm.
+Reconstruction: axial and coronal reconstruction.
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+1. Lung parenchyma:
+- No remarkable nodular lesion.
+
+2. Other lung and extrapulmonary findings:
+- Airway: normal.
+- Mediastinum: no lymph node enlargement > 1 cm.
+- Heart: normal size. No obvious coronary artery calcification.
+- Heart: normal size. Mild coronary artery calcification.
+- Great vessels: normal diameter.
+- Pleura: unremarkable.
+- Chest wall: unremarkable.
+- Thoracic spine: unremarkable.
+- Upper abdomen: unremarkable.
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+No remarkable nodular lesions in bilateral lungs.
+
+----
+Measurement of pulmonary solid nodule is based on RECIST 1.1, the largest diameter in an axial plane. RECIST: Response Evaluation Criteria in Solid Tumors
+
+If a solid nodule < 6 mm, follow-up at 12 months may be considered.
+If a solid nodule 6-8 mm, a single follow-up at 6-12 months is advised, with a third CT scan at 18-24 months to be considered.
+If a solid nodules > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
+If multiple nodules > 6 mm, follow-up at 3-6 months and then 18-24 months.
+
+If ground-glass nodules greater than 6 mm, follow-up at 6-12 months and then every 2 years until the 5-year mark.
+
+If subsolid nodules greater than 6 mm, should have CT follow-up at 3-6 months and then every year for 5 years.
+
+If any change in size, morphology and density suspicious for malignancy, please reevaluate the lesion at the chest or chest surgical outpatient clinic.
+
+Remarks: A majority of the nodules less than 6 mm may not be cancer (risk <1% in heavy smokers and <0.15% in non-smokers). However, to exclude any possibility of malignancy, we recommend that (1) a complete evaluation by the chest specialist and/or (2) a follow-up study based on personal risk factors.
+
+Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmonary Nodules in Adults.
+  )"
+  Paste(MyForm)
+}
+
+::cctfsg::
+{
+  MyForm := "
+  (
+----
+Measurement of pulmonary solid nodule is based on RECIST 1.1, the largest diameter in an axial plane. RECIST: Response Evaluation Criteria in Solid Tumors
+
+If a solid nodule < 6 mm, follow-up at 12 months may be considered.
+If a solid nodule 6-8 mm, a single follow-up at 6-12 months is advised, with a third CT scan at 18-24 months to be considered.
+If a solid nodules > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
+If multiple nodules > 6 mm, follow-up at 3-6 months and then 18-24 months.
+
+If ground-glass nodules greater than 6 mm, follow-up at 6-12 months and then every 2 years until the 5-year mark.
+
+If subsolid nodules greater than 6 mm, should have CT follow-up at 3-6 months and then every year for 5 years.
+
+If any change in size, morphology and density suspicious for malignancy, please reevaluate the lesion at the chest or chest surgical outpatient clinic.
+
+Remarks: A majority of the nodules less than 6 mm may not be cancer (risk <1% in heavy smokers and <0.15% in non-smokers). However, to exclude any possibility of malignancy, we recommend that (1) a complete evaluation by the chest specialist and/or (2) a follow-up study based on personal risk factors.
+
+Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmonary Nodules in Adults.
+  )"
+  Paste(MyForm)
+}
+
+::cctncsduip::
+{
+  MyForm := "
+  (
+CT scan of the thorax was performed with a multi-slice CT scanner.
+
+TECHNIQUE:
+- (1) HRCT (inspiration and expiration) (2) Noncontrast survey
+- (1) Noncontrast survey (inspiration and expiration)
+- (1) Noncontrast survey
+- Scan range: lower neck to adrenal gland
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+- Lung and large airways:
+  > Bilateral subpleural reticulation, interlobular septal thickening, basal honeycombing, suggestive of UIP pattern.
+  > Mild bronchiectasis in both lower lungs.
+  > No definite extensive ground-glass abnormality, micronodules, discrete cysts, diffuse mosaic attenuation, nor consolidation.
+
+  > Bilateral reticulation, interlobular septal thickening, basal predominance, suggestive of possible UIP pattern.
+  > Mild bronchiectasis in both lower lobes.
+  > A few small nodules in both lungs.
+  > No definite extensive ground-glass abnormality, discrete cysts, diffuse mosaic attenuation, air trapping, nor consolidation.
+- Pleura: no visible nodularity or pleural thickening.
+- Great vessels: within normal limits.
+- Heart: within normal limits.
+- Mediastinum and hila: no LNs > 1 cm.
+- Chest wall: unremarkable.
+- Thoracic spine: unremarkable.
+- Low neck: several small nodules with calcifications in the thyroid. Suggest correlate with sonography.
+- Abdomen: within normal limits in visualized range.
+
+*PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+UIP pattern.
+  )"
+  Paste(MyForm)
+}
+
+::cctncsdnsip::
+{
+  MyForm := "
+  (
+CT scan of the thorax was performed with a multi-slice CT scanner.
+
+TECHNIQUE:
+- (1) HRCT (inspiration and expiration) (2) Noncontrast survey
+- (1) Noncontrast survey (inspiration and expiration)
+- (1) Noncontrast survey
+- Scan range: lower neck to adrenal gland
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+- Lung and large airways:
+  > Multifocal peribronchovascular ground-glass opacities with bronchiectasis in both lungs. Subpleural sparing is noted. No honeycombing. Non-specific interstitial pneumonia is suspected.
+- Pleura: no visible nodularity or pleural thickening.
+- Great vessels: within normal limits.
+- Heart: within normal limits.
+- Mediastinum and hila: no LNs > 1 cm.
+- Chest Wall and low neck: within normal limits.
+- Abdomen: within normal limits in visualized range.
+
+*PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+NSIP is suspected.
+  )"
+  Paste(MyForm)
+}
+
+;; CTA
+::cctcta::
+{
+  MyForm := "
+  (
+CT scan of the thorax and abdomen was performed with a multi-slice CT scanner.
+
+TECHNIQUE:
+- (1) non-contrast (2) contrast enhancement for CT angiography
+- Scan range: target vessel
+- Contrast medium: IV route, rate: as fast as IV route allowed
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+1. AORTA:
+- No evidence of aortic aneurysm or dissection.
+
+2. PULMONARY ARTERY:
+- No definite filling defect
+
+3. OTHER THORACIC ORGANS:
+- No pulmonary nodule.
+- No mediastinal lymphadenopathy.
+- The heart is unremarkable.
+
+4. ABDOMINAL ORGANS SCANNED: Unremarkable
+
+5. OTHERS:
+- No osteolytic or osteoblastic bone lesion in the scanning range.
+  )"
+  Paste(MyForm)
+}
+
+;; CTA - aorta
+::cctctaa::
+{
+  MyForm := "
+  (
+CT scan of the thorax and abdomen was performed with a multi-slice CT scanner.
+
+TECHNIQUE:
+- (1) non-contrast (2) contrast enhancement for CT angiography
+- Scan range: target vessel, aorta
+- Contrast medium: IV route, rate: as fast as IV route allowed
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+1. AORTA:
+- No evidence of aortic aneurysm or dissection.
+
+2. PULMONARY ARTERY:
+- No definite filling defect.
+
+3. OTHER THORACIC ORGANS:
+- No pulmonary nodule.
+- No mediastinal lymphadenopathy.
+- The heart is unremarkable.
+
+4. ABDOMINAL ORGANS SCANNED: Unremarkable
+
+5. OTHERS:
+- No osteolytic or osteoblastic bone lesion in the scanning range.
+  )"
+  Paste(MyForm)
+}
+
+;; CTA - pulmonary artery
+::cctctap::
+{
+  MyForm := "
+  (
+CT scan of the thorax was performed with a multi-slice CT scanner.
+
+TECHNIQUE:
+- (1) non-contrast (2) contrast enhancement for CT angiography
+- Scan range: target vessel, pulmonary artery
+- Contrast medium: IV route, rate: as fast as IV route allowed
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+FINDINGS:
+1. PULMONARY ARTERY:
+- No definite filling defect.
+
+2. AORTA:
+- No evidence of aortic aneurysm or dissection.
+
+3. OTHER THORACIC ORGANS:
+- No pulmonary nodule.
+- No mediastinal lymphadenopathy.
+- The heart is unremarkable.
+
+4. ABDOMINAL ORGANS SCANNED: Unremarkable
+
+5. OTHERS:
+- No osteolytic or osteoblastic bone lesion in the scanning range.
+  )"
+  Paste(MyForm)
+}
+
+;; Congenital Heart Disease
+::cctchd::
+{
+  MyForm := "
+  (
+MDCT FOR CONGENITAL HEART DISEASE PERFORMED WITH 64-SLICE CT SCANNER
+Total DLP:
+
+COMPARISON:
+Applicable previous CT of chest: no
+
+PROTOCOL:
+  - EKG gating, prospective (65-85%)
+  - EKG gating, retrospective
+  - Delay image:
+    1. Time: 10 min; Low dose: 80kV
+    2. EKG gating, retrospective
+
+PARAMETERS:
+  - Image quality: good/fair/poor
+  - Imaging processing: MPR and 3D-VRT
+
+CARDIOVASCULAR FINDINGS:
+  . Situs: solitus
+  . Atrium: Not unusual
+  . Ventricle: Not unusual.
+  . Aorta: not usuual, AAo diameter:  mm; DAo: mm.
+  . Pulmonary trunk: not unusual, trunk diameter: mm; RPA: mm; LPA: mm.
+  . Collateral to lung: PDA (-); MAPCA(-).
+  . Pulmonary vein: Not unusual
+  . SVC/IVC/azygos vein : Not unusual
+
+MEASUREMENT:
+  . Ascending Ao:  mm.
+  . Descending Ao:  mm.
+  . Pulmonary trunk:  mm.
+  . Right pulmonary artery:  mm.
+  . Left pulmonary artery:  mm.
+
+OTHER FINDINGS:
+  . Trachea and bronchus: Not unusual
+  . Lung parenchyma and plerua: No unusual
+  . Pleural: Not unusual
+  . Chest wall: No unusual
+  . Presence of thymus gland: (+)
+  . Abdomen: Not unusual
+
+IMPRESSION:
+  )"
+  Paste(MyForm)
+}
+
+;; Lung cancer, staging
+::cctlcs::
+{
+  MyForm := "
+  (
+CT scan of the thorax was performed with a MDCT scanner.
+TECHNIQUE: (1) NCCT (2) CECT were performed
+SCAN RANGE: lower neck to adrenal gland
+
+PREVIOUS CHEST CT SCAN: Not available.
+
+FINDINGS:
+A. Tumor Profile
+(1) Tumor Location:
+(2) Tumor Size & Invasion (T):
+--- Greatest Diameter (cm):
+* Tumor <= 1 cm (T1a)
+* 1 cm < Tumor <= 2 cm (T1b)
+* 2 cm < Tumor <= 3 cm (T1c)
+* 3 cm < Tumor <= 4 cm (T2a)
+* 4 cm < Tumor <= 5 cm (T2b)
+* 5 cm < Tumor <= 7 cm (T3)
+* 7 cm < Tumor (T4)
+
+* Not more proximal than main bronchus (T1)
+
+* Involves main bronchus (T2)
+* Invades visceral pleura (T2)
+* Focal atelectasis or obstructive pneumonitis to hilum (T2)
+* Involves part or anterior longitudinal ligament of the lung (T2)
+
+
+* Invades parietal pleura, chest wall (including superior sulcus tumors), phrenic nerve, parietal pericardium (T3)
+* Separate tumor nodule(s) in same lobe (T3)
+
+* Invades mediastinum, heart, great vessels, trachea, recurrent laryngeal nerve, esophagus, vertebral body, carina (T4)
+* Separate tumor nodule(s) in a different ipsilateral lobe (T4)
+
+(3) Regional Lymph Nodes (N)
+* No regional lymph node metastasis (N0)
+* Metastasis in ipsilateral peribronchial and/or ipsilateral hilar lymph nodes and intrapulmonary nodes, including involvement by direct extension (N1)
+* Metastasis in ipsilateral mediastinal and/or subcarinal lymph node(s) (N2)
+* Metastasis in contralateral mediastinal, contralateral hilar, ipsilateral or contralateral scalene, or supraclavicular lymph node(s) (N3)
+
+(4) Distant Metastasis (M)
+* No evidence in the scanned range (M0)
+* Separate tumor nodule(s) in a contralateral lobe (M1a)
+* Tumor with pleural or pericardial nodules, or malignant pleural (or pericardial) effusion (M1a)
+* Single extrathoracic metastasis in a single organ (M1b):
+* Multiple extrathoracic metastasis in a single organ or multiple organs (M1c):
+* Uncertain lesion in the scanned range, which could be metastatic lesion or not, and require further study (Mx)
+
+B. Other Findings
+
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+Lung cancer of , cTNM (AJCC 2016, 8th ed.)
+  )"
+  Paste(MyForm)
+}
+
+;; Esophageal cancer, staging
+::cctecs::
+{
+  MyForm := "
+  (
+CT scan of the thorax was performed with a MDCT scanner.
+
+PROTOCOL:
+TECHNIQUE: (1) NCCT (2) CECT were performed
+SCAN RANGE: lower neck to adrenal gland
+
+Previous chest CT scan: no
+
+FINDINGS:
+1. TUMOR LOCATION
+--- Cervical segment (hypopharynx to sternal notch)
+--- Upper third of thoracic segment (sternal notch to azygos vein)
+--- Middle third of thoracic segment (azygos vein to inferior pulmonary vein)
+--- Lower third of thoracic segment (inferior pulmonary vein to esophagogastric junction)
+
+2. TUMOR SIZE
+--- Measurable: Length________ cm , Max thickness ________ cm
+--- Non-measurable
+
+3. TUMOR INVASION
+--- No or Equivocal
+--- Yes, if yes:
+T3: Adventitia(+)
+T4a: pleura(+), pericardium(+), diaphragm(+), peritoneum(+),
+T4b: aortic wall(+), carina(+), left atrial wall (+), vertebral body(+),
+posterior wall of trachea(+), posterior wall of main bronchus(+),
+
+4. REGIONAL NODAL METASTASIS
+--- No or Equivocal
+--- Yes, if yes
+--- Number of suspicious lymph node: 1-2 (N1), 3-6 (N2), or >7 (N3)
+--- Location (specified as below):
+Lower cervical, supraclavicular, and sternal notch,
+Right upper paratracheal, Left upper paratracheal,
+Right lower paratracheal, Left lower paratracheal,
+Prevascular, Retrotracheal,
+Subaortic (A-P window), Paraaortic (ascending aorta or phrenic),
+Subcarinal, Paraesophageal,
+Right Hilar, Left Hilar,
+Right cardiac, Left cardiac
+Lesser curvature
+Left gastric artery
+
+5. DISTANT METASTASIS (IN THIS STUDY)
+--- No or Equivocal
+--- Yes, location: _________
+
+6. OTHER FINDINGS
+
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+Esophageal CA of , cTNM. (AJCC 2016, 8th ed.)
+  )"
+  Paste(MyForm)
+}
+
+::cctsr::
+{
+  MyForm := "
+  (
+Lung and large airways: no pulmonary nodules.
+Pleura: no visible nodularity or pleural thickening.
+Great vessels: within normal limits.
+Heart: within normal limits.
+Mediastinum and hila: no LNs > 1 cm.
+Chest Wall and low neck: within normal limits.
+  )"
+  Paste(MyForm)
+}
+
+::cctcs::
+{
+  MyForm := "
+  (
+Cardiac dual-source CT was performed without intravenous contrast administration and under ECG-gating.
+
+Findings:
+- Total Calcium Score (Equivalent Agatston Score) is 0
+   LM calcium score is 0
+   LAD calcium score is 0
+   LCX calcium score is 0
+   RCA calcium score is 0
+
+Additional findings:
+- The cardiac chambers are normal
+- The cardiac valves are not calcified
+- The visualized thoracic aorta is normal
+- The visual lungs are clear
+- The visible bone is normal
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+Total Calcium Score (Equivalent Agatston Score) is 0.
+  )"
+  Paste(MyForm)
+}
+
+::ccta::
+{
+  MyForm := "
+  (
+Dual-Source CT of heart was performed with rapid i.v. contrast administration
+Findings of CT coronary angiography:
+
+1. RCA - proximal: No plaque
+2. RCA - middle: No plaque
+3. RCA - distal: No plaque
+4. PDA: No plaque
+5. LM (Left main): No plaque
+6. LAD - proximal: No plaque
+7. LAD - middle: No plaque
+8. LAD - distal: No plaque
+9. D1: No plaque
+10. D2: No plaque
+11. LCX - proximal: No plaque
+12. OM1: No plaque
+13. LCX - distal: No plaque
+14. OM2: No plaque
+15. LCX-PDA branch: Not shown
+16. RCA-PLB: No plaque
+17. RIM: Not shown
+18. LCX-PLB: Not shown
+
+* Dominance of coronary arteries: right
+* The pericardium is normal.
+* Normal ramification and calibers of the pulmonary arteries.
+* No evidence of pulmonary thrombosis.
+
+----
+Note:
+RCA: right coronary artery;  LAD: left anterior descending artery;  LCX: left circumflex artery;  PDA: posterior descending artery;  D1: first diagonal artery;  D2: second diagonal artery;  OM1: first obtuse marginal artery;  OM2: second obtuse marginal artery;  PLB: postero-lateral branch;  RIM: ramus intermedius;  AM: acute marginal branch
+
+Recommended Quantitative Stenosis Grading:
+( Adapted from SCCT Guidelines for the Interpretation and Reporting of Coronary Computed Tomographic Angiography, 2009 )
+- Grade 0  Normal: Absence of plaque and no luminal stenosis
+- Grade 1  Minimal: Plaque with < 25% stenosis
+- Grade 2  Mild: 25% - 49% stenosis
+- Grade 3  Moderate: 50% - 69% stenosis
+- Grade 4  Severe: 70% - 99% stenosis
+- Grade 5  Occluded
+
+Remark: Some heart motion might mimic pseudo-stenotic lesions in Volume Rendering images, suggest curve MPR and source data correlation.
+  )"
+  Paste(MyForm)
+
+  SleepThenTab()
+
+  MyForm := "
+  (
+No evidence of coronary stenosis or plaque by Coronary CT Angiography.
+  )"
+  Paste(MyForm)
+}
+
+::cctnhi::
+{
+  MyForm := "
+  (
+國健署低劑量CT肺癌篩檢 (without contrast):
+
+----
+LDCT Quality: [+] Good □Acceptable □Not Acceptable
+CTDIvol: _ mGy Total DLP: _ mGy*cm
+In comparison with the prior CT, Date (Y/M/D) _ □No prior chest CT available
+
+Lung nodule findings related to cancer screening
+詳細規範請參閱 Lung-RADS v2022
+
+□No lung nodule
+□Nodule with benign features.
+□Lung nodule(s) (<6mm) (選填 SE: , IM:   )
+□Juxtapleural nodule.
+□Lung nodule(s) (≧6mm or enlarging>1.5mm or new≧4mm): total number □1 □2 □3 □≥4, and described as followings:
+請依序描述最懷疑之肺結節(至多 3 個) (Describe the most suspicious 3 nodules in order)
+
+  □Lung nodule 1 (size, character and location)
+    Entire Nodule: ______mm
+    Density: □non-solid □part-solid (solid part: ___ mm) □solid
+    Lobe: (SE:___, IM:___) □RUL □RML □RLL □LUL □LLL
+    The nodule is □unchanged □enlarging (>1.5 mm) □newly found (≧4 mm) in follow-up □No prior chest CT comparison
+
+  □Lung nodule 2 (size, character and location)
+    Entire Nodule: ______mm
+    Density: □non-solid □part-solid (solid part: ___ mm) □solid
+    Lobe: (SE:___, IM:___) □RUL □RML □RLL □LUL □LLL
+    The nodule is □unchanged □enlarging (>1.5 mm) □newly found (≧4 mm) in follow-up □No prior chest CT comparison
+
+  □Lung nodule 3 (size, character and location)
+    Entire Nodule: ______mm
+    Density: □non-solid □part-solid (solid part: ___ mm) □solid
+    Lobe: (SE:___, IM:___) □RUL □RML □RLL □LUL □LLL
+    The nodule is □unchanged □enlarging (>1.5 mm) □newly found (≧4 mm) in follow-up □No prior chest CT comparison
+  □Lung nodules else □RUL □RML □RLL □LUL □LLL (SE:____________, IM:____________)
+
+□Airway nodule
+  □Subsegmental (Category 2)
+  □Segmental or more proximal
+    □Favors secretions (Category 2)
+    □At baseline (Category 4A)
+    □Stable or growing (Category 4B)
+
+□Atypical pulmonary cyst
+  □Category 3. Lobe: (SE: , IM: ) □RUL □RML □RLL □LUL □LLL
+  □Category 4A. Lobe: (SE: , IM: ) □RUL □RML □RLL □LUL □LLL
+  □Category 4B. Lobe: (SE: , IM: ) □RUL □RML □RLL □LUL □LLL
+
+□The pattern of lung nodules has a higher probability of metastases
+
+----
+Other Lung Findings (選填)
+□Emphysema □Bronchiectasis □Bronchitis/bronchiolitis □Tree-in-bud pattern
+□Centrilobular nodules □Old pulmonary TB □Interstitial lung disease (ILD) □Other____________
+
+Other Findings (選填)
+□Enlarged lymph nodes, location____________
+□Coronary artery calcification____________
+□Other significant abnormal chest findings ____________
+□Other significant abnormal abdominal or neck findings in this chest CT scan ____________
+
+----
+Overall recommendation
+Lung-RADS v2022 Category Descriptor
+  □Category 0: Incomplete.
+    □Prior chest CT examination being located for comparison.
+    □Part or all of lungs cannot be evaluated.
+    □Findings suggestive of an inflammatory or infectious process.
+    □Category 1: Negative.
+  □Category 2: Benign - Based on imaging features or indolent behavior.
+  □Category 3: Probably Benign - Based on imaging features or behavior.
+  □Category 4A: Suspicious.
+  □Category 4B: Very suspicious.
+  □Category 4X: Category 3 or 4 nodules with additional features or imaging findings that increase suspicion for lung cancer.
+
+----
+(選填)
+□Modifier S: May add to category 0-4 for clinically significant or potentially clinically significant findings unrelated to lung cancer.
+□請至門診就診
+  )"
+  Paste(MyForm)
+}
+
+
+;; for Fleischner Society 2017 guidelines
+Fleischner2017Form()
+{
+  ; 取得當前活動視窗的 ID，以便稍後貼上文字時切換回來
+  hParentWnd := WinExist("A")
+
+  FsgGui := Gui(, "Fleischner 2017 Guidelines Helper")
+  FsgGui.SetFont("s10", "Verdana")
+
+  FsgGui.Add("Text", , "Solid")
+  FsgGui.Add("GroupBox", "xm ym+20 Section w245 h90", "Single")
+  FsgGui.Add("GroupBox", "xm+255 ym+20 Section w245 h90", "Multiple")
+
+  FsgGui.Add("Text", "xm", "Subsolid")
+  FsgGui.Add("GroupBox", "xm ym+140 Section w150 h70", "Single GGN")
+  FsgGui.Add("GroupBox", "xm+170 ym+140 Section w150 h70", "Single part solid")
+  FsgGui.Add("GroupBox", "xm+340 ym+140 Section w150 h70", "Multiple")
+
+  ; 用陣列來儲存所有的 Radio 物件，以便稍後判斷哪一個被選中
+  RadioControls := []
+
+  ; --- Solid single ---
+  ; 注意：v2 中，只有第一個 Radio 加上 "Group" 選項，後續的 Radio 只要不加 "Group" 就會視為同一組
+  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+40 vRadio1 Group", "< 6 mm"))
+  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+60", "6-8 mm"))
+  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+80", "> 8 mm"))
+
+  ; --- Solid multiple ---
+  RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+40", "< 6 mm"))
+  RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+60", "6-8 mm"))
+  RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+80", "> 8 mm"))
+
+  ; --- Subsolid single GGN ---
+  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+160", "< 6 mm"))
+  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+180", ">= 6 mm"))
+
+  ; --- Subsolid single part solid ---
+  RadioControls.Push(FsgGui.Add("Radio", "xm+180 ym+160", "< 6 mm"))
+  RadioControls.Push(FsgGui.Add("Radio", "xm+180 ym+180", ">= 6 mm"))
+
+  ; --- Subsolid multiple ---
+  RadioControls.Push(FsgGui.Add("Radio", "xm+350 ym+160", "< 6 mm"))
+  RadioControls.Push(FsgGui.Add("Radio", "xm+350 ym+180", ">= 6 mm"))
+
+  Btn := FsgGui.Add("Button", "xm Default", "OK")
+  Btn.OnEvent("Click", FsgButtonOK) ; 綁定點擊事件
+
+  FsgGui.Show("AutoSize Center")
+
+  ; 定義內部函式處理點擊事件 (Closure)，可以直接使用外部變數
+  FsgButtonOK(*)
+  {
+    Saved := FsgGui.Submit() ; 隱藏並送出
+
+    ; 找出被選中的 Radio Index (1-12)
+    SelectedIndex := 0
+    for index, radioCtrl in RadioControls {
+      if (radioCtrl.Value) {
+        SelectedIndex := index
+        break
+      }
+    }
+
+    if (SelectedIndex == 0) {
+      MsgBox("Empty value")
+      return
+    }
+
+    FsgRecommendations := [
+      "no routine follow-up in low risk patients; optional CT at 12 months in high risk patients.",
+      "CT at 6-12 months, then at 18-24 months in high risk patients.",
+      "consider CT at 3 months, PET/CT, or tissue sampling.",
+
+      "no routine follow-up in low risk patients; optional CT at 12 months in high risk patients.",
+      "CT at 3-6 months, then at 18-24 months in high risk patients.",
+      "CT at 3-6 months, then at 18-24 months in high risk patients.",
+
+      "no routine follow-up.",
+      "CT at 6-12 months to confirm persistence, then CT every 2 years until 5 years.",
+
+      "no routine follow-up",
+      "CT at 3-6 months to confirm persistence. If unchanged and solid component remains < 6 mm, annual CT should be performed for 5 years.",
+
+      "CT at 3-6 months. If stable, consider CT at 2 and 4 years.",
+      "CT at 3-6 months. Subsequent management based on the most suspicious nodule(s)."
+    ]
+
+    ; 使用 Format 格式化字串
+    MyForm := Format("Fleischner Society 2017 Guidelines recommends: {1}", FsgRecommendations[SelectedIndex])
+
+    FsgGui.Destroy()
+
+    if WinExist("ahk_id " hParentWnd) {
+      WinActivate "ahk_id " hParentWnd
+    }
+
+    Paste(MyForm)
+  }
+}

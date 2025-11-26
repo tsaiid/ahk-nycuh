@@ -54,7 +54,7 @@ PRESERVE_CLIPBOARD := 0
 
 ; RegEx Hotstrings
 ;; Bug: need to be included first ???
-#Include MyScripts\regex-hotstrings.ahk
+;#Include MyScripts\regex-hotstrings.ahk
 
 #Include *i MyScripts\private.ahk
 
@@ -72,39 +72,39 @@ PRESERVE_CLIPBOARD := 0
 
 #IfWinActive ahk_group RIS
   ;;; HotStrings
-  #Include MyScripts\neuro.ahk
+  ;#Include MyScripts\neuro.ahk
 
   #Include MyScripts\ajcc.ahk
 
   #Include MyScripts\sono.ahk
 
-  #Include MyScripts\chest-x-ray.ahk
-  #Include MyScripts\kub.ahk
-  #Include MyScripts\bone-x-ray.ahk
-  #Include MyScripts\other-x-ray.ahk
+  ;#Include MyScripts\chest-x-ray.ahk
+  ;#Include MyScripts\kub.ahk
+  ;#Include MyScripts\bone-x-ray.ahk
+  ;#Include MyScripts\other-x-ray.ahk
   #Include MyScripts\comparisons.ahk
-  #Include MyScripts\sono-guide.ahk
+  ;#Include MyScripts\sono-guide.ahk
 
-  #Include MyScripts\abdomen-ct.ahk
-  #Include MyScripts\abdomen-mr.ahk
-  #Include MyScripts\chest-ct.ahk
+  ;#Include MyScripts\abdomen-ct.ahk
+  ;#Include MyScripts\abdomen-mr.ahk
+  ;#Include MyScripts\chest-ct.ahk
   #Include MyScripts\breast-mr.ahk
 
-  #Include MyScripts\ct-guide.ahk
+  ;#Include MyScripts\ct-guide.ahk
 
   #Include MyScripts\barium-enema.ahk
   #Include MyScripts\esophagraphy.ahk
   #Include MyScripts\ugi-small-intestine.ahk
   #Include MyScripts\intravenous-pyelogram.ahk
   #Include MyScripts\special.ahk
-  #Include MyScripts\angio.ahk
+  ;#Include MyScripts\angio.ahk
 
-  #Include MyScripts\ms-mri.ahk
-  #Include MyScripts\ms-ct.ahk
+  ;#Include MyScripts\ms-mri.ahk
+  ;#Include MyScripts\ms-ct.ahk
 
-  #Include MyScripts\mri.ahk
-  #Include MyScripts\abbreviations.ahk
-  #Include MyScripts\others.ahk
+  ;#Include MyScripts\mri.ahk
+  ;#Include MyScripts\abbreviations.ahk
+  ;#Include MyScripts\others.ahk
 
   #Include MyScripts\spg.ahk
   #Include MyScripts\bone-density.ahk

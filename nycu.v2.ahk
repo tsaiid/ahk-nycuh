@@ -48,6 +48,25 @@ Global autoNextEle := ""
 Global reportSaveEle := ""
 
 #HotIf WinActive(RISReportWinTitle)
+
+#Include MyScripts\regex-hotstrings.v2.ahk
+#Include MyScripts\others.v2.ahk
+#Include MyScripts\chest-ct.v2.ahk
+#Include MyScripts\abdomen-ct.v2.ahk
+#Include MyScripts\abdomen-mr.v2.ahk
+#Include MyScripts\ct-guide.v2.ahk
+#Include MyScripts\ms-ct.v2.ahk
+#Include MyScripts\ms-mri.v2.ahk
+#Include MyScripts\neuro.v2.ahk
+#Include MyScripts\abbreviations.v2.ahk
+#Include MyScripts\mri.v2.ahk
+#Include MyScripts\chest-x-ray.v2.ahk
+#Include MyScripts\kub.v2.ahk
+#Include MyScripts\bone-x-ray.v2.ahk
+#Include MyScripts\other-x-ray.v2.ahk
+#Include MyScripts\sono-guide.v2.ahk
+#Include MyScripts\angio.v2.ahk
+
 ^9::{
 }
 
@@ -118,6 +137,7 @@ AppendPrevReport() {
   if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
     ;hEdit := focusedEle.CachedNativeWindowHandle
     hEdit := focusedEle.NativeWindowHandle
+    /*
     Edit_GetSel(hEdit, &currStartSel)
     l_text := Edit_GetTextRange(hEdit, 0, currStartSel)
     l_FoundPos := InStr(l_Text, "`r`n",, -1)
@@ -135,6 +155,8 @@ AppendPrevReport() {
       ;MsgBox, %currStartSel% %r_FoundPos%
     }
     Edit_SetSel(hEdit, startSel, endSel)
+    */
+    SelectLogicalLine(hEdit)
     ;text_len := Edit_GetTextLength(hEdit)
     ;MsgBox, %startSel% %endSel% %text_len%
     Edit_Clear(hEdit)
@@ -204,8 +226,73 @@ DeletePrevWord() {
   }
 }
 
+BashDeleteWordBackward(hCtrl) {
+    try {
+        fullText := ControlGetText(hCtrl)
+    } catch {
+        return
+    }
+
+    ; 1. 取得當前游標位置 (0-based)
+    caretPosRaw := SendMessage(0x00B0, 0, 0, hCtrl)
+    caretPos := caretPosRaw & 0xFFFF ; Low word is starting position
+
+    if (caretPos == 0)
+        return ; 已經在最前面，沒東西可刪
+
+    ; 2. 轉成 AHK 1-based 索引
+    ; 我們的目標是找到新的起點 (newStart)，範圍是 newStart 到 caretPos
+    i := caretPos ; i 代表目前檢查的字元位置 (從游標左邊那個字開始)
+
+    ; 3. 向後搜尋邏輯 (模擬 Bash)
+
+    ; 階段 A: 如果游標緊貼著空白，先吃掉這些空白 (Bash 通常會連同後面的單字一起刪)
+    ; 例如 "ls -la  |" -> 按下 Ctrl+W -> "ls |" (刪掉 "-la  ")
+    while (i > 0) {
+        char := SubStr(fullText, i, 1)
+        if (IsSpace(char)) {
+            i--
+        } else {
+            break ; 遇到非空白字元，進入階段 B
+        }
+    }
+
+    ; 階段 B: 繼續往前吃掉所有「非空白」字元，直到遇到空白或檔頭
+    while (i > 0) {
+        char := SubStr(fullText, i, 1)
+        if (!IsSpace(char)) {
+            i--
+        } else {
+            break ; 遇到空白了，停止 (這個空白要保留)
+        }
+    }
+
+    ; 此時 i 指向的是「上一個單字前的空白」位置，或者是 0
+    ; 因為我們選取範圍是從 i 開始，這會剛好保留那個空白
+    selStart := i
+    selEnd := caretPos
+
+    ; 4. 執行刪除
+    ; 先選取範圍 (保留 Undo 功能的最佳作法)
+    SendMessage(0x00B1, selStart, selEnd, hCtrl) ; EM_SETSEL
+
+    ; 發送 Backspace 刪除選取範圍
+    ;SendInput "{Backspace}"
+    SendMessage(0x303, 0, 0, , hCtrl)
+}
+
+; 簡單的空白字元檢查函數
+IsSpace(char) {
+    return (char == " " || char == "`t" || char == "`r" || char == "`n")
+}
+
 ^w::{
-  DeletePrevWord()
+  ;DeletePrevWord()
+  focusedEle := UIA.GetFocusedElement()
+  if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
+    hEdit := focusedEle.NativeWindowHandle
+    BashDeleteWordBackward(hEdit)
+  }
 }
 
 ; ==============================================================================
@@ -831,6 +918,115 @@ CopyPathologyReport() {
 
 ^+c::{
   CopyPathologyReport()
+}
+
+; 取得系統設定的滑鼠連點時間 (通常是 500ms)，讓判定更符合你的手感
+DoubleClickTime := DllCall("GetDoubleClickTime")
+
+~LButton:: {
+    static clickCount := 0
+    static lastClickTime := 0
+
+    ; 計算當前點擊與上次點擊的時間差
+    timeSinceLast := A_TickCount - lastClickTime
+
+    ; 如果時間差在連點允許範圍內，增加計數，否則重置為 1
+    if (timeSinceLast <= DoubleClickTime) {
+        clickCount++
+    } else {
+        clickCount := 1
+    }
+
+    ; 更新最後點擊時間
+    lastClickTime := A_TickCount
+
+    ; 偵測到第三次點擊
+    if (clickCount = 3) {
+        ; 重置計數器，避免連續點第 4 下又觸發
+        clickCount := 0
+
+        ; 取得滑鼠下的 Control 資訊 (hCtrl 是控制項的 Handle/ID)
+        MouseGetPos ,,, &hCtrl, 2
+
+        try {
+            ; 取得 ClassNN 用於過濾
+            classNN := ControlGetClassNN(hCtrl)
+
+            ; 過濾條件：包含 "Edit" 且 不包含 "RichEdit"
+            if (InStr(classNN, "Edit") && !InStr(classNN, "RichEdit")) {
+
+                ; 呼叫自定義函數來選取邏輯行
+                SelectLogicalLine(hCtrl)
+            }
+        }
+    }
+}
+
+SelectLogicalLine(hCtrl) {
+    ; 1. 取得 Control 內的全部文字
+    try {
+        fullText := ControlGetText(hCtrl)
+    } catch {
+        return ; 如果無法取得文字則放棄
+    }
+
+    if (fullText = "")
+        return
+
+    ; 2. 取得當前游標位置 (EM_GETSEL = 0x00B0)
+    ; 這裡回傳的是一個 DWORD，低位元組是起始位置，我們只需要知道游標在哪即可
+    caretPosRaw := SendMessage(0x00B0, 0, 0, hCtrl)
+    caretPos := caretPosRaw & 0xFFFF ; 這是 0-based 的索引
+
+    ; 3. 計算邏輯行的開始 (Start)
+    ; AHK 的字串索引是 1-based，所以計算時要小心轉換
+    ; InStr 尋找換行符號 `n (Line Feed)
+    ; 從游標位置往前找 (參數 -1 代表反向搜尋)
+
+    ; 轉換 caretPos 到 AHK 的 1-based 視角
+    ahkCaretPos := caretPos + 1
+
+    ; 往回找上一個換行符號的位置
+    prevLineBreak := InStr(fullText, "`n", , ahkCaretPos, -1)
+
+    ; 如果找到了換行，起始點應該是換行符號的"下一個字"
+    ; 如果沒找到 (prevLineBreak 為 0)，代表在第一行，起始點就是 0 (0-based)
+    selStart := (prevLineBreak == 0) ? 0 : prevLineBreak
+
+    ; --- 計算 End (修改邏輯：包含換行符號) ---
+
+    ; 找尋游標後的下一個 `r 或 `n
+    nextR := InStr(fullText, "`r", , ahkCaretPos)
+    nextN := InStr(fullText, "`n", , ahkCaretPos)
+
+    selEnd := 0
+
+    ; 狀況 1: 後面完全沒有換行符號 -> 選到文字最後
+    if (nextR == 0 && nextN == 0) {
+        selEnd := StrLen(fullText)
+    }
+    ; 狀況 2: 先遇到 `r (通常是 Windows 的 `r`n 結構)
+    else if (nextR > 0 && (nextN == 0 || nextR < nextN)) {
+        ; 檢查這個 `r 後面是不是緊接著 `n
+        if (SubStr(fullText, nextR + 1, 1) == "`n") {
+            ; 是 `r`n 結構，選取範圍要包含這兩個字元
+            ; 數學計算：
+            ; `r 在位置 nextR (例如 5)
+            ; `n 在位置 nextR+1 (例如 6)
+            ; 我們要選到 6 結束 (包含 0~5 共 6 個字元)
+            selEnd := nextR + 1
+        } else {
+            ; 只有 `r (罕見，但也算換行)，選取範圍包含 `r
+            selEnd := nextR
+        }
+    }
+    ; 狀況 3: 先遇到 `n (Unix 格式換行)，選取範圍包含 `n
+    else {
+        selEnd := nextN
+    }
+
+    ; 發送選取指令
+    SendMessage(0x00B1, selStart, selEnd, hCtrl)
 }
 
 #HotIf ; WinActive(RISReportWinTitle)
