@@ -48,7 +48,14 @@
 ::lfpca::Left fetal type posterior cerebral artery is noted.
 ::rfpca::Right fetal type posterior cerebral artery is noted.
 ::bfpca::Bilateral fetal type posterior cerebral arteries are noted.
-::psok::The paranasal sinuses are clear.
+::psok::
+  MyForm =
+(
+The visible paranasal sinuses are clear.
+The paranasal sinuses are clear.
+)
+  Paste(MyForm)
+Return
 ::rfvps::status post ventriculo-peritoneal shunt from right frontal area, with tip at left lateral ventricle.
 ::lgwd::loss of gray-white matter differentiation
 ::mdr::midline deviation to right side.
