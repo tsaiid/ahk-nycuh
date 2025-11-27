@@ -126,11 +126,6 @@ execute_shuttlepro(key, layer) {
     ; Re-enabled debug info string
     a .= " key: " . key . " in layer " . layer
 
-    if (key = 12) {
-        Reload
-        return
-    }
-
     if WinActive("ahk_exe WEBVIE~1.EXE") {
         if (key = 1)
             Send "q"
@@ -161,28 +156,30 @@ execute_shuttlepro(key, layer) {
         if (key = 1)
             Send "q"
         else if (key = 2)
-            Send "7"
+            Send "7"    ; skull window
         else if (key = 3)
-            Send "5"
+            Send "5"    ; bone window
         else if (key = 4)
-            Send "6"
+            Send "6"    ; lung window
         else if (key = 5)
             Send "d"
         else if (key = 6)
-            Send "8"
+            Send "8"    ; neck window
         else if (key = 7)
-            Send "1"
+            Send "1"    ; brain window
         else if (key = 8)
-            Send "9"
+            Send "9"    ; liver window
         else if (key = 9)
-            Send "4"
+            Send "4"    ; abdomen window
         else if (key = 10)
-            Send "x"
+            Send "z"    ; zoom in
         else if (key = 11) {
             if WinActive("172.17.12.174 - 遠端桌面連線")
                 Send "f"
             else
                 ToggleDiffExamSync()
+        } else if (key = 12) {
+            Send "+z"   ; zoom out
         } else if (key = 13) {
             if WinActive("172.17.12.174 - 遠端桌面連線")
                 Send "w"
