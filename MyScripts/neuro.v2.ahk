@@ -82,16 +82,16 @@ The paranasal sinuses are clear.
 ::mrposts::Mild soft tissue swelling in the right periorbital region.
 ::lposts::Soft tissue swelling in the left periorbital region.
 ::mlposts::Mild soft tissue swelling in the left periorbital region.
-::f-p::fronto-parietal
-::f-t-p::fronto-temporo-parietal
-::f-t::fronto-temporal
-::p-o::parieto-occipital
-::t-p::temporo-parietal
-::t-o::temporo-occipital
-::f-::frontal
-::p-::parietal
-::t-::temporal
-::o-::occipital
+::f-p::fronto-parietal `
+::f-t-p::fronto-temporo-parietal `
+::f-t::fronto-temporal `
+::p-o::parieto-occipital `
+::t-p::temporo-parietal `
+::t-o::temporo-occipital `
+::f-::frontal `
+::p-::parietal `
+::t-::temporal `
+::o-::occipital `
 ::rd::restricted diffusion
 ::dds::disc desiccation
 ::dbd::diffuse bulging disc
@@ -100,10 +100,10 @@ The paranasal sinuses are clear.
 ::bgd::disc bulging
 ::prd::disc protrusion
 ::hrd::disc herniation
-::postcen::posterocentral
-::postlat::posterolateral
-::lpl::left posterolateral
-::rpl::right posterolateral
+::postcen::posterocentral `
+::postlat::posterolateral `
+::lpl::left posterolateral `
+::rpl::right posterolateral `
 ::lfh::ligament flavum hypertrophy
 ::fjh::facet joint hypertrophy
 ::uvjh::uncovertebral joint hypertrophy

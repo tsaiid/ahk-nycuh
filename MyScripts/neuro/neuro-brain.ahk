@@ -242,8 +242,8 @@ Return
   SleepThenTab()
   MyForm =
 (
-No definite acute ICH, SAH, EDH, or SDH.
-- No obvious fracture or dislocation of the cervical spine.
+1. No definite acute ICH, SAH, EDH, or SDH.
+2. No obvious fracture or dislocation of the cervical spine.
 )
   Paste(MyForm)
 Return
