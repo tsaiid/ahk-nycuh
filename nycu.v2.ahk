@@ -1,4 +1,11 @@
-﻿#Requires AutoHotkey v2.0+
+﻿#Requires AutoHotkey v2.0
+#SingleInstance Force
+ProcessSetPriority "High"  ; 提高優先級
+
+; 先設定選項：SendInput (SI) 和 忽略終止符 (O)
+#Hotstring SI O
+; 再設定終止字元：只有 Tab
+#Hotstring EndChars `t
 
 ; === 解決 DPI 座標偏移問題 ===
 ; 1. 宣告 DPI 感知 (讓 BoundingRectangle 回報實體座標)
@@ -49,24 +56,25 @@ Global reportSaveEle := ""
 
 #HotIf WinActive(RISReportWinTitle)
 
-#Include MyScripts\regex-hotstrings.v2.ahk
-#Include MyScripts\others.v2.ahk
-#Include MyScripts\chest-ct.v2.ahk
-#Include MyScripts\abdomen-ct.v2.ahk
-#Include MyScripts\abdomen-mr.v2.ahk
-#Include MyScripts\ct-guide.v2.ahk
-#Include MyScripts\ms-ct.v2.ahk
-#Include MyScripts\ms-mri.v2.ahk
+;#Include MyScripts\regex-hotstrings.v2.ahk
+;#Include MyScripts\others.v2.ahk
+;#Include MyScripts\chest-ct.v2.ahk
+;#Include MyScripts\abdomen-ct.v2.ahk
+;#Include MyScripts\abdomen-mr.v2.ahk
+;#Include MyScripts\ct-guide.v2.ahk
+;#Include MyScripts\ms-ct.v2.ahk
+;#Include MyScripts\ms-mri.v2.ahk
 #Include MyScripts\neuro.v2.ahk
-#Include MyScripts\abbreviations.v2.ahk
-#Include MyScripts\mri.v2.ahk
-#Include MyScripts\chest-x-ray.v2.ahk
-#Include MyScripts\kub.v2.ahk
-#Include MyScripts\bone-x-ray.v2.ahk
-#Include MyScripts\other-x-ray.v2.ahk
-#Include MyScripts\sono-guide.v2.ahk
-#Include MyScripts\angio.v2.ahk
+;#Include MyScripts\abbreviations.v2.ahk
+;#Include MyScripts\mri.v2.ahk
+;#Include MyScripts\chest-x-ray.v2.ahk
+;#Include MyScripts\kub.v2.ahk
+;#Include MyScripts\bone-x-ray.v2.ahk
+;#Include MyScripts\other-x-ray.v2.ahk
+;#Include MyScripts\sono-guide.v2.ahk
+;#Include MyScripts\angio.v2.ahk
 
+#Include MyScripts\lib\ris-common.v2.ahk
 ^9::{
 }
 
@@ -79,49 +87,42 @@ Global reportSaveEle := ""
 }
 
 ^1::{
-  global PAST_ALL_RADIO_HWND
-  if (PAST_ALL_RADIO_HWND) {
-    ControlClick(PAST_ALL_RADIO_HWND)
+  try {
+    RisController.PastAllRadio.ControlClick()
+  } catch as err {
+    MsgBox "操作失敗: " err.Message
   }
 }
 ^2::{
-  global PAST_MODALITY_RADIO_HWND
-  if (PAST_MODALITY_RADIO_HWND) {
-    ControlClick(PAST_MODALITY_RADIO_HWND)
+  try {
+    RisController.PastModalityRadio.ControlClick()
+  } catch as err {
+    MsgBox "操作失敗: " err.Message
   }
 }
 ^3::{
-  global PAST_ONLY_MY_RADIO_HWND
-  if (PAST_ONLY_MY_RADIO_HWND) {
-    ControlClick(PAST_ONLY_MY_RADIO_HWND)
+  try {
+    RisController.PastOnlyMyRadio.ControlClick()
+  } catch as err {
+    MsgBox "操作失敗: " err.Message
   }
 }
 ;;; Append previous report to FINDINGS and IMPRESSION
 AppendPrevReport() {
-  global PAST_FINDING_HWND, PAST_IMPRESSION_HWND
-  global FINDING_CONTROL_HWND, IMPRESSION_CONTROL_HWND
-  ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-  ;winEle := risEle
-  ;pFdEle := winEle.FindFirst(UIA_PastReportFindingTxt)
-  if (hEdit := PAST_FINDING_HWND) {
-    pastFinding := Edit_GetText(hEdit)
-    ;fdEle := winEle.FindFirst(UIA_FindingEdit)
-    if (hFdEdit := FINDING_CONTROL_HWND) {
-      Edit_SetSel(hFdEdit, Edit_GetTextLength(hFdEdit))
-      Edit_ReplaceSel(hFdEdit, pastFinding)
-      Edit_SetSel(hFdEdit, 0, 0)
-      Edit_ScrollCaret(hFdEdit)
-    }
-  }
+  try {
+    pastImpression := RisController.PastImpressionText.Value
+    hImpEdit := RisController.ImpressionEdit.NativeWindowHandle
+    Edit_SetSel(hImpEdit, Edit_GetTextLength(hImpEdit))
+    Edit_ReplaceSel(hImpEdit, pastImpression)
 
-  ;pImpEle := winEle.FindFirst(UIA_PastReportImpressionTxt)
-  if (hEdit := PAST_IMPRESSION_HWND) {
-    pastImpression := Edit_GetText(hEdit)
-    ;impEle := winEle.FindFirst(UIA_ImpressionEdit)
-    if (hImpEdit := IMPRESSION_CONTROL_HWND) {
-      Edit_SetSel(hImpEdit, Edit_GetTextLength(hImpEdit))
-      Edit_ReplaceSel(hImpEdit, pastImpression)
-    }
+    pastFinding := RisController.PastFindingText.Value
+    hFindingEdit := RisController.FindingEdit.NativeWindowHandle
+    Edit_SetSel(hFindingEdit, Edit_GetTextLength(hFindingEdit))
+    Edit_ReplaceSel(hFindingEdit, pastFinding)
+    Edit_SetSel(hFindingEdit, 0, 0)
+    Edit_ScrollCaret(hFindingEdit)
+  } catch TargetError as err {
+    MsgBox "操作失敗: " err.Message
   }
 }
 ^ESC::{
@@ -130,35 +131,10 @@ AppendPrevReport() {
 ;; Ctrl + Y
 ;; Delete current line
 ^y::{
-  ;local cacheRequest := UIA.CreateCacheRequest(["AutomationId", "NativeWindowHandle"])
-  ;local focusedEle := UIA.GetFocusedElement(cacheRequest)
   local focusedEle := UIA.GetFocusedElement()
-  ;if (focusedEle.CachedAutomationId = UIA_FindingEdit.AutomationId || focusedEle.CachedAutomationId = UIA_ImpressionEdit.AutomationId) {
   if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
-    ;hEdit := focusedEle.CachedNativeWindowHandle
     hEdit := focusedEle.NativeWindowHandle
-    /*
-    Edit_GetSel(hEdit, &currStartSel)
-    l_text := Edit_GetTextRange(hEdit, 0, currStartSel)
-    l_FoundPos := InStr(l_Text, "`r`n",, -1)
-    if (l_FoundPos > 0) {
-      startSel := l_FoundPos + 1
-    } else {
-      startSel := 0
-    }
-    r_text := Edit_GetTextRange(hEdit, currStartSel, -1)
-    r_FoundPos := InStr(r_Text, "`r`n")
-    if (r_FoundPos > 0) {
-      endSel := currStartSel + r_FoundPos + 1
-    } else {
-      endSel := -1
-      ;MsgBox, %currStartSel% %r_FoundPos%
-    }
-    Edit_SetSel(hEdit, startSel, endSel)
-    */
     SelectLogicalLine(hEdit)
-    ;text_len := Edit_GetTextLength(hEdit)
-    ;MsgBox, %startSel% %endSel% %text_len%
     Edit_Clear(hEdit)
   }
 }
@@ -324,10 +300,6 @@ Benchmark(funcObj, times := 1) {
 
 
 InsertExamname() {
-  ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-  ;winEle := risEle
-  ;fdEle := winEle.FindFirst(UIA_FindingEdit)
-  ;impEle := winEle.FindFirst(UIA_ImpressionEdit)
   focusedEle := UIA.GetFocusedElement()
   if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
     hEdit := focusedEle.NativeWindowHandle
@@ -359,53 +331,20 @@ InsertExamname() {
 }
 
 CheckNextAuto(checked := true){
-  global autoNextEle
-  if (!IsObject(autoNextEle)) {
-    try {
-        global risEle
-        winEle := risEle
-        if !IsObject(winEle)
-            throw Error("找不到視窗: " . RISReportWinTitle)
-
-        autoNextEle := winEle.FindFirst(UIA_AutoNextCheckbox)
-        if !IsObject(autoNextEle)
-            throw Error("找不到 '下一筆自動勾選框' 物件！`n請檢查您的 UIA_AutoNextCheckbox 查詢條件。`n`n目前條件: " . UIA_AutoNextCheckbox)
-
+  try {
+    if (checked ^ RisController.AutoNextCheckbox.ToggleState) {
+      RisController.AutoNextCheckbox.Toggle()
     }
-    catch as e {
-        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-    }
+  } catch as err {
+    MsgBox "操作失敗: " err.Message
   }
-
-  if (checked ^ autoNextEle.ToggleState) {
-    autoNextEle.Toggle()
-  }
-  ;MsgBox(autoNextEle.ToggleState)
 }
 
 ClickSaveReport(){
-  global reportSaveEle
-  if (!IsObject(reportSaveEle)) {
-    try {
-        global risEle
-        winEle := risEle
-        if !IsObject(winEle)
-            throw Error("找不到視窗: " . RISReportWinTitle)
-
-        reportSaveEle := winEle.FindElement(UIA_ReportSaveButton)
-        if !IsObject(reportSaveEle)
-            throw Error("找不到 '報告存檔按鈕' 物件！`n請檢查您的 UIA_ReportSaveButton 查詢條件。`n`n目前條件: " . UIA_ReportSaveButton)
-
-    }
-    catch as e {
-        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-    }
-  }
   try {
-      reportSaveEle.ControlClick()
-  }
-  catch as e {
-      MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+    RisController.ReportSaveButton.ControlClick()
+  } catch as err {
+    MsgBox "操作失敗: " err.Message
   }
 }
 
@@ -416,30 +355,13 @@ ClickSaveReport(){
 }
 
 GetCurrExamName() {
-  Global EXAMNAME_HWND
-    ;MsgBox(EXAMNAME_HWND)
-  if (EXAMNAME_HWND) {
-    examName := StrReplace(ControlGetText(EXAMNAME_HWND), "檢查項目: ", "")
-    ;MsgBox(examName)
-    return examName
-  } else {
-    MsgBox(EXAMNAME_HWND . " is invalid!")
-  }
   try {
-      winEle := risEle
-      if !IsObject(winEle)
-          throw Error("找不到視窗: " . RISReportWinTitle)
-
-      examNameEle := winEle.FindFirst(UIA_ExamNameTxt)
-      if !IsObject(examNameEle)
-          throw Error("找不到 '檢查名稱' 輸入框！")
-
-      examName := StrReplace(examNameEle.Value, "檢查項目: ", "")
-      return examName
-  }
-  catch as e {
-      MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-      return ""
+    hExamname := RisController.ExamnameText.NativeWindowHandle
+    examname := StrReplace(ControlGetText(hExamname), "檢查項目: ", "")
+    return examname
+  } catch as err {
+    MsgBox "操作失敗: " err.Message
+    return
   }
 }
 
@@ -566,6 +488,41 @@ FindSimilarReport(examName := "")
   Send "^e"
 }
 
++Down:: {
+  try {
+    ; 1. 取得當前作用視窗("A") 中，擁有焦點的控制項名稱 (例如 "Edit1")
+    focusedCtl := ControlGetFocus("A")
+
+    ; 2. 將該控制項名稱傳入 Edit 函數
+    currentLine := EditGetCurrentLine(focusedCtl, "A")
+    lineCount := EditGetLineCount(focusedCtl, "A")
+
+    ; 3. 判斷邏輯
+    if (currentLine == lineCount) {
+      SendInput "+{End}"
+    } else {
+      SendInput "+{Down}"
+    }
+  } catch {
+    SendInput "+{Down}"
+  }
+}
+
++Up:: {
+  try {
+    focusedCtl := ControlGetFocus("A")
+    currentLine := EditGetCurrentLine(focusedCtl, "A")
+
+    if (currentLine == 1) {
+      SendInput "+{Home}"
+    } else {
+      SendInput "+{Up}"
+    }
+  } catch {
+    SendInput "+{Up}"
+  }
+}
+
 ;; Insert Selected Prev Exam Date
 !d::{
   InsertSelectedPrevExamDate()
@@ -667,6 +624,32 @@ InsertSelectedPrevExamDateCached() {
 }
 
 InsertSelectedPrevExamDate() {
+  Local STATE_SYSTEM_SELECTED := 0x2
+  try {
+    rowElements := RisController.PastReportTable.FindElements({ ControlType: 'Custom' })
+    if (rowElements.Length = 0)
+      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+
+    for i, rowEle in rowElements {
+      if IsObject(rowEle.LegacyIAccessiblePattern) {
+        Local legacyState := rowEle.LegacyIAccessiblePattern.State
+        if (legacyState & STATE_SYSTEM_SELECTED) {
+          dateText := ""
+          dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 1)
+          if IsObject(dateCellEle) {
+            dateText := dateCellEle.Value
+          }
+          Paste(ConvertRISDate(dateText))
+          return
+        }
+      }
+    }
+  } catch as err {
+    MsgBox("UIA 發生錯誤:`n" . err.Message . "`n`n行: " . err.Line, "UIA Error", 16)
+  }
+}
+
+InsertSelectedPrevExamDate_old() {
   global risEle
   Local STATE_SYSTEM_SELECTED := 0x2
   try {
@@ -737,6 +720,33 @@ InsertSelectedPrevExamDate() {
 }
 
 InsertSelectedPrevExamName() {
+  Local STATE_SYSTEM_SELECTED := 0x2
+  try {
+    rowElements := RisController.PastReportTable.FindAll({ Type: 'Custom' })
+    if (rowElements.Length = 0)
+      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+
+    for i, rowEle in rowElements {
+      if IsObject(rowEle.LegacyIAccessiblePattern) {
+        Local legacyState := rowEle.LegacyIAccessiblePattern.State
+        if (legacyState & STATE_SYSTEM_SELECTED) {
+          examnameText := ""
+          dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 3)
+          if IsObject(dateCellEle) {
+            examnameText := dateCellEle.Value
+          }
+          Paste(examnameText)
+          return
+        }
+      }
+    }
+  }
+  catch as e {
+    MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+  }
+}
+
+InsertSelectedPrevExamName_old() {
   global risEle
   Local STATE_SYSTEM_SELECTED := 0x2
   try {
@@ -784,7 +794,7 @@ GetCurrExamType()
     Return "CT"
   } Else If (InStr(examname, "MR") || InStr(examname, "磁振造影")) {
     Return "MR"
-  } Else If (InStr(examname, "US")) {
+  } Else If (InStr(examname, "US") || InStr(examname, "超音波")) {
     Return "US"
   }
   Return "CR"
@@ -800,13 +810,27 @@ OrderListForFindings()
       UnorderListForFindingsOfCtOrMr()
 
     case "CR", "US":
-      ;UnorderListForFindingsOfCrUs()
+      UnorderListForFindingsOfCrOrUs()
+  }
+}
+
+UnorderListForFindingsOfCrOrUs()
+{
+  If (hEdit := RisController.FindingEdit.NativeWindowHandle) {
+    startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|:\s*`r`n\s*`r`n", , , "RegEx", &matchedText)
+    If (startSel > -1) {
+      startSel += matchedText.Len
+      Edit_SetFocus(hEdit)
+      Edit_SetSel(hEdit, startSel, -1)
+      ;Sleep, 100
+      ReorderSelectedText(false, true, "-", false)
+    }
   }
 }
 
 UnorderListForFindingsOfCtOrMr()
 {
-  if (hEdit := FINDING_CONTROL_HWND) {
+  if (hEdit := RisController.FindingEdit.NativeWindowHandle) {
     startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|The study shows:`r`n`r`n|show the following findings:`r`n`r`n|which revealed:`r`n`r`n", , , "RegEx", &matchedText)
 
     If (startSel > -1) {
@@ -853,8 +877,7 @@ SC079::{
 ;;; Formatting IMPRESSION
 ;;;; Reorder Seleted Text And Discard SeIm
 FormatImpressionText() {
-  global IMPRESSION_CONTROL_HWND
-  if (hEdit := IMPRESSION_CONTROL_HWND) {
+  if (hEdit := RisController.ImpressionEdit.NativeWindowHandle) {
     Edit_SetFocus(hEdit)
     Edit_SetSel(hEdit)
     if (Edit_GetLogicalLineCount(hEdit) > 1) {
@@ -896,23 +919,16 @@ SC070::{
 }
 
 CopyPathologyReport() {
-  global risEle
-  if (!IsObject(risEle)) {
-    UpdateRisElements()
-    MsgBox("請先打開病理報告視窗。")
-    return
-  }
-  pathoEle := risEle.FindFirst(UIA_PathoDiagnosisTxt)
-  pathoDateEle := risEle.FindFirst(UIA_PathoDateTxt)
-  reportText := ""
-  if IsObject(pathoDateEle) && IsObject(pathoEle) {
-    reportText .= ConvertRISDate(pathoDateEle.Value) . ": " . pathoEle.Value
-  }
-  if (reportText != "") {
-    A_Clipboard := reportText
-    MsgBox("病理報告已複製到剪貼簿。")
-  } else {
-    MsgBox("找不到病理報告內容。")
+  try {
+    reportText := ConvertRISDate(RisController.PathoDateText.Value) . ": " . RisController.PathoDiagnosisText.Value
+    if (reportText != "") {
+      A_Clipboard := reportText
+      MsgBox("病理報告已複製到剪貼簿。")
+    } else {
+      throw Error("找不到病理報告內容。")
+    }
+  } catch as err {
+    MsgBox("操作失敗: " . err.Message)
   }
 }
 
@@ -1033,43 +1049,170 @@ SelectLogicalLine(hCtrl) {
 
 ;; for JIS keyboard
 SC029::{
-  If (!WinActive(RISReportWinTitle)) {
-    WinActivate(RISReportWinTitle)
-    WinWaitActive(RISReportWinTitle)
-    focusedEle := UIA.GetFocusedElement()
-    if (focusedEle.AutomationId != UIA_FindingEdit.AutomationId && focusedEle.AutomationId != UIA_ImpressionEdit.AutomationId) {
-      if (FINDING_CONTROL_HWND) {
-        ControlFocus(FINDING_CONTROL_HWND)
+  try {
+    If (!WinActive(RISReportWinTitle)) {
+      WinActivate(RISReportWinTitle)
+      WinWaitActive(RISReportWinTitle)
+      focusedEle := UIA.GetFocusedElement()
+      if (focusedEle.AutomationId != UIA_FindingEdit.AutomationId && focusedEle.AutomationId != UIA_ImpressionEdit.AutomationId) {
+        ControlFocus(RisController.FindingEdit.NativeWindowHandle)
+      }
+    } Else {
+      focusedEle := UIA.GetFocusedElement()
+      if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId) {
+        ControlFocus(RisController.ImpressionEdit.NativeWindowHandle)
       } else {
-        fdEle := risEle.FindFirst(UIA_FindingEdit)
-        if IsObject(fdEle) {
-          fdEle.SetFocus()
-        }
+        ControlFocus(RisController.FindingEdit.NativeWindowHandle)
       }
     }
-  } Else {
-    focusedEle := UIA.GetFocusedElement()
-    ;MsgBox(focusedEle.AutomationId)
-    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId) {
-      if (IMPRESSION_CONTROL_HWND) {
-        ControlFocus(IMPRESSION_CONTROL_HWND)
-      } else {
-        impEle := risEle.FindFirst(UIA_ImpressionEdit)
-        if IsObject(impEle) {
-          impEle.SetFocus()
-        }
-      }
-    } else {
-      if (FINDING_CONTROL_HWND) {
-        ControlFocus(FINDING_CONTROL_HWND)
-      } else {
-        fdEle := risEle.FindFirst(UIA_FindingEdit)
-        if IsObject(fdEle) {
-          fdEle.SetFocus()
-        }
-      }
-    }
+  } catch TargetError as err {
+    MsgBox "操作失敗: " err.Message
   }
+}
+
+class RisController
+{
+    ; =================================================================
+    ; 1. 設定區 (Configuration) - 未來擴充元件都在這裡加
+    ; =================================================================
+    static WinTitle := RISReportWinTitle
+
+    ; 定義所有子元件的搜尋條件
+    static Selectors := Map(
+        "AutoNextCheckbox", {AutomationId: "chkAutoNext"},
+        "ReportSaveButton", {AutomationId: "btnReportSave"},
+        "FindingEdit", {AutomationId: "txtReport"},
+        "ImpressionEdit", {AutomationId: "txtImpression"},
+        "PastAllRadio", {AutomationId: "rdoPastALL"},
+        "PastModalityRadio", {AutomationId: "rdoClassify"},
+        "PastOnlyMyRadio", {AutomationId: "rdoPastOnlyMy"},
+        "ExamnameText", {AutomationId: "txtExamName"},
+        "PastFindingText", {AutomationId: "rtxtPastReport"},
+        "PastImpressionText", {AutomationId: "rtxtPastImpression"},
+        "PastReportTable", {AutomationId: "dgvPastReport"},
+        "PathoDiagnosisText", {AutomationId: "txtDiagnosist"},
+        "PathoDateText", {AutomationId: "mtxtRcpDTM"},
+    )
+
+    ; =================================================================
+    ; 2. 內部狀態 (State)
+    ; =================================================================
+    static _cache := Map() ; 用來存放所有已經抓到的 UIA Element
+
+    ; =================================================================
+    ; 3. 公開屬性 (Public Properties) - 外部呼叫用
+    ; =================================================================
+
+    ; 取得最上層 Ris Element (父層)
+    static Ris {
+        get => this._GetOrUpdateNode("Ris")
+    }
+
+    ; 取得 AutoNext Checkbox
+    static AutoNextCheckbox {
+        get => this._GetOrUpdateNode("AutoNextCheckbox")
+    }
+
+    ; 取得 Save Button
+    static ReportSaveButton {
+        get => this._GetOrUpdateNode("ReportSaveButton")
+    }
+
+    static FindingEdit {
+        get => this._GetOrUpdateNode("FindingEdit")
+    }
+    static ImpressionEdit {
+        get => this._GetOrUpdateNode("ImpressionEdit")
+    }
+
+    static PastAllRadio {
+        get => this._GetOrUpdateNode("PastAllRadio")
+    }
+    static PastModalityRadio {
+      get => this._GetOrUpdateNode("PastModalityRadio")
+    }
+    static PastOnlyMyRadio {
+      get => this._GetOrUpdateNode("PastOnlyMyRadio")
+    }
+
+    static ExamnameText {
+        get => this._GetOrUpdateNode("ExamnameText")
+    }
+
+    static PastFindingText {
+        get => this._GetOrUpdateNode("PastFindingText")
+    }
+    static PastImpressionText {
+        get => this._GetOrUpdateNode("PastImpressionText")
+    }
+
+    static PastReportTable {
+        get => this._GetOrUpdateNode("PastReportTable")
+    }
+
+    static PathoDiagnosisText {
+        get => this._GetOrUpdateNode("PathoDiagnosisText")
+    }
+    static PathoDateText {
+        get => this._GetOrUpdateNode("PathoDateText")
+    }
+
+    ; =================================================================
+    ; 4. 核心邏輯 (Core Logic) - 包含驗證與自動更新機制
+    ; =================================================================
+    static _GetOrUpdateNode(nodeName)
+    {
+        ; --- A. 檢查快取是否有效 (Probe 測試) ---
+        if this._cache.Has(nodeName) {
+            el := this._cache[nodeName]
+            try {
+                ; 嘗試讀取一個輕量屬性來確認它還活著
+                temp := el.ControlType
+                return el ; 沒報錯，直接回傳快取
+            } catch {
+                ; 報錯代表失效 (Stale)，移除快取準備重新抓取
+                this._cache.Delete(nodeName)
+            }
+        }
+
+        ; --- B. 快取無效，執行重新抓取邏輯 ---
+
+        ; 情境 1: 請求的是 "Ris" (最上層父節點)
+        if (nodeName = "Ris") {
+            if !WinExist(this.WinTitle)
+                throw TargetError("找不到 RIS 視窗: " this.WinTitle)
+
+            try {
+                ; 從視窗 Handle 取得新的 Element
+                newRoot := UIA.ElementFromHandle(WinExist(this.WinTitle))
+                this._cache["Ris"] := newRoot
+                return newRoot
+            } catch as err {
+                throw Error("無法取得 RIS Root Element: " err.Message)
+            }
+        }
+
+        ; 情境 2: 請求的是子節點 (Checkbox, Button 等)
+        else {
+            ; 這裡使用了遞迴概念：要找子節點，必須先保證父節點 (this.Ris) 是有效的
+            ; 呼叫 this.Ris 會自動觸發上面的 "情境 1" 檢查
+            parent := this.Ris
+
+            ; 取得該名稱對應的搜尋條件
+            if !this.Selectors.Has(nodeName)
+                throw Error("未定義的選取器: " nodeName)
+            condition := this.Selectors[nodeName]
+
+            try {
+                ; 從父節點往下找
+                newChild := parent.FindElement(condition)
+                this._cache[nodeName] := newChild
+                return newChild
+            } catch {
+                throw TargetError("在 RIS 介面中找不到元件: " nodeName)
+            }
+        }
+    }
 }
 
 UpdateRisElements()
@@ -1263,8 +1406,8 @@ Global simReportMap := Map(
   "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST",1),
 )
 
-UpdateRisElements()
-SetTimer(UpdateRisElements, 5000)
+;UpdateRisElements()
+;SetTimer(UpdateRisElements, 60000)
 
 ;-----------------------------------------------------------
 ; Mouse Remapping
