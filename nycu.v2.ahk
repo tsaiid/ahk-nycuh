@@ -56,23 +56,23 @@ Global reportSaveEle := ""
 
 #HotIf WinActive(RISReportWinTitle)
 
-;#Include MyScripts\regex-hotstrings.v2.ahk
-;#Include MyScripts\others.v2.ahk
-;#Include MyScripts\chest-ct.v2.ahk
-;#Include MyScripts\abdomen-ct.v2.ahk
-;#Include MyScripts\abdomen-mr.v2.ahk
-;#Include MyScripts\ct-guide.v2.ahk
-;#Include MyScripts\ms-ct.v2.ahk
-;#Include MyScripts\ms-mri.v2.ahk
+#Include MyScripts\regex-hotstrings.v2.ahk
+#Include MyScripts\others.v2.ahk
+#Include MyScripts\chest-ct.v2.ahk
+#Include MyScripts\abdomen-ct.v2.ahk
+#Include MyScripts\abdomen-mr.v2.ahk
+#Include MyScripts\ct-guide.v2.ahk
+#Include MyScripts\ms-ct.v2.ahk
+#Include MyScripts\ms-mri.v2.ahk
 #Include MyScripts\neuro.v2.ahk
-;#Include MyScripts\abbreviations.v2.ahk
-;#Include MyScripts\mri.v2.ahk
-;#Include MyScripts\chest-x-ray.v2.ahk
-;#Include MyScripts\kub.v2.ahk
-;#Include MyScripts\bone-x-ray.v2.ahk
-;#Include MyScripts\other-x-ray.v2.ahk
-;#Include MyScripts\sono-guide.v2.ahk
-;#Include MyScripts\angio.v2.ahk
+#Include MyScripts\abbreviations.v2.ahk
+#Include MyScripts\mri.v2.ahk
+#Include MyScripts\chest-x-ray.v2.ahk
+#Include MyScripts\kub.v2.ahk
+#Include MyScripts\bone-x-ray.v2.ahk
+#Include MyScripts\other-x-ray.v2.ahk
+#Include MyScripts\sono-guide.v2.ahk
+#Include MyScripts\angio.v2.ahk
 
 #Include MyScripts\lib\ris-common.v2.ahk
 ^9::{
@@ -110,12 +110,14 @@ Global reportSaveEle := ""
 ;;; Append previous report to FINDINGS and IMPRESSION
 AppendPrevReport() {
   try {
-    pastImpression := RisController.PastImpressionText.Value
+    ;pastImpression := RisController.GetText(RisController.PastImpressionText)
+    pastImpression := ControlGetText(RisController.PastImpressionText.NativeWindowHandle)
     hImpEdit := RisController.ImpressionEdit.NativeWindowHandle
     Edit_SetSel(hImpEdit, Edit_GetTextLength(hImpEdit))
     Edit_ReplaceSel(hImpEdit, pastImpression)
 
-    pastFinding := RisController.PastFindingText.Value
+    ;pastFinding := RisController.GetText(RisController.PastFindingText)
+    pastFinding := ControlGetText(RisController.PastFindingText.NativeWindowHandle)
     hFindingEdit := RisController.FindingEdit.NativeWindowHandle
     Edit_SetSel(hFindingEdit, Edit_GetTextLength(hFindingEdit))
     Edit_ReplaceSel(hFindingEdit, pastFinding)
@@ -475,15 +477,6 @@ FindSimilarReport(examName := "")
     }
 }
 
-/*
-^2::{
-  Send "!q"
-}
-
-^3::{
-  Send "!a"
-}
-  */
 !q::{
   Send "^e"
 }
@@ -816,16 +809,20 @@ OrderListForFindings()
 
 UnorderListForFindingsOfCrOrUs()
 {
-  If (hEdit := RisController.FindingEdit.NativeWindowHandle) {
-    startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|:\s*`r`n\s*`r`n", , , "RegEx", &matchedText)
-    If (startSel > -1) {
-      startSel += matchedText.Len
-      Edit_SetFocus(hEdit)
-      Edit_SetSel(hEdit, startSel, -1)
-      ;Sleep, 100
-      ReorderSelectedText(false, true, "-", false)
+    ; 取得 Handle
+    if (hEdit := RisController.FindingEdit.NativeWindowHandle) {
+
+        ; 搜尋並選取文字 (這部分保持原本邏輯)
+        startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|:\s*`r`n\s*`r`n", , , "RegEx", &matchedText)
+        if (startSel > -1) {
+            startSel += matchedText.Len
+            Edit_SetFocus(hEdit)
+            Edit_SetSel(hEdit, startSel, -1)
+
+            ; --- 修改點：直接將 hEdit 傳入 ---
+            ReorderSelectedText(false, true, "-", false, hEdit)
+        }
     }
-  }
 }
 
 UnorderListForFindingsOfCtOrMr()
@@ -857,13 +854,13 @@ UnorderListForFindingsOfCtOrMr()
       }
       Edit_SetFocus(hEdit)
       Edit_SetSel(hEdit, startSel, endSel)
-      ReorderSelectedText(false, false, "-")
-      ;MsgBox % regex_out
+      ReorderSelectedText(false, false, "-", , hEdit)
     }
   } else {
     MsgBox("FINDING_CONTROL_HWND is invalid!")
   }
 }
+
 
 ;;; Formatting FINDINGS
 ;;;; Reorder Seleted Text And Keep SeIm
@@ -881,9 +878,9 @@ FormatImpressionText() {
     Edit_SetFocus(hEdit)
     Edit_SetSel(hEdit)
     if (Edit_GetLogicalLineCount(hEdit) > 1) {
-      ReorderSelectedText()
+      ReorderSelectedText(,,,, hEdit)
     } else {
-      ReorderSelectedText(true)
+      ReorderSelectedText(true,,,, hEdit)
     }
   }
 }
@@ -897,25 +894,30 @@ SC070::{
 
 ; Reorder Seleted Text And Discard SeIm
 ^!o::{
-  ReorderSelectedText()
+  hEdit := UIA.GetFocusedElement().NativeWindowHandle
+  ReorderSelectedText(,,,, hEdit)
 }
 
 ; Reorder Seleted Text And Keep SeIm
 ^!+o::{
-  ReorderSelectedText(,,, false)
+  hEdit := UIA.GetFocusedElement().NativeWindowHandle
+  ReorderSelectedText(,,, false, hEdit)
 }
 
 ; Unorder Seleted Text
 ^+*::{
-  ReorderSelectedText(false, true, "*")
+  hEdit := UIA.GetFocusedElement().NativeWindowHandle
+  ReorderSelectedText(false, true, "*",, hEdit)
 }
 
 ^+-::{
-  ReorderSelectedText(false, true, "-")
+  hEdit := UIA.GetFocusedElement().NativeWindowHandle
+  ReorderSelectedText(false, true, "-",, hEdit)
 }
 
 ^+>::{
-  ReorderSelectedText(false, true, ">")
+  hEdit := UIA.GetFocusedElement().NativeWindowHandle
+  ReorderSelectedText(false, true, ">",, hEdit)
 }
 
 CopyPathologyReport() {
@@ -1162,29 +1164,47 @@ class RisController
     ; =================================================================
     static _GetOrUpdateNode(nodeName)
     {
-        ; --- A. 檢查快取是否有效 (Probe 測試) ---
+        ; [步驟 1] 取得當前真實視窗的 ID
+        ; 如果連視窗都沒開，直接在這裡就會報錯，這也是一種檢查
+        currentHwnd := WinExist(this.WinTitle)
+        if !currentHwnd
+            throw TargetError("找不到 RIS 視窗，請確認程式已開啟。")
+
+        ; [步驟 2] 檢查快取是否存在
         if this._cache.Has(nodeName) {
             el := this._cache[nodeName]
+
             try {
-                ; 嘗試讀取一個輕量屬性來確認它還活著
+                ; === 關鍵修正：針對 Root (Ris) 進行嚴格檢查 ===
+                if (nodeName = "Ris") {
+                    ; 如果快取中的 Element 的視窗 ID 不等於現在的視窗 ID
+                    ; 代表視窗已經重開過，這個快取是舊視窗的「屍體」
+                    if (el.WindowId != currentHwnd)
+                        throw Error("視窗 ID 不匹配 (應用程式可能已重啟)")
+                }
+
+                ; 一般的 Probe 測試 (確保元件沒壞)
                 temp := el.ControlType
-                return el ; 沒報錯，直接回傳快取
-            } catch {
-                ; 報錯代表失效 (Stale)，移除快取準備重新抓取
+                return el ; 驗證通過，回傳快取
+            }
+            catch {
+                ; 驗證失敗 (可能是視窗重開、元件消失)，清除此快取
+                ; DebugLog("快取失效: " nodeName)
                 this._cache.Delete(nodeName)
+
+                ; 如果是父層失效，最好連子層快取也清空，避免連鎖反應
+                if (nodeName = "Ris")
+                    this._cache := Map()
             }
         }
 
-        ; --- B. 快取無效，執行重新抓取邏輯 ---
+        ; [步驟 3] 快取無效，重新抓取
 
-        ; 情境 1: 請求的是 "Ris" (最上層父節點)
+        ; A. 抓取 Root (Ris)
         if (nodeName = "Ris") {
-            if !WinExist(this.WinTitle)
-                throw TargetError("找不到 RIS 視窗: " this.WinTitle)
-
             try {
-                ; 從視窗 Handle 取得新的 Element
-                newRoot := UIA.ElementFromHandle(WinExist(this.WinTitle))
+                ; 確保使用當前最新的 Hwnd
+                newRoot := UIA.ElementFromHandle(currentHwnd)
                 this._cache["Ris"] := newRoot
                 return newRoot
             } catch as err {
@@ -1192,27 +1212,97 @@ class RisController
             }
         }
 
-        ; 情境 2: 請求的是子節點 (Checkbox, Button 等)
+        ; B. 抓取子元件
         else {
-            ; 這裡使用了遞迴概念：要找子節點，必須先保證父節點 (this.Ris) 是有效的
-            ; 呼叫 this.Ris 會自動觸發上面的 "情境 1" 檢查
+            ; 遞迴呼叫：這會自動觸發上面的 "Ris" 檢查
+            ; 如果 Ris 快取剛被清空，這裡會自動重新抓一個新的 Ris
             parent := this.Ris
 
-            ; 取得該名稱對應的搜尋條件
             if !this.Selectors.Has(nodeName)
-                throw Error("未定義的選取器: " nodeName)
-            condition := this.Selectors[nodeName]
+                throw Error("未定義: " nodeName)
 
             try {
-                ; 從父節點往下找
-                newChild := parent.FindElement(condition)
+                newChild := parent.FindElement(this.Selectors[nodeName])
                 this._cache[nodeName] := newChild
                 return newChild
             } catch {
-                throw TargetError("在 RIS 介面中找不到元件: " nodeName)
+                ; 這裡可以做一個保險：如果找不到子元件，有沒有可能是父元件其實也壞了?
+                ; 但因為上面的邏輯已經嚴格檢查過父元件，這裡單純找不到的機率較高。
+                throw TargetError("找不到元件: " nodeName)
             }
         }
     }
+
+    ; =================================================================
+    ; 通用文字取得方法 (支援所有 Element)
+    ; 用法: text := RisController.GetText(RisController.ReportContent)
+    ; =================================================================
+    static GetText(el)
+    {
+        ;MsgBox(el.FrameworkId)
+        rawText := ""
+        isNativeSuccess := false
+
+        ; [策略 A] 優先嘗試原生 ControlGetText (針對 Win32 Edit Control)
+        try {
+            ; 1. 取得該 Element 的原生視窗 Handle
+            ;    注意：屬性名稱是 NativeWindowHandle
+            hwnd := el.NativeWindowHandle
+
+            ; 2. 檢查 Handle 是否有效，且框架是否為 Win32
+            ; WinForm 和 Win32 的控制項都有獨立 Handle，適合用 ControlGetText
+            if (hwnd && (el.FrameworkId = "Win32" || el.FrameworkId = "WinForm")) {
+                rawText := ControlGetText(hwnd)
+                isNativeSuccess := true
+            }
+        }
+        catch {
+            ; 忽略 ControlGetText 的錯誤，繼續往下嘗試
+        }
+
+        ; [策略 B] 如果原生讀取失敗或不適用，使用 UIA 屬性
+        if (!isNativeSuccess) {
+            try {
+                ; -----------------------------------------------------------
+                ; 修正點：不要用 IsPatternSupported("Value") 做硬性阻擋
+                ; 直接嘗試讀取 .Value，讓函式庫自己去決定是用 ValuePattern 還是 LegacyIAccessible
+                ; -----------------------------------------------------------
+                rawText := el.Value
+            }
+            catch {
+                ; 如果 .Value 報錯，代表兩者都不支援，這裡什麼都不做，繼續往下試
+            }
+
+            ; 如果上面沒拿到值，再試試看 TextPattern (針對 Document)
+            if (rawText == "" && el.IsPatternSupported("Text")) {
+                try {
+                    rawText := el.DocumentRange.GetText()
+                }
+            }
+
+            ; 最後試試 Name
+            if (rawText == "") {
+                try {
+                    rawText := el.Name
+                }
+            }
+        }
+
+        ; [策略 C] 最終標準化：強制統一換行符號為 Windows 格式 (CRLF)
+        if (rawText != "") {
+            ; 第一步：把 Windows 標準的 `r`n 轉成 `n
+            temp := StrReplace(rawText, "`r`n", "`n")
+
+            ; 第二步：【關鍵修正】把剩餘單獨的 `r 也轉成 `n
+            ; 這是為了解決 WinForm/Legacy 有時只回傳 CR 的問題
+            temp := StrReplace(temp, "`r", "`n")
+
+            ; 第三步：現在所有換行都統一變成 `n 了，再一次性轉成 `r`n
+            return StrReplace(temp, "`n", "`r`n")
+        }
+
+        return ""
+      }
 }
 
 UpdateRisElements()
@@ -1263,52 +1353,80 @@ UpdateRisElements()
   }
 }
 
-ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true) {
-    global PRESERVE_CLIPBOARD
+Global simReportMap := Map(
+  "CHEST PA/AP", Map("CHEST PA/AP+LAT",1),
+  "CHEST PA/AP+LAT", Map("CHEST PA/AP",1),
+  "KUB", Map("KUB+ABD LAT",1),
+  "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing",1),
+  "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST",1),
+  "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST",1),
+)
 
-    local isSpine := false
-    local ClipSaved := "" ; 儲存備份的變數
+;UpdateRisElements()
+;SetTimer(UpdateRisElements, 60000)
 
-    ; v2 (正確): 備份剪貼簿 (使用 ClipboardAll 變數)
-    if (PRESERVE_CLIPBOARD) {
-        ClipSaved := ClipboardAll
-    }
+/**
+ * 重排選取文字 (無剪貼簿版)
+ * @param deOrder 移除序號
+ * @param keepEmptyLine 保留空行
+ * @param itemChar 項目符號
+ * @param discardSeIm 移除 Series/Image 標記
+ * @param targetHwnd [選填] 目標 Control 的 Handle。如果有傳入，則完全不使用剪貼簿。
+ */
+ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true, targetHwnd := 0) {
 
-    ; v2 (正確): 清空剪貼簿 (使用 A_Clipboard 變數)
-    A_Clipboard := ""
-    Send "^c"
+    local selectedText := ""
 
-    ; 等待剪貼簿包含資料
-    if !ClipWait(0.8) {
-        MsgBox "複製文字到剪貼簿失敗 (逾時)。"
+    ; --- 1. 取得文字 (Input) ---
+    if (targetHwnd) {
+        ; [新方法] 直接從 Control 讀取選取文字，不經剪貼簿
+        try {
+            selectedText := EditGetSelectedText(targetHwnd)
+        } catch {
+            MsgBox "無法讀取選取文字 (EditGetSelectedText 失敗)。"
+            return -1
+        }
+    } else {
+        ; [舊方法相容] 如果沒傳 Handle，才退回使用剪貼簿 (保留給其他視窗使用)
+        global PRESERVE_CLIPBOARD
+        local ClipSaved := ""
         if (PRESERVE_CLIPBOARD)
-            ClipboardAll := ClipSaved ; v2 (正確): 還原
-        Return -1
+            ClipSaved := ClipboardAll()
+
+        A_Clipboard := ""
+        Send "^c"
+        if !ClipWait(0.8) {
+            MsgBox "複製文字失敗 (逾時)。"
+            if (PRESERVE_CLIPBOARD)
+                A_Clipboard := ClipSaved
+            return -1
+        }
+        selectedText := A_Clipboard
     }
 
-    ; v2 (正確): 讀取文字 (使用 A_Clipboard 變數)
-    local selectedText := A_Clipboard
-
-    ; --- 1. 文字正規化 (這部分邏輯不變) ---
+    ; --- 2. 文字處理 (邏輯完全保留) ---
+    ; 為了安全起見，先標準化換行
     selectedText := StrReplace(selectedText, "`r`n", "`n")
     if (InStr(selectedText, "`r")) {
-        MsgBox "選取範圍內包含不正確的換行符號 (CR)。請使用正確的方式選取文字。"
-        if (PRESERVE_CLIPBOARD)
-            ClipboardAll := ClipSaved ; v2 (正確): 還原
-        Return -1
+        ; 這裡如果直接讀取 Control，通常不會有單獨 `r 的問題，但保留檢查無妨
+        MsgBox "選取範圍內包含不正確的換行符號 (CR)。"
+        if (!targetHwnd && IsSet(ClipSaved) && PRESERVE_CLIPBOARD)
+             A_Clipboard := ClipSaved
+        return -1
     }
+
     local hadTrimmedRight := false
     if (SubStr(selectedText, -1) == "`n") {
         selectedText := SubStr(selectedText, 1, -1)
         hadTrimmedRight := true
-        ;MsgBox("已去除選取文字末尾的多餘換行符號。")
     }
+
     local txtAry := StrSplit(selectedText, "`n")
     local endLine := txtAry.Length
+    local finalText := ""
 
-    ; --- 2. 處理文字 (這部分邏輯不變) ---
     if (StrLen(selectedText) > 0) {
-        local finalText := ""
+        local isSpine := false
         local isFirstLineEmpty := false
         local startLineNo := 1
 
@@ -1319,7 +1437,6 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
         for index, line in txtAry {
             if (index == 1 && !StrLen(line)) {
                 isFirstLineEmpty := true
-                ;MsgBox("第一行是空行")
             }
             if (!RegExMatch(line, "^\s*$")) {
                 if (RegExMatch(line, "^\s*[-\+\*]*\s*([Vv]arying degree|[Mm]ild).+causing:")) {
@@ -1340,74 +1457,56 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
                     tmpText := RegExReplace(tmpText, "Mark L\d+:\s*", "")
                 }
 
-                ; --- ★ 這裡是您指定的方案 1 ★ ---
-                ; v1: "$u7$8"
-                ; v2: "$u${7}${8}" (v2 的 $u 指令只作用於緊鄰的下一個變數)
+                ; 正規表達式替換
                 finalText .= RegExReplace(
                     tmpText,
                     "^(\s*)((\d+\.)|([-\+\*>=])|(\(?\d+\)))?(\s*)(\w?)(.*)",
                     "$u{7}${8}"
                 )
-                ; --- ★ 修正完畢 ★ ---
 
                 if (index < endLine || hadTrimmedRight) {
                     finalText .= "`r`n"
                 }
             } else {
-                if (isFirstLineEmpty) {
-                    if (index == 1) {
-                        finalText .= "`r`n"
-                    }
+                if (isFirstLineEmpty && index == 1) {
+                    finalText .= "`r`n"
                 }
                 if (keepEmptyLine) {
-                  /*
-                    if (isFirstLineEmpty) {
-                        if (!Mod(index, 2)) {
-                            finalText .= "`r`n"
-                        }
-                    } else {
-                        if (Mod(index, 2)) {
-                            finalText .= "`r`n"
-                        }
-                    }
-                  */
                     finalText .= "`r`n"
                 }
             }
         }
+    } else {
+        ; 無內容
+        if (!targetHwnd && IsSet(ClipSaved) && PRESERVE_CLIPBOARD)
+             A_Clipboard := ClipSaved
+        return -1
+    }
 
-        ; --- 3. 輸出 (修正) ---
-
-        ; v2 (正確): 寫入文字 (使用 A_Clipboard 變數)
+    ; --- 3. 輸出 (Output) ---
+    if (targetHwnd) {
+        ; [新方法] 直接發送字串替換選取範圍 (不經剪貼簿)
+        ; EditPaste 在 v2 中會自動送出 EM_REPLACESEL 訊息
+        try {
+            EditPaste(finalText, targetHwnd)
+        } catch as err {
+            MsgBox "寫入失敗: " err.Message
+        }
+    } else {
+        ; [舊方法相容] 剪貼簿貼上
         A_Clipboard := finalText
-
         Sleep 100
         Send "^v"
 
-        if (PRESERVE_CLIPBOARD) {
-            ; v2 (正確): 還原剪貼簿 (使用 ClipboardAll 變數)
-            ClipboardAll := ClipSaved
+        if (PRESERVE_CLIPBOARD && IsSet(ClipSaved)) {
+            Sleep 200 ; 等待貼上完成再還原
+            A_Clipboard := ClipSaved
         }
-        Return 0
-    } else {
-        MsgBox "選取範圍內沒有內容。"
-        if (PRESERVE_CLIPBOARD)
-            ClipboardAll := ClipSaved ; v2 (正確): 還原
-        Return -1
     }
+
+    return 0
 }
 
-Global simReportMap := Map(
-  "CHEST PA/AP", Map("CHEST PA/AP+LAT",1),
-  "CHEST PA/AP+LAT", Map("CHEST PA/AP",1),
-  "KUB", Map("KUB+ABD LAT",1),
-  "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing",1),
-  "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST",1),
-  "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST",1),
-)
-
-;UpdateRisElements()
-;SetTimer(UpdateRisElements, 60000)
 
 ;-----------------------------------------------------------
 ; Mouse Remapping
