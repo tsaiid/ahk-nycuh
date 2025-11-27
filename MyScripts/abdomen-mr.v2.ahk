@@ -27,7 +27,7 @@
 ;; General
 ::amrpan::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Pancreas and MRCP.
 
@@ -42,12 +42,12 @@ COMPARISON: no
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amrmrcp::
 {
-  MyForm := "
+    MyForm := "
   (
 MRCP without IV Gd enhancement
 
@@ -70,13 +70,13 @@ Kidneys and ureters: Unremarkable
 
 No obvious upper abdominal retroperitoneal lymphadenopathy identified.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRI liver, MRCP
 ::amrliv::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Liver with Gd enhancement, and MRCP.
 
@@ -110,13 +110,13 @@ No obvious upper abdominal retroperitoneal lymphadenopathy identified.
 Lower thorax: Unremarkable
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRI liver, Primovist
 ::amrlivp::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Liver with Primovist enhancement, and MRCP.
 
@@ -150,13 +150,13 @@ No obvious upper abdominal retroperitoneal lymphadenopathy identified.
 Lower thorax: Unremarkable
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRI Kidney
 ::amrrcc::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Kidney
 
@@ -184,13 +184,13 @@ Pancreas: Unremarkable
 Lower thorax: Unremarkable
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRI Adrenal
 ::amrad::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Adrenal glands
 
@@ -212,13 +212,13 @@ Pancreas: Unremarkable
 
 No obvious upper abdominal retroperitoneal lymphadenopathy identified.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRI UB
 ::amrub::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Urinary bladder
 
@@ -251,12 +251,12 @@ Biliary tree: Unremarkable
 Pancreas: Unremarkable
 Lower thorax: Unremarkable
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mmrpc::  ; template for prostatic cancer
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the abdomen & pelvis for prostatic cancer evaluation.  It was performed before and after Gd-DTPA enhancement.
 MR protocols: T1WI, T2WI, DWI (b=1000 axial; b=400  coronal ) pulse sequences in axial, coronal, and sagittal views.  T1WI-FS pulse sequence  with iv. contrast administration.
@@ -282,11 +282,11 @@ Lymphadenopathy: pelvic (  ) or para-aortic ( ).
 7. Focal bony lesion ( ).** * DWI/ADC pulse sequence (b=1000)
 ** DWI/ADC pulse sequence (b=400)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  Send "{Tab}"
+    Send "{Tab}"
 
-  MyForm := "
+    MyForm := "
   (
 Prostatic cancer. (Pi-Rad)***.
 
@@ -297,12 +297,12 @@ PI-RADS 3: intermediate (the presence of clinically significant cancer is equivo
 PI-RADS 4: high (clinically significant cancer is likely to be present)
 PI-RADS 5: very high (clinically significant cancer is highly likely to be present)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amrprcs::
 {
-  MyForm := "
+    MyForm := "
   (
 Prostate Cancer Staging Form
 
@@ -355,12 +355,12 @@ Others:
 6. Others
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amrpr::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of Prostate
 
@@ -447,18 +447,18 @@ PI-RADS v2.1 Assessment Categories:
 * PI-RADS 4 - High (clinically significant cancer is likely to be present)
 * PI-RADS 5 - Very high (clinically significant cancer is highly likely to be present)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::prsz::
 {
-  Sleep 100
-  ProstateSizeCalForm()
+    Sleep 100
+    ProstateSizeCalForm()
 }
 
 ::amrcxca::
 {
-  MyForm := "
+    MyForm := "
   (
 Cervical Cancer Staging Form
 
@@ -510,20 +510,20 @@ Parametrial, obturator, internal iliac, external iliac, common iliac, sacral.
 - Kidneys and ureters: Unremarkable
 - Urinary bladder: Unremarkable
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Cervical cancer,
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amrcx::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Uterine Cervix.
 
@@ -568,20 +568,20 @@ Others:
 - Kidneys and ureters: Unremarkable
 - Urinary bladder: Unremarkable
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Cervical cancer,
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amrrec::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Pelvis and Rectum.
 
@@ -599,12 +599,12 @@ COMPARISON: no
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amrub::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Urinary bladder.
 
@@ -620,12 +620,12 @@ COMPARISON: no
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amrras::
 {
-  MyForm := "
+    MyForm := "
   (
 MRA of the renal arteries with 1.5T Avanto.
 
@@ -661,21 +661,21 @@ Pancreas: Unremarkable
 Lymphadenopathy: No
 Lower lungs: Unremarkable
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 C/W renal artery stenosis, bilateral, mild.
 No obvious renal artery stenosis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::pirads::
 {
-  MyForm := "
+    MyForm := "
   (
 PI-RADS v2 Assessment Categories:
 * PI-RADS 1 - Very low (clinically significant cancer is highly unlikely to be present)
@@ -684,12 +684,12 @@ PI-RADS v2 Assessment Categories:
 * PI-RADS 4 - High (clinically significant cancer is likely to be present)
 * PI-RADS 5 - Very high (clinically significant cancer is highly likely to be present)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amrgynpa::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Uterus.
 
@@ -741,21 +741,21 @@ Key imaging features of normal placentation
 - Triple-layered sandwich appearance of myometrium
 - Pear-shape of normal gravid uterus with smooth contour.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 C/W complete placenta previa, with placenta accreta. Correlation with placental sonography and clinical history is suggested.
 No obvious fetal anomaly.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::amremca::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Uterus.
 
@@ -803,21 +803,21 @@ Others:
 - Kidneys and ureters: Unremarkable
 - Urinary bladder: Unremarkable
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Endometrial cancer, FIGO Stage II.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Acute appendicitis
 ::amrapp::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the Abdomen for r/o acute appendicitis in pregnancy.
 
@@ -848,21 +848,21 @@ No retroperitoneal or mesenteric lymphadenopathy.
 No obvious ascites.
 The lungs covered in the scanning range are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No strong evidence of acute appendicitis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; PCU Abd Tumor Screening
 ::amrpcu::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the abdomen and pelvis
 
@@ -902,13 +902,13 @@ GYN organ: Unremarkable
 No pelvic, retroperitoneal or mesenteric lymphadenopathy.
 The abdominal aorta and its major branches are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; PCU GYN Tumor Screening
 ::amrpcugyn::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the abdomen and pelvis with 3T Skyra.
 
@@ -937,89 +937,87 @@ Urinary bladder: Unremarkable
 
 No pelvic, retroperitoneal or mesenteric lymphadenopathy.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
 
 #Requires AutoHotkey v2.0
 
 ;; Prostate size calculation form
-ProstateSizeCalForm()
-{
-  ; 先取得當前活動視窗的 ID，以便稍後切換回來
-  hParentWnd := WinExist("A")
+ProstateSizeCalForm() {
+    ; 先取得當前活動視窗的 ID，以便稍後切換回來
+    hParentWnd := WinExist("A")
 
-  PSC := Gui(, "Prostate Size Helper")
-  PSC.SetFont("s12", "Verdana")
+    PSC := Gui(, "Prostate Size Helper")
+    PSC.SetFont("s12", "Verdana")
 
-  PSC.Add("Text", "x12 y22 w160 h20", "Width")
-  PSC.Add("Text", "x12 y72 w160 h20", "Length")
-  PSC.Add("Text", "x12 y122 w160 h20", "Height")
+    PSC.Add("Text", "x12 y22 w160 h20", "Width")
+    PSC.Add("Text", "x12 y72 w160 h20", "Length")
+    PSC.Add("Text", "x12 y122 w160 h20", "Height")
 
-  ; 儲存 Edit 控制項物件，以便稍後取值
-  edtWidth := PSC.Add("Edit", "x162 y20 w80 h22 Number")
-  edtLength := PSC.Add("Edit", "x162 y70 w80 h22 Number")
-  edtHeight := PSC.Add("Edit", "x162 y120 w80 h22 Number")
+    ; 儲存 Edit 控制項物件，以便稍後取值
+    edtWidth := PSC.Add("Edit", "x162 y20 w80 h22 Number")
+    edtLength := PSC.Add("Edit", "x162 y70 w80 h22 Number")
+    edtHeight := PSC.Add("Edit", "x162 y120 w80 h22 Number")
 
-  PSC.Add("Text", "x252 y22 w30 h20", "mm")
-  PSC.Add("Text", "x252 y72 w30 h20", "mm")
-  PSC.Add("Text", "x252 y122 w30 h20", "mm")
+    PSC.Add("Text", "x252 y22 w30 h20", "mm")
+    PSC.Add("Text", "x252 y72 w30 h20", "mm")
+    PSC.Add("Text", "x252 y122 w30 h20", "mm")
 
-  btnOK := PSC.Add("Button", "x12 y170 w40 h30 Default", "OK")
-  btnOK.OnEvent("Click", PSCButtonOK)
+    btnOK := PSC.Add("Button", "x12 y170 w40 h30 Default", "OK")
+    btnOK.OnEvent("Click", PSCButtonOK)
 
-  ; ShowGUIatCurrScreenCenter 邏輯移植
-  ; get current monitor index
-  CurrentMonitorIndex := GetCurrentMonitorIndex()
+    ; ShowGUIatCurrScreenCenter 邏輯移植
+    ; get current monitor index
+    CurrentMonitorIndex := GetCurrentMonitorIndex()
 
-  ; get Hwnd of current GUI (v2 物件已有 Hwnd 屬性)
-  PSC.Show("Hide") ; 先以隱藏模式 Show 出來，才能計算 ClientSize
-  GUI_Hwnd := PSC.Hwnd
+    ; get Hwnd of current GUI (v2 物件已有 Hwnd 屬性)
+    PSC.Show("Hide") ; 先以隱藏模式 Show 出來，才能計算 ClientSize
+    GUI_Hwnd := PSC.Hwnd
 
-  ; Calculate size of GUI
-  ; 注意：呼叫參照參數 (&) 的函數時，變數前要加 &
-  GUI_Width := 0, GUI_Height := 0
-  GetClientSize(GUI_Hwnd, &GUI_Width, &GUI_Height)
+    ; Calculate size of GUI
+    ; 注意：呼叫參照參數 (&) 的函數時，變數前要加 &
+    GUI_Width := 0, GUI_Height := 0
+    GetClientSize(GUI_Hwnd, &GUI_Width, &GUI_Height)
 
-  ; Calculate where the GUI should be positioned
-  GUI_X := CoordXCenterScreen(GUI_Width, CurrentMonitorIndex)
-  GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
+    ; Calculate where the GUI should be positioned
+    GUI_X := CoordXCenterScreen(GUI_Width, CurrentMonitorIndex)
+    GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
 
-  PSC.Show("x" GUI_X " y" GUI_Y)
+    PSC.Show("x" GUI_X " y" GUI_Y)
 
-  ; 定義內部函數處理點擊事件
-  PSCButtonOK(*)
-  {
-    PSC.Hide() ; 先隱藏，避免視覺干擾
+    ; 定義內部函數處理點擊事件
+    PSCButtonOK(*) {
+        PSC.Hide() ; 先隱藏，避免視覺干擾
 
-    ; 從控制項物件獲取數值
-    ValWidth := edtWidth.Value
-    ValLength := edtLength.Value
-    ValHeight := edtHeight.Value
+        ; 從控制項物件獲取數值
+        ValWidth := edtWidth.Value
+        ValLength := edtLength.Value
+        ValHeight := edtHeight.Value
 
-    if (ValWidth = "" || ValLength = "" || ValHeight = "") {
-      MsgBox("Empty value")
-      return
-    }
+        if (ValWidth = "" || ValLength = "" || ValHeight = "") {
+            MsgBox("Empty value")
+            return
+        }
 
-    ; 數值計算
-    PrWidth := Round(ValWidth / 10, 1)
-    PrLength := Round(ValLength / 10, 1)
-    PrHeight := Round(ValHeight / 10, 1)
-    PrVol := Round(PrWidth * PrLength * PrHeight * 0.52, 1)
+        ; 數值計算
+        PrWidth := Round(ValWidth / 10, 1)
+        PrLength := Round(ValLength / 10, 1)
+        PrHeight := Round(ValHeight / 10, 1)
+        PrVol := Round(PrWidth * PrLength * PrHeight * 0.52, 1)
 
-    ; 使用 Format 格式化字串
-    MyForm := Format("
+        ; 使用 Format 格式化字串
+        MyForm := Format("
 (
 Prostatic size: {1} x {2} x {3} cm; Volume: {4} ml (length x width x height x 0.52).
-)", PrWidth, PrLength, PrHeight, PrVol)
+)", PrWidth, PrLength,
+            PrHeight, PrVol)
 
-    PSC.Destroy()
+        PSC.Destroy()
 
-    if WinExist("ahk_id " hParentWnd) {
-      WinActivate "ahk_id " hParentWnd
+        if WinExist("ahk_id " hParentWnd) {
+            WinActivate "ahk_id " hParentWnd
+        }
+
+        Paste(MyForm)
     }
-
-    Paste(MyForm)
-  }
 }

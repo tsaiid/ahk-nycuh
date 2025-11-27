@@ -200,7 +200,7 @@ Edit_FindText(hEdit, p_SearchText, p_Min := 0, p_Max := -1, p_Options := "", &r_
             ; v1: outputdebug, (ltrim join`s ...
             ; v2: A_ThisFunc -> A_ThisFunc.Name, ErrorLevel -> e.Message
             OutputDebug(
-                "Function: " . A_ThisFunc.Name . " - RegExMatch error.`n"
+            "Function: " . A_ThisFunc.Name . " - RegExMatch error.`n"
                 . "Error: " . e.Message
             )
             FoundPos := -1
@@ -257,12 +257,12 @@ Edit_HasFocus(hEdit) {
 
         ; 奇怪的是, NumGet() 函式 *確實* 接受 Buffer 物件本身
         Return (hEdit = NumGet(GUITHREADINFO, A_PtrSize = 8 ? 16 : 12, "UPtr"))
-               ;-- hwndFocus
+        ;-- hwndFocus
     }
 
     ;-- Error
     OutputDebug(
-        "Function: " . A_ThisFunc.Name . " - `n"
+    "Function: " . A_ThisFunc.Name . " - `n"
         . "Call to GetGUIThreadInfo failed. A_LastError: " . A_LastError
     )
     Return false

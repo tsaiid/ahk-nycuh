@@ -10,7 +10,7 @@
 ;; CTNEC
 ::ctnec::
 {
-  MyForm := "
+    MyForm := "
   (
 Neck CT
 
@@ -65,13 +65,13 @@ Submandibular gland: normal
 Thyroid gland: normal
 Lymph nodes: No evidence of bulky lymph nodes (> 1 cm) in the bilateral carotid space and posterior triangle of submandibular and neck regions noted.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTNECNC
 ::ctnecnc::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Multi-slice CT scanner with
@@ -135,14 +135,14 @@ Lymph nodes: No evidence of bulky lymph nodes (> 1 cm) in the bilateral carotid 
 
 PS. The evaluation is limited especially for solid organs, neck lymph nodes and vascular structure due to absence of contrast enhancement.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Acute tonsillitis
 ; Peritonsillar abscess
 ::ctnecat::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Multi-slice CT scanner with
@@ -184,22 +184,22 @@ Parotid gland: normal
 Submandibular gland: normal
 Thyroid gland: normal
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Acute tonsillitis with abscess formation.
 Left peritonsillar abscesses.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTNECHRCT
 ::ctnechrct::
 {
-  MyForm := "
+    MyForm := "
   (
 HRCT of the temporal bone with axial and coronal section 1 mm showed:
 
@@ -234,13 +234,13 @@ IMPRESSION:
 SUGGESTION:
 Clinical correlation and follow up are suggested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTNECHRCTwnl
 ::ctnechrctok::
 {
-  MyForm := "
+    MyForm := "
   (
 HRCT of the temporal bone with axial and coronal section 1 mm showed:
 
@@ -257,21 +257,21 @@ No osteolytic foci around the cochlear noted, and thus no CT imaging evidence of
 
 Presence of mucoperiosteal thickening in the bilateral ethmoid and maxillary sinuses, mild sinusitis considered.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No CT imaging evidence of cholesteatoma or otosclerosis noted.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTNECHRCT - Superior semicircular canal dehiscence syndrome
 ::ctnechrctscds::
 {
-  MyForm := "
+    MyForm := "
   (
 HRCT of the temporal bone with axial and coronal section 1 mm showed:
 
@@ -291,13 +291,13 @@ No osteolytic foci around the cochlear noted, and thus no CT imaging evidence of
 IMPRESSION:
 Relatively thinning of the bony covering (arcuate eminence) of the right superior semicircular canal, but not definite dehiscence. Clinical correlation is suggested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRNEC
 ::mrnec::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of the skull base and neck was performed:
 TECHNIQUE: Axial T1WI and T2WI with fat suppression; Coronal and sagittal post Gd-enhanced T1WI with fat suppression
@@ -334,12 +334,12 @@ The paranasal sinuses and mastoid air cells are unremarkable.
 
 The visible brain is unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mrnpc::
 {
-  MyForm := "
+    MyForm := "
   (
 Nasopharyngeal Carcinoma Staging Form
 
@@ -377,5 +377,5 @@ Maximal size of the largest positive node: ____ mm (long axis)
 6. Other findings:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

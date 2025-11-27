@@ -7,11 +7,10 @@
 
 ::sin::signal intensity
 
-
 ;; Cardiac MRI
 ::cmr::
 {
-  MyForm := "
+    MyForm := "
   (
 CHEST Heart¢AVessels MRI without and with contrast medium:
 
@@ -27,13 +26,13 @@ FINDINGS:
 - No obviously increased pericardial effusion.
 - LV ejection fraction: 70%.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No remarkable cardiac findings.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

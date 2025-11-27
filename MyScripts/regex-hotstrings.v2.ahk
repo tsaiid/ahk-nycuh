@@ -19,190 +19,191 @@ global ORDINAL_NUM_STR := Map(
 )
 
 plsp() {
-  global hsMatch ; 使用合法的變數名稱
-  start := Integer(hsMatch[1])
-  end_val := Integer(hsMatch[2])
+    global hsMatch ; 使用合法的變數名稱
+    start := Integer(hsMatch[1])
+    end_val := Integer(hsMatch[2])
 
-  if (end_val <= start && end_val != 1) {
-    return
-  }
+    if (end_val <= start && end_val != 1) {
+        return
+    }
 
-  ; L1~S1
-  if (start == 1 && start == end_val) {
-    range := "L1~S1"
-    cage := "L1-2, L2-3, L3-4, L4-5, L5-S1"
-  } else {
-    range := "L" . start . "~"
-    if (end_val == 1) {
-      range .= "S1"
+    ; L1~S1
+    if (start == 1 && start == end_val) {
+        range := "L1~S1"
+        cage := "L1-2, L2-3, L3-4, L4-5, L5-S1"
     } else {
-      range .= "L" . end_val
-    }
-
-    cage := "L" . start
-    Loop {
-      startStr := start
-      start += 1
-      if (start == end_val) {
-        cage .= "-" . end_val
-        break
-      } else {
-        if (end_val == 1 && start == 6) {
-          cage .= "-S1"
-          break
+        range := "L" . start . "~"
+        if (end_val == 1) {
+            range .= "S1"
         } else {
-          endStr := start
+            range .= "L" . end_val
         }
-      }
 
-      cage .= "-" . endStr . ", L" . endStr
+        cage := "L" . start
+        loop {
+            startStr := start
+            start += 1
+            if (start == end_val) {
+                cage .= "-" . end_val
+                break
+            } else {
+                if (end_val == 1 && start == 6) {
+                    cage .= "-S1"
+                    break
+                } else {
+                    endStr := start
+                }
+            }
+
+            cage .= "-" . endStr . ", L" . endStr
+        }
     }
-  }
 
-  finalStr := Format("
+    finalStr := Format("
 (
 Status post laminectomy, transpedicular screws, rods fixation at {1}.
 Status post interbody cage placement at {2}.
-)", range, cage)
-  Paste(finalStr)
+)",
+        range, cage)
+    Paste(finalStr)
 }
 
 pcsp() {
-  global hsMatch
-  start := Integer(hsMatch[1])
-  end_val := Integer(hsMatch[2])
+    global hsMatch
+    start := Integer(hsMatch[1])
+    end_val := Integer(hsMatch[2])
 
-  if (end_val <= start && end_val != 1)
-    return
+    if (end_val <= start && end_val != 1)
+        return
 
-  if (start == 1 && start == end_val) { ; C1-T1
-    range := "C1~T1"
-    cage := "C1-2, C2-3, C3-4, C4-5, C5-6, C6-7, C7-T1"
-  } else {
-    range := "C" . start . "~"
-    if (end_val == 1) {
-      range .= "T1"
+    if (start == 1 && start == end_val) { ; C1-T1
+        range := "C1~T1"
+        cage := "C1-2, C2-3, C3-4, C4-5, C5-6, C6-7, C7-T1"
     } else {
-      range .= "C" . end_val
-    }
-
-    cage := "C" . start
-    Loop {
-      startStr := start
-      start += 1
-      if (start == end_val) {
-        cage .= "-" . end_val
-        break
-      } else {
-        if (end_val == 1 && start == 8) {
-          cage .= "-T1"
-          break
+        range := "C" . start . "~"
+        if (end_val == 1) {
+            range .= "T1"
         } else {
-          endStr := start
+            range .= "C" . end_val
         }
-      }
 
-      cage .= "-" . endStr . ", C" . endStr
+        cage := "C" . start
+        loop {
+            startStr := start
+            start += 1
+            if (start == end_val) {
+                cage .= "-" . end_val
+                break
+            } else {
+                if (end_val == 1 && start == 8) {
+                    cage .= "-T1"
+                    break
+                } else {
+                    endStr := start
+                }
+            }
+
+            cage .= "-" . endStr . ", C" . endStr
+        }
     }
-  }
 
-  finalStr := Format("
+    finalStr := Format("
 (
 Status post anterior cervical plate fixation at {1}.
 Status post interbody cage placement at {2}.
 )", range, cage)
-  Paste(finalStr)
+    Paste(finalStr)
 }
 
 sbl() {
-  global hsMatch
-  laterality := (hsMatch[1] = "r" ? "right" : "left")
-  oclock := hsMatch[2]
-  distance := hsMatch[5]
+    global hsMatch
+    laterality := (hsMatch[1] = "r" ? "right" : "left")
+    oclock := hsMatch[2]
+    distance := hsMatch[5]
 
-  if (distance != "") {
-    finalStr := Format("
+    if (distance != "") {
+        finalStr := Format("
 (
 in the {1} breast, {2}'/{3}cm.
 )", laterality, oclock, distance)
-  } else {
-    finalStr := Format("
+    } else {
+        finalStr := Format("
 (
 in the {1} breast, {2}'/subareolar.
 )", laterality, oclock)
-  }
-  Paste(finalStr)
+    }
+    Paste(finalStr)
 }
 
 bl() {
-  global hsMatch
-  laterality := (hsMatch[1] = "R" ? "Right" : "Left")
-  oclock := hsMatch[2]
-  distance := hsMatch[5]
+    global hsMatch
+    laterality := (hsMatch[1] = "R" ? "Right" : "Left")
+    oclock := hsMatch[2]
+    distance := hsMatch[5]
 
-  if (distance != "") {
-    finalStr := Format("
+    if (distance != "") {
+        finalStr := Format("
 (
 {1} {2}'/{3}cm.
 )", laterality, oclock, distance)
-  } else {
-    finalStr := Format("
+    } else {
+        finalStr := Format("
 (
 {1} {2}'/subareolar.
 )", laterality, oclock)
-  }
-  Paste(finalStr)
+    }
+    Paste(finalStr)
 }
 
 ca() {
-  global hsMatch
-  ca_degree := hsMatch[1]
-  finalStr := Format("
+    global hsMatch
+    ca_degree := hsMatch[1]
+    finalStr := Format("
 (
 Cobb angle: {1} degree.
 )", ca_degree)
-  Paste(finalStr)
+    Paste(finalStr)
 }
 
 nr() {
-  global hsMatch
-  global ORDINAL_NUM_STR
-  if IsSet(ORDINAL_NUM_STR) {
-      ; 注意：Map 取值時，key 的型別很重要。RegEx 抓出來的是字串。
-      n_start := ORDINAL_NUM_STR.Has(hsMatch[1]) ? ORDINAL_NUM_STR[hsMatch[1]] : hsMatch[1]
-      n_end := ORDINAL_NUM_STR.Has(hsMatch[2]) ? ORDINAL_NUM_STR[hsMatch[2]] : hsMatch[2]
-      finalStr := n_start . " to " . n_end . " "
-      Paste(finalStr)
-  }
+    global hsMatch
+    global ORDINAL_NUM_STR
+    if IsSet(ORDINAL_NUM_STR) {
+        ; 注意：Map 取值時，key 的型別很重要。RegEx 抓出來的是字串。
+        n_start := ORDINAL_NUM_STR.Has(hsMatch[1]) ? ORDINAL_NUM_STR[hsMatch[1]] : hsMatch[1]
+        n_end := ORDINAL_NUM_STR.Has(hsMatch[2]) ? ORDINAL_NUM_STR[hsMatch[2]] : hsMatch[2]
+        finalStr := n_start . " to " . n_end . " "
+        Paste(finalStr)
+    }
 }
 
 age() {
-  global hsMatch
-  Years := Integer(hsMatch[1])
-  Months := (hsMatch[3] != "") ? Integer(hsMatch[3]) : 0
+    global hsMatch
+    Years := Integer(hsMatch[1])
+    Months := (hsMatch[3] != "") ? Integer(hsMatch[3]) : 0
 
-  ; Validate month range
-  if (hsMatch[3] != "" && (Months < 0 || Months > 11)) {
-    return
-  }
-
-  ; Handle year pluralization
-  if (Years == 1) {
-    YearPart := Years . " year"
-  } else {
-    YearPart := Years . " years"
-  }
-
-  ; Handle month pluralization
-  finalStr := YearPart
-  if (hsMatch[3] != "") {
-    if (Months == 1) {
-      MonthPart := Months . " month"
-    } else {
-      MonthPart := Months . " months"
+    ; Validate month range
+    if (hsMatch[3] != "" && (Months < 0 || Months > 11)) {
+        return
     }
-    finalStr .= " " . MonthPart
-  }
 
-  Paste(finalStr)
+    ; Handle year pluralization
+    if (Years == 1) {
+        YearPart := Years . " year"
+    } else {
+        YearPart := Years . " years"
+    }
+
+    ; Handle month pluralization
+    finalStr := YearPart
+    if (hsMatch[3] != "") {
+        if (Months == 1) {
+            MonthPart := Months . " month"
+        } else {
+            MonthPart := Months . " months"
+        }
+        finalStr .= " " . MonthPart
+    }
+
+    Paste(finalStr)
 }

@@ -264,15 +264,15 @@
 ::c7::The C7 vertebra is blocked by the shoulder shadow with limited evaluation.
 ::c12ok::No evidence of atlantoaxial subluxation or odontoid fracture.
 
-::cspok::{
-  MyForm := "
+::cspok:: {
+    MyForm := "
 (
 No evidence of foreign body in the neck region.
 No disc space narrowing, spondylolisthesis, or fracture in the C-spine.
 No abnormal widening of the prevertebral space.
 The epiglottis is normal.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::c5l::C5 and levels below are blocked with a limited evaluation.
@@ -333,8 +333,8 @@ The epiglottis is normal.
 ::lsas::status post anchor screw fixation at the left shoulder.
 ::snb::In the process of spinal nerve block.
 
-::skok::{
-  MyForm := "
+::skok:: {
+    MyForm := "
 (
 No obvious dislocation or fracture.
 The paranasal sinuses are clear.
@@ -343,22 +343,22 @@ The mastoid air cells are well-aerated.
 IMPRESSION:
 No obvious dislocation or fracture.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Multiline
-::flat::{
-  MyForm := "
+::flat:: {
+    MyForm := "
 (
 Lateral projection of the foot with weight-bearing:
 
 The angle formed by the inferior axis of the calcaneus and 5th metatarsal shaft measures _____ degree on the right side, and _____ degree on the left side.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-::avn4::{
-  MyForm := "
+::avn4:: {
+    MyForm := "
 (
 Collapse of right femoral head is present, and joint space is mild irregular. The findings are consistent with avascular necrosis, stage IV.
 
@@ -373,20 +373,20 @@ Subclassification depends on the extent of collapsed surface, as follows:
         Stage IVb: Approximately 15-30% of surface is collapsed.
         Stage IVc: More than 30% of surface is collapsed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::avn5::Radiography findings include narrowing of the joint space, osteoarthritis with sclerosis of acetabulum, and marginal osteophytes.
 
-::avn6::{
-  MyForm := "
+::avn6:: {
+    MyForm := "
 (
 Extensive destruction of the femoral head and joint, consistent with avascular necrosis, stage VI.
 
 Ref:
 Findings include extensive destruction of the femoral head and joint.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; sacroiliitis
@@ -402,8 +402,8 @@ Findings include extensive destruction of the femoral head and joint.
 ::mdjdc1::Mild DJD changes of C-spine with spur formation.
 ::mdjdc2::Mild DJD changes of C-spine with spur formation and facet joint hypertrophy.
 
-::csp::{
-  MyForm := "
+::csp:: {
+    MyForm := "
 (
 - Osteophyte formation:
 - Disk space narrowing:
@@ -415,7 +415,7 @@ Findings include extensive destruction of the femoral head and joint.
 IMPRESSION:
 DJD of C-spine.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::sco::scoliosis
@@ -443,8 +443,8 @@ Return
 
 ::wslok::Preserved spine alignment and curves.
 
-::lld::{
-  MyForm := "
+::lld:: {
+    MyForm := "
 (
 Triple film of lower extremities in standing AP projection :
   1. Evidence of leg length discrepancy :
@@ -457,20 +457,20 @@ Triple film of lower extremities in standing AP projection :
       Rt knee: ----- degrees varus/valgus
       Lt knee: ----- degrees varus/valgus
 )"
-  ;Paste(MyForm)
-  hParentWnd := WinExist("A")
-  Sleep(100)  ; let AHK to clear hotstring before showing GUI
-  LLDForm()
+    ;Paste(MyForm)
+    hParentWnd := WinExist("A")
+    Sleep(100)  ; let AHK to clear hotstring before showing GUI
+    LLDForm()
 }
 
-::lstv::{
-  MyForm := "
+::lstv:: {
+    MyForm := "
 (
 Lumbosacral Transitional Vertebrae, _ side, type Ia/IIa/IIIa.
 Lumbosacral Transitional Vertebrae, type Ib/IIb/IIIb.
 Lumbosacral Transitional Vertebrae, type IV.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::rlstv::Lumbosacral transitional vertebrae, right side, type IIa.
@@ -479,40 +479,40 @@ Lumbosacral Transitional Vertebrae, type IV.
 
 ::cook::No neuroforaminal stenosis over the C-spine.
 
-::wvok::{
-  MyForm := "
+::wvok:: {
+    MyForm := "
 (
 - The paranasal sinuses are clear.
 - The bony structures are unremarkable.
 - The mastoid air cells are well-aerated.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-::boneage::{
-  ;sex := GetGenderFromRIS()
-  ;age := GetAgeFromRIS()
-  sex := "F"
-  age := "10y5"
-  sex := (sex == "M" ? "male" : "female")
-  If (RegExMatch(age, "(\d+)((\D)+(\d+))?", &SubPat)) {
-    age := SubPat[1] . " year"
-    If (SubPat[1] > 1) {
-      age .= "s"
+::boneage:: {
+    ;sex := GetGenderFromRIS()
+    ;age := GetAgeFromRIS()
+    sex := "F"
+    age := "10y5"
+    sex := (sex == "M" ? "male" : "female")
+    if (RegExMatch(age, "(\d+)((\D)+(\d+))?", &SubPat)) {
+        age := SubPat[1] . " year"
+        if (SubPat[1] > 1) {
+            age .= "s"
+        }
+        if (SubPat.Count >= 4 && SubPat[4]) {
+            if (StrLen(age)) {
+                age .= " "
+            }
+            age .= SubPat[4] . " month"
+            if (SubPat[4] > 1) {
+                age .= "s"
+            }
+        }
     }
-    If (SubPat.Count >= 4 && SubPat[4]) {
-      If (StrLen(age)) {
-        age .= " "
-      }
-      age .= SubPat[4] . " month"
-      If (SubPat[4] > 1) {
-        age .= "s"
-      }
-    }
-  }
-  ;MsgBox(age)
+    ;MsgBox(age)
 
-  MyForm := Format("
+    MyForm := Format("
 (
 Bone age study:
 
@@ -525,10 +525,11 @@ Estimated Bone Age:
 
 REMARKES:
 The estimation of bone age is by the method of Greulich and Pyle.
-)", sex, age)
-  Paste(MyForm)
-  ; Move to estimated bone age for input
-  Send("{Up 3}{End}{Space}")
+)",
+        sex, age)
+    Paste(MyForm)
+    ; Move to estimated bone age for input
+    Send("{Up 3}{End}{Space}")
 }
 
 ; Protocols
@@ -551,39 +552,36 @@ The estimation of bone age is by the method of Greulich and Pyle.
 ::/ra::AP and Lat views of Right ankle:{Enter 2}
 ::/nl::Lat view of Neck:{Enter 2}
 
-
 ;; for LLD form
-LLDForm()
-{
-  global hParentWnd ; 引用外部的全域變數 (記錄呼叫視窗的 ID)
+LLDForm() {
+    global hParentWnd ; 引用外部的全域變數 (記錄呼叫視窗的 ID)
 
-  LLDGui := Gui(, "LLD Helper")
-  LLDGui.SetFont("s12", "Verdana")
-  LLDGui.Add("Text", "x12 y22 w160 h20", "Right Leg Length")
-  LLDGui.Add("Text", "x12 y72 w160 h20", "Left Leg Length")
-  LLDGui.Add("Edit", "x162 y20 w80 h22 vLLDFormRtLL Number")
-  LLDGui.Add("Edit", "x162 y70 w80 h22 vLLDFormLtLL Number")
-  LLDGui.Add("Text", "x252 y22 w30 h20", "mm")
-  LLDGui.Add("Text", "x252 y72 w30 h20", "mm")
-  BtnOK := LLDGui.Add("Button", "x12 y120 w40 h30 Default", "OK")
+    LLDGui := Gui(, "LLD Helper")
+    LLDGui.SetFont("s12", "Verdana")
+    LLDGui.Add("Text", "x12 y22 w160 h20", "Right Leg Length")
+    LLDGui.Add("Text", "x12 y72 w160 h20", "Left Leg Length")
+    LLDGui.Add("Edit", "x162 y20 w80 h22 vLLDFormRtLL Number")
+    LLDGui.Add("Edit", "x162 y70 w80 h22 vLLDFormLtLL Number")
+    LLDGui.Add("Text", "x252 y22 w30 h20", "mm")
+    LLDGui.Add("Text", "x252 y72 w30 h20", "mm")
+    BtnOK := LLDGui.Add("Button", "x12 y120 w40 h30 Default", "OK")
 
-  ; 定義按鈕事件 (巢狀函式，可直接存取 LLDGui)
-  LLDButtonOK(*)
-  {
-    Saved := LLDGui.Submit() ; 儲存並隱藏視窗，Saved 為包含控制項數值的物件
+    ; 定義按鈕事件 (巢狀函式，可直接存取 LLDGui)
+    LLDButtonOK(*) {
+        Saved := LLDGui.Submit() ; 儲存並隱藏視窗，Saved 為包含控制項數值的物件
 
-    if (Saved.LLDFormRtLL == "" || Saved.LLDFormLtLL == "") {
-      MsgBox("Empty value")
-      LLDGui.Show() ; 若驗證失敗，重新顯示視窗
-      return
-    }
+        if (Saved.LLDFormRtLL == "" || Saved.LLDFormLtLL == "") {
+            MsgBox("Empty value")
+            LLDGui.Show() ; 若驗證失敗，重新顯示視窗
+            return
+        }
 
-    RtLL := Round(Saved.LLDFormRtLL / 10, 1)
-    LtLL := Round(Saved.LLDFormLtLL / 10, 1)
-    delta := Round(Abs(RtLL - LtLL), 1)
-    MeningfulLLD := (delta >= 1 ? "Evidence of leg length discrepancy." : "No evidence of leg length discrepancy.")
+        RtLL := Round(Saved.LLDFormRtLL / 10, 1)
+        LtLL := Round(Saved.LLDFormLtLL / 10, 1)
+        delta := Round(Abs(RtLL - LtLL), 1)
+        MeningfulLLD := (delta >= 1 ? "Evidence of leg length discrepancy." : "No evidence of leg length discrepancy.")
 
-    MyForm := Format("
+        MyForm := Format("
 (
 Triple film of lower extremities in standing AP projection:
 Lower limb length is measured between center of femoral head and center of superior contour of talar trochlea.
@@ -594,33 +592,34 @@ Lower limb length is measured between center of femoral head and center of super
 
 IMPRESSION:
 {4}
-)", RtLL, LtLL, delta, MeningfulLLD)
+)",
+            RtLL, LtLL, delta, MeningfulLLD)
 
-    LLDGui.Destroy()
+        LLDGui.Destroy()
 
-    if IsSet(hParentWnd) && WinExist("ahk_id " hParentWnd)
-      WinActivate("ahk_id " hParentWnd)
+        if IsSet(hParentWnd) && WinExist("ahk_id " hParentWnd)
+            WinActivate("ahk_id " hParentWnd)
 
-    Paste(MyForm)
-  }
+        Paste(MyForm)
+    }
 
-  ; 綁定事件
-  BtnOK.OnEvent("Click", LLDButtonOK)
-  LLDGui.OnEvent("Escape", (gui) => gui.Destroy())
+    ; 綁定事件
+    BtnOK.OnEvent("Click", LLDButtonOK)
+    LLDGui.OnEvent("Escape", (gui) => gui.Destroy())
 
-  ; Positioning logic (使用您已有的 v2 函式)
-  CurrentMonitorIndex := GetCurrentMonitorIndex()
+    ; Positioning logic (使用您已有的 v2 函式)
+    CurrentMonitorIndex := GetCurrentMonitorIndex()
 
-  ; 為了計算尺寸，先隱藏顯示以取得 Hwnd 與初始大小
-  LLDGui.Show("Hide")
-  GUI_Hwnd := LLDGui.Hwnd
+    ; 為了計算尺寸，先隱藏顯示以取得 Hwnd 與初始大小
+    LLDGui.Show("Hide")
+    GUI_Hwnd := LLDGui.Hwnd
 
-  ; 假設您的 v2 GetClientSize 遵循標準 v2 ByRef 寫法，變數前需加 &
-  GUI_Width := 0, GUI_Height := 0
-  GetClientSize(GUI_Hwnd, &GUI_Width, &GUI_Height)
+    ; 假設您的 v2 GetClientSize 遵循標準 v2 ByRef 寫法，變數前需加 &
+    GUI_Width := 0, GUI_Height := 0
+    GetClientSize(GUI_Hwnd, &GUI_Width, &GUI_Height)
 
-  GUI_X := CoordXCenterScreen(GUI_Width, CurrentMonitorIndex)
-  GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
+    GUI_X := CoordXCenterScreen(GUI_Width, CurrentMonitorIndex)
+    GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
 
-  LLDGui.Show("x" GUI_X " y" GUI_Y)
+    LLDGui.Show("x" GUI_X " y" GUI_Y)
 }

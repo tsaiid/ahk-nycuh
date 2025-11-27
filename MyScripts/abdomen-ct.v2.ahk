@@ -101,25 +101,25 @@
 
 ::acttrok::
 {
-  MyForm := "
+    MyForm := "
   (
 - No liver, spleen, or kidney traumatic injury.
 - The gallbladder, spleen, pancreas, adrenals, urinary bladder, and bowels are unremarkable.
 - No evidence of intraperitoneal free air.
 - No obvious ascites.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::livok::
 {
-  MyForm := "
+    MyForm := "
   (
 - No abnormal enhanced lesion or washout pattern noted.
 - No definite abnormal enhanced hepatic mass lesion with washout pattern noted.
 - No definite abnormal enhanced hepatic mass lesion with/without washout pattern noted.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::livok1::No definite hepatic tumor as expected.
@@ -133,11 +133,10 @@
 ::mlra::mild left renal atrophy.
 ::mbra::mild bilateral renal atrophy.
 
-
 ;; forms
 ::act::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -148,12 +147,12 @@ Previous abdominal CT: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actpel::
 {
-  MyForm := "
+    MyForm := "
   (
 Non-contrast and contrast-enhanced pelvic CT scans.
 Scanning range: Lower abdomen to pelvis, 5-mm contiguous scan.
@@ -171,12 +170,12 @@ No definite retroperitoneal lymphadenopathy identified.
 No evidence of intraperitoneal free air.
 No obvious ascites.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actpelnc::
 {
-  MyForm := "
+    MyForm := "
   (
 Non-contrast pelvic CT scan.
 Scanning range: Lower abdomen to pelvis, 5-mm contiguous scan.
@@ -196,12 +195,12 @@ No obvious ascites.
 
 *PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actsr::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -226,13 +225,14 @@ No evidence of intraperitoneal free air.
 No obvious ascites.
 
 Lower thorax: Unremarkable
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ::actncsr::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 Abdomen to Pelvis CT:
 
@@ -260,39 +260,40 @@ Lower thorax: Unremarkable
 
 REMARKS:
 * The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ::actok::
 {
-  MyForm := "
+    MyForm := "
   (
 - The liver, gallbladder, spleen, pancreas, adrenals, kidneys, urinary bladder, and bowel are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actok1::
 {
-  MyForm := "
+    MyForm := "
   (
 - The liver, gallbladder, spleen, pancreas, adrenals, kidneys, urinary bladder, and bowel are unremarkable.
 - The lower abdomen and pelvis are unremarkable.
 - No retroperitoneal or mesenteric lymphadenopathy.
 - The lungs covered in the scanning range are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actok2::
 {
-  MyForm := "
+    MyForm := "
   (
 - No evidence of intraperitoneal free air.
 - No obvious ascites.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::lapok::No intrathoracic or intraabdominal lymphadenopathy.
@@ -301,7 +302,7 @@ REMARKS:
 
 ::actlapok::
 {
-  MyForm := "
+    MyForm := "
   (
 No retroperitoneal or mesenteric lymphadenopathy.
 No pelvic, retroperitoneal or mesenteric lymphadenopathy.
@@ -309,12 +310,12 @@ No pelvic or retroperitoneal lymphadenopathy.
 No obvious intraabdominal lymphadenopathy.
 No pelvic lymphadenopathy.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctcaok::
 {
-  MyForm := "
+    MyForm := "
   (
 No local recurrence.
 No retroperitoneal or mesenteric lymphadenopathy.
@@ -325,12 +326,12 @@ No mediastinal lymphadenopathy.
 No osteolytic or osteoblastic bone lesion.
 No osteolytic or osteoblastic bone lesion in the scanning range.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actapp::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -363,12 +364,12 @@ C/W acute appendicitis.
 Acute appendicitis.
 Acute appendicitis is suspected.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actappr::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -392,12 +393,12 @@ The lungs covered in the scanning range are unremarkable.
 IMPRESSION:
 C/W acute appendicitis with rupture.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actppu::
 {
-  MyForm := "
+    MyForm := "
   (
 Presence of intraperitoneal free air with turbid ascites, predominantly at the upper abdomen, suggestive of hollow organ perforation.
 Abnormal wall thickness over the duodenal bulb region with loss of wall integrity. Perforated peptic ulcer is suspected.
@@ -406,20 +407,20 @@ The liver, spleen, pancreas, adrenals, and kidneys are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Hollow organ perforation. Perforated peptic ulcer may be suspected.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actdiv::
 {
-  MyForm := "
+    MyForm := "
   (
 - Mild wall thickening and submucosal edema in the the ascending colon, with mesocolic fat stranding, most likely diverticulitis.
 - Small amount of ascites in the pelvis and right paracolic gutter.
@@ -432,20 +433,20 @@ Hollow organ perforation. Perforated peptic ulcer may be suspected.
 - No retroperitoneal or mesenteric lymphadenopathy.
 - The lungs covered in the scanning range are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Ascending colon diverticulitis, without rupture.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actdivr::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -476,13 +477,13 @@ IMPRESSION:
 Acute diverticulitis of ascending colon, with perforation.
 Acute diverticulitis of sigmoid colon, with perforation and abscess formation.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; Epiploic appendagitis
 ::actea::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -505,13 +506,13 @@ The lungs covered in the scanning range are unremarkable.
 IMPRESSION:
 Epiploic appendagitis at the descending colon.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; Adrenal form
 ::actad::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -535,13 +536,14 @@ GI tract: Unremarkable
 No definite upper abdominal retroperitoneal lymphadenopathy identified.
 
 Lower thorax: Unremarkable
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ::actliv::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -566,15 +568,16 @@ Urinary bladder: Unremarkable
 No pelvic, retroperitoneal or mesenteric lymphadenopathy.
 
 Lower thorax: Unremarkable
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ;; Infiltrative HCC
 ;;; 1011800
 ::actlivihcc::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -607,13 +610,12 @@ Lower thorax: Unremarkable
 1. Infiltrative HCC, left lobe and partial right lobe, with portal vein tumor thrombosis.
 2. Cirrhosis, portal hypertension.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
 
 ::actpan::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -639,12 +641,12 @@ No definite upper abdominal retroperitoneal lymphadenopathy identified.
 
 Lower thorax: Unremarkable
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actctsi::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -705,12 +707,12 @@ Lower thorax: Unremarkable
 IMPRESSION:
 Acute pancreatitis. Modified CTSI score:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::acttcc::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -737,12 +739,12 @@ No pelvic, retroperitoneal or mesenteric lymphadenopathy.
 Lower thorax: Unremarkable
 Skeleton: No osteolytic nor osteoblastic lesion
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actrcc::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -768,12 +770,12 @@ Pancreas: Unremarkable
 Lower thorax: Unremarkable
 Skeleton: No osteolytic nor osteoblastic lesion
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actgyn::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -801,12 +803,12 @@ Pancreas: Unremarkable
 Lower thorax: Unremarkable
 Skeleton: No osteolytic nor osteoblastic lesion
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actgyntoa::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -843,12 +845,12 @@ Skeleton: No osteolytic nor osteoblastic lesion
 IMPRESSION:
 Right tubo-ovarian abscess is suspected. GYN check-up is suggested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actl::
 {
-  MyForm := "
+    MyForm := "
   (
 ** Non-contrast and contrast-enhanced chest and abdominal CT scans.
 Scanning range: lower neck to symphysis, 5-mm contiguous scan.
@@ -887,13 +889,13 @@ Impression:
 Multiple bulky lymphadenopathies, R/O Lymphoma. (Image stage -----, if biopsy proved lymphoma.)
 Lymphoma with relapse/ progression/ partial remission/ complete remission.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Abd CTA - bleeding
 ::actcta::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CTA scans.
@@ -916,13 +918,13 @@ No active bleeder found.
 SUGGESTION:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Abd CT - Non-contrast
 ::actnc::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast enhanced abdominal CT scans.
@@ -935,12 +937,12 @@ FINDINGS:
 REMARKS:
 * The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actnck::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 TECHNIQUE:
 Non-contrast enhanced abdominal CT scans.
@@ -968,13 +970,14 @@ Lower thorax: Unremarkable
 
 REMARKS:
 * The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ::actnc+l::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 Non-contrast enhanced chest and abdominal CT scan.
 
@@ -1014,13 +1017,14 @@ REMARKS:
 IMPRESSION:
 No definite acute intrathoracic or intraabdominal findings.
 No definite traumatic intrathoracic or intraabdominal injury.
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ::actk::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -1043,13 +1047,14 @@ GI tract: Unremarkable
 No definite pelvic, retroperitoneal, or mesenteric lymphadenopathy identified.
 
 Lower thorax: Unremarkable
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ::actic::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -1075,13 +1080,14 @@ Lower thorax: Unremarkable
 
 IMPRESSION:
 No obvious urinary bladder wall thickening or perivesical fat stranding. Gas bubbles in the urinary bladder, probably due to recent procedure. Clinical correlation is suggested.
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ::actcrcs::
 {
-  MyForm := "
+    MyForm := "
   (
 PROCEDURE: Non-contrast and contrast-enhanced abdominal CT scans.
 TECHNIQUE description:
@@ -1136,12 +1142,12 @@ NOTE: in case of mucinous-type of rectal tumor the involved lymph nodes may have
 No abnormal findings in the liver, GB, biliary system, pancreas, spleen, and both kidneys.
 Under lung window, no definite pulmonary nodules detected from available images
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actcrcs+l::
 {
-  MyForm := "
+    MyForm := "
   (
 PROCEDURE: Non-contrast and contrast-enhanced chest and abdominal CT scans.
 TECHNIQUE description:
@@ -1203,13 +1209,12 @@ M1c: Metastases to the peritoneal surface is identified alone or with other site
 
 NOTE: in case of mucinous-type of rectal tumor the involved lymph nodes may have fluid-like density.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
 
 ::acts::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -1222,12 +1227,12 @@ Previous abdominal CT: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actgcs::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -1272,12 +1277,12 @@ No obvious ascites.
 IMPRESSION:
 Gastric cancer, prepyloric antrum, with regional lymphadenopathy, causing gastric outlet obstruction.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actpcu::
 {
-  MyForm := Format("
+    MyForm := Format("
   (
 INDICATION: PCU
 
@@ -1304,13 +1309,14 @@ IMPRESSION:
 
 SUGGESTION:
 
-  )")
-  Paste(MyForm)
+  )"
+    )
+    Paste(MyForm)
 }
 
 ::actacc::
 {
-  MyForm := "
+    MyForm := "
   (
 Diffuse gallbladder wall thickening and edematous changes with gallbladder stones, GB distention, and pericholecystic fat stranding are noted. Acute cholecystitis is considered.
 Diffuse gallbladder wall thickening and edematous changes with gallbladder stones and GB distention are noted. Acute cholecystitis is considered.
@@ -1327,22 +1333,22 @@ The lower abdomen and pelvis are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 C/W acute cholecystitis.
 C/W acute calculus cholecystitis.
 Early changes of acute cholecystitis is suspected. Suggest correlate with sonography and Murphy sign.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::actsc::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -1365,13 +1371,13 @@ Subsegmental atelectasis in both lower lungs.
 IMPRESSION:
 Stercoral colitis. No evidence of perforation.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Ischemic colitis
 ::actic::
 {
-  MyForm := "
+    MyForm := "
   (
 Non-contrast and contrast-enhanced abdominal CT scans.
 Scanning range: Liver to symphysis, 5-mm contiguous scan.
@@ -1394,13 +1400,13 @@ IMPRESSION:
 1. Colitis, whole ascending and transverse colon. Ischemic colitis is suspected. DDx: inflammatory bowel disease.
 2. No evidence of hollow organ perforation.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Portal hypertensive enteropathy
 ::actphtn::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -1431,13 +1437,13 @@ IMPRESSION:
 1. Diffuse edematous changes of the GI tract. DDx: Portal hypertensive gastropathy / enteropathy / colopathy, acute gastroenterocolitis, pseudomembranous colitis (may not involve stomach and small intestine). Clinical correlation is suggested.
 2. Cirrhosis, splenomegaly, ascites. Suspicious portal hypertension.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Small bowel obstruction
 ::actsbo::
 {
-  MyForm := "
+    MyForm := "
   (
 TECHNIQUE:
 Non-contrast and contrast-enhanced abdominal CT scans.
@@ -1465,5 +1471,5 @@ IMPRESSION:
 Paralytic ileus is suspected.
 Small bowel obstruction, at distal ileum, probably due to adhesion. No evidence of bowel perforation or ischemia.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

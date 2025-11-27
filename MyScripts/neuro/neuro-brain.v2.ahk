@@ -16,7 +16,7 @@
 ;; CTN1
 ::ctn1::
 {
-  MyForm := "
+    MyForm := "
   (
 A 1.3-cm enhancing nodule in the left paramedian cerebellar hemisphere is noted, suggestive of brain metastasis.
 Tiny enhancing nodule at the tip of left sylvian fissure, possibly leptomeningeal metastasis.
@@ -46,13 +46,13 @@ No definite abnormal enhancing mass lesion in the brain noted.
 SUGGESTION:
 Follow up or further evaluation.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTN1wnl
 ::ctn1ok::
 {
-  MyForm := "
+    MyForm := "
   (
 No definite abnormal enhancing mass lesion in the brain noted.
 
@@ -68,22 +68,22 @@ The major dural venous sinuses are patent.
 No obvious fracture of the skull base and the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No remarkable intracranial findings.
 No definite abnormal enhancing mass lesion in the brain noted.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTN2
 ::ctn2::
 {
-  MyForm := "
+    MyForm := "
   (
 Presence of motion artifact in this study, film interpretation is limited.
 
@@ -126,13 +126,13 @@ SUGGESTION:
 Clinical correlation and follow up are suggested.
 Follow up or further evaluation.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTN2ok
 ::ctn2ok::
 {
-  MyForm := "
+    MyForm := "
   (
 No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
@@ -152,24 +152,24 @@ The visible paranasal sinuses and mastoids are unremarkable.
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 The mastoids are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No definite acute ICH, SAH, EDH, or SDH.
 No obvious acute intracranial findings.
 No remarkable intracranial findings on noncontrast CT.
 No significant intracranial organic lesion.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTN2ok - Totally normal
 ::ctn2ok0::
 {
-  MyForm := "
+    MyForm := "
   (
 - No definite area of obvious abnormal density in the brain noted.
 - No definite abnormal mass lesion in the brain noted.
@@ -178,20 +178,20 @@ No significant intracranial organic lesion.
 - No definite bony lesion in the skull.
 - The visible paranasal sinuses and mastoids are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No remarkable intracranial findings on noncontrast CT.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctn2trok::
 {
-  MyForm := "
+    MyForm := "
   (
 No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
@@ -205,21 +205,21 @@ The mastoids are unremarkable.
 
 - No obvious fracture or dislocation of the cervical spine.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 1. No definite acute ICH, SAH, EDH, or SDH.
 2. No obvious fracture or dislocation of the cervical spine.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctn2trok0::
 {
-  MyForm := "
+    MyForm := "
   (
 - No definite area of obvious abnormal density in the brain noted.
 - No definite abnormal mass lesion in the brain noted.
@@ -229,22 +229,22 @@ The mastoids are unremarkable.
 - The visible paranasal sinuses and mastoids are unremarkable.
 - No obvious fracture or dislocation of the cervical spine.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 1. No definite acute ICH, SAH, EDH, or SDH.
 2. No obvious fracture or dislocation of the cervical spine.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTN2 - CVA
 ::ctn2cva::
 {
-  MyForm := "
+    MyForm := "
   (
 Low density and loss of gray and white matter differentiation at right middle cerebral artery territory:
 - M2: "MCA cortex lateral to insular ribbon" corresponding to anterior temporal lobe
@@ -275,13 +275,13 @@ M6: "posterior MCA territory immediately superior to M3"
 A high-attenuation thrombus is noted at the M1 level of right MCA.
 No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTN2 - Atrophy, leukoaraiosis
 ::ctn2atr::
 {
-  MyForm := "
+    MyForm := "
   (
 Presence of mild bilateral periventricular low density noted. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
 Presence of bilateral periventricular low density noted. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
@@ -297,20 +297,20 @@ Mild atherosclerotic changes with calcification of intracranial portion of verte
 No definite bony lesion in the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Mild brain atrophy; leukoaraiosis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctn2hich::
 {
-  MyForm := "
+    MyForm := "
   (
 - Acute intracranial hemorrhage in the right lentiform nucleus, size about 2.7 x 2.4 x 3 cm, suspicious hypertensive ICH.
 - Mild mass effect compressing the right lateral ventricle.
@@ -321,20 +321,20 @@ Mild brain atrophy; leukoaraiosis.
 - No definite bony lesion in the skull.
 - The visible paranasal sinuses, mastoids and skull base are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Hypertensive ICH in the right lentiform nucleus.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctn2hichivh::
 {
-  MyForm := "
+    MyForm := "
   (
 - Acute intracranial hemorrhage in the right basal ganglion and thalamus, size about 4.3 x 2.8 x 3.6 cm, suspicious hypertensive ICH.
 - The ICH ruptured into the ventricular system, causing intraventricular hemorrhage in both lateral ventricles, the third and fourth ventricles.
@@ -346,20 +346,20 @@ Hypertensive ICH in the right lentiform nucleus.
 REMARKS:
 * Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Possibly hypertensive ICH in the right basal ganglion and thalamus, with IVH.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctn2sah::
 {
-  MyForm := "
+    MyForm := "
   (
 Presence of acute subarachnoid hemorrhage in the suprasellar and ambient cisterns, with extension to the interhemispheric fissure and bilateral sylvian fissures, more on right side. Rupture of intracranial aneurysm should be excluded.
 
@@ -372,20 +372,20 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 REMARKS:
 * Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Diffuse acute SAH. Rupture of intracranial aneurysm should be excluded.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctn2sdh::
 {
-  MyForm := "
+    MyForm := "
   (
 Presence of high-attenuation subdural hematoma along the right cerebellar tentorium.
 Crescent-shaped high-attenuation acute subdural hematoma in the left cerebral convexity.
@@ -403,20 +403,20 @@ Subgaleal hematoma in the right parietal region.
 REMARKS:
 * Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Acute right anterior parafalcine SDH.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctn2hie::
 {
-  MyForm := "
+    MyForm := "
   (
 diffuse edema with effacement of the CSF-containing spaces
 decreased bilateral basal ganglia attenuation
@@ -433,21 +433,21 @@ The bilateral lateral ventricles are symmetrical in shape with acceptable age-de
 
 No obvious fracture of the skull base and the skull.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Hypoxic-ischemic encephalopathy is suspected.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; Benign enlargement of the subarachnoid spaces in infancy.
 ::ctn2bess::
 {
-  MyForm := "
+    MyForm := "
   (
 No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
@@ -459,22 +459,22 @@ Mild widening of the bifrontal and anterior interhemispheric CSF spaces, without
 No obvious fracture of the skull base and the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No definite acute ICH, SAH, EDH, or SDH.
 Benign enlargement of the subarachnoid spaces in infancy.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; 1CTA
 ::1cta::
 {
-  MyForm := "
+    MyForm := "
   (
 CT angiography of brain and neck was performed with a multi-slice CT scanner:
 TECHNIQUE: multi thin-slice spiral scanning of arterial and venous phases
@@ -491,12 +491,12 @@ Previous CT: no
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::1ctaok::
 {
-  MyForm := "
+    MyForm := "
   (
 - No definite abnormal enhancing mass lesion in the brain noted.
 - No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
@@ -509,21 +509,21 @@ FINDINGS:
 - No significant vascular stenosis in the major intracranial arteries.
 - Right fetal type posterior cerebral artery.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No evidence of aneurysm, arterial-venous malformation (AVM), or other vascular lesion.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; 1CTA - SAH, aneurysm rupture
 ::1ctasahr::
 {
-  MyForm := "
+    MyForm := "
   (
 CT angiography of brain and neck was performed with a multi-slice CT scanner:
 TECHNIQUE: multi thin-slice spiral scanning of arterial and venous phases
@@ -548,22 +548,22 @@ No definite abnormal mass lesion in the brain noted.
 No definite bony lesion in the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 PICA aneurysm ruptured with acute SAH.
 Mild obstructive hydrocephalus cannot be excluded.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CT3D
 ::ct3d::
 {
-  MyForm := "
+    MyForm := "
   (
 Noncontrast CT scan of the face and skull, with thin slice 3 mm, and post reconstruction 3D display.
 
@@ -610,15 +610,13 @@ As the above description.
 SUGGESTION:
 Clinical correlation and follow up are suggested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
-
 
 ;; MRICVA
 ::mricva::
 {
-  MyForm := "
+    MyForm := "
   (
 No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
 
@@ -658,23 +656,23 @@ MRV shows no evidence of venous thrombosis involving the intracranial venous sin
 MRV shows a suspicious segment of absent flow in the right transverse sinus. However, no definite abnormal signal intensity within the right transverse sinus is noted. Hypoplastic transverse sinus and/or flow gap artifact is considered. Suggest DSA if venous sinus thrombosis is still highly suspected clinically.
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No obvious acute intracranial lesion.
 No obvious acute ischemic infarction.
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRICVA-1
 ::mricva1::
 {
-  MyForm := "
+    MyForm := "
   (
 The MR of the brain performed with Sagittal T1WI (localizer)
 Axial T1WI, T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
@@ -745,13 +743,13 @@ Small recent acute ischemic infarction, about 1.4cm in diameter, involving left 
 SUGGESTION:
 Clinical correlation and follow up are suggested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRI TGA
 ::mritga::
 {
-  MyForm := "
+    MyForm := "
   (
 The MR of the brain performed with Sagittal T1WI
 Axial T1WI, T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
@@ -775,13 +773,13 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis region.
 No evidence of aneurysm or arterial-venous malformation (AVM) noted near the circle of Willis region.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRB
 ::mrb::
 {
-  MyForm := "
+    MyForm := "
   (
 The MRI of the brain performed with a 1.5-T scanner:
 TECHNIQUE:
@@ -821,13 +819,13 @@ IMPRESSION:
 No significant intracranial findings
 SUGGESTION:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRB - Lung cancer staging
 ::mrblcs::
 {
-  MyForm := "
+    MyForm := "
   (
 The MR of the brain performed with Sagittal T1WI
 Axial T1WI, T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
@@ -868,22 +866,22 @@ MRA shows
 - Left fetal type posterior cerebral artery.
 - Hypoplasia of A1 portion of left anterior cerebral artery.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No evidence of brain metastasis.
 Left cerebellar metastasis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRB - Lung cancer staging - normal
 ::mrblcsok::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of brain without and with IV Gadolinium.
 
@@ -909,22 +907,22 @@ The major dural venous sinuses are patent.
 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No evidence of brain metastasis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRB - Parkinson disease
 ;;; 134884 RE07512451170001
 ::mrbpd::
 {
-  MyForm := "
+    MyForm := "
   (
 The MR of the brain performed with Sagittal T1WI
 Axial T1WI, T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
@@ -954,22 +952,22 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 1. C/W Parkinson disease. DDx: dementia with Lewy bodies.
 2. Senile brain atrophy, mild leukoaraiosis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; No Parkinson disease
 ::mrbnopd::
 {
-  MyForm := "
+    MyForm := "
   (
 The MR of the brain performed with Sagittal T1WI
 Axial T1WI, T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
@@ -996,22 +994,22 @@ Mild dilatation of ventricular system and sulcal widening of bilateral cerebral 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 1. No strong evidence of Parkinson disease.
 2. Senile brain atrophy, mild leukoaraiosis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MRB - Spontaneous intracranial hypotension
 ::mrbsih::
 {
-  MyForm := "
+    MyForm := "
   (
 The MR of the brain performed with Sagittal T1WI
 Axial T1WI, T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
@@ -1037,20 +1035,20 @@ FINDINGS:
 - Right fetal type posterior cerebral artery is noted.
 - Hypoplasia of A1 portion of right anterior cerebral artery.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Although not fully fit the typical image findings, intracranial hypotension still may be suspected. Clinical correlation is suggested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mriseizure::
 {
-  MyForm := "
+    MyForm := "
   (
 The MR of the brain performed
 - Axial T2WI, FLAIR, DWI with ADC map, GRE T2*WI
@@ -1083,21 +1081,21 @@ The mastoids and skull base are unremarkable.
 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No remarkable intracranial findings.
 Right mesial temporal sclerosis may be suspected. Clinical correlation is suggested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::bctas::
 {
-  MyForm := "
+    MyForm := "
   (
 CT angiography of brain and neck was performed with a multi-slice CT scanner:
 TECHNIQUE: multi thin-slice spiral scanning of arterial, venous, and delayed phases
@@ -1142,20 +1140,20 @@ Compared to asymptomatic contralateral hemisphere there is a delay of one phase 
 
 Compared to asymptomatic contralateral hemisphere, there is no delay and normal or increased prominence of peripheral vessels/ normal extent within the occluded arteries territory within the symptomatic hemisphere. University of Calgary classification score 5 (good collateral)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Acute ischemic stroke, right MCA territory, ASPECTS: 7, with good collateral (University of Calgary classification score 4)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::bctacol::
 {
-  MyForm := "
+    MyForm := "
   (
 Compared to asymptomatic contralateral hemisphere there are just a few vessels visible in any phase within the occluded vascular territory. University of Calgary classification score 1 (poor collateral).
 
@@ -1167,12 +1165,12 @@ Compared to asymptomatic contralateral hemisphere there is a delay of one phase 
 
 Compared to asymptomatic contralateral hemisphere, there is no delay and normal or increased prominence of peripheral vessels/ normal extent within the occluded arteries territory within the symptomatic hemisphere. University of Calgary classification score 5 (good collateral)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::bctaa::
 {
-  MyForm := "
+    MyForm := "
   (
 CT angiography of brain and neck was performed with a multi-slice CT scanner:
 TECHNIQUE: multi thin-slice spiral scanning of arterial, venous, and delayed phases
@@ -1199,20 +1197,20 @@ No definite area of obvious abnormal density in the brain parenchyma noted.
 The bilateral lateral ventricles showed symmetrical without dilatation.
 No obvious fracture of the skull base and the skull.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Ruptured ACom aneurysm, with acute SAH.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::bctaavm::
 {
-  MyForm := "
+    MyForm := "
   (
 CT angiography of brain and neck was performed with a multi-slice CT scanner:
 TECHNIQUE: multi thin-slice spiral scanning of arterial, venous, and delayed phases
@@ -1250,13 +1248,13 @@ FINDINGS:
 - Bilateral intracranial VA, and BA are patent.
 - Major branches of bilateral ACA, MCA and PCA are patent.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Left temporal lobe AVM, with ICH. Spetzler-Martin grade: 1.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

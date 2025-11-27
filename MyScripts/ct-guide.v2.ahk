@@ -6,38 +6,39 @@
 ; CT-guide Forms
 ::0ctg-lb::
 {
-  MyForm := "
+    MyForm := "
   (
 CT-guide lung biopsy is indicated and has been scheduled on / PM. If specimen for tissue culture is needed, please prepare other specimen collecting bottles and send to CT room with the patient. Otherwise, only specimen immersed in formalin will be harvested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::1ctg-lb::
 {
-  currDateStr := FormatTime(, "M/d tt")
-  MyForm := Format("
+    currDateStr := FormatTime(, "M/d tt")
+    MyForm := Format("
   (
 CT guide lung biopsy was performed in {1}. Please follow up CXR if pneumothorax develops or progresses.
-  )", currDateStr)
-  Paste(MyForm)
+  )",
+        currDateStr)
+    Paste(MyForm)
 }
 
 ::1ctg-b::
 {
-  currDateStr := FormatTime(, "M/d tt")
-  MyForm := Format("
+    currDateStr := FormatTime(, "M/d tt")
+    MyForm := Format("
   (
 CT guide biopsy was performed in {1}. Please keep bed rest and check if internal bleeding occurs.
-  )", currDateStr)
-  Paste(MyForm)
+  )",
+        currDateStr)
+    Paste(MyForm)
 }
-
 
 ;; Lung Biopsy
 ::ctg-lb::
 {
-  MyForm := "
+    MyForm := "
   (
 CT guide biopsy was performed under clinical request. The operation procedure and potential risk were well explained. Patient agreement and consensus were obtained.
 Under CT guide, tissue specimens were smoothly taken for pathology examination.
@@ -63,23 +64,22 @@ The patient was sent back to the ward under stable condition without complaint.
 Recommend close f/u patient's vital signs, bed rest and compression for at least 4 hours.
 F/U CXR 6 hours later.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 CT guide lung biopsy of  tumor was performed.
 Mild pneumothorax was noted. Follow-up is suggested.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
 
 ;; Lung Biopsy, pigtail for pneumothorax
 ::ctg-lb-p::
 {
-  MyForm := "
+    MyForm := "
   (
 CT guide biopsy was performed under clinical request. The operation procedure and potential risk were well explained. Patient agreement and consensus were obtained.
 Under CT guide, tissue specimens were smoothly taken for pathology examination.
@@ -106,24 +106,24 @@ The patient was sent back to the ward under stable condition without complaint.
 Recommend close f/u patient's vital signs, oxygen supplement, chest bottle with Emerson, bed rest and compression for at least 4 hours.
 F/U CXR 6 hours later.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
 
 ;; Drainage
 ::1ctg-d::
 {
-  currDateStr := FormatTime(, "M/d tt")
-  MyForm := Format("
+    currDateStr := FormatTime(, "M/d tt")
+    MyForm := Format("
   (
 CT guide drainage was performed in {1}. A 8 Fr pigtail drain was inserted. 10 ml of aspirated pus was collected for Lab exam.
-  )", currDateStr)
-  Paste(MyForm)
+  )",
+        currDateStr)
+    Paste(MyForm)
 }
 
 ::ctg-d::
 {
-  MyForm := "
+    MyForm := "
   (
 CT guide drainage was performed under clinical request. The operation procedure and potential risk were well explained. Patient agreement and consensus were obtained.
 Under CT guide, tissue specimens were smoothly taken for pathology examination.
@@ -140,14 +140,13 @@ The patient was sent back to the ward under stable condition without complaint.
 IMPRESSION:
 CT guide drainage for  was performed.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
 
 ;; Drainage
 ::ctg-b::
 {
-  MyForm := "
+    MyForm := "
   (
 CT guide biopsy was performed under clinical request. The operation procedure and potential risk were well explained. Patient agreement and consensus were obtained.
 
@@ -167,14 +166,13 @@ The patient was sent back to the ward under stable condition without complaint. 
 IMPRESSION:
 CT guide biopsy for  was performed.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
 
 ;; RFA
 ::ctg-rfa::
 {
-  MyForm := "
+    MyForm := "
   (
 Radiofrequency ablation of liver tumor(RFA<=2cm):
 Radiofrequency ablation of liver tumor(>2cm;<=4cm):
@@ -188,13 +186,13 @@ Complication: nil.
 IMPRESSION:
 RFA for S8 hepatic tumor was performed.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MWA
 ::ctg-mwa::
 {
-  MyForm := "
+    MyForm := "
   (
 Microwave ablation of renal tumor(>2cm;<=4cm):
 Microwave ablation of liver tumor(>2cm;<=4cm):
@@ -223,5 +221,5 @@ IMPRESSION:
 MWA for left kidney RCC was performed.
 MWA for S3 HCC was performed.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

@@ -35,7 +35,8 @@ MainGui.Show()
 ; Functions
 ShuttleProIntercept(wParam, lParam, msg, hwnd) {
     Critical
-    global shuttlepro_speed_saved, shuttlepro_shuttle_start, shuttlepro_old_4, shuttlepro_old_5, shuttlepro_shuttle_saved
+    global shuttlepro_speed_saved, shuttlepro_shuttle_start, shuttlepro_old_4, shuttlepro_old_5,
+        shuttlepro_shuttle_saved
     global lbxInput, hlbxInput, MainGui
     global a := "" ; Reset debug string for this event
 
@@ -44,7 +45,7 @@ ShuttleProIntercept(wParam, lParam, msg, hwnd) {
     if (devicetype = AHKHID.RIM_TYPEHID) {
         hid_handle := AHKHID.GetInputInfo(lParam, AHKHID.II_DEVHANDLE)
 
-        vendor_id  := AHKHID.GetDevInfo(hid_handle, AHKHID.DI_HID_VENDORID, True)
+        vendor_id := AHKHID.GetDevInfo(hid_handle, AHKHID.DI_HID_VENDORID, True)
         product_id := AHKHID.GetDevInfo(hid_handle, AHKHID.DI_HID_PRODUCTID, True)
 
         if (vendor_id = 2867 && product_id = 48) {
@@ -91,7 +92,7 @@ ShuttleProIntercept(wParam, lParam, msg, hwnd) {
             shuttlepro_shuttle_saved := byte2
 
             ; Buttons: Byte 4 (Key 1-8)
-            Loop 8 {
+            loop 8 {
                 if (byte4_new & 1)
                     execute_shuttlepro(A_Index, 1)
                 byte4_new >>= 1
@@ -99,7 +100,7 @@ ShuttleProIntercept(wParam, lParam, msg, hwnd) {
 
             ; Buttons: Byte 5 (Key 9-15)
             i := 9
-            Loop 7 {
+            loop 7 {
                 if (byte5_new & 1)
                     execute_shuttlepro(i, 1)
                 byte5_new >>= 1
@@ -266,7 +267,7 @@ execute_shuttlepro_shuttle(shuttle_value, layer) {
 
     } else {
         try {
-            MouseGetPos ,, &id
+            MouseGetPos , , &id
             title := WinGetTitle(id)
             a .= '"' . title . '" '
 

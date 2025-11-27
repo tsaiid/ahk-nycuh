@@ -8,7 +8,7 @@ Paste(text, convertCRLF := true) {
         SendText(text)
     }
     else {
-        If (convertCRLF) {
+        if (convertCRLF) {
             text := RegExReplace(text, "(?<!\r)\n", "`r`n")
         }
 

@@ -22,7 +22,7 @@
 ::cpok::Bilateral CP angles are clear and sharp.
 
 ::0::{
-  MyForm := "
+    MyForm := "
 (
 Chest film:
 Normal heart size.
@@ -31,17 +31,17 @@ Normal hili.
 Normal bony thorax.
 
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Normal heart and lungs. 胸部X光判讀正常.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::1::{
-  MyForm := "
+    MyForm := "
 (
 - The heart size is normal.
 - No specific findings in both lung fields.
@@ -49,22 +49,22 @@ Normal heart and lungs. 胸部X光判讀正常.
 - The thoracic cage and bones appear intact.
 
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::11::{
-  MyForm := "
+    MyForm := "
 (
 - The heart size is normal.
 - No specific findings in both lung fields.
 - The bilateral costophrenic angles are clear and well-defined.
 
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::selm1::{
-  MyForm := "
+    MyForm := "
 (
 Slightly exaggerated lung markings.
 Bilateral CP angles are clear and sharp.
@@ -72,34 +72,34 @@ The heart size is normal.
 The thoracic cage and bones are generally intact.
 
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 As the above descriptions.
 
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ii1::{
-  MyForm := "
+    MyForm := "
 (
 Slightly enlarged cardiac shadow.
 Prominent lung markings at bilateral lowers, may be due to insufficient inspiration. Clinical correlation is suggested.
 
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ii2::{
-  MyForm := "
+    MyForm := "
 (
 Slightly enlarged cardiac shadow.
 Prominent lung markings at bilateral lowers, may be due to insufficient inspiration and/or supine. Clinical correlation is suggested.
 
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::2::Increased linear opacity in both lower lungs, in favor of chronic inflammatory changes. {Enter}No cardiomegaly.+{Tab}No active lung lesion.

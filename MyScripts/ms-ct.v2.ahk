@@ -137,7 +137,7 @@
 ;; CT Extremity - Colles Fracture
 ::ectcf::
 {
-  MyForm := "
+    MyForm := "
   (
 CT Upper Extremity:
 Scanning from right forearm to finger, axial, coronal, sagittal, and 3D VRT views
@@ -153,13 +153,13 @@ Right distal radial fracture
 IMPRESSION:
 Right Colles fracture, with intra-articular involvement.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CT Extremity - Lower Limbs
 ::ectl::
 {
-  MyForm := "
+    MyForm := "
   (
 CT Lower Extremity:
 Non-contrast study.
@@ -169,13 +169,13 @@ Scanning from thigh to foot, axial, coronal, sagittal views
 
 FINDINGS:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTA - Lower limb
 ::ectal::
 {
-  MyForm := "
+    MyForm := "
   (
 CTA of Lower Extremity:
 Pre and post contrast-enhanced axial scanning from kidney to foot
@@ -191,13 +191,13 @@ Some small nonobstructive bilateral renal stones.
 The lower abdomen and pelvis are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CT Extremity - Lower Limbs, DVT
 ::ectldvt::
 {
-  MyForm := "
+    MyForm := "
   (
 CT Lower Extremity:
 Pre and post contrast-enhanced study.
@@ -213,13 +213,13 @@ The skeleton of lower limb is unremarkable.
 IMPRESSION:
 C/W DVT.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CT Extremity - Lower Limbs, Knee OA
 ::ectloa::
 {
-  MyForm := "
+    MyForm := "
   (
 CT Lower Extremity:
 Non-contrast study.
@@ -235,13 +235,13 @@ FINDINGS:
 IMPRESSION:
 OA changes of bilateral knees.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTA - PAOD
 ::ectapaod::
 {
-  MyForm := "
+    MyForm := "
   (
 CTA of Lower Extremity:
 Pre and post contrast-enhanced axial scanning from kidney to foot
@@ -267,13 +267,13 @@ IMPRESSION:
 Severe arterial wall calcification from abdominal aorta to feet.
 Because too small diameter of arteries and the severe calcification, the patency below the popliteal level is difficult to evaluate.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CT Extremity - Upper Limbs
 ::ectu::
 {
-  MyForm := "
+    MyForm := "
   (
 CT Upper Extremity:
 Non-contrast enhanced study.
@@ -283,12 +283,12 @@ Scanning from arm to finger, axial, coronal, sagittal, and 3D VRT views
 
 FINDINGS:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ectau::
 {
-  MyForm := "
+    MyForm := "
   (
 CTA of Upper Extremity:
 Pre and post contrast-enhanced axial scanning from aortic arch to hand
@@ -299,13 +299,13 @@ COMPARISON: no
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CT Shoulder
 ::ects::
 {
-  MyForm := "
+    MyForm := "
   (
 CT Shoulder:
 Non-contrast study.
@@ -315,13 +315,13 @@ Scanning from neck to upper chest, centering at shoulder, axial, coronal, sagitt
 
 FINDINGS:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CT Knee
 ::ectk::
 {
-  MyForm := "
+    MyForm := "
   (
 CT Knee:
 Non-contrast study.
@@ -329,13 +329,13 @@ Pre and post contrast-enhanced study.
 
 FINDINGS:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CT Ankle
 ::ecta::
 {
-  MyForm := "
+    MyForm := "
   (
 CT Ankle:
 Non-contrast study.
@@ -345,5 +345,5 @@ Scanning from leg to foot, axial, coronal, sagittal views
 
 FINDINGS:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

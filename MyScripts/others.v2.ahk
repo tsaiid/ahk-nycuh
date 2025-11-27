@@ -218,13 +218,13 @@
 ::gil::(* limited evaluation due to peristalsis, susceptibility artifact from gas, etc.)
 
 ::ncl::{
-  MyForm := "
+    MyForm := "
 (
 * The evaluation is limited due to absence of contrast enhancement, especially for solid organs and vascular structure.
 * The detection of tiny or occult metastasis is limited due to absence of contrast enhancement.
 * The detection of tiny or occult residual/recurrent tumor and the evaluation of vascular structure are limited due to absence of contrast enhancement.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::sgo::suggestive of `
@@ -341,15 +341,14 @@
 ::fn::FOOTNOTE:{Enter}[{^}1]: `
 
 ::ar::{
-  currDateStr := FormatTime(, "yyyy/M/d")
-  MyForm := Format("
+    currDateStr := FormatTime(, "yyyy/M/d")
+    MyForm := Format("
 (
 ----
 Additional report on {1}:
 
-
 )", currDateStr)
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; common hotstrings
@@ -364,7 +363,7 @@ Additional report on {1}:
 
 ; 資源共享
 ::share::{
-  MyForm := "
+    MyForm := "
 (
 The study has been uploaded to our PACS system.
 Original report has been attached as a picture file.
@@ -373,5 +372,5 @@ For second opinion, please submit a formal consultation request to our departmen
 IMPRESSION:
 The study has been uploaded to our PACS system.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

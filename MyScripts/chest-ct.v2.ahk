@@ -51,49 +51,49 @@
 
 ::ccttrok::
 {
-  MyForm := "
+    MyForm := "
   (
 - No pneumothorax or hemothorax.
 - No lung contusion, pneumothorax, or hemothorax.
 - The heart and great vessels appear unremarkable.
 - The thoracic cage and bones appear intact.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctlapok::
 {
-  MyForm := "
+    MyForm := "
   (
 - No mediastinal or pulmonary hilar lymphadenopathy.
 - No axillary, supraclavicular, mediastinal or pulmonary hilar lymphadenopathy.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; Show helper to insert Fleischner guideline
 ::fsg::
 {
-  hParentWnd := WinExist("A")
-  Fleischner2017Form()
+    hParentWnd := WinExist("A")
+    Fleischner2017Form()
 }
 
 ::cctok::
 {
-  MyForm := "
+    MyForm := "
   (
 - No pulmonary nodule.
 - No mediastinal lymphadenopathy.
 - The heart and great vessels appear unremarkable.
 - The thoracic cage and bones appear intact.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; Lung Routine
 ::cctlr::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax was performed with a multi-slice CT scanner.
 
@@ -116,13 +116,13 @@ FINDINGS:
 - Chest wall and bony structure: not unusual for age
 - Upper abdomen and adrenals: not unusual for age
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; NCSD
 ::cctncsd::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax was performed with a multi-slice CT scanner.
 
@@ -151,20 +151,20 @@ FINDINGS:
 
 *PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No obvious traumatic intrathoracic injury.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctncsd+a::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax and abdomen was performed with a multi-slice CT scanner.
 
@@ -189,13 +189,13 @@ FINDINGS:
 
 *PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; NCLD
 ::cctncld::
 {
-  MyForm := "
+    MyForm := "
   (
 Lower dose, high resolution (2-mm slice thickness) non-contrast CT scan for screening pulmonary nodule.
 Scanner: Multi-detector CT scanner.
@@ -228,11 +228,11 @@ FINDINGS:
 - Thoracic spine: unremarkable.
 - Upper abdomen: unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No remarkable nodular lesions in bilateral lungs.
 
@@ -254,12 +254,12 @@ Remarks: A majority of the nodules less than 6 mm may not be cancer (risk <1% in
 
 Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmonary Nodules in Adults.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctncldok::
 {
-  MyForm := "
+    MyForm := "
   (
 Lower dose, high resolution (2-mm slice thickness) non-contrast CT scan for screening pulmonary nodule.
 Scanner: Multi-detector CT scanner.
@@ -284,11 +284,11 @@ FINDINGS:
 - Thoracic spine: unremarkable.
 - Upper abdomen: unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No remarkable nodular lesions in bilateral lungs.
 
@@ -310,12 +310,12 @@ Remarks: A majority of the nodules less than 6 mm may not be cancer (risk <1% in
 
 Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmonary Nodules in Adults.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctfsg::
 {
-  MyForm := "
+    MyForm := "
   (
 ----
 Measurement of pulmonary solid nodule is based on RECIST 1.1, the largest diameter in an axial plane. RECIST: Response Evaluation Criteria in Solid Tumors
@@ -335,12 +335,12 @@ Remarks: A majority of the nodules less than 6 mm may not be cancer (risk <1% in
 
 Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmonary Nodules in Adults.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctncsduip::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax was performed with a multi-slice CT scanner.
 
@@ -374,20 +374,20 @@ FINDINGS:
 
 *PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 UIP pattern.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctncsdnsip::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax was performed with a multi-slice CT scanner.
 
@@ -412,21 +412,21 @@ FINDINGS:
 
 *PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 NSIP is suspected.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTA
 ::cctcta::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax and abdomen was performed with a multi-slice CT scanner.
 
@@ -455,13 +455,13 @@ FINDINGS:
 5. OTHERS:
 - No osteolytic or osteoblastic bone lesion in the scanning range.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTA - aorta
 ::cctctaa::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax and abdomen was performed with a multi-slice CT scanner.
 
@@ -490,13 +490,13 @@ FINDINGS:
 5. OTHERS:
 - No osteolytic or osteoblastic bone lesion in the scanning range.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; CTA - pulmonary artery
 ::cctctap::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax was performed with a multi-slice CT scanner.
 
@@ -525,13 +525,13 @@ FINDINGS:
 5. OTHERS:
 - No osteolytic or osteoblastic bone lesion in the scanning range.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; Congenital Heart Disease
 ::cctchd::
 {
-  MyForm := "
+    MyForm := "
   (
 MDCT FOR CONGENITAL HEART DISEASE PERFORMED WITH 64-SLICE CT SCANNER
 Total DLP:
@@ -577,13 +577,13 @@ OTHER FINDINGS:
 
 IMPRESSION:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; Lung cancer, staging
 ::cctlcs::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax was performed with a MDCT scanner.
 TECHNIQUE: (1) NCCT (2) CECT were performed
@@ -635,21 +635,21 @@ A. Tumor Profile
 B. Other Findings
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Lung cancer of , cTNM (AJCC 2016, 8th ed.)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; Esophageal cancer, staging
 ::cctecs::
 {
-  MyForm := "
+    MyForm := "
   (
 CT scan of the thorax was performed with a MDCT scanner.
 
@@ -701,20 +701,20 @@ Left gastric artery
 6. OTHER FINDINGS
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Esophageal CA of , cTNM. (AJCC 2016, 8th ed.)
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctsr::
 {
-  MyForm := "
+    MyForm := "
   (
 Lung and large airways: no pulmonary nodules.
 Pleura: no visible nodularity or pleural thickening.
@@ -723,12 +723,12 @@ Heart: within normal limits.
 Mediastinum and hila: no LNs > 1 cm.
 Chest Wall and low neck: within normal limits.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctcs::
 {
-  MyForm := "
+    MyForm := "
   (
 Cardiac dual-source CT was performed without intravenous contrast administration and under ECG-gating.
 
@@ -746,20 +746,20 @@ Additional findings:
 - The visual lungs are clear
 - The visible bone is normal
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Total Calcium Score (Equivalent Agatston Score) is 0.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ccta::
 {
-  MyForm := "
+    MyForm := "
   (
 Dual-Source CT of heart was performed with rapid i.v. contrast administration
 Findings of CT coronary angiography:
@@ -803,20 +803,20 @@ Recommended Quantitative Stenosis Grading:
 
 Remark: Some heart motion might mimic pseudo-stenotic lesions in Volume Rendering images, suggest curve MPR and source data correlation.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No evidence of coronary stenosis or plaque by Coronary CT Angiography.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::cctnhi::
 {
-  MyForm := "
+    MyForm := "
   (
 國健署低劑量CT肺癌篩檢 (without contrast):
 
@@ -898,106 +898,99 @@ Lung-RADS v2022 Category Descriptor
 □Modifier S: May add to category 0-4 for clinically significant or potentially clinically significant findings unrelated to lung cancer.
 □請至門診就診
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-
 ;; for Fleischner Society 2017 guidelines
-Fleischner2017Form()
-{
-  ; 取得當前活動視窗的 ID，以便稍後貼上文字時切換回來
-  hParentWnd := WinExist("A")
+Fleischner2017Form() {
+    ; 取得當前活動視窗的 ID，以便稍後貼上文字時切換回來
+    hParentWnd := WinExist("A")
 
-  FsgGui := Gui(, "Fleischner 2017 Guidelines Helper")
-  FsgGui.SetFont("s10", "Verdana")
+    FsgGui := Gui(, "Fleischner 2017 Guidelines Helper")
+    FsgGui.SetFont("s10", "Verdana")
 
-  FsgGui.Add("Text", , "Solid")
-  FsgGui.Add("GroupBox", "xm ym+20 Section w245 h90", "Single")
-  FsgGui.Add("GroupBox", "xm+255 ym+20 Section w245 h90", "Multiple")
+    FsgGui.Add("Text", , "Solid")
+    FsgGui.Add("GroupBox", "xm ym+20 Section w245 h90", "Single")
+    FsgGui.Add("GroupBox", "xm+255 ym+20 Section w245 h90", "Multiple")
 
-  FsgGui.Add("Text", "xm", "Subsolid")
-  FsgGui.Add("GroupBox", "xm ym+140 Section w150 h70", "Single GGN")
-  FsgGui.Add("GroupBox", "xm+170 ym+140 Section w150 h70", "Single part solid")
-  FsgGui.Add("GroupBox", "xm+340 ym+140 Section w150 h70", "Multiple")
+    FsgGui.Add("Text", "xm", "Subsolid")
+    FsgGui.Add("GroupBox", "xm ym+140 Section w150 h70", "Single GGN")
+    FsgGui.Add("GroupBox", "xm+170 ym+140 Section w150 h70", "Single part solid")
+    FsgGui.Add("GroupBox", "xm+340 ym+140 Section w150 h70", "Multiple")
 
-  ; 用陣列來儲存所有的 Radio 物件，以便稍後判斷哪一個被選中
-  RadioControls := []
+    ; 用陣列來儲存所有的 Radio 物件，以便稍後判斷哪一個被選中
+    RadioControls := []
 
-  ; --- Solid single ---
-  ; 注意：v2 中，只有第一個 Radio 加上 "Group" 選項，後續的 Radio 只要不加 "Group" 就會視為同一組
-  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+40 vRadio1 Group", "< 6 mm"))
-  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+60", "6-8 mm"))
-  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+80", "> 8 mm"))
+    ; --- Solid single ---
+    ; 注意：v2 中，只有第一個 Radio 加上 "Group" 選項，後續的 Radio 只要不加 "Group" 就會視為同一組
+    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+40 vRadio1 Group", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+60", "6-8 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+80", "> 8 mm"))
 
-  ; --- Solid multiple ---
-  RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+40", "< 6 mm"))
-  RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+60", "6-8 mm"))
-  RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+80", "> 8 mm"))
+    ; --- Solid multiple ---
+    RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+40", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+60", "6-8 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+80", "> 8 mm"))
 
-  ; --- Subsolid single GGN ---
-  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+160", "< 6 mm"))
-  RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+180", ">= 6 mm"))
+    ; --- Subsolid single GGN ---
+    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+160", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+180", ">= 6 mm"))
 
-  ; --- Subsolid single part solid ---
-  RadioControls.Push(FsgGui.Add("Radio", "xm+180 ym+160", "< 6 mm"))
-  RadioControls.Push(FsgGui.Add("Radio", "xm+180 ym+180", ">= 6 mm"))
+    ; --- Subsolid single part solid ---
+    RadioControls.Push(FsgGui.Add("Radio", "xm+180 ym+160", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xm+180 ym+180", ">= 6 mm"))
 
-  ; --- Subsolid multiple ---
-  RadioControls.Push(FsgGui.Add("Radio", "xm+350 ym+160", "< 6 mm"))
-  RadioControls.Push(FsgGui.Add("Radio", "xm+350 ym+180", ">= 6 mm"))
+    ; --- Subsolid multiple ---
+    RadioControls.Push(FsgGui.Add("Radio", "xm+350 ym+160", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xm+350 ym+180", ">= 6 mm"))
 
-  Btn := FsgGui.Add("Button", "xm Default", "OK")
-  Btn.OnEvent("Click", FsgButtonOK) ; 綁定點擊事件
+    Btn := FsgGui.Add("Button", "xm Default", "OK")
+    Btn.OnEvent("Click", FsgButtonOK) ; 綁定點擊事件
 
-  FsgGui.Show("AutoSize Center")
+    FsgGui.Show("AutoSize Center")
 
-  ; 定義內部函式處理點擊事件 (Closure)，可以直接使用外部變數
-  FsgButtonOK(*)
-  {
-    Saved := FsgGui.Submit() ; 隱藏並送出
+    ; 定義內部函式處理點擊事件 (Closure)，可以直接使用外部變數
+    FsgButtonOK(*) {
+        Saved := FsgGui.Submit() ; 隱藏並送出
 
-    ; 找出被選中的 Radio Index (1-12)
-    SelectedIndex := 0
-    for index, radioCtrl in RadioControls {
-      if (radioCtrl.Value) {
-        SelectedIndex := index
-        break
-      }
+        ; 找出被選中的 Radio Index (1-12)
+        SelectedIndex := 0
+        for index, radioCtrl in RadioControls {
+            if (radioCtrl.Value) {
+                SelectedIndex := index
+                break
+            }
+        }
+
+        if (SelectedIndex == 0) {
+            MsgBox("Empty value")
+            return
+        }
+
+        FsgRecommendations := [
+            "no routine follow-up in low risk patients; optional CT at 12 months in high risk patients.",
+            "CT at 6-12 months, then at 18-24 months in high risk patients.",
+            "consider CT at 3 months, PET/CT, or tissue sampling.",
+            "no routine follow-up in low risk patients; optional CT at 12 months in high risk patients.",
+            "CT at 3-6 months, then at 18-24 months in high risk patients.",
+            "CT at 3-6 months, then at 18-24 months in high risk patients.",
+            "no routine follow-up.",
+            "CT at 6-12 months to confirm persistence, then CT every 2 years until 5 years.",
+            "no routine follow-up",
+            "CT at 3-6 months to confirm persistence. If unchanged and solid component remains < 6 mm, annual CT should be performed for 5 years.",
+            "CT at 3-6 months. If stable, consider CT at 2 and 4 years.",
+            "CT at 3-6 months. Subsequent management based on the most suspicious nodule(s)."
+        ]
+
+        ; 使用 Format 格式化字串
+        MyForm := Format("Fleischner Society 2017 Guidelines recommends: {1}", FsgRecommendations[SelectedIndex])
+
+        FsgGui.Destroy()
+
+        if WinExist("ahk_id " hParentWnd) {
+            WinActivate "ahk_id " hParentWnd
+        }
+
+        Paste(MyForm)
     }
-
-    if (SelectedIndex == 0) {
-      MsgBox("Empty value")
-      return
-    }
-
-    FsgRecommendations := [
-      "no routine follow-up in low risk patients; optional CT at 12 months in high risk patients.",
-      "CT at 6-12 months, then at 18-24 months in high risk patients.",
-      "consider CT at 3 months, PET/CT, or tissue sampling.",
-
-      "no routine follow-up in low risk patients; optional CT at 12 months in high risk patients.",
-      "CT at 3-6 months, then at 18-24 months in high risk patients.",
-      "CT at 3-6 months, then at 18-24 months in high risk patients.",
-
-      "no routine follow-up.",
-      "CT at 6-12 months to confirm persistence, then CT every 2 years until 5 years.",
-
-      "no routine follow-up",
-      "CT at 3-6 months to confirm persistence. If unchanged and solid component remains < 6 mm, annual CT should be performed for 5 years.",
-
-      "CT at 3-6 months. If stable, consider CT at 2 and 4 years.",
-      "CT at 3-6 months. Subsequent management based on the most suspicious nodule(s)."
-    ]
-
-    ; 使用 Format 格式化字串
-    MyForm := Format("Fleischner Society 2017 Guidelines recommends: {1}", FsgRecommendations[SelectedIndex])
-
-    FsgGui.Destroy()
-
-    if WinExist("ahk_id " hParentWnd) {
-      WinActivate "ahk_id " hParentWnd
-    }
-
-    Paste(MyForm)
-  }
 }

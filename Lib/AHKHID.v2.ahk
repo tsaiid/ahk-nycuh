@@ -3,61 +3,61 @@
 class AHKHID {
     ;______________________________________
     ;Constants
-    static DI_DEVTYPE                  := 4
-    static DI_MSE_ID                   := 8
-    static DI_MSE_NUMBEROFBUTTONS      := 12
-    static DI_MSE_SAMPLERATE           := 16
-    static DI_MSE_HASHORIZONTALWHEEL   := 20
-    static DI_KBD_TYPE                 := 8
-    static DI_KBD_SUBTYPE              := 12
-    static DI_KBD_KEYBOARDMODE         := 16
+    static DI_DEVTYPE := 4
+    static DI_MSE_ID := 8
+    static DI_MSE_NUMBEROFBUTTONS := 12
+    static DI_MSE_SAMPLERATE := 16
+    static DI_MSE_HASHORIZONTALWHEEL := 20
+    static DI_KBD_TYPE := 8
+    static DI_KBD_SUBTYPE := 12
+    static DI_KBD_KEYBOARDMODE := 16
     static DI_KBD_NUMBEROFFUNCTIONKEYS := 20
-    static DI_KBD_NUMBEROFINDICATORS   := 24
-    static DI_KBD_NUMBEROFKEYSTOTAL    := 28
-    static DI_HID_VENDORID             := 8
-    static DI_HID_PRODUCTID            := 12
-    static DI_HID_VERSIONNUMBER        := 16
-    static DI_HID_USAGEPAGE            := 20 | 0x0100
-    static DI_HID_USAGE                := 22 | 0x0100
+    static DI_KBD_NUMBEROFINDICATORS := 24
+    static DI_KBD_NUMBEROFKEYSTOTAL := 28
+    static DI_HID_VENDORID := 8
+    static DI_HID_PRODUCTID := 12
+    static DI_HID_VERSIONNUMBER := 16
+    static DI_HID_USAGEPAGE := 20 | 0x0100
+    static DI_HID_USAGE := 22 | 0x0100
 
-    static II_DEVTYPE       := 0
-    static II_DEVHANDLE     := 8
-    static II_MSE_FLAGS     := (08+A_PtrSize*2) | 0x0100
-    static II_MSE_BUTTONFLAGS := (12+A_PtrSize*2) | 0x0100
-    static II_MSE_BUTTONDATA := (14+A_PtrSize*2) | 0x1100
-    static II_MSE_RAWBUTTONS := (16+A_PtrSize*2)
-    static II_MSE_LASTX     := (20+A_PtrSize*2) | 0x1000
-    static II_MSE_LASTY     := (24+A_PtrSize*2) | 0x1000
-    static II_MSE_EXTRAINFO := (28+A_PtrSize*2)
-    static II_KBD_MAKECODE  := (08+A_PtrSize*2) | 0x0100
-    static II_KBD_FLAGS     := (10+A_PtrSize*2) | 0x0100
-    static II_KBD_VKEY      := (14+A_PtrSize*2) | 0x0100
-    static II_KBD_MSG       := (16+A_PtrSize*2)
-    static II_KBD_EXTRAINFO := (20+A_PtrSize*2)
-    static II_HID_SIZE      := (08+A_PtrSize*2)
-    static II_HID_COUNT     := (12+A_PtrSize*2)
-    static II_HID_DATA      := (16+A_PtrSize*2)
+    static II_DEVTYPE := 0
+    static II_DEVHANDLE := 8
+    static II_MSE_FLAGS := (08 + A_PtrSize * 2) | 0x0100
+    static II_MSE_BUTTONFLAGS := (12 + A_PtrSize * 2) | 0x0100
+    static II_MSE_BUTTONDATA := (14 + A_PtrSize * 2) | 0x1100
+    static II_MSE_RAWBUTTONS := (16 + A_PtrSize * 2)
+    static II_MSE_LASTX := (20 + A_PtrSize * 2) | 0x1000
+    static II_MSE_LASTY := (24 + A_PtrSize * 2) | 0x1000
+    static II_MSE_EXTRAINFO := (28 + A_PtrSize * 2)
+    static II_KBD_MAKECODE := (08 + A_PtrSize * 2) | 0x0100
+    static II_KBD_FLAGS := (10 + A_PtrSize * 2) | 0x0100
+    static II_KBD_VKEY := (14 + A_PtrSize * 2) | 0x0100
+    static II_KBD_MSG := (16 + A_PtrSize * 2)
+    static II_KBD_EXTRAINFO := (20 + A_PtrSize * 2)
+    static II_HID_SIZE := (08 + A_PtrSize * 2)
+    static II_HID_COUNT := (12 + A_PtrSize * 2)
+    static II_HID_DATA := (16 + A_PtrSize * 2)
 
-    static RIM_TYPEMOUSE    := 0
+    static RIM_TYPEMOUSE := 0
     static RIM_TYPEKEYBOARD := 1
-    static RIM_TYPEHID      := 2
+    static RIM_TYPEHID := 2
 
-    static RIDEV_REMOVE       := 0x00000001
-    static RIDEV_EXCLUDE      := 0x00000010
-    static RIDEV_PAGEONLY     := 0x00000020
-    static RIDEV_NOLEGACY     := 0x00000030
-    static RIDEV_INPUTSINK    := 0x00000100
+    static RIDEV_REMOVE := 0x00000001
+    static RIDEV_EXCLUDE := 0x00000010
+    static RIDEV_PAGEONLY := 0x00000020
+    static RIDEV_NOLEGACY := 0x00000030
+    static RIDEV_INPUTSINK := 0x00000100
     static RIDEV_CAPTUREMOUSE := 0x00000200
-    static RIDEV_NOHOTKEYS    := 0x00000200
-    static RIDEV_APPKEYS      := 0x00000400
-    static RIDEV_EXINPUTSINK  := 0x00001000
-    static RIDEV_DEVNOTIFY    := 0x00002000
+    static RIDEV_NOHOTKEYS := 0x00000200
+    static RIDEV_APPKEYS := 0x00000400
+    static RIDEV_EXINPUTSINK := 0x00001000
+    static RIDEV_DEVNOTIFY := 0x00002000
 
-    static RIM_INPUT       := 0
-    static RIM_INPUTSINK   := 1
+    static RIM_INPUT := 0
+    static RIM_INPUTSINK := 1
 
-    static RID_INPUT    := 0x10000003
-    static RID_HEADER   := 0x10000005
+    static RID_INPUT := 0x10000003
+    static RID_HEADER := 0x10000005
 
     ; Internal state
     ; 修改處 1: 初始為 0，而不是 unset，這樣可以直接用於 if 判斷
@@ -98,7 +98,7 @@ class AHKHID {
     }
 
     static GetDevIndex(Handle) {
-        Loop AHKHID.GetDevCount()
+        loop AHKHID.GetDevCount()
             if (NumGet(AHKHID.Initialize(), (A_Index - 1) * (A_PtrSize * 2), "Ptr") = Handle)
                 return A_Index
         return 0
@@ -132,7 +132,7 @@ class AHKHID {
         h := IsHandle ? i : AHKHID.GetDevHandle(i)
 
         if (h = iLastHandle && uInfo.Size > 0) {
-             ; Handle hasn't changed, return cached data
+            ; Handle hasn't changed, return cached data
         } else {
             iLength := 0
             r := DllCall("GetRawInputDeviceInfo", "Ptr", h, "UInt", 0x2000000b, "Ptr", 0, "UInt*", &iLength)
@@ -161,9 +161,9 @@ class AHKHID {
         Handle := ((Flags & 0x00000001) || (Flags & 0x00000010)) ? 0 : Handle
 
         NumPut("UShort", UsagePage, uDev, 0)
-        NumPut("UShort", Usage,     uDev, 2)
-        NumPut("UInt",   Flags,     uDev, 4)
-        NumPut("Ptr",    Handle,    uDev, 8)
+        NumPut("UShort", Usage, uDev, 2)
+        NumPut("UInt", Flags, uDev, 4)
+        NumPut("Ptr", Handle, uDev, 8)
 
         r := DllCall("RegisterRawInputDevices", "Ptr", uDev, "UInt", 1, "UInt", 8 + A_PtrSize)
 
@@ -181,12 +181,14 @@ class AHKHID {
             ; Use cached
         } else {
             iSize := 0
-            r := DllCall("GetRawInputData", "Ptr", InputHandle, "UInt", 0x10000003, "Ptr", 0, "UInt*", &iSize, "UInt", 8 + A_PtrSize * 2)
+            r := DllCall("GetRawInputData", "Ptr", InputHandle, "UInt", 0x10000003, "Ptr", 0, "UInt*", &iSize, "UInt",
+                8 + A_PtrSize * 2)
             if (r == -1)
                 return -1
 
             uRawInput := Buffer(iSize)
-            r := DllCall("GetRawInputData", "Ptr", InputHandle, "UInt", 0x10000003, "Ptr", uRawInput, "UInt*", &iSize, "UInt", 8 + A_PtrSize * 2)
+            r := DllCall("GetRawInputData", "Ptr", InputHandle, "UInt", 0x10000003, "Ptr", uRawInput, "UInt*", &iSize,
+                "UInt", 8 + A_PtrSize * 2)
             if (r == -1)
                 return -1
 
@@ -203,17 +205,19 @@ class AHKHID {
 
     static GetInputData(InputHandle) {
         iSize := 0
-        r := DllCall("GetRawInputData", "Ptr", InputHandle, "UInt", 0x10000003, "Ptr", 0, "UInt*", &iSize, "UInt", 8 + A_PtrSize * 2)
+        r := DllCall("GetRawInputData", "Ptr", InputHandle, "UInt", 0x10000003, "Ptr", 0, "UInt*", &iSize, "UInt", 8 +
+            A_PtrSize * 2)
         if (r == -1)
             return Buffer(0)
 
         uRawInput := Buffer(iSize)
-        r := DllCall("GetRawInputData", "Ptr", InputHandle, "UInt", 0x10000003, "Ptr", uRawInput, "UInt*", &iSize, "UInt", 8 + A_PtrSize * 2)
+        r := DllCall("GetRawInputData", "Ptr", InputHandle, "UInt", 0x10000003, "Ptr", uRawInput, "UInt*", &iSize,
+            "UInt", 8 + A_PtrSize * 2)
         if (r == -1)
             return Buffer(0)
 
         ; Get size of each HID input and count
-        iSizeBody  := NumGet(uRawInput, 8 + A_PtrSize * 2 + 0, "UInt") ; ID_HID_SIZE
+        iSizeBody := NumGet(uRawInput, 8 + A_PtrSize * 2 + 0, "UInt") ; ID_HID_SIZE
         iCountBody := NumGet(uRawInput, 8 + A_PtrSize * 2 + 4, "UInt") ; ID_HID_COUNT
 
         if (iSizeBody * iCountBody <= 0)

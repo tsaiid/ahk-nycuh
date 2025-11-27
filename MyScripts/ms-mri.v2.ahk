@@ -42,7 +42,7 @@
 ;; MRI of Knee
 ::mrkr::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of right knee in
 Axial T2*
@@ -55,12 +55,12 @@ PREVIOUS MRI of knee: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mrkl::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of left knee in
 Axial T2*
@@ -73,13 +73,13 @@ PREVIOUS MRI of knee: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; MRI of shoulder
 ::mrsa::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of right / left shoulder in:
 axial plane: T2WI
@@ -91,12 +91,12 @@ PREVIOUS MRI of shoulder: none.
 
 FINDINGS:
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mrsr::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of right shoulder in:
 axial plane: T2WI
@@ -108,12 +108,12 @@ PREVIOUS MRI of shoulder: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mrsl::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of left shoulder in:
 axial plane: T2WI
@@ -125,13 +125,13 @@ PREVIOUS MRI of shoulder: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; MRI of ankle
 ::mrar::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of right ankle in:
 axial plane: GRE T2*WI, FSE T1WI
@@ -143,12 +143,12 @@ PREVIOUS MRI: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mral::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of left ankle in:
 axial plane: GRE T2*WI, FSE T1WI
@@ -160,13 +160,13 @@ PREVIOUS MRI: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ; MRI of wrist
 ::mrwr::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of right wrist in
 coronal plane: PDWI, T2WI, T2 STIR
@@ -178,12 +178,12 @@ PREVIOUS MRI of wrist: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mrwl::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of left wrist in
 coronal plane: PDWI, T2WI, T2 STIR
@@ -195,5 +195,5 @@ PREVIOUS MRI of wrist: none.
 FINDINGS:
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

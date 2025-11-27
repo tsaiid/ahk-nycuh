@@ -59,12 +59,12 @@
 ::bfpca::Bilateral fetal type posterior cerebral arteries are noted.
 ::psok::
 {
-  MyForm := "
+    MyForm := "
   (
 The visible paranasal sinuses are clear.
 The paranasal sinuses are clear.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::rfvps::status post ventriculo-peritoneal shunt from right frontal area, with tip at left lateral ventricle.
@@ -152,29 +152,29 @@ The paranasal sinuses are clear.
 
 ::li1::
 {
-  MyForm := "
+    MyForm := "
   (
 A small low density in the left basal ganglion region, in favor of old lacunar infarct.
 A small low density in the right basal ganglion region, in favor of old lacunar infarct.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::lis::
 {
-  MyForm := "
+    MyForm := "
   (
 Several small low densities in the bilateral basal ganglion regions, in favor of old lacunar infarcts.
 Several tiny low densities in the left basal ganglion region, in favor of old lacunar infarcts.
 Several tiny low densities in the right basal ganglion region, in favor of old lacunar infarcts.
 Presence of tiny old ischemic infarction involving bilateral basal ganglion region.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::necok::
 {
-  MyForm := "
+    MyForm := "
   (
 The nasopharynx, oropharynx, hypopharynx, and larynx are unremarkable.
 No bulky lymph nodes in the bilateral submandibular and submental, carotid, posterior cervical spaces, and supraclavicular fossae noted.
@@ -182,51 +182,51 @@ No particular findings of parotid gland, submandibular gland, and thyroid gland.
 The paranasal sinuses and mastoid air cells are clear.
 The visible brain and lungs show no remarkable findings.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::neclapok::
 {
-  MyForm := "
+    MyForm := "
   (
 No bulky lymph nodes in the bilateral submandibular and submental, carotid, posterior cervical spaces, and supraclavicular fossae noted.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 ::neclapok0::No bulky neck lymphadenopathy.
 
 ::ctps::
 {
-  MyForm := "
+    MyForm := "
   (
 Mild mucoperiosteal thickening and soft tissue density in the bilateral frontal, bilateral ethmoid, bilateral maxillary, and bilateral sphenoid sinuses, in favor of mild sinusitis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 ::mctps::Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 ::mctps1::Small soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 
 ::mrps::
 {
-  MyForm := "
+    MyForm := "
   (
 Presence of hyperintensity on T2WI in the right/left/bilateral sphenoid, right/left/bilateral ethmoid, right/left/bilateral maxillary, right/left/bilateral frontal sinuses, in favor of mild sinusitis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 ::mmrps::
 {
-  MyForm := "
+    MyForm := "
   (
 Mild mucoperiosteal thickening and hyperintensity on T2WI over the paranasal sinuses, in favor of mild sinusitis.
 Hyperintensity on T2WI over the paranasal sinuses, in favor of mild sinusitis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::bctaok::
 {
-  MyForm := "
+    MyForm := "
   (
 Pre and post-contrast CTA scan of brain:
 
@@ -247,12 +247,12 @@ Brain CTA:
 Multiphase CTA:
 - No abnormal collateral or perfusion defect is noted.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mraok::
 {
-  MyForm := "
+    MyForm := "
   (
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
 
@@ -264,12 +264,12 @@ No significant vascular stenosis in the major intracranial arteries.
 
 No significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctp1::
 {
-  MyForm := "
+    MyForm := "
   (
 Noncontrast CT of the paranasal sinuses was performed with a multi-slice CT scanner:
 SCAN RANGE: axial plane of the paranasal sinuses with 2 mm continuous scan, with coronal and sagittal reconstruction
@@ -286,20 +286,20 @@ FINDINGS:
 - The mastoid air cells are well-aerated.
 - Symmetric nasopharynx without mass lesion.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 C/W chronic paranasal sinusitis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::ctpok::
 {
-  MyForm := "
+    MyForm := "
   (
 Noncontrast CT of the paranasal sinuses was performed with a multi-slice CT scanner:
 SCAN RANGE: axial plane of the paranasal sinuses with 2 mm continuous scan, with coronal and sagittal reconstruction
@@ -313,20 +313,20 @@ FINDINGS:
 - The bony structure is unremarkable.
 - The mastoid air cells are well-aerated.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No evidence of paranasal sinusitis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mriiac::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of internal auditory canal with:
 - T2 SPACE axial, coronal, oblique sagittal
@@ -353,21 +353,21 @@ FINDINGS:
 - Post contrast study shows no abnormal enhancing lesion in the brain and no abnormal leptomeningeal enhancement noted.
 - The major dural venous sinuses are patent.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 1. No evidence of cochlear aplasia, cochlear nerve agenesis, or other malformations.
 2. Left mastoiditis or fluid collection.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mricvaok::
 {
-  MyForm := "
+    MyForm := "
   (
 No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
 
@@ -379,20 +379,20 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No evidence of high signal intensity on DWI suggesting acute or recent ischemia infarction in the brain noted.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::mrbok::
 {
-  MyForm := "
+    MyForm := "
   (
 No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
 
@@ -409,22 +409,21 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis region.
 
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 No remarkable intracranial findings.
 No evidence of intracranial metastasis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
-
 
 ::mriich::
 {
-  MyForm := "
+    MyForm := "
   (
 The MR of the brain performed with Sagittal T1WI
 Axial T1WI, T2WI, GET2*WI, FLAIR (Fluid Attenuated Inversion Recovery)
@@ -446,21 +445,21 @@ Findings:
 - Incidental finding of right side fetal type posterior cerebral artery (PCA) from right internal carotid artery (ICA) with hypoplasia changes at P1 segment of right PCA noted.
 - Presence of asymmetry of bilateral vertebral arteries, and more prominence over the right side, and patent flow of bilateral vertebral arteries noted, normal variation in favor.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 Subacute ICH in the left temporo-parieto-occipital area. No definite etiology identified.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; MR Brachial Plexus
 ::mribp::
 {
-  MyForm := "
+    MyForm := "
   (
 MRI of Brachial Plexus:
 - Cor T1WI, T2WI, T2WI+FS, T2 SPACE
@@ -485,13 +484,13 @@ C7-T1: diffuse bulging disc, causing mild spinal stenosis.
 
 No abnormal signal intensity changes within the cervical spinal cord.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ;; Neuro CTA - PCU
 ::nctapcu::
 {
-  MyForm := "
+    MyForm := "
   (
 CTA of the neck and brain was performed before and after IV contrast agent administration
 Scanning range: aortic arch to cranial vault.
@@ -518,13 +517,13 @@ FINDINGS:
 - Normal pneumatization of the paranasal sinuses and mastoid air cells.
 - The visible lungs are unremarkable.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 
-  SleepThenTab()
+    SleepThenTab()
 
-  MyForm := "
+    MyForm := "
   (
 The major neck and intracranial arteries are patent, without vascular anomaly nor luminal stenosis.
   )"
-  Paste(MyForm)
+    Paste(MyForm)
 }

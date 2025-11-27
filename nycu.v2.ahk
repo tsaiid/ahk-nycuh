@@ -16,43 +16,43 @@ CoordMode "Mouse", "Screen"
 SetMouseDelay -1
 SetKeyDelay -1
 
-Global PRESERVE_CLIPBOARD := 0
+global PRESERVE_CLIPBOARD := 0
 
 #Include <UIA.v2>
 #Include <Paste.v2>
 #Include <Edit.v2>
 
-Global RISReportWinTitle := "報告作業(frmRISReport)" ; 替換成您的程式標題
-Global RISCTMRAbnormalWinTitle := "檢查結果(frmPos)"
-Global UIA_PastReportTable := {AutomationId: "dgvPastReport"}
-Global UIA_AutoNextCheckbox := {AutomationId: "chkAutoNext"}
-Global UIA_ReportSaveButton := {AutomationId: "btnReportSave"}
-Global UIA_ExamNameTxt := {AutomationId: "txtExamName"}
-Global UIA_FindingEdit := {AutomationId: "txtReport"}
-Global UIA_ImpressionEdit := {AutomationId: "txtImpression"}
-Global UIA_PastAllRadio := {AutomationId: "rdoPastALL"}
-Global UIA_PastModalityRadio := {AutomationId: "rdoClassify"}
-Global UIA_PastOnlyMyRadio := {AutomationId: "rdoPastOnlyMy"}
-Global UIA_PastReportFindingTxt := {AutomationId: "rtxtPastReport"}
-Global UIA_PastReportImpressionTxt := {AutomationId: "rtxtPastImpression"}
-Global UIA_PathoDiagnosisTxt := {AutomationId: "txtDiagnosist"}
-Global UIA_PathoDateTxt := {AutomationId: "mtxtRcpDTM"}
-Global ABNORMAL_VALUE_1_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13"
-Global ABNORMAL_VALUE_2_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad15"
-Global ABNORMAL_VALUE_3_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad16"
-Global ABNORMAL_VALUE_4_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad14"
-Global ABNORMAL_VALUE_SAVE_BUTTON_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad12"
-Global EXAMNAME_HWND := 0
-Global FINDING_CONTROL_HWND := 0
-Global IMPRESSION_CONTROL_HWND := 0
-Global PAST_ALL_RADIO_HWND := 0
-Global PAST_MODALITY_RADIO_HWND := 0
-Global PAST_ONLY_MY_RADIO_HWND := 0
-Global PAST_FINDING_HWND := 0
-Global PAST_IMPRESSION_HWND := 0
-Global risEle := ""
-Global autoNextEle := ""
-Global reportSaveEle := ""
+global RISReportWinTitle := "報告作業(frmRISReport)" ; 替換成您的程式標題
+global RISCTMRAbnormalWinTitle := "檢查結果(frmPos)"
+global UIA_PastReportTable := { AutomationId: "dgvPastReport" }
+global UIA_AutoNextCheckbox := { AutomationId: "chkAutoNext" }
+global UIA_ReportSaveButton := { AutomationId: "btnReportSave" }
+global UIA_ExamNameTxt := { AutomationId: "txtExamName" }
+global UIA_FindingEdit := { AutomationId: "txtReport" }
+global UIA_ImpressionEdit := { AutomationId: "txtImpression" }
+global UIA_PastAllRadio := { AutomationId: "rdoPastALL" }
+global UIA_PastModalityRadio := { AutomationId: "rdoClassify" }
+global UIA_PastOnlyMyRadio := { AutomationId: "rdoPastOnlyMy" }
+global UIA_PastReportFindingTxt := { AutomationId: "rtxtPastReport" }
+global UIA_PastReportImpressionTxt := { AutomationId: "rtxtPastImpression" }
+global UIA_PathoDiagnosisTxt := { AutomationId: "txtDiagnosist" }
+global UIA_PathoDateTxt := { AutomationId: "mtxtRcpDTM" }
+global ABNORMAL_VALUE_1_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13"
+global ABNORMAL_VALUE_2_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad15"
+global ABNORMAL_VALUE_3_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad16"
+global ABNORMAL_VALUE_4_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad14"
+global ABNORMAL_VALUE_SAVE_BUTTON_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad12"
+global EXAMNAME_HWND := 0
+global FINDING_CONTROL_HWND := 0
+global IMPRESSION_CONTROL_HWND := 0
+global PAST_ALL_RADIO_HWND := 0
+global PAST_MODALITY_RADIO_HWND := 0
+global PAST_ONLY_MY_RADIO_HWND := 0
+global PAST_FINDING_HWND := 0
+global PAST_IMPRESSION_HWND := 0
+global risEle := ""
+global autoNextEle := ""
+global reportSaveEle := ""
 
 #HotIf WinActive(RISReportWinTitle)
 
@@ -75,133 +75,136 @@ Global reportSaveEle := ""
 #Include MyScripts\angio.v2.ahk
 
 #Include MyScripts\lib\ris-common.v2.ahk
-^9::{
+^9:: {
 }
 
-!f::{
-  Send "^{Right}"
+!f:: {
+    Send "^{Right}"
 }
 
-!b::{
-  Send "^{Left}"
+!b:: {
+    Send "^{Left}"
 }
 
-^1::{
-  try {
-    RisController.PastAllRadio.ControlClick()
-  } catch as err {
-    MsgBox "操作失敗: " err.Message
-  }
+^1:: {
+    try {
+        RisController.PastAllRadio.ControlClick()
+    } catch as err {
+        MsgBox "操作失敗: " err.Message
+    }
 }
-^2::{
-  try {
-    RisController.PastModalityRadio.ControlClick()
-  } catch as err {
-    MsgBox "操作失敗: " err.Message
-  }
+^2:: {
+    try {
+        RisController.PastModalityRadio.ControlClick()
+    } catch as err {
+        MsgBox "操作失敗: " err.Message
+    }
 }
-^3::{
-  try {
-    RisController.PastOnlyMyRadio.ControlClick()
-  } catch as err {
-    MsgBox "操作失敗: " err.Message
-  }
+^3:: {
+    try {
+        RisController.PastOnlyMyRadio.ControlClick()
+    } catch as err {
+        MsgBox "操作失敗: " err.Message
+    }
 }
 ;;; Append previous report to FINDINGS and IMPRESSION
 AppendPrevReport() {
-  try {
-    ;pastImpression := RisController.GetText(RisController.PastImpressionText)
-    pastImpression := ControlGetText(RisController.PastImpressionText.NativeWindowHandle)
-    hImpEdit := RisController.ImpressionEdit.NativeWindowHandle
-    Edit_SetSel(hImpEdit, Edit_GetTextLength(hImpEdit))
-    Edit_ReplaceSel(hImpEdit, pastImpression)
+    try {
+        ;pastImpression := RisController.GetText(RisController.PastImpressionText)
+        pastImpression := ControlGetText(RisController.PastImpressionText.NativeWindowHandle)
+        hImpEdit := RisController.ImpressionEdit.NativeWindowHandle
+        Edit_SetSel(hImpEdit, Edit_GetTextLength(hImpEdit))
+        Edit_ReplaceSel(hImpEdit, pastImpression)
 
-    ;pastFinding := RisController.GetText(RisController.PastFindingText)
-    pastFinding := ControlGetText(RisController.PastFindingText.NativeWindowHandle)
-    hFindingEdit := RisController.FindingEdit.NativeWindowHandle
-    Edit_SetSel(hFindingEdit, Edit_GetTextLength(hFindingEdit))
-    Edit_ReplaceSel(hFindingEdit, pastFinding)
-    Edit_SetSel(hFindingEdit, 0, 0)
-    Edit_ScrollCaret(hFindingEdit)
-  } catch TargetError as err {
-    MsgBox "操作失敗: " err.Message
-  }
+        ;pastFinding := RisController.GetText(RisController.PastFindingText)
+        pastFinding := ControlGetText(RisController.PastFindingText.NativeWindowHandle)
+        hFindingEdit := RisController.FindingEdit.NativeWindowHandle
+        Edit_SetSel(hFindingEdit, Edit_GetTextLength(hFindingEdit))
+        Edit_ReplaceSel(hFindingEdit, pastFinding)
+        Edit_SetSel(hFindingEdit, 0, 0)
+        Edit_ScrollCaret(hFindingEdit)
+    } catch TargetError as err {
+        MsgBox "操作失敗: " err.Message
+    }
 }
-^ESC::{
-  AppendPrevReport()
+^ESC:: {
+    AppendPrevReport()
 }
 ;; Ctrl + Y
 ;; Delete current line
-^y::{
-  local focusedEle := UIA.GetFocusedElement()
-  if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
-    hEdit := focusedEle.NativeWindowHandle
-    SelectLogicalLine(hEdit)
-    Edit_Clear(hEdit)
-  }
+^y:: {
+    local focusedEle := UIA.GetFocusedElement()
+    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
+    ) {
+        hEdit := focusedEle.NativeWindowHandle
+        SelectLogicalLine(hEdit)
+        Edit_Clear(hEdit)
+    }
 }
 FindPrevCRLF(text) {
-  found_pos := InStr(text, "`r`n",, -1)
-  if (found_pos > 0) {
-    found_pos := found_pos + 1
-  } else {
-    found_pos := 0
-  }
-  return found_pos
+    found_pos := InStr(text, "`r`n", , -1)
+    if (found_pos > 0) {
+        found_pos := found_pos + 1
+    } else {
+        found_pos := 0
+    }
+    return found_pos
 }
 
 FindPrevText(text_to_find, needle_text, start_pos) {
-  found_pos_space := InStr(text_to_find, needle_text,, -1)
-  if (found_pos_space > 0) {
-    if (found_pos_space = start_pos) {
-      sub_text := SubStr(text_to_find, 1, found_pos_space - 1)
-      found_pos_space := FindPrevText(sub_text, needle_text, found_pos_space - 1)
+    found_pos_space := InStr(text_to_find, needle_text, , -1)
+    if (found_pos_space > 0) {
+        if (found_pos_space = start_pos) {
+            sub_text := SubStr(text_to_find, 1, found_pos_space - 1)
+            found_pos_space := FindPrevText(sub_text, needle_text, found_pos_space - 1)
+        }
     }
-  }
 
-  ; should not cross to previous line
-  found_pos_crlf := FindPrevCRLF(text_to_find)
-  if (found_pos_crlf >= found_pos_space) {
-    found_pos_space := found_pos_crlf
-  }
+    ; should not cross to previous line
+    found_pos_crlf := FindPrevCRLF(text_to_find)
+    if (found_pos_crlf >= found_pos_space) {
+        found_pos_space := found_pos_crlf
+    }
 
-  return found_pos_space
+    return found_pos_space
 }
 ;; Ctrl + W
 ;; delete previous word
 cacheRequest := UIA.CreateCacheRequest(["AutomationId", "NativeWindowHandle"])
 
 DeletePrevWordUsingCache() {
-  global cacheRequest
-  ;focusedEle := UIA.GetFocusedElement()
-  focusedEle := UIA.GetFocusedElement(cacheRequest)
-  ;if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
-  if (focusedEle.CachedAutomationId = UIA_FindingEdit.AutomationId || focusedEle.CachedAutomationId = UIA_ImpressionEdit.AutomationId) {
-    hEdit := focusedEle.CachedNativeWindowHandle
-    Edit_GetSel(hEdit, &currStartSel)
-    If (currStartSel > 0) { ; if at the beginning of text, do nothing
-      l_text := Edit_GetTextRange(hEdit, 0, currStartSel - 1)
-      l_FoundPos := FindPrevText(l_text, " ", currStartSel)
-      ;MsgBox, %currStartSel% %l_FoundPos%
-      Edit_SetSel(hEdit, l_FoundPos, currStartSel)
-      Edit_Clear(hEdit)
+    global cacheRequest
+    ;focusedEle := UIA.GetFocusedElement()
+    focusedEle := UIA.GetFocusedElement(cacheRequest)
+    ;if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
+    if (focusedEle.CachedAutomationId = UIA_FindingEdit.AutomationId || focusedEle.CachedAutomationId =
+        UIA_ImpressionEdit.AutomationId) {
+        hEdit := focusedEle.CachedNativeWindowHandle
+        Edit_GetSel(hEdit, &currStartSel)
+        if (currStartSel > 0) { ; if at the beginning of text, do nothing
+            l_text := Edit_GetTextRange(hEdit, 0, currStartSel - 1)
+            l_FoundPos := FindPrevText(l_text, " ", currStartSel)
+            ;MsgBox, %currStartSel% %l_FoundPos%
+            Edit_SetSel(hEdit, l_FoundPos, currStartSel)
+            Edit_Clear(hEdit)
+        }
     }
-  }
 }
 
 DeletePrevWord() {
-  focusedEle := UIA.GetFocusedElement()
-  if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
-    hEdit := focusedEle.NativeWindowHandle
-    Edit_GetSel(hEdit, &currStartSel)
-    If (currStartSel > 0) { ; if at the beginning of text, do nothing
-      l_text := Edit_GetTextRange(hEdit, 0, currStartSel - 1)
-      l_FoundPos := FindPrevText(l_text, " ", currStartSel)
-      ;MsgBox, %currStartSel% %l_FoundPos%
-      Edit_SetSel(hEdit, l_FoundPos, currStartSel)
-      Edit_Clear(hEdit)
+    focusedEle := UIA.GetFocusedElement()
+    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
+    ) {
+        hEdit := focusedEle.NativeWindowHandle
+        Edit_GetSel(hEdit, &currStartSel)
+        if (currStartSel > 0) { ; if at the beginning of text, do nothing
+            l_text := Edit_GetTextRange(hEdit, 0, currStartSel - 1)
+            l_FoundPos := FindPrevText(l_text, " ", currStartSel)
+            ;MsgBox, %currStartSel% %l_FoundPos%
+            Edit_SetSel(hEdit, l_FoundPos, currStartSel)
+            Edit_Clear(hEdit)
+        }
     }
-  }
 }
 
 BashDeleteWordBackward(hCtrl) {
@@ -264,13 +267,14 @@ IsSpace(char) {
     return (char == " " || char == "`t" || char == "`r" || char == "`n")
 }
 
-^w::{
-  ;DeletePrevWord()
-  focusedEle := UIA.GetFocusedElement()
-  if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
-    hEdit := focusedEle.NativeWindowHandle
-    BashDeleteWordBackward(hEdit)
-  }
+^w:: {
+    ;DeletePrevWord()
+    focusedEle := UIA.GetFocusedElement()
+    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
+    ) {
+        hEdit := focusedEle.NativeWindowHandle
+        BashDeleteWordBackward(hEdit)
+    }
 }
 
 ; ==============================================================================
@@ -289,7 +293,7 @@ Benchmark(funcObj, times := 1) {
     DllCall("QueryPerformanceCounter", "Int64*", &start := 0)
 
     ; 3. 執行迴圈
-    Loop times {
+    loop times {
         funcObj()
     }
 
@@ -300,94 +304,93 @@ Benchmark(funcObj, times := 1) {
     return (end - start) / freq * 1000
 }
 
-
 InsertExamname() {
-  focusedEle := UIA.GetFocusedElement()
-  if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
-    hEdit := focusedEle.NativeWindowHandle
-    currStartSel := 0
-    currEndSel := 0
-    Edit_GetSel(hEdit, &currStartSel, &currEndSel)
-    examname_text := GetCurrExamName() . ":`r`n`r`n"
-    Edit_SetText(hEdit, examname_text . Edit_GetText(hEdit))
-    newStartSel := currStartSel + StrLen(examname_text)
-    newEndSel := currEndSel + StrLen(examname_text)
-    Edit_SetSel(hEdit, newStartSel, newEndSel)
-    ;MsgBox(examname)
-  }
+    focusedEle := UIA.GetFocusedElement()
+    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
+    ) {
+        hEdit := focusedEle.NativeWindowHandle
+        currStartSel := 0
+        currEndSel := 0
+        Edit_GetSel(hEdit, &currStartSel, &currEndSel)
+        examname_text := GetCurrExamName() . ":`r`n`r`n"
+        Edit_SetText(hEdit, examname_text . Edit_GetText(hEdit))
+        newStartSel := currStartSel + StrLen(examname_text)
+        newEndSel := currEndSel + StrLen(examname_text)
+        Edit_SetSel(hEdit, newStartSel, newEndSel)
+        ;MsgBox(examname)
+    }
 }
 
 ;; Insert Exam Name
-!e::{
-  InsertExamname()
+!e:: {
+    InsertExamname()
 }
-!c::{
-  ;MsgBox("Auto Next & Save Report")
-  CheckNextAuto(false)
-  ClickSaveReport()
-}
-
-^s::{
-  CheckNextAuto(true)
-  ClickSaveReport()
+!c:: {
+    ;MsgBox("Auto Next & Save Report")
+    CheckNextAuto(false)
+    ClickSaveReport()
 }
 
-CheckNextAuto(checked := true){
-  try {
-    if (checked ^ RisController.AutoNextCheckbox.ToggleState) {
-      RisController.AutoNextCheckbox.Toggle()
+^s:: {
+    CheckNextAuto(true)
+    ClickSaveReport()
+}
+
+CheckNextAuto(checked := true) {
+    try {
+        if (checked ^ RisController.AutoNextCheckbox.ToggleState) {
+            RisController.AutoNextCheckbox.Toggle()
+        }
+    } catch as err {
+        MsgBox "操作失敗: " err.Message
     }
-  } catch as err {
-    MsgBox "操作失敗: " err.Message
-  }
 }
 
-ClickSaveReport(){
-  try {
-    RisController.ReportSaveButton.ControlClick()
-  } catch as err {
-    MsgBox "操作失敗: " err.Message
-  }
+ClickSaveReport() {
+    try {
+        RisController.ReportSaveButton.ControlClick()
+    } catch as err {
+        MsgBox "操作失敗: " err.Message
+    }
 }
 
-!ESC::{
-  examName := GetCurrExamName()
-  FindSimilarReport(examName)
-  ;MsgBox(GetCurrExamName())
+!ESC:: {
+    examName := GetCurrExamName()
+    FindSimilarReport(examName)
+    ;MsgBox(GetCurrExamName())
 }
 
 GetCurrExamName() {
-  try {
-    hExamname := RisController.ExamnameText.NativeWindowHandle
-    examname := StrReplace(ControlGetText(hExamname), "檢查項目: ", "")
-    return examname
-  } catch as err {
-    MsgBox "操作失敗: " err.Message
-    return
-  }
+    try {
+        hExamname := RisController.ExamnameText.NativeWindowHandle
+        examname := StrReplace(ControlGetText(hExamname), "檢查項目: ", "")
+        return examname
+    } catch as err {
+        MsgBox "操作失敗: " err.Message
+        return
+    }
 }
 
 isSameExam(prevExamName, currExamName) {
-  return (prevExamName = currExamName)
+    return (prevExamName = currExamName)
 }
 isSimilarExam(prevExamName, currExamName) {
-  global simReportMap
-  if !simReportMap.Has(currExamName)
-    return false
+    global simReportMap
+    if !simReportMap.Has(currExamName)
+        return false
 
-  similarExams := simReportMap[currExamName]
-  return similarExams.Has(prevExamName)
+    similarExams := simReportMap[currExamName]
+    return similarExams.Has(prevExamName)
 }
 isRelatedReport(prevExamName, currExamName) {
-  return isSameExam(prevExamName, currExamName) || isSimilarExam(prevExamName, currExamName)
+    return isSameExam(prevExamName, currExamName) || isSimilarExam(prevExamName, currExamName)
 }
 
-FindSimilarReport(examName := "")
-{
+FindSimilarReport(examName := "") {
     ; --- 設定搜尋目標 ---
     ;Local SearchText := "CHEST PA/AP"
-    Local SearchText := examName
-    Local SearchColumnIndex := 3 ; 1=簽收日, 2=儀器, 3=檢查項目
+    local SearchText := examName
+    local SearchColumnIndex := 3 ; 1=簽收日, 2=儀器, 3=檢查項目
 
     try
     {
@@ -404,23 +407,22 @@ FindSimilarReport(examName := "")
         ; 4. 尋找表格中所有的「行」(Row)
         ; (WinForms 中, 行的 ControlType 通常是 'DataItem')
         ;rowElements := tableEle.FindAll({Type: 'DataItem'})
-        rowElements := tableEle.FindAll({Type: 'Custom'})
+        rowElements := tableEle.FindAll({ Type: 'Custom' })
         if (rowElements.Length = 0)
             throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
 
         ;MsgBox(rowElements.Length)
         ;str := ""
         ; 5. 遍歷每一行
-        for rowEle in rowElements
-        {
+        for rowEle in rowElements {
             ; 6. 尋找該行中所有的「儲存格」(Cell)
             ; (Cell 的 ControlType 可能是 'Text', 'Edit' 或 'Custom')
             ; 您需要用 Accessibility Insights 檢查確認
-            cellElements := rowEle.FindAll({Type: 'DataItem'})
+            cellElements := rowEle.FindAll({ Type: 'DataItem' })
 
             ; 如果 'Text' 找不到, 試試 'Custom'
             if (cellElements.Length = 0)
-                cellElements := rowEle.FindAll({Type: 'Custom'})
+                cellElements := rowEle.FindAll({ Type: 'Custom' })
 
             ; 檢查這行是否有足夠的欄位
             if (cellElements.Length < SearchColumnIndex)
@@ -432,8 +434,7 @@ FindSimilarReport(examName := "")
             ;str .= targetCellEle.Value . "`t"
             ; 8. 檢查文字
             ;if InStr(targetCellEle.Value, SearchText)
-            if isRelatedReport(targetCellEle.Value, SearchText)
-            {
+            if isRelatedReport(targetCellEle.Value, SearchText) {
                 ; *** 找到了！ ***
 
                 ; 9. 獲取儲存格的 BoundingRectangle (邊界矩形)
@@ -471,344 +472,339 @@ FindSimilarReport(examName := "")
 
         MsgBox("掃描完畢，找不到包含 " . SearchText . " 的儲存格。")
     }
-    catch as e
-    {
+    catch as e {
         MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
     }
 }
 
-!q::{
-  Send "^e"
+!q:: {
+    Send "^e"
 }
 
 +Down:: {
-  try {
-    ; 1. 取得當前作用視窗("A") 中，擁有焦點的控制項名稱 (例如 "Edit1")
-    focusedCtl := ControlGetFocus("A")
+    try {
+        ; 1. 取得當前作用視窗("A") 中，擁有焦點的控制項名稱 (例如 "Edit1")
+        focusedCtl := ControlGetFocus("A")
 
-    ; 2. 將該控制項名稱傳入 Edit 函數
-    currentLine := EditGetCurrentLine(focusedCtl, "A")
-    lineCount := EditGetLineCount(focusedCtl, "A")
+        ; 2. 將該控制項名稱傳入 Edit 函數
+        currentLine := EditGetCurrentLine(focusedCtl, "A")
+        lineCount := EditGetLineCount(focusedCtl, "A")
 
-    ; 3. 判斷邏輯
-    if (currentLine == lineCount) {
-      SendInput "+{End}"
-    } else {
-      SendInput "+{Down}"
+        ; 3. 判斷邏輯
+        if (currentLine == lineCount) {
+            SendInput "+{End}"
+        } else {
+            SendInput "+{Down}"
+        }
+    } catch {
+        SendInput "+{Down}"
     }
-  } catch {
-    SendInput "+{Down}"
-  }
 }
 
 +Up:: {
-  try {
-    focusedCtl := ControlGetFocus("A")
-    currentLine := EditGetCurrentLine(focusedCtl, "A")
+    try {
+        focusedCtl := ControlGetFocus("A")
+        currentLine := EditGetCurrentLine(focusedCtl, "A")
 
-    if (currentLine == 1) {
-      SendInput "+{Home}"
-    } else {
-      SendInput "+{Up}"
+        if (currentLine == 1) {
+            SendInput "+{Home}"
+        } else {
+            SendInput "+{Up}"
+        }
+    } catch {
+        SendInput "+{Up}"
     }
-  } catch {
-    SendInput "+{Up}"
-  }
 }
 
 ;; Insert Selected Prev Exam Date
-!d::{
-  InsertSelectedPrevExamDate()
+!d:: {
+    InsertSelectedPrevExamDate()
 }
 
 ;; Insert Selected Prev Exam Name
-^!e::{
-  InsertSelectedPrevExamName()
+^!e:: {
+    InsertSelectedPrevExamName()
 }
 
 ConvertRISDate(inputString) {
-  ; 1. 標準化輸入：移除 "/" 符號
-  ;    這樣 "114/10/14" 會變成 "1141014"
-  ;    而 "1141014" 則不受影響
-  cleanString := StrReplace(inputString, "/")
+    ; 1. 標準化輸入：移除 "/" 符號
+    ;    這樣 "114/10/14" 會變成 "1141014"
+    ;    而 "1141014" 則不受影響
+    cleanString := StrReplace(inputString, "/")
 
-  ; 2. 從已清理的字串 (yyymmdd...) 中提取各個部分
-  minguoYear := SubStr(cleanString, 1, 3)  ; yyy (例如: 114)
-  month := SubStr(cleanString, 4, 2)        ; mm (例如: 10)
-  day := SubStr(cleanString, 6, 2)          ; dd (例如: 14)
+    ; 2. 從已清理的字串 (yyymmdd...) 中提取各個部分
+    minguoYear := SubStr(cleanString, 1, 3)  ; yyy (例如: 114)
+    month := SubStr(cleanString, 4, 2)        ; mm (例如: 10)
+    day := SubStr(cleanString, 6, 2)          ; dd (例如: 14)
 
-  ; 3. 將民國年轉換為西元年 (民國年 + 1911 = 西元年)
-  gregorianYear := minguoYear + 1911
+    ; 3. 將民國年轉換為西元年 (民國年 + 1911 = 西元年)
+    gregorianYear := minguoYear + 1911
 
-  ; 4. 組合並返回 yyyy-mm-dd 格式的字串
-  ;    (維持您原本的 . 串接風格)
-  outputDate := gregorianYear . "-" . month . "-" . day
+    ; 4. 組合並返回 yyyy-mm-dd 格式的字串
+    ;    (維持您原本的 . 串接風格)
+    outputDate := gregorianYear . "-" . month . "-" . day
 
-  Return outputDate
+    return outputDate
 }
 
 InsertSelectedPrevExamDateCached() {
-  global risEle
-  Local STATE_SYSTEM_SELECTED := 0x2
-  try {
-    ;local cacheRequest := UIA.CreateCacheRequest(["ControlType", "Value"], ["LegacyIAccessiblePattern"], UIA.TreeScope.Descendants)
-    local cacheRequest := UIA.CreateCacheRequest()
-    cacheRequest.TreeScope := UIA.TreeScope.Subtree
-    cacheRequest.AddProperty("ControlType")
-    cacheRequest.AddProperty("Value")
-    cacheRequest.AddProperty("Name")
-    cacheRequest.AddPattern("LegacyIAccessible")
+    global risEle
+    local STATE_SYSTEM_SELECTED := 0x2
+    try {
+        ;local cacheRequest := UIA.CreateCacheRequest(["ControlType", "Value"], ["LegacyIAccessiblePattern"], UIA.TreeScope.Descendants)
+        local cacheRequest := UIA.CreateCacheRequest()
+        cacheRequest.TreeScope := UIA.TreeScope.Subtree
+        cacheRequest.AddProperty("ControlType")
+        cacheRequest.AddProperty("Value")
+        cacheRequest.AddProperty("Name")
+        cacheRequest.AddPattern("LegacyIAccessible")
 
-    ; 2. 獲取視窗元素
-    winEle := risEle
-    ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-    if !IsObject(winEle)
-      throw Error("找不到視窗: " . RISReportWinTitle)
+        ; 2. 獲取視窗元素
+        winEle := risEle
+        ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+        if !IsObject(winEle)
+            throw Error("找不到視窗: " . RISReportWinTitle)
 
-    ; 3. 尋找「表格」元素
-    ;tableEle := winEle.FindFirst(UIA_PastReportTable)
-    tableEle := winEle.FindElement(UIA_PastReportTable, , , , , cacheRequest)
-    if !IsObject(tableEle)
-      throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
+        ; 3. 尋找「表格」元素
+        ;tableEle := winEle.FindFirst(UIA_PastReportTable)
+        tableEle := winEle.FindElement(UIA_PastReportTable, , , , , cacheRequest)
+        if !IsObject(tableEle)
+            throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
 
-    ;rowElements := tableEle.FindElements({ ControlType: 'Custom' })
-    ;rowElements := tableEle.FindElements({ ControlType: 'Custom' }, , , , cacheRequest)
-    rowElements := tableEle.FindCachedElements({ ControlType: 'Custom' })
-    ;MsgBox(rowElements.Length)
-    if (rowElements.Length = 0)
-      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+        ;rowElements := tableEle.FindElements({ ControlType: 'Custom' })
+        ;rowElements := tableEle.FindElements({ ControlType: 'Custom' }, , , , cacheRequest)
+        rowElements := tableEle.FindCachedElements({ ControlType: 'Custom' })
+        ;MsgBox(rowElements.Length)
+        if (rowElements.Length = 0)
+            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
 
-    for i, rowEle in rowElements {
-      ;MsgBox(rowEle.CachedControlType)
-      if IsObject(rowEle.CachedLegacyIAccessiblePattern) {
-      ;if IsObject(rowEle.LegacyIAccessiblePattern) {
-        ;Local legacyState := rowEle.LegacyIAccessiblePattern.State
-        Local legacyState := rowEle.CachedLegacyIAccessiblePattern.State
-        ;MsgBox(legacyState)
-        if (legacyState & STATE_SYSTEM_SELECTED) {
-          dateText := ""
-          ;MsgBox(rowEle.CachedChildren.Length)
-          ;for cell in rowEle.CachedChildren {
-          ;  MsgBox(cell.CachedValue)
-          ;  if (cell.CachedControlType = UIA.ControlType.DataItem) {
-          ;      dateText := cell.CachedValue
-          ;      break
-          ;  }
-          ;}
-          ;dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 1)
-          dateCellEle := rowEle.FindCachedElement({ControlType: "DataItem"}, , 1)
-          ;MsgBox(dateCellEle.CachedValue)
-          if IsObject(dateCellEle) {
-            dateText := dateCellEle.CachedValue
-            ;dateText := dateCellEle.Value
-          }
-          ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
-          ;MsgBox(dateText)
-          Paste(ConvertRISDate(dateText))
-          return
+        for i, rowEle in rowElements {
+            ;MsgBox(rowEle.CachedControlType)
+            if IsObject(rowEle.CachedLegacyIAccessiblePattern) {
+                ;if IsObject(rowEle.LegacyIAccessiblePattern) {
+                ;Local legacyState := rowEle.LegacyIAccessiblePattern.State
+                local legacyState := rowEle.CachedLegacyIAccessiblePattern.State
+                ;MsgBox(legacyState)
+                if (legacyState & STATE_SYSTEM_SELECTED) {
+                    dateText := ""
+                    ;MsgBox(rowEle.CachedChildren.Length)
+                    ;for cell in rowEle.CachedChildren {
+                    ;  MsgBox(cell.CachedValue)
+                    ;  if (cell.CachedControlType = UIA.ControlType.DataItem) {
+                    ;      dateText := cell.CachedValue
+                    ;      break
+                    ;  }
+                    ;}
+                    ;dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 1)
+                    dateCellEle := rowEle.FindCachedElement({ ControlType: "DataItem" }, , 1)
+                    ;MsgBox(dateCellEle.CachedValue)
+                    if IsObject(dateCellEle) {
+                        dateText := dateCellEle.CachedValue
+                        ;dateText := dateCellEle.Value
+                    }
+                    ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
+                    ;MsgBox(dateText)
+                    Paste(ConvertRISDate(dateText))
+                    return
+                }
+            }
         }
-      }
+        ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
     }
-    ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
-  }
-  catch as e {
-    MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-  }
+    catch as e {
+        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+    }
 }
 
 InsertSelectedPrevExamDate() {
-  Local STATE_SYSTEM_SELECTED := 0x2
-  try {
-    rowElements := RisController.PastReportTable.FindElements({ ControlType: 'Custom' })
-    if (rowElements.Length = 0)
-      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+    local STATE_SYSTEM_SELECTED := 0x2
+    try {
+        rowElements := RisController.PastReportTable.FindElements({ ControlType: 'Custom' })
+        if (rowElements.Length = 0)
+            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
 
-    for i, rowEle in rowElements {
-      if IsObject(rowEle.LegacyIAccessiblePattern) {
-        Local legacyState := rowEle.LegacyIAccessiblePattern.State
-        if (legacyState & STATE_SYSTEM_SELECTED) {
-          dateText := ""
-          dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 1)
-          if IsObject(dateCellEle) {
-            dateText := dateCellEle.Value
-          }
-          Paste(ConvertRISDate(dateText))
-          return
+        for i, rowEle in rowElements {
+            if IsObject(rowEle.LegacyIAccessiblePattern) {
+                local legacyState := rowEle.LegacyIAccessiblePattern.State
+                if (legacyState & STATE_SYSTEM_SELECTED) {
+                    dateText := ""
+                    dateCellEle := rowEle.FindElement({ ControlType: "DataItem" }, , 1)
+                    if IsObject(dateCellEle) {
+                        dateText := dateCellEle.Value
+                    }
+                    Paste(ConvertRISDate(dateText))
+                    return
+                }
+            }
         }
-      }
+    } catch as err {
+        MsgBox("UIA 發生錯誤:`n" . err.Message . "`n`n行: " . err.Line, "UIA Error", 16)
     }
-  } catch as err {
-    MsgBox("UIA 發生錯誤:`n" . err.Message . "`n`n行: " . err.Line, "UIA Error", 16)
-  }
 }
 
 InsertSelectedPrevExamDate_old() {
-  global risEle
-  Local STATE_SYSTEM_SELECTED := 0x2
-  try {
-    ;local cacheRequest := UIA.CreateCacheRequest(["ControlType", "Value"], ["LegacyIAccessiblePattern"], UIA.TreeScope.Descendants)
-    local cacheRequest := UIA.CreateCacheRequest()
-    cacheRequest.TreeScope := UIA.TreeScope.Subtree
-    cacheRequest.AddProperty("ControlType")
-    cacheRequest.AddProperty("Value")
-    cacheRequest.AddProperty("Name")
-    cacheRequest.AddPattern("LegacyIAccessible")
+    global risEle
+    local STATE_SYSTEM_SELECTED := 0x2
+    try {
+        ;local cacheRequest := UIA.CreateCacheRequest(["ControlType", "Value"], ["LegacyIAccessiblePattern"], UIA.TreeScope.Descendants)
+        local cacheRequest := UIA.CreateCacheRequest()
+        cacheRequest.TreeScope := UIA.TreeScope.Subtree
+        cacheRequest.AddProperty("ControlType")
+        cacheRequest.AddProperty("Value")
+        cacheRequest.AddProperty("Name")
+        cacheRequest.AddPattern("LegacyIAccessible")
 
-    ; 2. 獲取視窗元素
-    winEle := risEle
-    ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-    if !IsObject(winEle)
-      throw Error("找不到視窗: " . RISReportWinTitle)
+        ; 2. 獲取視窗元素
+        winEle := risEle
+        ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+        if !IsObject(winEle)
+            throw Error("找不到視窗: " . RISReportWinTitle)
 
-    ; 3. 尋找「表格」元素
-    tableEle := winEle.FindFirst(UIA_PastReportTable)
-    ;tableEle := winEle.FindElement(UIA_PastReportTable, , , , , cacheRequest)
-    if !IsObject(tableEle)
-      throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
+        ; 3. 尋找「表格」元素
+        tableEle := winEle.FindFirst(UIA_PastReportTable)
+        ;tableEle := winEle.FindElement(UIA_PastReportTable, , , , , cacheRequest)
+        if !IsObject(tableEle)
+            throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
 
-    rowElements := tableEle.FindElements({ ControlType: 'Custom' })
-    ;rowElements := tableEle.FindElements({ ControlType: 'Custom' }, , , , cacheRequest)
-    ;rowElements := tableEle.FindCachedElements({ ControlType: 'Custom' })
-    ;MsgBox(rowElements.Length)
-    if (rowElements.Length = 0)
-      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+        rowElements := tableEle.FindElements({ ControlType: 'Custom' })
+        ;rowElements := tableEle.FindElements({ ControlType: 'Custom' }, , , , cacheRequest)
+        ;rowElements := tableEle.FindCachedElements({ ControlType: 'Custom' })
+        ;MsgBox(rowElements.Length)
+        if (rowElements.Length = 0)
+            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
 
-    for i, rowEle in rowElements {
-      ;MsgBox(rowEle.CachedControlType)
-      ;if IsObject(rowEle.CachedLegacyIAccessiblePattern) {
-      if IsObject(rowEle.LegacyIAccessiblePattern) {
-        Local legacyState := rowEle.LegacyIAccessiblePattern.State
-       ; Local legacyState := rowEle.CachedLegacyIAccessiblePattern.State
-        ;MsgBox(legacyState)
-        if (legacyState & STATE_SYSTEM_SELECTED) {
-          dateText := ""
-          ;MsgBox(rowEle.CachedChildren.Length)
-          ;for cell in rowEle.CachedChildren {
-          ;  MsgBox(cell.CachedValue)
-          ;  if (cell.CachedControlType = UIA.ControlType.DataItem) {
-          ;      dateText := cell.CachedValue
-          ;      break
-          ;  }
-          ;}
-          dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 1)
-          ;dateCellEle := rowEle.FindCachedElement({ControlType: "DataItem"}, , 1)
-          ;dateCellEle := rowEle.FindCachedElement({ControlType: "DataItem"})
-          ;MsgBox(dateCellEle.CachedValue)
-          if IsObject(dateCellEle) {
-            ;dateText := dateCellEle.CachedValue
-            dateText := dateCellEle.Value
-          }
-          ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
-          ;MsgBox(dateText)
-          Paste(ConvertRISDate(dateText))
-          return
+        for i, rowEle in rowElements {
+            ;MsgBox(rowEle.CachedControlType)
+            ;if IsObject(rowEle.CachedLegacyIAccessiblePattern) {
+            if IsObject(rowEle.LegacyIAccessiblePattern) {
+                local legacyState := rowEle.LegacyIAccessiblePattern.State
+                ; Local legacyState := rowEle.CachedLegacyIAccessiblePattern.State
+                ;MsgBox(legacyState)
+                if (legacyState & STATE_SYSTEM_SELECTED) {
+                    dateText := ""
+                    ;MsgBox(rowEle.CachedChildren.Length)
+                    ;for cell in rowEle.CachedChildren {
+                    ;  MsgBox(cell.CachedValue)
+                    ;  if (cell.CachedControlType = UIA.ControlType.DataItem) {
+                    ;      dateText := cell.CachedValue
+                    ;      break
+                    ;  }
+                    ;}
+                    dateCellEle := rowEle.FindElement({ ControlType: "DataItem" }, , 1)
+                    ;dateCellEle := rowEle.FindCachedElement({ControlType: "DataItem"}, , 1)
+                    ;dateCellEle := rowEle.FindCachedElement({ControlType: "DataItem"})
+                    ;MsgBox(dateCellEle.CachedValue)
+                    if IsObject(dateCellEle) {
+                        ;dateText := dateCellEle.CachedValue
+                        dateText := dateCellEle.Value
+                    }
+                    ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
+                    ;MsgBox(dateText)
+                    Paste(ConvertRISDate(dateText))
+                    return
+                }
+            }
         }
-      }
+        ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
     }
-    ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
-  }
-  catch as e {
-    MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-  }
+    catch as e {
+        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+    }
 }
 
 InsertSelectedPrevExamName() {
-  Local STATE_SYSTEM_SELECTED := 0x2
-  try {
-    rowElements := RisController.PastReportTable.FindAll({ Type: 'Custom' })
-    if (rowElements.Length = 0)
-      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+    local STATE_SYSTEM_SELECTED := 0x2
+    try {
+        rowElements := RisController.PastReportTable.FindAll({ Type: 'Custom' })
+        if (rowElements.Length = 0)
+            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
 
-    for i, rowEle in rowElements {
-      if IsObject(rowEle.LegacyIAccessiblePattern) {
-        Local legacyState := rowEle.LegacyIAccessiblePattern.State
-        if (legacyState & STATE_SYSTEM_SELECTED) {
-          examnameText := ""
-          dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 3)
-          if IsObject(dateCellEle) {
-            examnameText := dateCellEle.Value
-          }
-          Paste(examnameText)
-          return
+        for i, rowEle in rowElements {
+            if IsObject(rowEle.LegacyIAccessiblePattern) {
+                local legacyState := rowEle.LegacyIAccessiblePattern.State
+                if (legacyState & STATE_SYSTEM_SELECTED) {
+                    examnameText := ""
+                    dateCellEle := rowEle.FindElement({ ControlType: "DataItem" }, , 3)
+                    if IsObject(dateCellEle) {
+                        examnameText := dateCellEle.Value
+                    }
+                    Paste(examnameText)
+                    return
+                }
+            }
         }
-      }
     }
-  }
-  catch as e {
-    MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-  }
+    catch as e {
+        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+    }
 }
 
 InsertSelectedPrevExamName_old() {
-  global risEle
-  Local STATE_SYSTEM_SELECTED := 0x2
-  try {
-    ; 2. 獲取視窗元素
-    ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-    winEle := risEle
-    if !IsObject(winEle)
-      throw Error("找不到視窗: " . RISReportWinTitle)
+    global risEle
+    local STATE_SYSTEM_SELECTED := 0x2
+    try {
+        ; 2. 獲取視窗元素
+        ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+        winEle := risEle
+        if !IsObject(winEle)
+            throw Error("找不到視窗: " . RISReportWinTitle)
 
-    ; 3. 尋找「表格」元素
-    tableEle := winEle.FindFirst(UIA_PastReportTable)
-    if !IsObject(tableEle)
-      throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
+        ; 3. 尋找「表格」元素
+        tableEle := winEle.FindFirst(UIA_PastReportTable)
+        if !IsObject(tableEle)
+            throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
 
-    rowElements := tableEle.FindAll({ Type: 'Custom' })
-    if (rowElements.Length = 0)
-      throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
+        rowElements := tableEle.FindAll({ Type: 'Custom' })
+        if (rowElements.Length = 0)
+            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
 
-    for i, rowEle in rowElements {
-      if IsObject(rowEle.LegacyIAccessiblePattern) {
-        Local legacyState := rowEle.LegacyIAccessiblePattern.State
-        if (legacyState & STATE_SYSTEM_SELECTED) {
-          examnameText := ""
-          dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 3)
-          if IsObject(dateCellEle) {
-            examnameText := dateCellEle.Value
-          }
-          ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
-          Paste(examnameText)
-          return
+        for i, rowEle in rowElements {
+            if IsObject(rowEle.LegacyIAccessiblePattern) {
+                local legacyState := rowEle.LegacyIAccessiblePattern.State
+                if (legacyState & STATE_SYSTEM_SELECTED) {
+                    examnameText := ""
+                    dateCellEle := rowEle.FindElement({ ControlType: "DataItem" }, , 3)
+                    if IsObject(dateCellEle) {
+                        examnameText := dateCellEle.Value
+                    }
+                    ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
+                    Paste(examnameText)
+                    return
+                }
+            }
         }
-      }
+        ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
     }
-    ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
-  }
-  catch as e {
-    MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-  }
+    catch as e {
+        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+    }
 }
 
-GetCurrExamType()
-{
-  examname := GetCurrExamName()
-  If (InStr(examname, "CT") || InStr(examname, "電腦斷層")) {
-    Return "CT"
-  } Else If (InStr(examname, "MR") || InStr(examname, "磁振造影")) {
-    Return "MR"
-  } Else If (InStr(examname, "US") || InStr(examname, "超音波")) {
-    Return "US"
-  }
-  Return "CR"
+GetCurrExamType() {
+    examname := GetCurrExamName()
+    if (InStr(examname, "CT") || InStr(examname, "電腦斷層")) {
+        return "CT"
+    } else if (InStr(examname, "MR") || InStr(examname, "磁振造影")) {
+        return "MR"
+    } else if (InStr(examname, "US") || InStr(examname, "超音波")) {
+        return "US"
+    }
+    return "CR"
 }
 
-OrderListForFindings()
-{
-  examtype := GetCurrExamType()
-  ;MsgBox(examtype)
-  Switch examtype
-  {
-    case "CT", "MR":
-      UnorderListForFindingsOfCtOrMr()
+OrderListForFindings() {
+    examtype := GetCurrExamType()
+    ;MsgBox(examtype)
+    switch examtype {
+        case "CT", "MR":
+            UnorderListForFindingsOfCtOrMr()
 
-    case "CR", "US":
-      UnorderListForFindingsOfCrOrUs()
-  }
+        case "CR", "US":
+            UnorderListForFindingsOfCrOrUs()
+    }
 }
 
-UnorderListForFindingsOfCrOrUs()
-{
+UnorderListForFindingsOfCrOrUs() {
     ; 取得 Handle
     if (hEdit := RisController.FindingEdit.NativeWindowHandle) {
 
@@ -825,120 +821,120 @@ UnorderListForFindingsOfCrOrUs()
     }
 }
 
-UnorderListForFindingsOfCtOrMr()
-{
-  if (hEdit := RisController.FindingEdit.NativeWindowHandle) {
-    startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|The study shows:`r`n`r`n|show the following findings:`r`n`r`n|which revealed:`r`n`r`n", , , "RegEx", &matchedText)
+UnorderListForFindingsOfCtOrMr() {
+    if (hEdit := RisController.FindingEdit.NativeWindowHandle) {
+        startSel := Edit_FindText(hEdit,
+            "FINDINGS:`r`n|The study shows:`r`n`r`n|show the following findings:`r`n`r`n|which revealed:`r`n`r`n", , ,
+            "RegEx", &matchedText)
 
-    If (startSel > -1) {
-      ;startSel += StrLen(matchedText)
-      startSel += matchedText.Len
-      Loop 3 {
-        newStartSel := startSel
-        startText := Edit_GetTextRange(hEdit, newStartSel, newStartSel + 1)
-        ;MsgBox % startText
-        if (startText = "* ") {
-          newStartSel := Edit_FindText(hEdit, "`r`n", newStartSel)
-          ;MsgBox % startSel
-          if (newStartSel > -1) {
-            startSel := newStartSel + 2
-          }
-        } else {
-          break
+        if (startSel > -1) {
+            ;startSel += StrLen(matchedText)
+            startSel += matchedText.Len
+            loop 3 {
+                newStartSel := startSel
+                startText := Edit_GetTextRange(hEdit, newStartSel, newStartSel + 1)
+                ;MsgBox % startText
+                if (startText = "* ") {
+                    newStartSel := Edit_FindText(hEdit, "`r`n", newStartSel)
+                    ;MsgBox % startSel
+                    if (newStartSel > -1) {
+                        startSel := newStartSel + 2
+                    }
+                } else {
+                    break
+                }
+            }
+
+            endSel := Edit_FindText(hEdit, "REMARKS?:|RECOMMENDATION:", , , "RegEx")  ; -1 if not found
+            if (endSel > -1) {
+                endSel -= 2
+            }
+            Edit_SetFocus(hEdit)
+            Edit_SetSel(hEdit, startSel, endSel)
+            ReorderSelectedText(false, false, "-", , hEdit)
         }
-      }
-
-      endSel := Edit_FindText(hEdit, "REMARKS?:|RECOMMENDATION:", , , "RegEx")  ; -1 if not found
-      if (endSel > -1) {
-        endSel -= 2
-      }
-      Edit_SetFocus(hEdit)
-      Edit_SetSel(hEdit, startSel, endSel)
-      ReorderSelectedText(false, false, "-", , hEdit)
+    } else {
+        MsgBox("FINDING_CONTROL_HWND is invalid!")
     }
-  } else {
-    MsgBox("FINDING_CONTROL_HWND is invalid!")
-  }
 }
-
 
 ;;; Formatting FINDINGS
 ;;;; Reorder Seleted Text And Keep SeIm
-SC079::{
-  OrderListForFindings()
+SC079:: {
+    OrderListForFindings()
 }
-^!,::{
-  OrderListForFindings()
+^!,:: {
+    OrderListForFindings()
 }
 
 ;;; Formatting IMPRESSION
 ;;;; Reorder Seleted Text And Discard SeIm
 FormatImpressionText() {
-  if (hEdit := RisController.ImpressionEdit.NativeWindowHandle) {
-    Edit_SetFocus(hEdit)
-    Edit_SetSel(hEdit)
-    if (Edit_GetLogicalLineCount(hEdit) > 1) {
-      ReorderSelectedText(,,,, hEdit)
-    } else {
-      ReorderSelectedText(true,,,, hEdit)
+    if (hEdit := RisController.ImpressionEdit.NativeWindowHandle) {
+        Edit_SetFocus(hEdit)
+        Edit_SetSel(hEdit)
+        if (Edit_GetLogicalLineCount(hEdit) > 1) {
+            ReorderSelectedText(, , , , hEdit)
+        } else {
+            ReorderSelectedText(true, , , , hEdit)
+        }
     }
-  }
 }
 
-SC070::{
-  FormatImpressionText()
+SC070:: {
+    FormatImpressionText()
 }
-^!.::{
-  FormatImpressionText()
+^!.:: {
+    FormatImpressionText()
 }
 
 ; Reorder Seleted Text And Discard SeIm
-^!o::{
-  hEdit := UIA.GetFocusedElement().NativeWindowHandle
-  ReorderSelectedText(,,,, hEdit)
+^!o:: {
+    hEdit := UIA.GetFocusedElement().NativeWindowHandle
+    ReorderSelectedText(, , , , hEdit)
 }
 
 ; Reorder Seleted Text And Keep SeIm
-^!+o::{
-  hEdit := UIA.GetFocusedElement().NativeWindowHandle
-  ReorderSelectedText(,,, false, hEdit)
+^!+o:: {
+    hEdit := UIA.GetFocusedElement().NativeWindowHandle
+    ReorderSelectedText(, , , false, hEdit)
 }
 
 ; Unorder Seleted Text
-^+*::{
-  hEdit := UIA.GetFocusedElement().NativeWindowHandle
-  ReorderSelectedText(false, true, "*",, hEdit)
+^+*:: {
+    hEdit := UIA.GetFocusedElement().NativeWindowHandle
+    ReorderSelectedText(false, true, "*", , hEdit)
 }
 
-^+-::{
-  hEdit := UIA.GetFocusedElement().NativeWindowHandle
-  ReorderSelectedText(false, true, "-",, hEdit)
+^+-:: {
+    hEdit := UIA.GetFocusedElement().NativeWindowHandle
+    ReorderSelectedText(false, true, "-", , hEdit)
 }
 
-^+>::{
-  hEdit := UIA.GetFocusedElement().NativeWindowHandle
-  ReorderSelectedText(false, true, ">",, hEdit)
+^+>:: {
+    hEdit := UIA.GetFocusedElement().NativeWindowHandle
+    ReorderSelectedText(false, true, ">", , hEdit)
 }
 
 CopyPathologyReport() {
-  try {
-    reportText := ConvertRISDate(RisController.PathoDateText.Value) . ": " . RisController.PathoDiagnosisText.Value
-    if (reportText != "") {
-      A_Clipboard := reportText
-      if !ClipWait(0.8) {
-        throw Error("複製文字失敗 (逾時)。")
-      }
-      Notify("病理報告已複製到剪貼簿。")
-    } else {
-      throw Error("找不到病理報告內容。")
+    try {
+        reportText := ConvertRISDate(RisController.PathoDateText.Value) . ": " . RisController.PathoDiagnosisText.Value
+        if (reportText != "") {
+            A_Clipboard := reportText
+            if !ClipWait(0.8) {
+                throw Error("複製文字失敗 (逾時)。")
+            }
+            Notify("病理報告已複製到剪貼簿。")
+        } else {
+            throw Error("找不到病理報告內容。")
+        }
+    } catch as err {
+        MsgBox("操作失敗: " . err.Message)
     }
-  } catch as err {
-    MsgBox("操作失敗: " . err.Message)
-  }
 }
 
-^+c::{
-  CopyPathologyReport()
+^+c:: {
+    CopyPathologyReport()
 }
 
 ; 取得系統設定的滑鼠連點時間 (通常是 500ms)，讓判定更符合你的手感
@@ -967,7 +963,7 @@ DoubleClickTime := DllCall("GetDoubleClickTime")
         clickCount := 0
 
         ; 取得滑鼠下的 Control 資訊 (hCtrl 是控制項的 Handle/ID)
-        MouseGetPos ,,, &hCtrl, 2
+        MouseGetPos , , , &hCtrl, 2
 
         try {
             ; 取得 ClassNN 用於過濾
@@ -1053,30 +1049,30 @@ SelectLogicalLine(hCtrl) {
 #HotIf ; WinActive(RISReportWinTitle)
 
 ;; for JIS keyboard
-SC029::{
-  try {
-    If (!WinActive(RISReportWinTitle)) {
-      WinActivate(RISReportWinTitle)
-      WinWaitActive(RISReportWinTitle)
-      focusedEle := UIA.GetFocusedElement()
-      if (focusedEle.AutomationId != UIA_FindingEdit.AutomationId && focusedEle.AutomationId != UIA_ImpressionEdit.AutomationId) {
-        ControlFocus(RisController.FindingEdit.NativeWindowHandle)
-      }
-    } Else {
-      focusedEle := UIA.GetFocusedElement()
-      if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId) {
-        ControlFocus(RisController.ImpressionEdit.NativeWindowHandle)
-      } else {
-        ControlFocus(RisController.FindingEdit.NativeWindowHandle)
-      }
+SC029:: {
+    try {
+        if (!WinActive(RISReportWinTitle)) {
+            WinActivate(RISReportWinTitle)
+            WinWaitActive(RISReportWinTitle)
+            focusedEle := UIA.GetFocusedElement()
+            if (focusedEle.AutomationId != UIA_FindingEdit.AutomationId && focusedEle.AutomationId !=
+                UIA_ImpressionEdit.AutomationId) {
+                ControlFocus(RisController.FindingEdit.NativeWindowHandle)
+            }
+        } else {
+            focusedEle := UIA.GetFocusedElement()
+            if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId) {
+                ControlFocus(RisController.ImpressionEdit.NativeWindowHandle)
+            } else {
+                ControlFocus(RisController.FindingEdit.NativeWindowHandle)
+            }
+        }
+    } catch TargetError as err {
+        MsgBox "操作失敗: " err.Message
     }
-  } catch TargetError as err {
-    MsgBox "操作失敗: " err.Message
-  }
 }
 
-class RisController
-{
+class RisController {
     ; =================================================================
     ; 1. 設定區 (Configuration) - 未來擴充元件都在這裡加
     ; =================================================================
@@ -1084,19 +1080,19 @@ class RisController
 
     ; 定義所有子元件的搜尋條件
     static Selectors := Map(
-        "AutoNextCheckbox", {AutomationId: "chkAutoNext"},
-        "ReportSaveButton", {AutomationId: "btnReportSave"},
-        "FindingEdit", {AutomationId: "txtReport"},
-        "ImpressionEdit", {AutomationId: "txtImpression"},
-        "PastAllRadio", {AutomationId: "rdoPastALL"},
-        "PastModalityRadio", {AutomationId: "rdoClassify"},
-        "PastOnlyMyRadio", {AutomationId: "rdoPastOnlyMy"},
-        "ExamnameText", {AutomationId: "txtExamName"},
-        "PastFindingText", {AutomationId: "rtxtPastReport"},
-        "PastImpressionText", {AutomationId: "rtxtPastImpression"},
-        "PastReportTable", {AutomationId: "dgvPastReport"},
-        "PathoDiagnosisText", {AutomationId: "txtDiagnosist"},
-        "PathoDateText", {AutomationId: "mtxtRcpDTM"},
+        "AutoNextCheckbox", { AutomationId: "chkAutoNext" },
+        "ReportSaveButton", { AutomationId: "btnReportSave" },
+        "FindingEdit", { AutomationId: "txtReport" },
+        "ImpressionEdit", { AutomationId: "txtImpression" },
+        "PastAllRadio", { AutomationId: "rdoPastALL" },
+        "PastModalityRadio", { AutomationId: "rdoClassify" },
+        "PastOnlyMyRadio", { AutomationId: "rdoPastOnlyMy" },
+        "ExamnameText", { AutomationId: "txtExamName" },
+        "PastFindingText", { AutomationId: "rtxtPastReport" },
+        "PastImpressionText", { AutomationId: "rtxtPastImpression" },
+        "PastReportTable", { AutomationId: "dgvPastReport" },
+        "PathoDiagnosisText", { AutomationId: "txtDiagnosist" },
+        "PathoDateText", { AutomationId: "mtxtRcpDTM" },
     )
 
     ; =================================================================
@@ -1134,10 +1130,10 @@ class RisController
         get => this._GetOrUpdateNode("PastAllRadio")
     }
     static PastModalityRadio {
-      get => this._GetOrUpdateNode("PastModalityRadio")
+        get => this._GetOrUpdateNode("PastModalityRadio")
     }
     static PastOnlyMyRadio {
-      get => this._GetOrUpdateNode("PastOnlyMyRadio")
+        get => this._GetOrUpdateNode("PastOnlyMyRadio")
     }
 
     static ExamnameText {
@@ -1165,8 +1161,7 @@ class RisController
     ; =================================================================
     ; 4. 核心邏輯 (Core Logic) - 包含驗證與自動更新機制
     ; =================================================================
-    static _GetOrUpdateNode(nodeName)
-    {
+    static _GetOrUpdateNode(nodeName) {
         ; [步驟 1] 取得當前真實視窗的 ID
         ; 如果連視窗都沒開，直接在這裡就會報錯，這也是一種檢查
         currentHwnd := WinExist(this.WinTitle)
@@ -1240,8 +1235,7 @@ class RisController
     ; 通用文字取得方法 (支援所有 Element)
     ; 用法: text := RisController.GetText(RisController.ReportContent)
     ; =================================================================
-    static GetText(el)
-    {
+    static GetText(el) {
         ;MsgBox(el.FrameworkId)
         rawText := ""
         isNativeSuccess := false
@@ -1305,64 +1299,62 @@ class RisController
         }
 
         return ""
-      }
+    }
 }
 
-UpdateRisElements()
-{
-  global risEle, autoNextEle, reportSaveEle
-  global FINDING_CONTROL_HWND, IMPRESSION_CONTROL_HWND, EXAMNAME_HWND
-  global PAST_ALL_RADIO_HWND, PAST_MODALITY_RADIO_HWND, PAST_ONLY_MY_RADIO_HWND
-  global PAST_FINDING_HWND, PAST_IMPRESSION_HWND
+UpdateRisElements() {
+    global risEle, autoNextEle, reportSaveEle
+    global FINDING_CONTROL_HWND, IMPRESSION_CONTROL_HWND, EXAMNAME_HWND
+    global PAST_ALL_RADIO_HWND, PAST_MODALITY_RADIO_HWND, PAST_ONLY_MY_RADIO_HWND
+    global PAST_FINDING_HWND, PAST_IMPRESSION_HWND
 
-  try
-  {
-    risEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+    try
+    {
+        risEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
 
-    ele := risEle.FindFirst(UIA_FindingEdit)
-    FINDING_CONTROL_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+        ele := risEle.FindFirst(UIA_FindingEdit)
+        FINDING_CONTROL_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
-    ele := risEle.FindFirst(UIA_ImpressionEdit)
-    IMPRESSION_CONTROL_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+        ele := risEle.FindFirst(UIA_ImpressionEdit)
+        IMPRESSION_CONTROL_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
-    ele := risEle.FindFirst(UIA_ExamNameTxt)
-    EXAMNAME_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+        ele := risEle.FindFirst(UIA_ExamNameTxt)
+        EXAMNAME_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
-    ele := risEle.FindFirst(UIA_PastAllRadio)
-    PAST_ALL_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+        ele := risEle.FindFirst(UIA_PastAllRadio)
+        PAST_ALL_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
-    ele := risEle.FindFirst(UIA_PastModalityRadio)
-    PAST_MODALITY_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+        ele := risEle.FindFirst(UIA_PastModalityRadio)
+        PAST_MODALITY_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
-    ele := risEle.FindFirst(UIA_PastOnlyMyRadio)
-    PAST_ONLY_MY_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+        ele := risEle.FindFirst(UIA_PastOnlyMyRadio)
+        PAST_ONLY_MY_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
-    ele := risEle.FindFirst(UIA_PastReportFindingTxt)
-    PAST_FINDING_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+        ele := risEle.FindFirst(UIA_PastReportFindingTxt)
+        PAST_FINDING_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
-    ele := risEle.FindFirst(UIA_PastReportImpressionTxt)
-    PAST_IMPRESSION_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+        ele := risEle.FindFirst(UIA_PastReportImpressionTxt)
+        PAST_IMPRESSION_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
 
-    autoNextEle := risEle.FindFirst(UIA_AutoNextCheckbox)
-    reportSaveEle := risEle.FindElement(UIA_ReportSaveButton)
-  }
-  catch as e
-  {
-    ; 如果發生錯誤 (例如視窗找不到), 我們的快取就會是 stale
-    ;MsgBox("UIA Error in timer: " . e.Message) ; (可選: 除錯用)
+        autoNextEle := risEle.FindFirst(UIA_AutoNextCheckbox)
+        reportSaveEle := risEle.FindElement(UIA_ReportSaveButton)
+    }
+    catch as e {
+        ; 如果發生錯誤 (例如視窗找不到), 我們的快取就會是 stale
+        ;MsgBox("UIA Error in timer: " . e.Message) ; (可選: 除錯用)
 
-    ; 7. 如果視窗或元素找不到, 或發生錯誤, 就清除 global 變數
-    risEle := ""
-  }
+        ; 7. 如果視窗或元素找不到, 或發生錯誤, 就清除 global 變數
+        risEle := ""
+    }
 }
 
-Global simReportMap := Map(
-  "CHEST PA/AP", Map("CHEST PA/AP+LAT",1),
-  "CHEST PA/AP+LAT", Map("CHEST PA/AP",1),
-  "KUB", Map("KUB+ABD LAT",1),
-  "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing",1),
-  "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST",1),
-  "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST",1),
+global simReportMap := Map(
+    "CHEST PA/AP", Map("CHEST PA/AP+LAT", 1),
+    "CHEST PA/AP+LAT", Map("CHEST PA/AP", 1),
+    "KUB", Map("KUB+ABD LAT", 1),
+    "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing", 1),
+    "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST", 1),
+    "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", 1),
 )
 
 ;UpdateRisElements()
@@ -1414,7 +1406,7 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
         ; 這裡如果直接讀取 Control，通常不會有單獨 `r 的問題，但保留檢查無妨
         MsgBox "選取範圍內包含不正確的換行符號 (CR)。"
         if (!targetHwnd && IsSet(ClipSaved) && PRESERVE_CLIPBOARD)
-             A_Clipboard := ClipSaved
+            A_Clipboard := ClipSaved
         return -1
     }
 
@@ -1482,7 +1474,7 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
     } else {
         ; 無內容
         if (!targetHwnd && IsSet(ClipSaved) && PRESERVE_CLIPBOARD)
-             A_Clipboard := ClipSaved
+            A_Clipboard := ClipSaved
         return -1
     }
 
@@ -1510,9 +1502,7 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
     return 0
 }
 
-
-Notify(text, duration := 1500)
-{
+Notify(text, duration := 1500) {
     g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20") ; E0x20 讓滑鼠穿透
     g.BackColor := "333333" ; 背景色
     g.SetFont("s16 cWhite bold", "微軟正黑體") ; 字型設定
@@ -1522,7 +1512,7 @@ Notify(text, duration := 1500)
     g.MarginY := 20 ; 上下留白 20px
 
     ; 新增文字 (不需額外設定位置，會自動置中)
-    g.Add("Text",, text)
+    g.Add("Text", , text)
 
     ; 顯示 (AutoSize 會根據 Margin 自動調整視窗大小)
     g.Show("NoActivate AutoSize Center")
@@ -1531,37 +1521,36 @@ Notify(text, duration := 1500)
     SetTimer () => g.Destroy(), -duration
 }
 
-
 ;-----------------------------------------------------------
 ; Mouse Remapping
 #HotIf WinActive(RISReportWinTitle)
 
-XButton1::{
-  ReorderSelectedText(false, true, "-")
+XButton1:: {
+    ReorderSelectedText(false, true, "-")
 }
-XButton2::{
-  ReorderSelectedText()
+XButton2:: {
+    ReorderSelectedText()
 }
 
 #HotIf ; WinActive(RISReportWinTitle)
 
 ;-----------------------------------------------------------
 #HotIf WinActive(RISCTMRAbnormalWinTitle)
-!1::{
-  global ABNORMAL_VALUE_1_CONTROL
-  ControlClick(ABNORMAL_VALUE_1_CONTROL)
+!1:: {
+    global ABNORMAL_VALUE_1_CONTROL
+    ControlClick(ABNORMAL_VALUE_1_CONTROL)
 }
-!2::{
-  global ABNORMAL_VALUE_2_CONTROL
-  ControlClick(ABNORMAL_VALUE_2_CONTROL)
+!2:: {
+    global ABNORMAL_VALUE_2_CONTROL
+    ControlClick(ABNORMAL_VALUE_2_CONTROL)
 }
-!3::{
-  global ABNORMAL_VALUE_3_CONTROL
-  ControlClick(ABNORMAL_VALUE_3_CONTROL)
+!3:: {
+    global ABNORMAL_VALUE_3_CONTROL
+    ControlClick(ABNORMAL_VALUE_3_CONTROL)
 }
-!4::{
-  global ABNORMAL_VALUE_4_CONTROL
-  ControlClick(ABNORMAL_VALUE_4_CONTROL)
+!4:: {
+    global ABNORMAL_VALUE_4_CONTROL
+    ControlClick(ABNORMAL_VALUE_4_CONTROL)
 }
 
 #HotIf ; WinActive(RISCTMRAbnormalWinTitle)

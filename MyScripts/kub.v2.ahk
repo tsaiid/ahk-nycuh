@@ -85,49 +85,49 @@
 ::kis0::inspissated fecal materials
 ::kis::Presence of inspissated fecal material in the rectum with gaseous dilated bowel loops, probably stool impaction.
 
-::ks1::{
-  MyForm := "
+::ks1:: {
+    MyForm := "
 (
 Mottled gas pattern along colon course is noted, implying fecal residues retention. Otherwise, the bowel gas pattern is unremarkable.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-::ks2::{
-  MyForm := "
+::ks2:: {
+    MyForm := "
 (
 - Mottled gas pattern along colon course is noted, implying fecal residues retention. Otherwise, the bowel gas pattern is unremarkable.
 - Bilateral kidney shadows and psoas muscle contours are unremarkable.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-::kss::{
-  MyForm := "
+::kss:: {
+    MyForm := "
 (
 - Mottled gas pattern along colon course is noted, implying fecal residues retention.
 - The stone evaluation is limited.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-::ksi::{
-  MyForm := "
+::ksi:: {
+    MyForm := "
 (
 - Mottled gas pattern along colon course is noted, implying fecal residues retention.
 - Obvious small bowel gas, c/w stool impaction.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-::sk::{
-  MyForm := "
+::sk:: {
+    MyForm := "
 (
 - The bowel gas pattern, bilateral kidney shadows and psoas muscle contours are unremarkable.
 - No evidence of subphrenic free air.
 - No obvious air-fluid level in the bowel.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 ::nafl::No obvious air-fluid level in the bowel.

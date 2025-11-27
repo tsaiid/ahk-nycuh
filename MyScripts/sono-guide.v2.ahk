@@ -4,25 +4,26 @@
 #Include lib\ris-common.v2.ahk
 
 ; Sono-guide
-::0sg-ptccd::{
-  MyForm := "
+::0sg-ptccd:: {
+    MyForm := "
 (
 PTCCD is indicated and has been arranged.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-::1sg-ptgbd::{
-  currDateStr := FormatTime(, "M/d tt")
-  MyForm := Format("
+::1sg-ptgbd:: {
+    currDateStr := FormatTime(, "M/d tt")
+    MyForm := Format("
 (
 PTCCD was performed in {1}. A 6 Fr pigtail drain with safety lock was inserted. 10 ml of aspirated bile was collected for Lab exam.
-)", currDateStr)
-  Paste(MyForm)
+)",
+        currDateStr)
+    Paste(MyForm)
 }
 
-::ptccd::{
-  MyForm := "
+::ptccd:: {
+    MyForm := "
 (
 P.T.C.C.D:
 
@@ -31,11 +32,11 @@ P.T.C.C.D:
 - Drain: 8F pigtail drain with string lock
 - Complication: no
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-::sg-ptgbd::{
-  MyForm := "
+::sg-ptgbd:: {
+    MyForm := "
 (
 Under sonography guidance, the gallbladder was localized.
 The skin was prepared and the area was draped.
@@ -48,17 +49,17 @@ Brown, sandy, mucinous, pus like fluid was aspirated and collected for examinati
 The fluoroscopy confirmed the drain's location. Then, the drain was fixed with Nylon.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 PTGBD (8F pigtail drain without string lock) was performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-a::{
-  MyForm := "
+:*:sg-a:: {
+    MyForm := "
 (
 Under sonography guidance, ascites was noted in RLQ of abdomen.
 The skin was prepared and the area was draped.
@@ -67,17 +68,17 @@ Light yellow, serous fluid was aspirated and collected for Lab examination.
 Then, the drain was fixed with 3-0 Nylon.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Percutaneous drainage for ascites was performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-rpig::{
-  MyForm := "
+:*:sg-rpig:: {
+    MyForm := "
 (
 Under sonography guidance, pleural effusion and lung atelectasis were noted in right chest.
 The skin was prepared and the area was draped.
@@ -86,11 +87,11 @@ Light yellow, serous fluid was aspirated.
 Then, the drain was fixed with Mefix.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-lpig::{
-  MyForm := "
+:*:sg-lpig:: {
+    MyForm := "
 (
 Under sonography guidance, pleural effusion and lung atelectasis were noted in left chest.
 The skin was prepared and the area was draped.
@@ -99,11 +100,11 @@ Light yellow, serous fluid was aspirated.
 Then, the drain was fixed with Mefix.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-bpig::{
-  MyForm := "
+:*:sg-bpig:: {
+    MyForm := "
 (
 Under sonography guidance, pleural effusion and lung atelectasis were noted in bilateral chests.
 The skin was prepared and the area was draped.
@@ -115,41 +116,41 @@ Then, the same procedure was performed at left side.
 
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-npig::{
-  MyForm := "
+:*:sg-npig:: {
+    MyForm := "
 (
 Due to the small amount of right/left side pleural effusion(<2cm thickness), pigtail drainage was not recommended.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-lpb::{
-  MyForm := "
+:*:sg-lpb:: {
+    MyForm := "
 (
 The skin was prepared, the area was draped, and the rectum was filled with Povidone.
 Under sonography guidance, the hypoechoic tumor was localized at left lobe of prostate.
 A 18G biopsy needle was used and 12 pieces of specimen (3 from the tumor, 3 from left lobe, 6 from right lobe) were harvested.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-rpb::{
-  MyForm := "
+:*:sg-rpb:: {
+    MyForm := "
 (
 The skin was prepared, the area was draped, and the rectum was filled with Povidone.
 Under sonography guidance, the hypoechoic tumor was localized at right lobe of prostate.
 A 18G biopsy needle was used and 12 pieces of specimen (3 from the tumor, 3 from right lobe, 6 from left lobe) were harvested.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-lb::{
-  MyForm := "
+:*:sg-lb:: {
+    MyForm := "
 (
 Sono-Guiding Liver Biopsy:
 
@@ -161,19 +162,19 @@ Number of core samples: 4
 Use of Gelfoam slurry: yes
 Complication: nil
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Sono-guiding liver biopsy was successfully performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
 :*:0sg-ld::Percutaneous drainage for liver abscess has been arranged.
 
-:*:sg-ld::{
-  MyForm := "
+:*:sg-ld:: {
+    MyForm := "
 (
 Percutaneons abscess drainage-PAD:
 
@@ -197,18 +198,18 @@ Then, the drain was fixed with 3-0 Nylon.
 
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Percutaneous drain (8F pigtail) for right subphrenic biloma was performed.
 Percutaneous drain for liver abscess was performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-bb::{
-  MyForm := "
+:*:sg-bb:: {
+    MyForm := "
 (
 Sono-Guiding Breast Biopsy:
 
@@ -220,17 +221,17 @@ Biopsy device: 16G Merit Temno biopsy device in 15G coaxial needle.
 Number of core samples: 4
 Complication: nil
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Sono-guiding breast biopsy was successfully performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-kb::{
-  MyForm := "
+:*:sg-kb:: {
+    MyForm := "
 (
 Sono-Guiding Kidney Biopsy:
 
@@ -242,17 +243,17 @@ Number of samples: 4 (1 immersed in normal saline, 1 in electron microscope pres
 Embolization: Yes, Gelfoam slurry
 Complication: nil
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Sono-guiding kidney biopsy was successfully performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-ta::{
-  MyForm := "
+:*:sg-ta:: {
+    MyForm := "
 (
 Sono-Guiding Fine Needle Aspiration of Thyroid:
 
@@ -263,17 +264,17 @@ The sample was smeared and fixed.
 The sample was injected into the thin layer cytology fluid.
 The patient tolerated wall, and no immediate complication was noted.
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Sono-guiding find needle aspiration of thyroid was successfully performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-lnb::{
-  MyForm := "
+:*:sg-lnb:: {
+    MyForm := "
 (
 Sono-Guiding Lymph Node Biopsy:
 
@@ -284,17 +285,17 @@ Biopsy device: 18G Merit Temno biopsy device.
 Number of core samples: 4
 Complication: nil
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Sono-guiding lymph node biopsy was successfully performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
 
-:*:sg-lna::{
-  MyForm := "
+:*:sg-lna:: {
+    MyForm := "
 (
 Sono-Guiding Fine Needle Aspiration of Lymph Node:
 
@@ -303,11 +304,11 @@ Fine needle aspiration was then performed.
 The sample was smeared and fixed.
 The patient tolerated wall, and no immediate complication was noted.
 )"
-  Paste(MyForm)
-  SleepThenTab()
-  MyForm := "
+    Paste(MyForm)
+    SleepThenTab()
+    MyForm := "
 (
 Sono-guiding find needle aspiration of lymph node was successfully performed.
 )"
-  Paste(MyForm)
+    Paste(MyForm)
 }
