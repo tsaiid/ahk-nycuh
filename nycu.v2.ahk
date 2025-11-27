@@ -925,7 +925,10 @@ CopyPathologyReport() {
     reportText := ConvertRISDate(RisController.PathoDateText.Value) . ": " . RisController.PathoDiagnosisText.Value
     if (reportText != "") {
       A_Clipboard := reportText
-      MsgBox("病理報告已複製到剪貼簿。")
+      if !ClipWait(0.8) {
+        throw Error("複製文字失敗 (逾時)。")
+      }
+      Notify("病理報告已複製到剪貼簿。")
     } else {
       throw Error("找不到病理報告內容。")
     }
@@ -1505,6 +1508,27 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
     }
 
     return 0
+}
+
+
+Notify(text, duration := 1500)
+{
+    g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20") ; E0x20 讓滑鼠穿透
+    g.BackColor := "333333" ; 背景色
+    g.SetFont("s16 cWhite bold", "微軟正黑體") ; 字型設定
+
+    ; === 修正點：設定內距 (Padding) ===
+    g.MarginX := 20 ; 左右留白 20px
+    g.MarginY := 20 ; 上下留白 20px
+
+    ; 新增文字 (不需額外設定位置，會自動置中)
+    g.Add("Text",, text)
+
+    ; 顯示 (AutoSize 會根據 Margin 自動調整視窗大小)
+    g.Show("NoActivate AutoSize Center")
+
+    ; 時間到自動銷毀
+    SetTimer () => g.Destroy(), -duration
 }
 
 
