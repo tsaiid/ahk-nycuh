@@ -148,6 +148,7 @@ The paranasal sinuses are clear.
 ::ntci::No definite traumatic intracranial injury.
 ::nacf::No definite acute intracranial findings.
 ::csptrok::No obvious fracture or dislocation of the cervical spine.
+::icr::intracranial
 
 ::li1::
 {

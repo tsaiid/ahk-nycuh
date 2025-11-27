@@ -18,17 +18,6 @@
 {
   MyForm := "
   (
-CT scan of brain was performed with a multi-slice CT scanner:
-TECHNIQUE: (1) Noncontrast and (2) Post-contrast enhancement
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
-CONTRAST MEDIUM: IV route, 70 ml, 1 ml/sec.
-
-COMPARISON:
-Applicable previous CT of brain: no
-Applicable previous CT of brain: same day earlier (non-contrast)
-Applicable previous CT of brain:       (other hospital)
-
-FINDINGS:
 A 1.3-cm enhancing nodule in the left paramedian cerebellar hemisphere is noted, suggestive of brain metastasis.
 Tiny enhancing nodule at the tip of left sylvian fissure, possibly leptomeningeal metastasis.
 
@@ -65,17 +54,6 @@ Follow up or further evaluation.
 {
   MyForm := "
   (
-CT scan of brain was performed with a multi-slice CT scanner:
-
-TECHNIQUE: (1) Noncontrast and (2) Post-contrast enhancement
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
-
-CONTRAST MEDIUM: IV route
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 No definite abnormal enhancing mass lesion in the brain noted.
 
 No definite area of obvious abnormal density in the brain noted.
@@ -107,13 +85,6 @@ No definite abnormal enhancing mass lesion in the brain noted.
 {
   MyForm := "
   (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 Presence of motion artifact in this study, film interpretation is limited.
 
 Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
@@ -240,8 +211,8 @@ The mastoids are unremarkable.
 
   MyForm := "
   (
-No definite acute ICH, SAH, EDH, or SDH.
-- No obvious fracture or dislocation of the cervical spine.
+1. No definite acute ICH, SAH, EDH, or SDH.
+2. No obvious fracture or dislocation of the cervical spine.
   )"
   Paste(MyForm)
 }
@@ -264,8 +235,8 @@ No definite acute ICH, SAH, EDH, or SDH.
 
   MyForm := "
   (
-No definite acute ICH, SAH, EDH, or SDH.
-- No obvious fracture or dislocation of the cervical spine.
+1. No definite acute ICH, SAH, EDH, or SDH.
+2. No obvious fracture or dislocation of the cervical spine.
   )"
   Paste(MyForm)
 }
@@ -275,13 +246,6 @@ No definite acute ICH, SAH, EDH, or SDH.
 {
   MyForm := "
   (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 Low density and loss of gray and white matter differentiation at right middle cerebral artery territory:
 - M2: "MCA cortex lateral to insular ribbon" corresponding to anterior temporal lobe
 - M5: "lateral MCA territory immediately superior to M2"
@@ -319,13 +283,6 @@ No definite acute intracranial parenchymal hemorrhage or acute epidural or acute
 {
   MyForm := "
   (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness; coronal reconstruction.
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 Presence of mild bilateral periventricular low density noted. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
 Presence of bilateral periventricular low density noted. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
 
@@ -379,13 +336,6 @@ Hypertensive ICH in the right lentiform nucleus.
 {
   MyForm := "
   (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 - Acute intracranial hemorrhage in the right basal ganglion and thalamus, size about 4.3 x 2.8 x 3.6 cm, suspicious hypertensive ICH.
 - The ICH ruptured into the ventricular system, causing intraventricular hemorrhage in both lateral ventricles, the third and fourth ventricles.
 - Mild mass effect compressing the right lateral ventricle, and mild midline shift to left.
@@ -411,13 +361,6 @@ Possibly hypertensive ICH in the right basal ganglion and thalamus, with IVH.
 {
   MyForm := "
   (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 Presence of acute subarachnoid hemorrhage in the suprasellar and ambient cisterns, with extension to the interhemispheric fissure and bilateral sylvian fissures, more on right side. Rupture of intracranial aneurysm should be excluded.
 
 The bilateral lateral ventricles showed symmetrical without dilatation.
@@ -444,13 +387,6 @@ Diffuse acute SAH. Rupture of intracranial aneurysm should be excluded.
 {
   MyForm := "
   (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 2.5-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 Presence of high-attenuation subdural hematoma along the right cerebellar tentorium.
 Crescent-shaped high-attenuation acute subdural hematoma in the left cerebral convexity.
 Presence of fusiform high-attenuation lesion extending over the right anterior falx cerebri, suggestive of an acute parafalcine subdural hematoma.
@@ -513,13 +449,6 @@ Hypoxic-ischemic encephalopathy is suspected.
 {
   MyForm := "
   (
-Noncontrast CT of the brain was performed with a multi-slice CT scanner:
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 3-mm continuous scan slice thickness
-
-COMPARISON:
-Applicable previous CT of brain: no
-
-FINDINGS:
 No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
@@ -569,15 +498,6 @@ FINDINGS:
 {
   MyForm := "
   (
-CT angiography of brain and neck was performed with a multi-slice CT scanner:
-TECHNIQUE: multi thin-slice spiral scanning of arterial and venous phases
-SCAN RANGE: axial plane from the skull base to the vertex.
-CONTRAST MEDIUM: IV bolus injection, 80 ml, rate: 3 ml/sec
-IMAGE POST-PROCESSING: done in workstation with multiPlanar reconstruction, maximal intensity projection and volume rendering technique
-
-Previous CT: no
-
-FINDINGS:
 - No definite abnormal enhancing mass lesion in the brain noted.
 - No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
 - Presence of bilateral periventricular low density noted. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
