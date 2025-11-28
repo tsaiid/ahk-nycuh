@@ -122,7 +122,7 @@ FINDINGS:
 ;; NCSD
 ::cctncsd::
 {
-    MyForm := "
+    finding := "
   (
 CT scan of the thorax was performed with a multi-slice CT scanner.
 
@@ -151,15 +151,13 @@ FINDINGS:
 
 *PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 No obvious traumatic intrathoracic injury.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ::cctncsd+a::
@@ -195,7 +193,7 @@ FINDINGS:
 ;; NCLD
 ::cctncld::
 {
-    MyForm := "
+    finding := "
   (
 Lower dose, high resolution (2-mm slice thickness) non-contrast CT scan for screening pulmonary nodule.
 Scanner: Multi-detector CT scanner.
@@ -228,11 +226,9 @@ FINDINGS:
 - Thoracic spine: unremarkable.
 - Upper abdomen: unremarkable.
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 No remarkable nodular lesions in bilateral lungs.
 
@@ -254,12 +250,12 @@ Remarks: A majority of the nodules less than 6 mm may not be cancer (risk <1% in
 
 Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmonary Nodules in Adults.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ::cctncldok::
 {
-    MyForm := "
+    finding := "
   (
 Lower dose, high resolution (2-mm slice thickness) non-contrast CT scan for screening pulmonary nodule.
 Scanner: Multi-detector CT scanner.
@@ -284,11 +280,9 @@ FINDINGS:
 - Thoracic spine: unremarkable.
 - Upper abdomen: unremarkable.
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 No remarkable nodular lesions in bilateral lungs.
 
@@ -310,7 +304,7 @@ Remarks: A majority of the nodules less than 6 mm may not be cancer (risk <1% in
 
 Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmonary Nodules in Adults.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ::cctfsg::
@@ -340,7 +334,7 @@ Fleischner Society 2017 Guidelines for Management of Incidentally Detected Pulmo
 
 ::cctncsduip::
 {
-    MyForm := "
+    finding := "
   (
 CT scan of the thorax was performed with a multi-slice CT scanner.
 
@@ -374,20 +368,18 @@ FINDINGS:
 
 *PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 UIP pattern.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ::cctncsdnsip::
 {
-    MyForm := "
+    finding := "
   (
 CT scan of the thorax was performed with a multi-slice CT scanner.
 
@@ -412,15 +404,13 @@ FINDINGS:
 
 *PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 NSIP is suspected.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ;; CTA
@@ -583,7 +573,7 @@ IMPRESSION:
 ;; Lung cancer, staging
 ::cctlcs::
 {
-    MyForm := "
+    finding := "
   (
 CT scan of the thorax was performed with a MDCT scanner.
 TECHNIQUE: (1) NCCT (2) CECT were performed
@@ -635,21 +625,19 @@ A. Tumor Profile
 B. Other Findings
 
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 Lung cancer of , cTNM (AJCC 2016, 8th ed.)
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ;; Esophageal cancer, staging
 ::cctecs::
 {
-    MyForm := "
+    finding := "
   (
 CT scan of the thorax was performed with a MDCT scanner.
 
@@ -701,15 +689,13 @@ Left gastric artery
 6. OTHER FINDINGS
 
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 Esophageal CA of , cTNM. (AJCC 2016, 8th ed.)
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ::cctsr::
@@ -728,7 +714,7 @@ Chest Wall and low neck: within normal limits.
 
 ::cctcs::
 {
-    MyForm := "
+    finding := "
   (
 Cardiac dual-source CT was performed without intravenous contrast administration and under ECG-gating.
 
@@ -746,20 +732,18 @@ Additional findings:
 - The visual lungs are clear
 - The visible bone is normal
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 Total Calcium Score (Equivalent Agatston Score) is 0.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ::ccta::
 {
-    MyForm := "
+    finding := "
   (
 Dual-Source CT of heart was performed with rapid i.v. contrast administration
 Findings of CT coronary angiography:
@@ -803,15 +787,13 @@ Recommended Quantitative Stenosis Grading:
 
 Remark: Some heart motion might mimic pseudo-stenotic lesions in Volume Rendering images, suggest curve MPR and source data correlation.
   )"
-    Paste(MyForm)
+    RisController.PasteToFinding(finding)
 
-    SleepThenTab()
-
-    MyForm := "
+    impression := "
   (
 No evidence of coronary stenosis or plaque by Coronary CT Angiography.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(impression)
 }
 
 ::cctnhi::
