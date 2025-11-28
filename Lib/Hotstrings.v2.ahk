@@ -118,7 +118,15 @@ hotstrings(k, a := "") {
 
                 len := match.Len
                 s := SubStr(s, 1, -len)
+
+                ; --- 修正點開始 ---
+                ; 發送退格鍵刪除觸發字串
                 SendInput("{BS " . len . "}")
+
+                ; 【關鍵修正】強制等待 50ms，確保應用程式處理完 Backspace
+                ; 如果不加這個，後續 Paste() 使用 EditPaste 時會發生 race condition
+                Sleep(50)
+                ; --- 修正點結束 ---
 
                 replacement := action
                 loop match.Count {
