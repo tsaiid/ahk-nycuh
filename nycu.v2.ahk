@@ -22,6 +22,8 @@ global PRESERVE_CLIPBOARD := 0
 #Include <Paste.v2>
 #Include <Edit.v2>
 
+#Include MyScripts\hotkey\remapping-original-hotkeys-infinitt.v2.ahk
+
 global RISReportWinTitle := "報告作業(frmRISReport)" ; 替換成您的程式標題
 global RISCTMRAbnormalWinTitle := "檢查結果(frmPos)"
 global UIA_PastReportTable := { AutomationId: "dgvPastReport" }
@@ -479,6 +481,18 @@ FindSimilarReport(examName := "") {
 
 !q:: {
     Send "^e"
+}
+
+;; Ctrl + A
+;; Go to start of line
+^a:: {
+    Send "{Home}"
+}
+
+;; Ctrl + E
+;; Go to end of line
+^e:: {
+    Send "{End}"
 }
 
 +Down:: {
@@ -1554,3 +1568,5 @@ XButton2:: {
 }
 
 #HotIf ; WinActive(RISCTMRAbnormalWinTitle)
+
+^!r::Reload
