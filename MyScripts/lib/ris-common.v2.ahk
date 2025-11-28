@@ -32,6 +32,7 @@ class RisController {
         "PastReportTable", { AutomationId: "dgvPastReport" },
         "PathoDiagnosisText", { AutomationId: "txtDiagnosist" },
         "PathoDateText", { AutomationId: "mtxtRcpDTM" },
+        "ImpressionLabel", { AutomationId: "label2" },
     )
 
     ; =================================================================
@@ -378,32 +379,89 @@ class RisController {
         SetTimer(ObjBindMethod(this, "_EnforceFontTask"), 1000)
     }
 
-    ; 排程任務：定期檢查並套用字體
+    ; =================================================================
+    ; 自動排版模組 (Auto Layout)
+    ; =================================================================
+
+    ; 設定 Impression 區域的高度 (單位: 像素)
+    static _targetImpressionHeight := 95
+
+    ; 綁定的 Timer 任務
     static _EnforceFontTask()
     {
-        ; 1. 如果 RIS 視窗不是當前活動視窗，就跳過 (節省資源)
         if !WinActive(this.WinTitle)
             return
 
-        ; 2. 定義 WM_SETFONT 訊息 ID
         static WM_SETFONT := 0x30
 
-        ; 3. 對 FindingEdit 套用字體
+        ; 1. 取得所有必要的 Handles
         try {
-            ; 檢查 Handle 是否存在 (透過 NativeWindowHandle 讀取不會報錯，只是回傳 0)
-            hFinding := this.FindingEdit.NativeWindowHandle
-            if (hFinding) {
-                ; 參數: msg, wParam(hFont), lParam(1=重繪), control
-                SendMessage(WM_SETFONT, this._hCustomFont, 1, , "ahk_id " hFinding)
-            }
+            hFind := this.FindingEdit.NativeWindowHandle
+            hImp  := this.ImpressionEdit.NativeWindowHandle
+        } catch {
+            return ; 如果還沒載入完畢，先不動作
         }
 
-        ; 4. 對 ImpressionEdit 套用字體
+        ; 2. 套用字體 (Fira Code)
+        if (this._hCustomFont) {
+            try SendMessage(WM_SETFONT, this._hCustomFont, 1, , "ahk_id " hFind)
+            try SendMessage(WM_SETFONT, this._hCustomFont, 1, , "ahk_id " hImp)
+        }
+
+        ; 3. 執行排版運算 (Layout Calculation)
+        this._ApplyLayout(hFind, hImp)
+    }
+
+    static _ApplyLayout(hFind, hImp)
+    {
+        ; 取得目前控制項的位置與大小
+        ControlGetPos(&fX, &fY, &fW, &fH, hFind)
+        ControlGetPos(&iX, &iY, &iW, &iH, hImp)
+
+        ; --- 計算錨點 (Anchor) ---
+        ; 我們假設目前的 Impression 底部是正確的邊界 (畫面的最下方)
+        currentBottom := iY + iH
+
+        ; --- 設定目標參數 ---
+        targetImpH := this._targetImpressionHeight ; 您希望的 Impression 高度 (5行)
+        gap := 30 ; Finding 和 Impression 之間的間距 (留給標籤用)
+
+        ; 計算 Impression 的新 Y 軸 (底部錨點 - 目標高度)
+        targetImpY := currentBottom - targetImpH
+
+        ; 計算 Finding 的新高度 (填滿上方剩餘空間)
+        ; 新高度 = (Impression的新Y位置 - 間距) - Finding原本的Y位置
+        targetFindH := (targetImpY - gap) - fY
+
+        ; --- 檢查是否需要移動 (避免重複執行導致閃爍) ---
+        ; 容許 5px 的誤差
+        if (Abs(iH - targetImpH) < 5 && Abs(iY - targetImpY) < 5 && Abs(fH - targetFindH) < 5)
+            return
+
+        ; --- 開始移動 ---
+
+        ; 1. 移動 Impression Edit (至底部，變矮)
+        ControlMove(,, iW, targetImpH, hImp) ; 只改 Y 和 H
+        ControlMove(, targetImpY,,, hImp)    ; 分開寫比較穩定
+
+        ; 2. 移動 Finding Edit (變高)
+        ControlMove(,,, targetFindH, hFind)
+
+        ; 3. 移動 Impression 標籤 (Label)
+        ; 嘗試透過 UIA 抓取 Label Handle
         try {
-            hImpression := this.ImpressionEdit.NativeWindowHandle
-            if (hImpression) {
-                SendMessage(WM_SETFONT, this._hCustomFont, 1, , "ahk_id " hImpression)
+            ; 嘗試從 Cache 抓，沒有就抓新的
+            elLabel := this._GetOrUpdateNode("ImpressionLabel")
+            hLabel := elLabel.NativeWindowHandle
+
+            if (hLabel) {
+                ; 標籤應該放在 Impression Edit 的正上方
+                ; 假設標籤高度約 20px
+                labelNewY := targetImpY - 25
+                ControlMove(, labelNewY,,, hLabel)
             }
+        } catch {
+            ; 如果抓不到標籤，不做動作 (但 Edit 已經移好了)
         }
     }
 }
