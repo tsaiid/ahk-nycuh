@@ -346,4 +346,64 @@ class RisController {
 
         return false
     }
+
+    ; =================================================================
+    ; 字體強制模組 (Font Enforcer)
+    ; =================================================================
+    static _hCustomFont := 0 ; 用來存放 Fira Code 的 Handle
+
+    /**
+     * 啟動字體強制功能
+     * @param fontName 字體名稱 (預設 "Fira Code")
+     * @param fontSize 字體大小 (預設 12)
+     */
+    static EnableFontEnforcer(fontName := "Cascadia Code", fontSize := 12)
+    {
+        ; 1. 建立 Font Handle (只做一次，避免記憶體洩漏)
+        if (this._hCustomFont == 0) {
+            ; 利用一個隱藏的 GUI 來產生合法的 HFONT
+            dummyGui := Gui()
+            dummyGui.SetFont("s" fontSize, fontName)
+            dummyCtrl := dummyGui.Add("Text",, "Dummy")
+
+            ; 發送 WM_GETFONT (0x31) 取得該控制項的 Font Handle
+            this._hCustomFont := SendMessage(0x31, 0, 0, dummyCtrl.Hwnd)
+
+            ; 注意：不要 Destroy dummyGui，因為 Font Handle 依附於它
+            ; 或是如果要嚴謹一點，應該用 DllCall CreateFont，但這樣寫最簡單
+        }
+
+        ; 2. 啟動 Timer，每 1000 ms (1秒) 檢查一次
+        ; 使用 ObjBindMethod 將類別內的方法綁定給 Timer
+        SetTimer(ObjBindMethod(this, "_EnforceFontTask"), 1000)
+    }
+
+    ; 排程任務：定期檢查並套用字體
+    static _EnforceFontTask()
+    {
+        ; 1. 如果 RIS 視窗不是當前活動視窗，就跳過 (節省資源)
+        if !WinActive(this.WinTitle)
+            return
+
+        ; 2. 定義 WM_SETFONT 訊息 ID
+        static WM_SETFONT := 0x30
+
+        ; 3. 對 FindingEdit 套用字體
+        try {
+            ; 檢查 Handle 是否存在 (透過 NativeWindowHandle 讀取不會報錯，只是回傳 0)
+            hFinding := this.FindingEdit.NativeWindowHandle
+            if (hFinding) {
+                ; 參數: msg, wParam(hFont), lParam(1=重繪), control
+                SendMessage(WM_SETFONT, this._hCustomFont, 1, , "ahk_id " hFinding)
+            }
+        }
+
+        ; 4. 對 ImpressionEdit 套用字體
+        try {
+            hImpression := this.ImpressionEdit.NativeWindowHandle
+            if (hImpression) {
+                SendMessage(WM_SETFONT, this._hCustomFont, 1, , "ahk_id " hImpression)
+            }
+        }
+    }
 }

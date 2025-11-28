@@ -57,6 +57,9 @@ global risEle := ""
 global autoNextEle := ""
 global reportSaveEle := ""
 
+; 腳本啟動時執行，設定為 Fira Code, 大小 14 (根據您的螢幕解析度調整)
+RisController.EnableFontEnforcer("Cascadia Code", 10)
+
 ; 確保 RIS 視窗是作用中，且焦點位於我們指定的兩個編輯框之一
 #HotIf WinActive(RISReportWinTitle) && RisController.IsTargetFocused()
 
