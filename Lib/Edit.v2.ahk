@@ -332,3 +332,38 @@ Edit_ScrollCaret(hEdit) {
     Static EM_SCROLLCARET := 0xB7
     SendMessage(EM_SCROLLCARET, 0, 0, , "ahk_id " . hEdit)
 }
+/*
+ * Edit_CountNonEmptyLines
+ *
+ * 計算非空行的數量 (邏輯行)
+ * 定義：
+ * 1. 忽略自動換行 (Word Wrap)，只看實際的換行符號 (`n 或 `r`n)
+ * 2. 只有換行符號的行、或只有空白/Tab 的行，視為空行，不計入數量
+ */
+Edit_CountNonEmptyLines(hEdit) {
+    ; 1. 取得文字
+    ; 使用 Lib 內部的 Edit_GetText (基於 WM_GETTEXT) 以保持一致性
+    local text := Edit_GetText(hEdit)
+
+    ; 2. 如果完全沒內容，直接回傳 0
+    if (text == "")
+        return 0
+
+    ; 3. 分割行
+    ; StrSplit 的第三個參數 "`r" 會自動忽略 Carriage Return
+    ; 這樣無論是 Windows 標準的 `r`n 還是 Unix 的 `n 都能正確被切分
+    local lines := StrSplit(text, "`n", "`r")
+
+    local count := 0
+
+    ; 4. 逐行檢查
+    for line in lines {
+        ; 使用 Trim 去除頭尾空白 (Space 和 Tab)
+        ; 如果去除後長度 > 0，才算是有內容的行
+        if (Trim(line, " `t") != "") {
+            count++
+        }
+    }
+
+    return count
+}

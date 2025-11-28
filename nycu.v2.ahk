@@ -873,7 +873,7 @@ FormatImpressionText() {
     if (hEdit := RisController.ImpressionEdit.NativeWindowHandle) {
         Edit_SetFocus(hEdit)
         Edit_SetSel(hEdit)
-        if (Edit_GetLogicalLineCount(hEdit) > 1) {
+        if (Edit_CountNonEmptyLines(hEdit) > 1) {
             ReorderSelectedText(, , , , hEdit)
         } else {
             ReorderSelectedText(true, , , , hEdit)
