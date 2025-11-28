@@ -317,4 +317,33 @@ class RisController {
         Sleep 300 ; 等待目標程式消化
         A_Clipboard := SavedClip
     }
+
+    ; =================================================================
+    ; 4. 焦點檢查 helper (供 #HotIf 使用)
+    ; =================================================================
+    static IsTargetFocused()
+    {
+        ; 1. 取得目前 Windows 焦點所在的 Hwnd
+        try {
+            focusedHwnd := ControlGetFocus("A")
+        } catch {
+            return false
+        }
+
+        ; 2. 比對 FindingEdit 的 Handle
+        try {
+            ; 存取 this.FindingEdit 會觸發 _GetOrUpdateNode
+            ; 如果快取還沒建立，這裡會自動建立；如果已建立，讀取非常快
+            if (this.FindingEdit.NativeWindowHandle == focusedHwnd)
+                return true
+        }
+
+        ; 3. 比對 ImpressionEdit 的 Handle
+        try {
+            if (this.ImpressionEdit.NativeWindowHandle == focusedHwnd)
+                return true
+        }
+
+        return false
+    }
 }
