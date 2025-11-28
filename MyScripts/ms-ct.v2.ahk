@@ -130,9 +130,9 @@
 ::t111::T11 through L1
 ::t121::T12-L1
 
-::g1::grade 1
-::g2::grade 2
-::g3::grade 3
+::g1::grade 1 `
+::g2::grade 2 `
+::g3::grade 3 `
 
 ;; CT Extremity - Colles Fracture
 ::ectcf::
