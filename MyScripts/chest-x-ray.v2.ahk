@@ -281,10 +281,10 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
 ::tta::Tortuous thoracic descending aorta.
 ::mtta::Mild tortuous thoracic descending aorta.
 ::bronchio::Increased linear opacity and peribronchial thickening over both lung fields, r/o bronchiolitis.
-::ilo::increased linear opacity ` `
-::ao::acinar opacity ` `
-::id::ill-defined ` `
-::wd::well-defined ` `
+::ilo::increased linear opacity `
+::ao::acinar opacity `
+::id::ill-defined `
+::wd::well-defined `
 ::luqd::A drain in the LUQ of abdomen.
 ::ruqd::A drain in the RUQ of abdomen.
 ::prrct::Post removal of right chest tube. No pneumothorax noted.

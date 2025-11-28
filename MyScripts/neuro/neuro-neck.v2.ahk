@@ -12,19 +12,6 @@
 {
     MyForm := "
   (
-Neck CT
-
-TECHNIQUE:
-Multi-slice CT scanner with
-(1) Non-contrast and (2) Contrast-enhanced
-scanning in axial plane from skull base to thoracic inlet with 2.5-mm-thick contiguous slices
-coronal and sagittal reformatted images
-
-COMPARISON:
-Applicable previous CT of face and neck: none
-Applicable previous MRI of face and neck: none
-
-FINDINGS:
 1. Primary tumor status:
 [Tx] a. Unknown
 
@@ -73,16 +60,6 @@ Lymph nodes: No evidence of bulky lymph nodes (> 1 cm) in the bilateral carotid 
 {
     MyForm := "
   (
-TECHNIQUE:
-Multi-slice CT scanner with
-Non-contrast scanning in axial plane from skull base to thoracic inlet with 3-mm-thick contiguous slices and coronal reformatted images.
-
-COMPARISON:
-Applicable previous CT of face and neck: none
-Applicable previous MRI of face and neck: none
-
-FINDINGS:
-
 Due to no contrast-enhanced CT performed, the detail could not be evaluated. Film interpretation is limited.
 
 No contrast medium. Film interpretation is limited.
@@ -144,17 +121,6 @@ PS. The evaluation is limited especially for solid organs, neck lymph nodes and 
 {
     MyForm := "
   (
-TECHNIQUE:
-Multi-slice CT scanner with
-(1) Non-contrast and (2) Contrast-enhanced
-scanning in axial plane from skull base to thoracic inlet with 3-mm-thick contiguous slices and coronal reformatted images.
-Contrast medium: intravenous route, volume: 60 mL, rate: 1.0 mL/sec
-
-COMPARISON:
-Applicable previous CT of face and neck: none
-Applicable previous MRI of face and neck: none
-
-FINDINGS:
 Bilateral tonsillar enlargement, touching in the midline forming "kissing tonsils".
 Small low density within the right tonsil.
 Acute tonsillitis with abscess formation is considered.

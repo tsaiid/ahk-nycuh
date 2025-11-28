@@ -222,6 +222,7 @@
 ::pkd::polycystic kidney disease
 ::bil::biliary `
 ::thad::transient hepatic attenuation difference
+::hpb::hepato-pancreato-biliary
 
 ;; Brain
 ::ich::intracranial hemorrhage
