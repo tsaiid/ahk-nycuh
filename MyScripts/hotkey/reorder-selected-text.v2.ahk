@@ -85,7 +85,7 @@ ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", di
                     }
                 }
                 if (StrLen(itemChar) == 0 && discardSeIm) {
-                    tmpText := RegExReplace(tmpText, "\s*\(Srs\/Img:[\s,-\/\d;]+\)", "")
+                    tmpText := RegExReplace(tmpText, "\s*\((Srs|Ser)\/Img:[\s,-\/\d;]+\)", "")
                     tmpText := RegExReplace(tmpText, "Mark L\d+:\s*", "")
                 }
 
