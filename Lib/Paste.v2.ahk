@@ -1,34 +1,52 @@
 ﻿#Requires AutoHotkey v2.0
 
 Paste(text, convertCRLF := true) {
-    ; 【閾值設定】
-    ; 如果字數少於 50 字，直接用打字的 (毫無延遲)
-    ; 如果字數多於 50 字，才用剪貼簿貼上 (避免長文章打字太久)
+    ; --- 0. 內容前處理 ---
+    if (convertCRLF) {
+        ; 確保換行符號是 Windows 標準 (CRLF)
+        text := StrReplace(text, "`r`n", "`n")
+        text := StrReplace(text, "`n", "`r`n")
+    }
+
+    ; --- 1. 嘗試取得焦點 Control 的 Hwnd ---
+    hCtl := 0
+    try {
+        focusedHwnd := ControlGetFocus("A")
+    }
+
+    ; --- 2. 策略 A: 直接訊息貼上 (優先使用) ---
+    if (focusedHwnd) {
+        try {
+            ; 使用 Hwnd 呼叫 EditPaste，完全繞過剪貼簿
+            EditPaste(text, focusedHwnd)
+            return ; 成功則直接結束
+        } catch {
+            ; 失敗 (例如該 Control 不支援 Edit 訊息) 則繼續往下
+        }
+    }
+
+    ; --- 3. 策略 B: 傳統剪貼簿貼上 (備案) ---
+
+    ; 字數少直接打字
     if (StrLen(text) < 50) {
         SendText(text)
+        return
     }
-    else {
-        if (convertCRLF) {
-            text := RegExReplace(text, "(?<!\r)\n", "`r`n")
-        }
 
-        ; 備份舊的剪貼簿內容 (選擇性，如果覺得拖慢速度可註解掉下面這行)
-        SavedClip := ClipboardAll()
+    ; 剪貼簿貼上流程
+    SavedClip := ClipboardAll()
+    A_Clipboard := ""
+    A_Clipboard := text
 
-        A_Clipboard := text
-
-        ; 等待剪貼簿準備好，只要等到有內容就立刻送出，不必死板的 Sleep
-        if !ClipWait(0.5) {
-            MsgBox("Clipboard failed to set.")
-            return
-        }
-
-        Send("^v")
-
-        ; 給系統一點時間處理貼上動作，再恢復剪貼簿
-        Sleep(100)
-
-        ; 恢復舊剪貼簿 (選擇性)
+    if !ClipWait(1) {
+        MsgBox "Clipboard failed to set."
         A_Clipboard := SavedClip
+        return
     }
+
+    SetKeyDelay 50, 50
+    SendEvent "^v"
+
+    Sleep 300
+    A_Clipboard := SavedClip
 }
