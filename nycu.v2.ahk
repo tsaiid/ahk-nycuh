@@ -76,6 +76,7 @@ global reportSaveEle := ""
 #Include MyScripts\other-x-ray.v2.ahk
 #Include MyScripts\sono-guide.v2.ahk
 #Include MyScripts\angio.v2.ahk
+#Include MyScripts\sono.v2.ahk
 
 #Include MyScripts\lib\ris-common.v2.ahk
 ^9:: {
