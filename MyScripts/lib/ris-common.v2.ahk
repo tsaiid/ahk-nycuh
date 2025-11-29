@@ -414,9 +414,16 @@ class RisController {
 
     static _ApplyLayout(hFind, hImp)
     {
-        ; 取得目前控制項的位置與大小
-        ControlGetPos(&fX, &fY, &fW, &fH, hFind)
-        ControlGetPos(&iX, &iY, &iW, &iH, hImp)
+        ; 1. [新增] 加上 Try-Catch 保護
+        ; 因為這個方法是被 Timer 呼叫的，如果視窗剛好被切換或關閉，
+        ; ControlGetPos 會因為抓不到目標而報錯，這裡我們選擇「靜默失敗」即可。
+        try {
+            ; 取得目前控制項的位置與大小
+            ControlGetPos(&fX, &fY, &fW, &fH, hFind)
+            ControlGetPos(&iX, &iY, &iW, &iH, hImp)
+        } catch {
+            return ; 如果抓不到位置，代表視窗狀態不穩，這次先不做排版
+        }
 
         ; --- 計算錨點 (Anchor) ---
         ; 我們假設目前的 Impression 底部是正確的邊界 (畫面的最下方)
