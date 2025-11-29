@@ -464,4 +464,74 @@ class RisController {
             ; 如果抓不到標籤，不做動作 (但 Edit 已經移好了)
         }
     }
+
+    /**
+     * 刪除游標所在的整行 (包含換行符號)
+     * @returns {Boolean} true 代表已執行刪除; false 代表不在目標區，未執行
+     */
+    static DeleteCurrentLine() {
+        ; 1. 檢查焦點是否在 Finding 或 Impression
+        if !this.IsTargetFocused()
+            return false
+
+        ; 2. 取得焦點的 Handle
+        try {
+            hFocus := ControlGetFocus("A")
+            if !hFocus
+                return false
+        } catch {
+            return false
+        }
+
+        ; 3. 執行選取並刪除
+        ; 使用新的 Win32 算法，不需讀取整段文字
+        this._SelectLineWin32(hFocus)
+
+        ; 4. 發送清除指令 (WM_CLEAR = 0x0303)
+        SendMessage(0x0303, 0, 0, hFocus)
+
+        return true
+    }
+
+    ; =================================================================
+    ; 5. [優化] Win32 輔助方法
+    ; =================================================================
+
+    /**
+     * 使用 Win32 API 快速選取整行 (比字串分析快且穩)
+     * 邏輯：選取「本行開頭」到「下一行開頭」之間的所有內容
+     */
+    static _SelectLineWin32(hCtrl) {
+        static EM_LINEFROMCHAR := 0x00C9
+        static EM_LINEINDEX    := 0x00BB
+        static EM_SETSEL       := 0x00B1
+
+        ; 1. 取得目前游標在哪一行 (0-based)
+        ; -1 代表使用目前游標位置
+        lineIdx := SendMessage(EM_LINEFROMCHAR, -1, 0, hCtrl)
+
+        ; 2. 取得這一行的第一個字元索引 (Start)
+        lineStart := SendMessage(EM_LINEINDEX, lineIdx, 0, hCtrl)
+
+        ; 3. 取得「下一行」的第一個字元索引 (End)
+        ; 如果下一行存在，這就會包含本行的換行符號 (`r`n)
+        nextLineStart := SendMessage(EM_LINEINDEX, lineIdx + 1, 0, hCtrl)
+
+        if (nextLineStart == -1) {
+            ; 狀況 A: 沒有下一行了 (這是最後一行)
+            ; 我們就選到文字的最末端
+            ; 這裡偷懶用一個很大的數字代表「到底」，EM_SETSEL 支援這種寫法
+            ; 或者您也可以用 GetTextLength 來算，但 -1 通常有效
+            selStart := lineStart
+            selEnd   := -1  ; 選到最後
+        } else {
+            ; 狀況 B: 有下一行
+            ; 選取範圍就是 [本行開頭, 下一行開頭)
+            selStart := lineStart
+            selEnd   := nextLineStart
+        }
+
+        ; 4. 執行選取
+        SendMessage(EM_SETSEL, selStart, selEnd, hCtrl)
+    }
 }

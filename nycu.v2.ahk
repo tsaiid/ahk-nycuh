@@ -206,17 +206,19 @@ AppendPrevReport() {
 ^ESC:: {
     AppendPrevReport()
 }
-;; Ctrl + Y
-;; Delete current line
-^y:: {
-    local focusedEle := UIA.GetFocusedElement()
-    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
-    ) {
-        hEdit := focusedEle.NativeWindowHandle
-        SelectLogicalLine(hEdit)
-        Edit_Clear(hEdit)
+
+; Ctrl+D 刪除整行
+^d:: {
+    ; 呼叫 Controller 執行刪除
+    isDeleted := RisController.DeleteCurrentLine()
+
+    ; 如果 Controller 回傳 false (代表沒在目標框內，或執行失敗)
+    ; 則將 Ctrl+D 原封不動送回給系統
+    if (!isDeleted) {
+        Send("^d")
     }
 }
+
 FindPrevCRLF(text) {
     found_pos := InStr(text, "`r`n", , -1)
     if (found_pos > 0) {
@@ -555,12 +557,6 @@ FindSimilarReport(examName := "") {
 
 !q:: {
     Send "^e"
-}
-
-;; Ctrl + D
-;; Delete a character
-^d:: {
-    Send "{Del}"
 }
 
 ^k:: {
