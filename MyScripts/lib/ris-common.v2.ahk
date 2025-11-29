@@ -574,6 +574,68 @@ class RisController {
     }
 
     ; =================================================================
+    ; [新增功能] Emacs 風格游標移動 (Ctrl+A / Ctrl+E)
+    ; =================================================================
+
+    /**
+     * 移動游標到邏輯行首或行尾 (Win32 API 高效版)
+     * @param mode "Start" (行首) 或 "End" (行尾)
+     * @returns {Boolean} true: 已執行; false: 不在目標區
+     */
+    static MoveCaret(mode) {
+        ; 1. 檢查焦點
+        if !this.IsTargetFocused()
+            return false
+
+        try {
+            hCtrl := ControlGetFocus("A")
+            if !hCtrl
+                return false
+        } catch {
+            return false
+        }
+
+        ; 2. 定義 Win32 常數
+        static EM_LINEFROMCHAR := 0x00C9 ; 查詢目前在哪一行
+        static EM_LINEINDEX    := 0x00BB ; 查詢該行第一個字的 Index
+        static EM_LINELENGTH   := 0x00C1 ; 查詢該行長度
+        static EM_SETSEL       := 0x00B1 ; 設定選取範圍 (移動游標)
+        static EM_SCROLLCARET  := 0x00B7 ; 捲動畫面至游標處
+
+        ; 3. 計算位置
+        ; 取得目前行號 (0-based)
+        lineIdx := SendMessage(EM_LINEFROMCHAR, -1, 0, hCtrl)
+
+        ; 取得該行起始位置 (Character Index)
+        lineStart := SendMessage(EM_LINEINDEX, lineIdx, 0, hCtrl)
+
+        targetPos := 0
+
+        if (mode = "Start") {
+            ; 行首就是 lineStart
+            targetPos := lineStart
+        }
+        else if (mode = "End") {
+            ; 取得該行長度 (不含換行符號)
+            ; 注意：EM_LINELENGTH 需要傳入「該行內任一字元的 index」才能運作正確
+            ; 我們傳入 lineStart 即可
+            lineLen := SendMessage(EM_LINELENGTH, lineStart, 0, hCtrl)
+
+            ; 行尾 = 起始位置 + 長度
+            targetPos := lineStart + lineLen
+        }
+
+        ; 4. 執行移動
+        ; Start = End 代表不選取文字，單純移動游標
+        SendMessage(EM_SETSEL, targetPos, targetPos, hCtrl)
+
+        ; 5. 確保游標在視野內
+        SendMessage(EM_SCROLLCARET, 0, 0, hCtrl)
+
+        return true
+    }
+
+    ; =================================================================
     ; 5. [優化] Win32 輔助方法
     ; =================================================================
 

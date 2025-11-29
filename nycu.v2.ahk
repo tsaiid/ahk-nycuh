@@ -60,75 +60,6 @@ global reportSaveEle := ""
 ; 腳本啟動時執行，設定為 Fira Code, 大小 14 (根據您的螢幕解析度調整)
 RisController.EnableFontEnforcer("Cascadia Code", 12)
 
-; 確保 RIS 視窗是作用中，且焦點位於我們指定的兩個編輯框之一
-#HotIf WinActive(RISReportWinTitle) && RisController.IsTargetFocused()
-
-^a::
-{
-    ; 跳至邏輯行首 (上一段的 `n 之後)
-    MoveCaretToLogical("Start")
-}
-
-^e::
-{
-    ; 跳至邏輯行尾 (下一段的 `r 之前)
-    MoveCaretToLogical("End")
-}
-
-#HotIf ; 結束條件區塊
-
-; =================================================================
-; 邏輯行移動核心函數
-; =================================================================
-MoveCaretToLogical(position) {
-    try {
-        hCtl := ControlGetFocus("A")
-    } catch {
-        return ; 抓不到 Handle 就不處理
-    }
-
-    ; 1. 取得目前游標位置 (0-based offset)
-    ;    Edit_GetSel 回傳的是 StartPos
-    currentPos := Edit_GetSel(hCtl)
-
-    ; 2. 取得全文
-    text := Edit_GetText(hCtl)
-
-    ; 3. 計算目標位置
-    targetPos := 0
-
-    if (position == "Start") {
-        ; 往回找最近的一個 `n (換行符號)
-        ; InStr 的 StartingPos 是 1-based，所以 currentPos 要 +1
-        ; Occurrence = -1 代表反向搜尋
-        foundPos := InStr(text, "`n", , currentPos + 1, -1)
-
-        if (foundPos == 0) {
-            targetPos := 0 ; 找不到代表在第一行，跳到最前面
-        } else {
-            targetPos := foundPos ; `n 的位置其實就是下一行的起始 offset (因為 0-based)
-            ; 舉例: "A`nB" -> `n 在 index 2. B 的 offset 是 2. (0:A, 1:`n, 2:B)
-        }
-    }
-    else if (position == "End") {
-        ; 往後找最近的一個 `r (Carriage Return)
-        foundPos := InStr(text, "`r", , currentPos + 1)
-
-        if (foundPos == 0) {
-            targetPos := StrLen(text) ; 找不到代表在最後一行，跳到全文結尾
-        } else {
-            targetPos := foundPos - 1 ; `r 的前一個字元是行尾
-        }
-    }
-
-    ; 4. 移動游標
-    ; 設定選取範圍 (Start = End 代表單純移動游標)
-    Edit_SetSel(hCtl, targetPos, targetPos)
-
-    ; 5. 確保游標在畫面中
-    Edit_ScrollCaret(hCtl)
-}
-
 #HotIf WinActive(RISReportWinTitle)
 
 #Include MyScripts\regex-hotstrings.v2.ahk
@@ -205,6 +136,27 @@ AppendPrevReport() {
 }
 ^ESC:: {
     AppendPrevReport()
+}
+
+; Ctrl+A: Emacs 行首 (若不在目標框則為全選)
+^a:: {
+    ; 嘗試移動到行首
+    didMove := RisController.MoveCaret("Start")
+
+    ; 如果不在 Finding/Impression 框框內，則送出原本的 Ctrl+A (全選)
+    if (!didMove) {
+        Send "^a"
+    }
+}
+
+; Ctrl+E: Emacs 行尾
+^e:: {
+    didMove := RisController.MoveCaret("End")
+
+    ; 如果不在目標框，送出原生的 Ctrl+E (有些系統可能是置中對齊或其他功能)
+    if (!didMove) {
+        Send "^e"
+    }
 }
 
 ; Ctrl+D 刪除整行
