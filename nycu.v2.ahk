@@ -219,139 +219,15 @@ AppendPrevReport() {
     }
 }
 
-FindPrevCRLF(text) {
-    found_pos := InStr(text, "`r`n", , -1)
-    if (found_pos > 0) {
-        found_pos := found_pos + 1
-    } else {
-        found_pos := 0
-    }
-    return found_pos
-}
-
-FindPrevText(text_to_find, needle_text, start_pos) {
-    found_pos_space := InStr(text_to_find, needle_text, , -1)
-    if (found_pos_space > 0) {
-        if (found_pos_space = start_pos) {
-            sub_text := SubStr(text_to_find, 1, found_pos_space - 1)
-            found_pos_space := FindPrevText(sub_text, needle_text, found_pos_space - 1)
-        }
-    }
-
-    ; should not cross to previous line
-    found_pos_crlf := FindPrevCRLF(text_to_find)
-    if (found_pos_crlf >= found_pos_space) {
-        found_pos_space := found_pos_crlf
-    }
-
-    return found_pos_space
-}
-;; Ctrl + W
-;; delete previous word
-cacheRequest := UIA.CreateCacheRequest(["AutomationId", "NativeWindowHandle"])
-
-DeletePrevWordUsingCache() {
-    global cacheRequest
-    ;focusedEle := UIA.GetFocusedElement()
-    focusedEle := UIA.GetFocusedElement(cacheRequest)
-    ;if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId) {
-    if (focusedEle.CachedAutomationId = UIA_FindingEdit.AutomationId || focusedEle.CachedAutomationId =
-        UIA_ImpressionEdit.AutomationId) {
-        hEdit := focusedEle.CachedNativeWindowHandle
-        Edit_GetSel(hEdit, &currStartSel)
-        if (currStartSel > 0) { ; if at the beginning of text, do nothing
-            l_text := Edit_GetTextRange(hEdit, 0, currStartSel - 1)
-            l_FoundPos := FindPrevText(l_text, " ", currStartSel)
-            ;MsgBox, %currStartSel% %l_FoundPos%
-            Edit_SetSel(hEdit, l_FoundPos, currStartSel)
-            Edit_Clear(hEdit)
-        }
-    }
-}
-
-DeletePrevWord() {
-    focusedEle := UIA.GetFocusedElement()
-    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
-    ) {
-        hEdit := focusedEle.NativeWindowHandle
-        Edit_GetSel(hEdit, &currStartSel)
-        if (currStartSel > 0) { ; if at the beginning of text, do nothing
-            l_text := Edit_GetTextRange(hEdit, 0, currStartSel - 1)
-            l_FoundPos := FindPrevText(l_text, " ", currStartSel)
-            ;MsgBox, %currStartSel% %l_FoundPos%
-            Edit_SetSel(hEdit, l_FoundPos, currStartSel)
-            Edit_Clear(hEdit)
-        }
-    }
-}
-
-BashDeleteWordBackward(hCtrl) {
-    try {
-        fullText := ControlGetText(hCtrl)
-    } catch {
-        return
-    }
-
-    ; 1. 取得當前游標位置 (0-based)
-    caretPosRaw := SendMessage(0x00B0, 0, 0, hCtrl)
-    caretPos := caretPosRaw & 0xFFFF ; Low word is starting position
-
-    if (caretPos == 0)
-        return ; 已經在最前面，沒東西可刪
-
-    ; 2. 轉成 AHK 1-based 索引
-    ; 我們的目標是找到新的起點 (newStart)，範圍是 newStart 到 caretPos
-    i := caretPos ; i 代表目前檢查的字元位置 (從游標左邊那個字開始)
-
-    ; 3. 向後搜尋邏輯 (模擬 Bash)
-
-    ; 階段 A: 如果游標緊貼著空白，先吃掉這些空白 (Bash 通常會連同後面的單字一起刪)
-    ; 例如 "ls -la  |" -> 按下 Ctrl+W -> "ls |" (刪掉 "-la  ")
-    while (i > 0) {
-        char := SubStr(fullText, i, 1)
-        if (IsSpace(char)) {
-            i--
-        } else {
-            break ; 遇到非空白字元，進入階段 B
-        }
-    }
-
-    ; 階段 B: 繼續往前吃掉所有「非空白」字元，直到遇到空白或檔頭
-    while (i > 0) {
-        char := SubStr(fullText, i, 1)
-        if (!IsSpace(char)) {
-            i--
-        } else {
-            break ; 遇到空白了，停止 (這個空白要保留)
-        }
-    }
-
-    ; 此時 i 指向的是「上一個單字前的空白」位置，或者是 0
-    ; 因為我們選取範圍是從 i 開始，這會剛好保留那個空白
-    selStart := i
-    selEnd := caretPos
-
-    ; 4. 執行刪除
-    ; 先選取範圍 (保留 Undo 功能的最佳作法)
-    SendMessage(0x00B1, selStart, selEnd, hCtrl) ; EM_SETSEL
-
-    ; 發送 Backspace 刪除選取範圍
-    ;SendInput "{Backspace}"
-    SendMessage(0x303, 0, 0, , hCtrl)
-}
-
-; 簡單的空白字元檢查函數
-IsSpace(char) {
-    return (char == " " || char == "`t" || char == "`r" || char == "`n")
-}
-
+; Ctrl+W: 刪除前一個字 (Bash Style)
 ^w:: {
-    ;DeletePrevWord()
-    focusedEle := UIA.GetFocusedElement()
-    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
-    ) {
-        hEdit := focusedEle.NativeWindowHandle
-        BashDeleteWordBackward(hEdit)
+    ; 嘗試呼叫 Controller 執行刪除
+    didDelete := RisController.DeleteWordBackward()
+
+    ; 如果 Controller 回傳 false (代表焦點不在 Finding/Impression 框框內)
+    ; 則透傳 Ctrl+W 給系統 (例如：醫師在瀏覽器想關分頁，或在其他地方想用原生的 Ctrl+W)
+    if (!didDelete) {
+        Send "^w"
     }
 }
 

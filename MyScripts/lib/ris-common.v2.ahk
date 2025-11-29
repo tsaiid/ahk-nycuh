@@ -493,6 +493,86 @@ class RisController {
         return true
     }
 
+    /**
+     * 刪除前一個 Word (Bash Style: 以前方空白為界)
+     * @returns {Boolean} true: 已執行刪除; false: 不在目標區，未執行
+     */
+    static DeleteWordBackward() {
+        ; 1. 檢查焦點
+        if !this.IsTargetFocused()
+            return false
+
+        try {
+            hCtrl := ControlGetFocus("A")
+            if !hCtrl
+                return false
+        } catch {
+            return false
+        }
+
+        ; 2. 執行核心演算法
+        this._BashDeleteAlgo(hCtrl)
+        return true
+    }
+
+    ; --- 私有演算法實作 ---
+    static _BashDeleteAlgo(hCtrl) {
+        try {
+            fullText := ControlGetText(hCtrl)
+        } catch {
+            return
+        }
+
+        ; 取得當前游標位置 (0-based)
+        ; 0x00B0 = EM_GETSEL
+        caretPosRaw := SendMessage(0x00B0, 0, 0, hCtrl)
+        caretPos := caretPosRaw & 0xFFFF
+
+        if (caretPos == 0)
+            return ; 已經在最前面
+
+        ; 轉成 AHK 1-based 索引
+        i := caretPos
+
+        ; --- 階段 A: 吃掉緊貼游標的空白 ---
+        ; "Hello   |" -> "Hello|"
+        while (i > 0) {
+            char := SubStr(fullText, i, 1)
+            if (this._IsSpace(char)) {
+                i--
+            } else {
+                break
+            }
+        }
+
+        ; --- 階段 B: 吃掉單字，直到遇到下一個空白 ---
+        ; "Hello|" -> "|" (遇到 Hello 前面的空白停止)
+        while (i > 0) {
+            char := SubStr(fullText, i, 1)
+            if (!this._IsSpace(char)) {
+                i--
+            } else {
+                break
+            }
+        }
+
+        ; 計算選取範圍
+        selStart := i
+        selEnd := caretPos
+
+        ; 執行刪除
+        ; 0x00B1 = EM_SETSEL
+        SendMessage(0x00B1, selStart, selEnd, hCtrl)
+
+        ; 0x0303 = WM_CLEAR
+        SendMessage(0x0303, 0, 0, hCtrl)
+    }
+
+    ; --- 私有輔助函數 ---
+    static _IsSpace(char) {
+        return (char == " " || char == "`t" || char == "`r" || char == "`n")
+    }
+
     ; =================================================================
     ; 5. [優化] Win32 輔助方法
     ; =================================================================
