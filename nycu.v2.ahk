@@ -398,38 +398,18 @@ FindSimilarReport(examName := "") {
     Send "{Del}"
 }
 
-+Down:: {
-    try {
-        ; 1. 取得當前作用視窗("A") 中，擁有焦點的控制項名稱 (例如 "Edit1")
-        focusedCtl := ControlGetFocus("A")
-
-        ; 2. 將該控制項名稱傳入 Edit 函數
-        currentLine := EditGetCurrentLine(focusedCtl, "A")
-        lineCount := EditGetLineCount(focusedCtl, "A")
-
-        ; 3. 判斷邏輯
-        if (currentLine == lineCount) {
-            SendInput "+{End}"
-        } else {
-            SendInput "+{Down}"
-        }
-    } catch {
-        SendInput "+{Down}"
+; Shift + Up: 智慧向上選取
++Up:: {
+    ; 如果沒執行智慧選取 (不在編輯框內)，則送出原生的 Shift+Up
+    if !RisController.SmartExtendSelection("Up") {
+        SendInput "+{Up}"
     }
 }
 
-+Up:: {
-    try {
-        focusedCtl := ControlGetFocus("A")
-        currentLine := EditGetCurrentLine(focusedCtl, "A")
-
-        if (currentLine == 1) {
-            SendInput "+{Home}"
-        } else {
-            SendInput "+{Up}"
-        }
-    } catch {
-        SendInput "+{Up}"
+; Shift + Down: 智慧向下選取
++Down:: {
+    if !RisController.SmartExtendSelection("Down") {
+        SendInput "+{Down}"
     }
 }
 

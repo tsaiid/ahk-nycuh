@@ -868,4 +868,50 @@ class RisController {
             MsgBox "存檔按鈕點擊失敗: " err.Message
         }
     }
+
+    /**
+     * 處理 Shift+Up/Down 的邊界行為
+     * 當在第一行按 Shift+Up -> 自動轉為 Shift+Home (選到行首)
+     * 當在最後一行按 Shift+Down -> 自動轉為 Shift+End (選到行尾)
+     * * @param direction "Up" or "Down"
+     * @returns {Boolean} true: 已處理; false: 焦點不在目標區
+     */
+    static SmartExtendSelection(direction) {
+        ; 1. 檢查焦點
+        if !this.IsTargetFocused()
+            return false
+
+        try {
+            hCtrl := ControlGetFocus("A")
+        } catch {
+            return false
+        }
+
+        ; 2. 取得行資訊 (Win32 API)
+        static EM_LINEFROMCHAR := 0x00C9 ; 取得目前行號 (0-based)
+        static EM_GETLINECOUNT := 0x00BA ; 取得總行數
+
+        currentLineIdx := SendMessage(EM_LINEFROMCHAR, -1, 0, hCtrl) ; 0-based
+        lineCount      := SendMessage(EM_GETLINECOUNT, 0, 0, hCtrl)
+
+        ; 3. 判斷方向與邊界
+        if (direction == "Up") {
+            ; 如果在第一行 (Index 0)
+            if (currentLineIdx == 0) {
+                SendInput "+{Home}"
+            } else {
+                SendInput "+{Up}"
+            }
+        }
+        else if (direction == "Down") {
+            ; 如果在最後一行 (Index == Count - 1)
+            if (currentLineIdx == lineCount - 1) {
+                SendInput "+{End}"
+            } else {
+                SendInput "+{Down}"
+            }
+        }
+
+        return true
+    }
 }
