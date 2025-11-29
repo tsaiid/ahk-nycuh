@@ -676,4 +676,114 @@ class RisController {
         ; 4. 執行選取
         SendMessage(EM_SETSEL, selStart, selEnd, hCtrl)
     }
+
+    ; =================================================================
+    ; [新增功能] Emacs 單字移動 (Alt+F / Alt+B)
+    ; =================================================================
+
+    /**
+     * 移動游標一個單字 (Word)
+     * @param direction "Left" or "Right"
+     * @returns {Boolean} true: 已執行; false: 不在目標區
+     */
+    static MoveCaretWord(direction) {
+        ; 1. 檢查焦點 (這是關鍵，避免誤觸 Alt 選單)
+        if !this.IsTargetFocused()
+            return false
+
+        ; 2. 執行移動
+        ; 這裡直接用 Send 模擬 Ctrl+Left/Right 即可，Win32 API 實作 Word 跳轉較複雜且沒必要
+        if (direction = "Left")
+            Send "^{Left}"
+        else
+            Send "^{Right}"
+
+        return true
+    }
+
+    ; =================================================================
+    ; [新增功能] 歷史報告過濾器 (Ctrl+1/2/3)
+    ; =================================================================
+
+    /**
+     * 切換歷史報告的篩選條件
+     * @param modeName "All", "Modality", or "My"
+     */
+    static SwitchHistoryFilter(modeName) {
+        try {
+            switch modeName {
+                case "All":      this.PastAllRadio.ControlClick()
+                case "Modality": this.PastModalityRadio.ControlClick()
+                case "My":       this.PastOnlyMyRadio.ControlClick()
+            }
+        } catch as err {
+            ; 可以在這裡統一處理錯誤，例如 ToolTip 提示
+            ToolTip "切換失敗: " err.Message
+            SetTimer () => ToolTip(), -2000
+        }
+    }
+
+    ; =================================================================
+    ; [新增功能] 帶入前次報告 (Ctrl+ESC)
+    ; =================================================================
+
+    /**
+     * 將前次報告內容 Append 到目前的 Finding 與 Impression
+     */
+    static AppendPreviousReport() {
+        ; 1. 取得資料 (使用 Class 內的 Handle，無需重新搜尋)
+        try {
+            ; 取得來源文字
+            ; 這裡直接用 ControlGetText 取 Handle 效能最好
+            pastImp := ControlGetText(this.PastImpressionText.NativeWindowHandle)
+            pastFind := ControlGetText(this.PastFindingText.NativeWindowHandle)
+
+            ; 取得目標 Handle
+            hImpEdit := this.ImpressionEdit.NativeWindowHandle
+            hFindEdit := this.FindingEdit.NativeWindowHandle
+        } catch {
+            return ; 如果元件還沒準備好，直接離開
+        }
+
+        ; 2. 定義 Win32 常數
+        static EM_SETSEL := 0x00B1
+        static EM_REPLACESEL := 0x00C2
+        static EM_SCROLLCARET := 0x00B7
+        static EM_GETTEXTLENGTH := 0x000E ; 或者使用 ControlGetText 判斷長度
+
+        ; --- 內部函式：執行 Append ---
+        AppendToEdit(hEdit, textToAppend) {
+            if (textToAppend == "")
+                return
+
+            try {
+                currentText := ControlGetText(hEdit)
+                currentLen := StrLen(currentText)
+            } catch {
+                currentLen := 0
+            }
+
+            ; A. 將游標移到最後 (Start = End = Length)
+            SendMessage(EM_SETSEL, currentLen, currentLen, hEdit)
+
+            ; B. 插入文字 (如果不是空行開頭，建議先補個換行)
+            ; 這裡視您的需求，如果想強制換行再貼上：
+            if (currentLen > 0)
+                textToAppend := "`r`n" . textToAppend
+
+            ; C. 執行貼上 (Replace Selection at the end)
+            ; True (1) 代表允許 Undo
+            SendMessage(EM_REPLACESEL, 1, StrPtr(textToAppend), hEdit)
+
+            ; D. 捲動到游標處
+            SendMessage(EM_SCROLLCARET, 0, 0, hEdit)
+        }
+
+        ; 3. 執行寫入
+        AppendToEdit(hImpEdit, pastImp)
+        AppendToEdit(hFindEdit, pastFind)
+
+        ; 4. (選用) 將焦點移回 Finding 方便繼續編輯
+        try this.FindingEdit.SetFocus()
+    }
 }

@@ -85,58 +85,27 @@ RisController.EnableFontEnforcer("Cascadia Code", 12)
 ^9:: {
 }
 
+; --- Emacs Word Movement ---
+; 加上防呆機制：只有在打字時，Alt+F 才是向右移動
+; 否則它會保留 Windows 預設行為 (開啟檔案選單)
 !f:: {
-    Send "^{Right}"
+    if !RisController.MoveCaretWord("Right")
+        Send "!f" ; 透傳
 }
 
 !b:: {
-    Send "^{Left}"
+    if !RisController.MoveCaretWord("Left")
+        Send "!b" ; 透傳
 }
 
-^1:: {
-    try {
-        RisController.PastAllRadio.ControlClick()
-    } catch as err {
-        MsgBox "操作失敗: " err.Message
-    }
-}
-^2:: {
-    try {
-        RisController.PastModalityRadio.ControlClick()
-    } catch as err {
-        MsgBox "操作失敗: " err.Message
-    }
-}
-^3:: {
-    try {
-        RisController.PastOnlyMyRadio.ControlClick()
-    } catch as err {
-        MsgBox "操作失敗: " err.Message
-    }
-}
-;;; Append previous report to FINDINGS and IMPRESSION
-AppendPrevReport() {
-    try {
-        ;pastImpression := RisController.GetText(RisController.PastImpressionText)
-        pastImpression := ControlGetText(RisController.PastImpressionText.NativeWindowHandle)
-        hImpEdit := RisController.ImpressionEdit.NativeWindowHandle
-        Edit_SetSel(hImpEdit, Edit_GetTextLength(hImpEdit))
-        Edit_ReplaceSel(hImpEdit, pastImpression)
+; --- History Filter Switching ---
+; 這裡不需要透傳，因為 Ctrl+數字鍵通常沒有其他重要功能
+^1:: RisController.SwitchHistoryFilter("All")
+^2:: RisController.SwitchHistoryFilter("Modality")
+^3:: RisController.SwitchHistoryFilter("My")
 
-        ;pastFinding := RisController.GetText(RisController.PastFindingText)
-        pastFinding := ControlGetText(RisController.PastFindingText.NativeWindowHandle)
-        hFindingEdit := RisController.FindingEdit.NativeWindowHandle
-        Edit_SetSel(hFindingEdit, Edit_GetTextLength(hFindingEdit))
-        Edit_ReplaceSel(hFindingEdit, pastFinding)
-        Edit_SetSel(hFindingEdit, 0, 0)
-        Edit_ScrollCaret(hFindingEdit)
-    } catch TargetError as err {
-        MsgBox "操作失敗: " err.Message
-    }
-}
-^ESC:: {
-    AppendPrevReport()
-}
+; --- Business Logic ---
+^Esc:: RisController.AppendPreviousReport()
 
 ; Ctrl+A: Emacs 行首 (若不在目標框則為全選)
 ^a:: {
