@@ -257,303 +257,36 @@ Benchmark(funcObj, times := 1) {
         RisController.InsertSelectedHistoryName()
 }
 
-ConvertRISDate(inputString) {
-    ; 1. 標準化輸入：移除 "/" 符號
-    ;    這樣 "114/10/14" 會變成 "1141014"
-    ;    而 "1141014" 則不受影響
-    cleanString := StrReplace(inputString, "/")
+; --- Findings Formatting ---
+SC079:: RisController.FormatFindingText() ; 日文鍵盤的轉換鍵?
+^!,::   RisController.FormatFindingText()
 
-    ; 2. 從已清理的字串 (yyymmdd...) 中提取各個部分
-    minguoYear := SubStr(cleanString, 1, 3)  ; yyy (例如: 114)
-    month := SubStr(cleanString, 4, 2)        ; mm (例如: 10)
-    day := SubStr(cleanString, 6, 2)          ; dd (例如: 14)
+; --- Impression Formatting ---
+SC070:: RisController.FormatImpressionText() ; 日文鍵盤的無變換鍵?
+^!.::   RisController.FormatImpressionText()
 
-    ; 3. 將民國年轉換為西元年 (民國年 + 1911 = 西元年)
-    gregorianYear := minguoYear + 1911
+; --- Selection Reordering (Manual) ---
+; 重排選取文字 (預設：自動編號 1. 2. 3.)
+^!o:: RisController.ReorderSelection()
 
-    ; 4. 組合並返回 yyyy-mm-dd 格式的字串
-    ;    (維持您原本的 . 串接風格)
-    outputDate := gregorianYear . "-" . month . "-" . day
+; 重排選取文字 (保留 Series/Image 標記)
+^!+o:: RisController.ReorderSelection({discardSeIm: false})
 
-    return outputDate
-}
+; 移除編號，改用 "*"
+^+*:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "*"})
 
-GetCurrExamName() {
-    try {
-        hExamname := RisController.ExamnameText.NativeWindowHandle
-        examname := StrReplace(ControlGetText(hExamname), "檢查項目: ", "")
-        return examname
-    } catch as err {
-        MsgBox "操作失敗: " err.Message
-        return
-    }
-}
+; 移除編號，改用 "-"
+^+-:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "-"})
 
-GetCurrExamType() {
-    examname := GetCurrExamName()
-    if (InStr(examname, "CT") || InStr(examname, "電腦斷層")) {
-        return "CT"
-    } else if (InStr(examname, "MR") || InStr(examname, "磁振造影")) {
-        return "MR"
-    } else if (InStr(examname, "US") || InStr(examname, "超音波")) {
-        return "US"
-    }
-    return "CR"
-}
+; 移除編號，改用 ">"
+^+>:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: ">"})
 
-OrderListForFindings() {
-    examtype := GetCurrExamType()
-    ;MsgBox(examtype)
-    switch examtype {
-        case "CT", "MR":
-            UnorderListForFindingsOfCtOrMr()
+; --- Pathology Copy ---
+^!c:: RisController.CopyPathologyReport()
 
-        case "CR", "US":
-            UnorderListForFindingsOfCrOrUs()
-    }
-}
-
-UnorderListForFindingsOfCrOrUs() {
-    ; 取得 Handle
-    if (hEdit := RisController.FindingEdit.NativeWindowHandle) {
-
-        ; 搜尋並選取文字 (這部分保持原本邏輯)
-        startSel := Edit_FindText(hEdit, "FINDINGS:`r`n|:\s*`r`n\s*`r`n", , , "RegEx", &matchedText)
-        if (startSel > -1) {
-            startSel += matchedText.Len
-            Edit_SetFocus(hEdit)
-            Edit_SetSel(hEdit, startSel, -1)
-
-            ; --- 修改點：直接將 hEdit 傳入 ---
-            ReorderSelectedText(false, true, "-", false, hEdit)
-        }
-    }
-}
-
-UnorderListForFindingsOfCtOrMr() {
-    if (hEdit := RisController.FindingEdit.NativeWindowHandle) {
-        startSel := Edit_FindText(hEdit,
-            "FINDINGS:`r`n|The study shows:`r`n`r`n|show the following findings:`r`n`r`n|which revealed:`r`n`r`n", , ,
-            "RegEx", &matchedText)
-
-        if (startSel > -1) {
-            ;startSel += StrLen(matchedText)
-            startSel += matchedText.Len
-            loop 3 {
-                newStartSel := startSel
-                startText := Edit_GetTextRange(hEdit, newStartSel, newStartSel + 1)
-                ;MsgBox % startText
-                if (startText = "* ") {
-                    newStartSel := Edit_FindText(hEdit, "`r`n", newStartSel)
-                    ;MsgBox % startSel
-                    if (newStartSel > -1) {
-                        startSel := newStartSel + 2
-                    }
-                } else {
-                    break
-                }
-            }
-
-            endSel := Edit_FindText(hEdit, "REMARKS?:|RECOMMENDATION:", , , "RegEx")  ; -1 if not found
-            if (endSel > -1) {
-                endSel -= 2
-            }
-            Edit_SetFocus(hEdit)
-            Edit_SetSel(hEdit, startSel, endSel)
-            ReorderSelectedText(false, false, "-", , hEdit)
-        }
-    } else {
-        MsgBox("FINDING_CONTROL_HWND is invalid!")
-    }
-}
-
-;;; Formatting FINDINGS
-;;;; Reorder Seleted Text And Keep SeIm
-SC079:: {
-    OrderListForFindings()
-}
-^!,:: {
-    OrderListForFindings()
-}
-
-;;; Formatting IMPRESSION
-;;;; Reorder Seleted Text And Discard SeIm
-FormatImpressionText() {
-    if (hEdit := RisController.ImpressionEdit.NativeWindowHandle) {
-        Edit_SetFocus(hEdit)
-        Edit_SetSel(hEdit)
-        if (Edit_CountNonEmptyLines(hEdit) > 1) {
-            ReorderSelectedText(, , , , hEdit)
-        } else {
-            ReorderSelectedText(true, , , , hEdit)
-        }
-    }
-}
-
-SC070:: {
-    FormatImpressionText()
-}
-^!.:: {
-    FormatImpressionText()
-}
-
-; Reorder Seleted Text And Discard SeIm
-^!o:: {
-    hEdit := UIA.GetFocusedElement().NativeWindowHandle
-    ReorderSelectedText(, , , , hEdit)
-}
-
-; Reorder Seleted Text And Keep SeIm
-^!+o:: {
-    hEdit := UIA.GetFocusedElement().NativeWindowHandle
-    ReorderSelectedText(, , , false, hEdit)
-}
-
-; Unorder Seleted Text
-^+*:: {
-    hEdit := UIA.GetFocusedElement().NativeWindowHandle
-    ReorderSelectedText(false, true, "*", , hEdit)
-}
-
-^+-:: {
-    hEdit := UIA.GetFocusedElement().NativeWindowHandle
-    ReorderSelectedText(false, true, "-", , hEdit)
-}
-
-^+>:: {
-    hEdit := UIA.GetFocusedElement().NativeWindowHandle
-    ReorderSelectedText(false, true, ">", , hEdit)
-}
-
-CopyPathologyReport() {
-    try {
-        reportText := ConvertRISDate(RisController.PathoDateText.Value) . ": " . RisController.PathoDiagnosisText.Value
-        if (reportText != "") {
-            A_Clipboard := reportText
-            if !ClipWait(0.8) {
-                throw Error("複製文字失敗 (逾時)。")
-            }
-            Notify("病理報告已複製到剪貼簿。")
-        } else {
-            throw Error("找不到病理報告內容。")
-        }
-    } catch as err {
-        MsgBox("操作失敗: " . err.Message)
-    }
-}
-
-^+c:: {
-    CopyPathologyReport()
-}
-
-; 取得系統設定的滑鼠連點時間 (通常是 500ms)，讓判定更符合你的手感
-DoubleClickTime := DllCall("GetDoubleClickTime")
-
-~LButton:: {
-    static clickCount := 0
-    static lastClickTime := 0
-
-    ; 計算當前點擊與上次點擊的時間差
-    timeSinceLast := A_TickCount - lastClickTime
-
-    ; 如果時間差在連點允許範圍內，增加計數，否則重置為 1
-    if (timeSinceLast <= DoubleClickTime) {
-        clickCount++
-    } else {
-        clickCount := 1
-    }
-
-    ; 更新最後點擊時間
-    lastClickTime := A_TickCount
-
-    ; 偵測到第三次點擊
-    if (clickCount = 3) {
-        ; 重置計數器，避免連續點第 4 下又觸發
-        clickCount := 0
-
-        ; 取得滑鼠下的 Control 資訊 (hCtrl 是控制項的 Handle/ID)
-        MouseGetPos , , , &hCtrl, 2
-
-        try {
-            ; 取得 ClassNN 用於過濾
-            classNN := ControlGetClassNN(hCtrl)
-
-            ; 過濾條件：包含 "Edit" 且 不包含 "RichEdit"
-            if (InStr(classNN, "Edit") && !InStr(classNN, "RichEdit")) {
-
-                ; 呼叫自定義函數來選取邏輯行
-                SelectLogicalLine(hCtrl)
-            }
-        }
-    }
-}
-
-SelectLogicalLine(hCtrl) {
-    ; 1. 取得 Control 內的全部文字
-    try {
-        fullText := ControlGetText(hCtrl)
-    } catch {
-        return ; 如果無法取得文字則放棄
-    }
-
-    if (fullText = "")
-        return
-
-    ; 2. 取得當前游標位置 (EM_GETSEL = 0x00B0)
-    ; 這裡回傳的是一個 DWORD，低位元組是起始位置，我們只需要知道游標在哪即可
-    caretPosRaw := SendMessage(0x00B0, 0, 0, hCtrl)
-    caretPos := caretPosRaw & 0xFFFF ; 這是 0-based 的索引
-
-    ; 3. 計算邏輯行的開始 (Start)
-    ; AHK 的字串索引是 1-based，所以計算時要小心轉換
-    ; InStr 尋找換行符號 `n (Line Feed)
-    ; 從游標位置往前找 (參數 -1 代表反向搜尋)
-
-    ; 轉換 caretPos 到 AHK 的 1-based 視角
-    ahkCaretPos := caretPos + 1
-
-    ; 往回找上一個換行符號的位置
-    prevLineBreak := InStr(fullText, "`n", , ahkCaretPos, -1)
-
-    ; 如果找到了換行，起始點應該是換行符號的"下一個字"
-    ; 如果沒找到 (prevLineBreak 為 0)，代表在第一行，起始點就是 0 (0-based)
-    selStart := (prevLineBreak == 0) ? 0 : prevLineBreak
-
-    ; --- 計算 End (修改邏輯：包含換行符號) ---
-
-    ; 找尋游標後的下一個 `r 或 `n
-    nextR := InStr(fullText, "`r", , ahkCaretPos)
-    nextN := InStr(fullText, "`n", , ahkCaretPos)
-
-    selEnd := 0
-
-    ; 狀況 1: 後面完全沒有換行符號 -> 選到文字最後
-    if (nextR == 0 && nextN == 0) {
-        selEnd := StrLen(fullText)
-    }
-    ; 狀況 2: 先遇到 `r (通常是 Windows 的 `r`n 結構)
-    else if (nextR > 0 && (nextN == 0 || nextR < nextN)) {
-        ; 檢查這個 `r 後面是不是緊接著 `n
-        if (SubStr(fullText, nextR + 1, 1) == "`n") {
-            ; 是 `r`n 結構，選取範圍要包含這兩個字元
-            ; 數學計算：
-            ; `r 在位置 nextR (例如 5)
-            ; `n 在位置 nextR+1 (例如 6)
-            ; 我們要選到 6 結束 (包含 0~5 共 6 個字元)
-            selEnd := nextR + 1
-        } else {
-            ; 只有 `r (罕見，但也算換行)，選取範圍包含 `r
-            selEnd := nextR
-        }
-    }
-    ; 狀況 3: 先遇到 `n (Unix 格式換行)，選取範圍包含 `n
-    else {
-        selEnd := nextN
-    }
-
-    ; 發送選取指令
-    SendMessage(0x00B1, selStart, selEnd, hCtrl)
-}
+; --- Triple Click Handler ---
+; 讓滑鼠左鍵通過，同時觸發連點檢查
+~LButton:: RisController.HandleTripleClick()
 
 #HotIf ; WinActive(RISReportWinTitle)
 
