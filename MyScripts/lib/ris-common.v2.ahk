@@ -793,4 +793,79 @@ class RisController {
         ; 4. (選用) 將焦點移回 Finding 方便繼續編輯
         try this.FindingEdit.SetFocus()
     }
+
+    ; =================================================================
+    ; [新增功能] 檢查名稱與存檔流程 (Exam Name & Saving)
+    ; =================================================================
+
+    /**
+     * 在目前游標位置插入處理過的檢查名稱
+     * 邏輯：去除 "檢查項目: " -> 加上 ":\r\n\r\n" -> 插入
+     * @returns {Boolean} true: 執行成功; false: 焦點不在目標區
+     */
+    static InsertExamNameAtCaret() {
+        ; 1. 檢查焦點
+        if !this.IsTargetFocused()
+            return false
+
+        try {
+            hEdit := ControlGetFocus("A")
+
+            ; 取得原始文字
+            rawName := ControlGetText(this.ExamnameText.NativeWindowHandle)
+        } catch {
+            return false
+        }
+
+        if (rawName == "")
+            return true ; 沒抓到名稱就不動作，但也算處理完畢
+
+        ; 2. 字串處理 (String Processing)
+        ; 去除 "檢查項目: " (包含後面的空白)
+        cleanName := StrReplace(rawName, "檢查項目: ", "")
+
+        ; 加上後綴格式 (冒號 + 兩行換行)
+        textToInsert := cleanName . ":`r`n`r`n"
+
+        ; 3. 執行插入 (Win32 API)
+        static EM_REPLACESEL := 0x00C2
+
+        ; 參數說明:
+        ; wParam (1) = 可以被 Undo (True)
+        ; lParam = 要插入的字串指標
+        ; 行為: 將目前游標處(或選取範圍)替換為 textToInsert，游標自動移到插入文字的後方
+        SendMessage(EM_REPLACESEL, 1, StrPtr(textToInsert), hEdit)
+
+        return true
+    }
+
+    /**
+     * 設定「自動下一筆」的狀態
+     * @param targetState {Boolean} true=勾選, false=取消勾選
+     */
+    static SetAutoNextState(targetState) {
+        try {
+            ; 取得目前的 ToggleState (1=Checked, 0=Unchecked)
+            currentState := this.AutoNextCheckbox.ToggleState
+
+            ; 如果狀態不一致，才執行 Toggle
+            ; targetState 轉成 1/0 比較保險
+            if (!!targetState != !!currentState) {
+                this.AutoNextCheckbox.Toggle()
+            }
+        } catch as err {
+            ; 這裡建議靜默失敗或寫 Log，不要跳 MsgBox 打斷流程
+        }
+    }
+
+    /**
+     * 點擊儲存報告按鈕
+     */
+    static SaveReport() {
+        try {
+            this.ReportSaveButton.ControlClick()
+        } catch as err {
+            MsgBox "存檔按鈕點擊失敗: " err.Message
+        }
+    }
 }

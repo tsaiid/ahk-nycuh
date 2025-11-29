@@ -179,6 +179,7 @@ Benchmark(funcObj, times := 1) {
     return (end - start) / freq * 1000
 }
 
+/*
 InsertExamname() {
     focusedEle := UIA.GetFocusedElement()
     if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
@@ -227,6 +228,32 @@ ClickSaveReport() {
     } catch as err {
         MsgBox "操作失敗: " err.Message
     }
+}
+    */
+
+; Alt+E: 在游標處插入檢查名稱
+!e:: {
+    ; 如果焦點在編輯框內，執行插入
+    ; 如果焦點在其他地方，送出 Alt+E (開啟系統選單)
+    if !RisController.InsertExamNameAtCaret() {
+        Send "!e"
+    }
+}
+
+; Alt+C: 取消 AutoNext 並存檔 (Save Only)
+!c:: {
+    ; 1. 設定 AutoNext 為 False (取消勾選)
+    RisController.SetAutoNextState(false)
+    ; 2. 存檔
+    RisController.SaveReport()
+}
+
+; Ctrl+S: 勾選 AutoNext 並存檔 (Save & Next)
+^s:: {
+    ; 1. 設定 AutoNext 為 True (勾選)
+    RisController.SetAutoNextState(true)
+    ; 2. 存檔
+    RisController.SaveReport()
 }
 
 !ESC:: {
