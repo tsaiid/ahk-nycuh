@@ -18,49 +18,18 @@ SetKeyDelay -1
 
 global PRESERVE_CLIPBOARD := 0
 
-#Include <UIA.v2>
-#Include <Paste.v2>
-#Include <Edit.v2>
+#Include <RisController.v2>
+;#Include <UIA.v2>
+;#Include <Paste.v2>
+;#Include <Edit.v2>
 
-#Include MyScripts\hotkey\reorder-selected-text.v2.ahk
+;#Include MyScripts\hotkey\reorder-selected-text.v2.ahk
 #Include MyScripts\hotkey\remapping-original-hotkeys-infinitt.v2.ahk
-
-global RISReportWinTitle := "報告作業(frmRISReport)" ; 替換成您的程式標題
-global RISCTMRAbnormalWinTitle := "檢查結果(frmPos)"
-global UIA_PastReportTable := { AutomationId: "dgvPastReport" }
-global UIA_AutoNextCheckbox := { AutomationId: "chkAutoNext" }
-global UIA_ReportSaveButton := { AutomationId: "btnReportSave" }
-global UIA_ExamNameTxt := { AutomationId: "txtExamName" }
-global UIA_FindingEdit := { AutomationId: "txtReport" }
-global UIA_ImpressionEdit := { AutomationId: "txtImpression" }
-global UIA_PastAllRadio := { AutomationId: "rdoPastALL" }
-global UIA_PastModalityRadio := { AutomationId: "rdoClassify" }
-global UIA_PastOnlyMyRadio := { AutomationId: "rdoPastOnlyMy" }
-global UIA_PastReportFindingTxt := { AutomationId: "rtxtPastReport" }
-global UIA_PastReportImpressionTxt := { AutomationId: "rtxtPastImpression" }
-global UIA_PathoDiagnosisTxt := { AutomationId: "txtDiagnosist" }
-global UIA_PathoDateTxt := { AutomationId: "mtxtRcpDTM" }
-global ABNORMAL_VALUE_1_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13"
-global ABNORMAL_VALUE_2_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad15"
-global ABNORMAL_VALUE_3_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad16"
-global ABNORMAL_VALUE_4_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad14"
-global ABNORMAL_VALUE_SAVE_BUTTON_CONTROL := "WindowsForms10.BUTTON.app.0.2780b98_r24_ad12"
-global EXAMNAME_HWND := 0
-global FINDING_CONTROL_HWND := 0
-global IMPRESSION_CONTROL_HWND := 0
-global PAST_ALL_RADIO_HWND := 0
-global PAST_MODALITY_RADIO_HWND := 0
-global PAST_ONLY_MY_RADIO_HWND := 0
-global PAST_FINDING_HWND := 0
-global PAST_IMPRESSION_HWND := 0
-global risEle := ""
-global autoNextEle := ""
-global reportSaveEle := ""
 
 ; 腳本啟動時執行，設定為 Fira Code, 大小 14 (根據您的螢幕解析度調整)
 RisController.EnableFontEnforcer("Cascadia Code", 12)
 
-#HotIf WinActive(RISReportWinTitle)
+#HotIf WinActive(RisController.WinTitle)
 
 #Include MyScripts\regex-hotstrings.v2.ahk
 #Include MyScripts\others.v2.ahk
@@ -265,6 +234,7 @@ SC079:: RisController.FormatFindingText() ; 日文鍵盤的轉換鍵?
 SC070:: RisController.FormatImpressionText() ; 日文鍵盤的無變換鍵?
 ^!.::   RisController.FormatImpressionText()
 
+
 ; --- Selection Reordering (Manual) ---
 ; 重排選取文字 (預設：自動編號 1. 2. 3.)
 ^!o:: RisController.ReorderSelection()
@@ -284,146 +254,35 @@ SC070:: RisController.FormatImpressionText() ; 日文鍵盤的無變換鍵?
 ; --- Pathology Copy ---
 ^!c:: RisController.CopyPathologyReport()
 
+;-----------------------------------------------------------
+; Mouse Remapping
+XButton1:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "-"})
+
+XButton2:: RisController.ReorderSelection()
+
 ; --- Triple Click Handler ---
 ; 讓滑鼠左鍵通過，同時觸發連點檢查
 ~LButton:: RisController.HandleTripleClick()
 
-#HotIf ; WinActive(RISReportWinTitle)
+#HotIf ; WinActive(RisController.WinTitle)
 
 ;; for JIS keyboard
-SC029:: {
-    try {
-        if (!WinActive(RISReportWinTitle)) {
-            WinActivate(RISReportWinTitle)
-            WinWaitActive(RISReportWinTitle)
-            focusedEle := UIA.GetFocusedElement()
-            if (focusedEle.AutomationId != UIA_FindingEdit.AutomationId && focusedEle.AutomationId !=
-                UIA_ImpressionEdit.AutomationId) {
-                ControlFocus(RisController.FindingEdit.NativeWindowHandle)
-            }
-        } else {
-            focusedEle := UIA.GetFocusedElement()
-            if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId) {
-                ControlFocus(RisController.ImpressionEdit.NativeWindowHandle)
-            } else {
-                ControlFocus(RisController.FindingEdit.NativeWindowHandle)
-            }
-        }
-    } catch TargetError as err {
-        MsgBox "操作失敗: " err.Message
-    }
-}
+SC029:: RisController.ActivateOrToggleFocus() ; SC029 通常是 `~ 鍵
 
-UpdateRisElements() {
-    global risEle, autoNextEle, reportSaveEle
-    global FINDING_CONTROL_HWND, IMPRESSION_CONTROL_HWND, EXAMNAME_HWND
-    global PAST_ALL_RADIO_HWND, PAST_MODALITY_RADIO_HWND, PAST_ONLY_MY_RADIO_HWND
-    global PAST_FINDING_HWND, PAST_IMPRESSION_HWND
 
-    try
-    {
-        risEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
+; 危急值視窗熱鍵區
+#HotIf WinActive(RisController.AbnormalWinTitle)
 
-        ele := risEle.FindFirst(UIA_FindingEdit)
-        FINDING_CONTROL_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+!1:: RisController.ClickAbnormalButton(1)
+!2:: RisController.ClickAbnormalButton(2)
+!3:: RisController.ClickAbnormalButton(3)
+!4:: RisController.ClickAbnormalButton(4)
 
-        ele := risEle.FindFirst(UIA_ImpressionEdit)
-        IMPRESSION_CONTROL_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+; 如果想加存檔熱鍵也很容易：
+; ^s:: RisController.ClickAbnormalButton("Save")
 
-        ele := risEle.FindFirst(UIA_ExamNameTxt)
-        EXAMNAME_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
+#HotIf ; WinActive(RisController.AbnormalWinTitle)
 
-        ele := risEle.FindFirst(UIA_PastAllRadio)
-        PAST_ALL_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
-
-        ele := risEle.FindFirst(UIA_PastModalityRadio)
-        PAST_MODALITY_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
-
-        ele := risEle.FindFirst(UIA_PastOnlyMyRadio)
-        PAST_ONLY_MY_RADIO_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
-
-        ele := risEle.FindFirst(UIA_PastReportFindingTxt)
-        PAST_FINDING_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
-
-        ele := risEle.FindFirst(UIA_PastReportImpressionTxt)
-        PAST_IMPRESSION_HWND := IsObject(ele) ? ele.NativeWindowHandle : 0
-
-        autoNextEle := risEle.FindFirst(UIA_AutoNextCheckbox)
-        reportSaveEle := risEle.FindElement(UIA_ReportSaveButton)
-    }
-    catch as e {
-        ; 如果發生錯誤 (例如視窗找不到), 我們的快取就會是 stale
-        ;MsgBox("UIA Error in timer: " . e.Message) ; (可選: 除錯用)
-
-        ; 7. 如果視窗或元素找不到, 或發生錯誤, 就清除 global 變數
-        risEle := ""
-    }
-}
-
-global simReportMap := Map(
-    "CHEST PA/AP", Map("CHEST PA/AP+LAT", 1),
-    "CHEST PA/AP+LAT", Map("CHEST PA/AP", 1),
-    "KUB", Map("KUB+ABD LAT", 1),
-    "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing", 1),
-    "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST", 1),
-    "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", 1),
-)
-
-;UpdateRisElements()
-;SetTimer(UpdateRisElements, 60000)
-
-Notify(text, duration := 1500) {
-    g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20") ; E0x20 讓滑鼠穿透
-    g.BackColor := "333333" ; 背景色
-    g.SetFont("s16 cWhite bold", "微軟正黑體") ; 字型設定
-
-    ; === 修正點：設定內距 (Padding) ===
-    g.MarginX := 20 ; 左右留白 20px
-    g.MarginY := 20 ; 上下留白 20px
-
-    ; 新增文字 (不需額外設定位置，會自動置中)
-    g.Add("Text", , text)
-
-    ; 顯示 (AutoSize 會根據 Margin 自動調整視窗大小)
-    g.Show("NoActivate AutoSize Center")
-
-    ; 時間到自動銷毀
-    SetTimer () => g.Destroy(), -duration
-}
-
-;-----------------------------------------------------------
-; Mouse Remapping
-#HotIf WinActive(RISReportWinTitle)
-
-XButton1:: {
-    ReorderSelectedText(false, true, "-")
-}
-XButton2:: {
-    ReorderSelectedText()
-}
-
-#HotIf ; WinActive(RISReportWinTitle)
-
-;-----------------------------------------------------------
-#HotIf WinActive(RISCTMRAbnormalWinTitle)
-!1:: {
-    global ABNORMAL_VALUE_1_CONTROL
-    ControlClick(ABNORMAL_VALUE_1_CONTROL)
-}
-!2:: {
-    global ABNORMAL_VALUE_2_CONTROL
-    ControlClick(ABNORMAL_VALUE_2_CONTROL)
-}
-!3:: {
-    global ABNORMAL_VALUE_3_CONTROL
-    ControlClick(ABNORMAL_VALUE_3_CONTROL)
-}
-!4:: {
-    global ABNORMAL_VALUE_4_CONTROL
-    ControlClick(ABNORMAL_VALUE_4_CONTROL)
-}
-
-#HotIf ; WinActive(RISCTMRAbnormalWinTitle)
 
 ;
 ; Global Remap
