@@ -914,4 +914,195 @@ class RisController {
 
         return true
     }
+
+    ; =================================================================
+    ; [新增功能] 歷史報告互動 (History Table Actions)
+    ; =================================================================
+
+    ; --- 1. 定義相似報告對照表 (Static Map) ---
+    static _SimReportMap := Map(
+        "CHEST PA/AP", Map("CHEST PA/AP+LAT", 1),
+        "CHEST PA/AP+LAT", Map("CHEST PA/AP", 1),
+        "KUB", Map("KUB+ABD LAT", 1),
+        "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing", 1),
+        "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST", 1),
+        "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", 1),
+    )
+
+    ; --- 2. 主要功能: 尋找並點擊相似報告 ---
+
+    /**
+     * 搜尋歷史報告表，若找到相同或相似的檢查名稱，自動點擊該行
+     */
+    static FindAndClickSimilarReport() {
+        ; 1. 取得當前檢查名稱 (內部重用邏輯)
+        currExamName := this._GetCleanCurrentExamName()
+        if (currExamName == "")
+            return
+
+        SearchColumnIndex := 3 ; 1=簽收日, 2=儀器, 3=檢查項目
+
+        try {
+            ; 2. 獲取 Table (利用 Class 快取)
+            tableEle := this.PastReportTable
+
+            ; 3. 尋找所有 Rows
+            ; 注意：這裡保留您原本的邏輯，先找 Custom，若無可視情況調整
+            rowElements := tableEle.FindAll({ Type: 'Custom' })
+            if (rowElements.Length = 0)
+                throw Error("表格中找不到資料行 (Rows)")
+
+            ; 4. 遍歷搜尋
+            for rowEle in rowElements {
+                ; 找儲存格
+                cellElements := rowEle.FindAll({ Type: 'DataItem' })
+                if (cellElements.Length = 0)
+                    cellElements := rowEle.FindAll({ Type: 'Custom' })
+
+                if (cellElements.Length < SearchColumnIndex)
+                    continue
+
+                ; 取得檢查項目文字 (第 3 欄)
+                targetCellEle := cellElements[SearchColumnIndex]
+                historyExamName := targetCellEle.Value
+
+                ; 比對邏輯
+                if (this._IsRelatedReport(historyExamName, currExamName)) {
+                    ; *** 找到了！執行點擊 ***
+                    this._ClickUIAElement(targetCellEle)
+
+                    ; 顯示提示 (可選)
+                    ToolTip "已選取相似報告: " historyExamName
+                    SetTimer () => ToolTip(), -2000
+                    return
+                }
+            }
+
+            ToolTip "未找到相似的歷史報告"
+            SetTimer () => ToolTip(), -2000
+
+        } catch as err {
+            MsgBox "搜尋歷史報告失敗: " err.Message
+        }
+    }
+
+    ; --- 3. 主要功能: 插入選取行的日期/名稱 ---
+
+    /**
+     * 插入歷史報告表格中「目前被選取」的那一行的日期 (轉為西元)
+     */
+    static InsertSelectedHistoryDate() {
+        this._InsertFromSelectedRow(1, true) ; 1 = 日期欄位, true = 需要日期轉換
+    }
+
+    /**
+     * 插入歷史報告表格中「目前被選取」的那一行的檢查名稱
+     */
+    static InsertSelectedHistoryName() {
+        this._InsertFromSelectedRow(3, false) ; 3 = 名稱欄位
+    }
+
+    ; --- 內部通用邏輯: 從選取行抓資料 ---
+    static _InsertFromSelectedRow(colIndex, needDateConvert) {
+        if !this.IsTargetFocused()
+            return
+
+        static STATE_SYSTEM_SELECTED := 0x2
+
+        try {
+            tableEle := this.PastReportTable
+            rowElements := tableEle.FindAll({ Type: 'Custom' })
+
+            foundValue := ""
+
+            ; 遍歷尋找被選取的行 (LegacyIAccessible Pattern)
+            for rowEle in rowElements {
+                if IsObject(rowEle.LegacyIAccessiblePattern) {
+                    if (rowEle.LegacyIAccessiblePattern.State & STATE_SYSTEM_SELECTED) {
+
+                        ; 找到該行的目標儲存格
+                        targetCell := rowEle.FindElement({ ControlType: "DataItem" }, , colIndex)
+                        if IsObject(targetCell) {
+                            foundValue := targetCell.Value
+                        }
+                        break ; 找到就跳出
+                    }
+                }
+            }
+
+            if (foundValue != "") {
+                if (needDateConvert)
+                    foundValue := this._ConvertRISDate(foundValue)
+
+                ; 執行插入 (使用 SendText 模擬打字，最通用)
+                SendText foundValue
+            }
+
+        } catch as err {
+            ; 靜默失敗或簡單提示
+            ; ToolTip "無法擷取資料: " err.Message
+        }
+    }
+
+    ; --- 4. 輔助運算 (Private Helpers) ---
+
+    ; 取得清理過的當前檢查名稱 (移除 "檢查項目: ")
+    static _GetCleanCurrentExamName() {
+        try {
+            rawName := ControlGetText(this.ExamnameText.NativeWindowHandle)
+            return StrReplace(rawName, "檢查項目: ", "")
+        } catch {
+            return ""
+        }
+    }
+
+    ; 判斷是否為相關報告
+    static _IsRelatedReport(prevName, currName) {
+        ; 1. 完全相同
+        if (prevName == currName)
+            return true
+
+        ; 2. 查表 (相似)
+        if this._SimReportMap.Has(currName) {
+            similarExams := this._SimReportMap[currName]
+            if similarExams.Has(prevName)
+                return true
+        }
+        return false
+    }
+
+    ; 日期轉換 (民國 -> 西元)
+    static _ConvertRISDate(inputString) {
+        cleanString := StrReplace(inputString, "/")
+        if (StrLen(cleanString) < 7) ; 簡單防呆
+            return inputString
+
+        minguoYear := SubStr(cleanString, 1, 3)
+        month := SubStr(cleanString, 4, 2)
+        day := SubStr(cleanString, 6, 2)
+
+        gregorianYear := minguoYear + 1911
+        return gregorianYear . "-" . month . "-" . day
+    }
+
+    ; 執行 UIA 點擊 (包含座標計算邏輯)
+    static _ClickUIAElement(el) {
+        try {
+            rect := el.BoundingRectangle
+            loc := el.Location
+
+            ; 計算中心點
+            ClickX := rect.l + (loc.w / 2)
+            ClickY := rect.t + (loc.h / 2)
+
+            ; 模擬滑鼠點擊 (保留使用者原本的 MouseMove 邏輯以確保觸發)
+            MouseGetPos(&OrigX, &OrigY)
+            MouseMove(ClickX, ClickY, 0)
+            Click()
+            MouseMove(OrigX, OrigY, 0)
+        } catch {
+            ; 如果計算失敗，嘗試 UIA 原生 Invoke
+            try el.Invoke()
+        }
+    }
 }

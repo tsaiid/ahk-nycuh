@@ -179,58 +179,6 @@ Benchmark(funcObj, times := 1) {
     return (end - start) / freq * 1000
 }
 
-/*
-InsertExamname() {
-    focusedEle := UIA.GetFocusedElement()
-    if (focusedEle.AutomationId = UIA_FindingEdit.AutomationId || focusedEle.AutomationId = UIA_ImpressionEdit.AutomationId
-    ) {
-        hEdit := focusedEle.NativeWindowHandle
-        currStartSel := 0
-        currEndSel := 0
-        Edit_GetSel(hEdit, &currStartSel, &currEndSel)
-        examname_text := GetCurrExamName() . ":`r`n`r`n"
-        Edit_SetText(hEdit, examname_text . Edit_GetText(hEdit))
-        newStartSel := currStartSel + StrLen(examname_text)
-        newEndSel := currEndSel + StrLen(examname_text)
-        Edit_SetSel(hEdit, newStartSel, newEndSel)
-        ;MsgBox(examname)
-    }
-}
-
-;; Insert Exam Name
-!e:: {
-    InsertExamname()
-}
-!c:: {
-    ;MsgBox("Auto Next & Save Report")
-    CheckNextAuto(false)
-    ClickSaveReport()
-}
-
-^s:: {
-    CheckNextAuto(true)
-    ClickSaveReport()
-}
-
-CheckNextAuto(checked := true) {
-    try {
-        if (checked ^ RisController.AutoNextCheckbox.ToggleState) {
-            RisController.AutoNextCheckbox.Toggle()
-        }
-    } catch as err {
-        MsgBox "操作失敗: " err.Message
-    }
-}
-
-ClickSaveReport() {
-    try {
-        RisController.ReportSaveButton.ControlClick()
-    } catch as err {
-        MsgBox "操作失敗: " err.Message
-    }
-}
-    */
-
 ; Alt+E: 在游標處插入檢查名稱
 !e:: {
     ; 如果焦點在編輯框內，執行插入
@@ -254,129 +202,6 @@ ClickSaveReport() {
     RisController.SetAutoNextState(true)
     ; 2. 存檔
     RisController.SaveReport()
-}
-
-!ESC:: {
-    examName := GetCurrExamName()
-    FindSimilarReport(examName)
-    ;MsgBox(GetCurrExamName())
-}
-
-GetCurrExamName() {
-    try {
-        hExamname := RisController.ExamnameText.NativeWindowHandle
-        examname := StrReplace(ControlGetText(hExamname), "檢查項目: ", "")
-        return examname
-    } catch as err {
-        MsgBox "操作失敗: " err.Message
-        return
-    }
-}
-
-isSameExam(prevExamName, currExamName) {
-    return (prevExamName = currExamName)
-}
-isSimilarExam(prevExamName, currExamName) {
-    global simReportMap
-    if !simReportMap.Has(currExamName)
-        return false
-
-    similarExams := simReportMap[currExamName]
-    return similarExams.Has(prevExamName)
-}
-isRelatedReport(prevExamName, currExamName) {
-    return isSameExam(prevExamName, currExamName) || isSimilarExam(prevExamName, currExamName)
-}
-
-FindSimilarReport(examName := "") {
-    ; --- 設定搜尋目標 ---
-    ;Local SearchText := "CHEST PA/AP"
-    local SearchText := examName
-    local SearchColumnIndex := 3 ; 1=簽收日, 2=儀器, 3=檢查項目
-
-    try
-    {
-        ; 2. 獲取視窗元素
-        winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-        if !IsObject(winEle)
-            throw Error("找不到視窗: " . RISReportWinTitle)
-
-        ; 3. 尋找「表格」元素
-        tableEle := winEle.FindFirst(UIA_PastReportTable)
-        if !IsObject(tableEle)
-            throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
-
-        ; 4. 尋找表格中所有的「行」(Row)
-        ; (WinForms 中, 行的 ControlType 通常是 'DataItem')
-        ;rowElements := tableEle.FindAll({Type: 'DataItem'})
-        rowElements := tableEle.FindAll({ Type: 'Custom' })
-        if (rowElements.Length = 0)
-            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
-
-        ;MsgBox(rowElements.Length)
-        ;str := ""
-        ; 5. 遍歷每一行
-        for rowEle in rowElements {
-            ; 6. 尋找該行中所有的「儲存格」(Cell)
-            ; (Cell 的 ControlType 可能是 'Text', 'Edit' 或 'Custom')
-            ; 您需要用 Accessibility Insights 檢查確認
-            cellElements := rowEle.FindAll({ Type: 'DataItem' })
-
-            ; 如果 'Text' 找不到, 試試 'Custom'
-            if (cellElements.Length = 0)
-                cellElements := rowEle.FindAll({ Type: 'Custom' })
-
-            ; 檢查這行是否有足夠的欄位
-            if (cellElements.Length < SearchColumnIndex)
-                continue
-
-            ; 7. 獲取目標儲存格 (UIA.ahk 陣列從 1 開始)
-            targetCellEle := cellElements[SearchColumnIndex]
-
-            ;str .= targetCellEle.Value . "`t"
-            ; 8. 檢查文字
-            ;if InStr(targetCellEle.Value, SearchText)
-            if isRelatedReport(targetCellEle.Value, SearchText) {
-                ; *** 找到了！ ***
-
-                ; 9. 獲取儲存格的 BoundingRectangle (邊界矩形)
-                ; 這是 UIA 的 accLocation, 幾乎一定有效
-                rect := targetCellEle.BoundingRectangle
-                loc := targetCellEle.Location
-
-                ;if (rect.Width = 0 && rect.Height = 0)
-                {
-                    ;MsgBox("找到了 %SearchText%，但它的 BoundingRectangle 座標是 0。`n嘗試使用邏輯點擊 Click()...")
-                    ;targetCellEle.Click() ; 嘗試邏輯點擊 (可能無法觸發第二視窗)
-                    ;return
-                }
-
-                ; 10. 計算中心點並執行「真實滑鼠點擊」
-                ; (這 100% 會觸發您要的 Click 事件)
-                ClickX := rect.l + (loc.w / 2)
-                ClickY := rect.t + (loc.h / 2)
-
-                MouseGetPos(&OrigX, &OrigY)
-                MouseMove(ClickX, ClickY, 0)
-                Click()
-                ;Sleep(3)
-                ;Click(ClickX, ClickY)
-                MouseMove(OrigX, OrigY, 0)
-
-                ;WinActivate(RISReportWinTitle)
-                ;Sleep(100)
-                ;MsgBox("UIA 點擊成功！`n在 " . ClickX . ", " . ClickY . ", " . rect.l . ", " . rect.t . ", " . rect.r . ", " . rect.b)
-
-                ;MsgBox("UIA 點擊成功！`n在 %ClickX%, %ClickY% 點擊了: " . targetCellEle.Value)
-                return ; 任務完成, 退出
-            }
-        }
-
-        MsgBox("掃描完畢，找不到包含 " . SearchText . " 的儲存格。")
-    }
-    catch as e {
-        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-    }
 }
 
 !q:: {
@@ -413,14 +238,23 @@ FindSimilarReport(examName := "") {
     }
 }
 
-;; Insert Selected Prev Exam Date
+; Alt+Esc: 根據目前的檢查名稱，自動搜尋並選取歷史報告中的相似項目
+!Esc:: RisController.FindAndClickSimilarReport()
+
+; Alt+D: 插入目前選取的歷史報告日期 (自動轉西元)
 !d:: {
-    InsertSelectedPrevExamDate()
+    if !RisController.IsTargetFocused()
+        Send "!d" ; 透傳
+    else
+        RisController.InsertSelectedHistoryDate()
 }
 
-;; Insert Selected Prev Exam Name
+; Ctrl+Alt+E: 插入目前選取的歷史報告名稱
 ^!e:: {
-    InsertSelectedPrevExamName()
+    if !RisController.IsTargetFocused()
+        Send "^!e" ; 透傳
+    else
+        RisController.InsertSelectedHistoryName()
 }
 
 ConvertRISDate(inputString) {
@@ -444,236 +278,14 @@ ConvertRISDate(inputString) {
     return outputDate
 }
 
-InsertSelectedPrevExamDateCached() {
-    global risEle
-    local STATE_SYSTEM_SELECTED := 0x2
+GetCurrExamName() {
     try {
-        ;local cacheRequest := UIA.CreateCacheRequest(["ControlType", "Value"], ["LegacyIAccessiblePattern"], UIA.TreeScope.Descendants)
-        local cacheRequest := UIA.CreateCacheRequest()
-        cacheRequest.TreeScope := UIA.TreeScope.Subtree
-        cacheRequest.AddProperty("ControlType")
-        cacheRequest.AddProperty("Value")
-        cacheRequest.AddProperty("Name")
-        cacheRequest.AddPattern("LegacyIAccessible")
-
-        ; 2. 獲取視窗元素
-        winEle := risEle
-        ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-        if !IsObject(winEle)
-            throw Error("找不到視窗: " . RISReportWinTitle)
-
-        ; 3. 尋找「表格」元素
-        ;tableEle := winEle.FindFirst(UIA_PastReportTable)
-        tableEle := winEle.FindElement(UIA_PastReportTable, , , , , cacheRequest)
-        if !IsObject(tableEle)
-            throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
-
-        ;rowElements := tableEle.FindElements({ ControlType: 'Custom' })
-        ;rowElements := tableEle.FindElements({ ControlType: 'Custom' }, , , , cacheRequest)
-        rowElements := tableEle.FindCachedElements({ ControlType: 'Custom' })
-        ;MsgBox(rowElements.Length)
-        if (rowElements.Length = 0)
-            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
-
-        for i, rowEle in rowElements {
-            ;MsgBox(rowEle.CachedControlType)
-            if IsObject(rowEle.CachedLegacyIAccessiblePattern) {
-                ;if IsObject(rowEle.LegacyIAccessiblePattern) {
-                ;Local legacyState := rowEle.LegacyIAccessiblePattern.State
-                local legacyState := rowEle.CachedLegacyIAccessiblePattern.State
-                ;MsgBox(legacyState)
-                if (legacyState & STATE_SYSTEM_SELECTED) {
-                    dateText := ""
-                    ;MsgBox(rowEle.CachedChildren.Length)
-                    ;for cell in rowEle.CachedChildren {
-                    ;  MsgBox(cell.CachedValue)
-                    ;  if (cell.CachedControlType = UIA.ControlType.DataItem) {
-                    ;      dateText := cell.CachedValue
-                    ;      break
-                    ;  }
-                    ;}
-                    ;dateCellEle := rowEle.FindElement({ControlType: "DataItem"}, , 1)
-                    dateCellEle := rowEle.FindCachedElement({ ControlType: "DataItem" }, , 1)
-                    ;MsgBox(dateCellEle.CachedValue)
-                    if IsObject(dateCellEle) {
-                        dateText := dateCellEle.CachedValue
-                        ;dateText := dateCellEle.Value
-                    }
-                    ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
-                    ;MsgBox(dateText)
-                    Paste(ConvertRISDate(dateText))
-                    return
-                }
-            }
-        }
-        ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
-    }
-    catch as e {
-        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-    }
-}
-
-InsertSelectedPrevExamDate() {
-    local STATE_SYSTEM_SELECTED := 0x2
-    try {
-        rowElements := RisController.PastReportTable.FindElements({ ControlType: 'Custom' })
-        if (rowElements.Length = 0)
-            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
-
-        for i, rowEle in rowElements {
-            if IsObject(rowEle.LegacyIAccessiblePattern) {
-                local legacyState := rowEle.LegacyIAccessiblePattern.State
-                if (legacyState & STATE_SYSTEM_SELECTED) {
-                    dateText := ""
-                    dateCellEle := rowEle.FindElement({ ControlType: "DataItem" }, , 1)
-                    if IsObject(dateCellEle) {
-                        dateText := dateCellEle.Value
-                    }
-                    Paste(ConvertRISDate(dateText))
-                    return
-                }
-            }
-        }
+        hExamname := RisController.ExamnameText.NativeWindowHandle
+        examname := StrReplace(ControlGetText(hExamname), "檢查項目: ", "")
+        return examname
     } catch as err {
-        MsgBox("UIA 發生錯誤:`n" . err.Message . "`n`n行: " . err.Line, "UIA Error", 16)
-    }
-}
-
-InsertSelectedPrevExamDate_old() {
-    global risEle
-    local STATE_SYSTEM_SELECTED := 0x2
-    try {
-        ;local cacheRequest := UIA.CreateCacheRequest(["ControlType", "Value"], ["LegacyIAccessiblePattern"], UIA.TreeScope.Descendants)
-        local cacheRequest := UIA.CreateCacheRequest()
-        cacheRequest.TreeScope := UIA.TreeScope.Subtree
-        cacheRequest.AddProperty("ControlType")
-        cacheRequest.AddProperty("Value")
-        cacheRequest.AddProperty("Name")
-        cacheRequest.AddPattern("LegacyIAccessible")
-
-        ; 2. 獲取視窗元素
-        winEle := risEle
-        ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-        if !IsObject(winEle)
-            throw Error("找不到視窗: " . RISReportWinTitle)
-
-        ; 3. 尋找「表格」元素
-        tableEle := winEle.FindFirst(UIA_PastReportTable)
-        ;tableEle := winEle.FindElement(UIA_PastReportTable, , , , , cacheRequest)
-        if !IsObject(tableEle)
-            throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
-
-        rowElements := tableEle.FindElements({ ControlType: 'Custom' })
-        ;rowElements := tableEle.FindElements({ ControlType: 'Custom' }, , , , cacheRequest)
-        ;rowElements := tableEle.FindCachedElements({ ControlType: 'Custom' })
-        ;MsgBox(rowElements.Length)
-        if (rowElements.Length = 0)
-            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
-
-        for i, rowEle in rowElements {
-            ;MsgBox(rowEle.CachedControlType)
-            ;if IsObject(rowEle.CachedLegacyIAccessiblePattern) {
-            if IsObject(rowEle.LegacyIAccessiblePattern) {
-                local legacyState := rowEle.LegacyIAccessiblePattern.State
-                ; Local legacyState := rowEle.CachedLegacyIAccessiblePattern.State
-                ;MsgBox(legacyState)
-                if (legacyState & STATE_SYSTEM_SELECTED) {
-                    dateText := ""
-                    ;MsgBox(rowEle.CachedChildren.Length)
-                    ;for cell in rowEle.CachedChildren {
-                    ;  MsgBox(cell.CachedValue)
-                    ;  if (cell.CachedControlType = UIA.ControlType.DataItem) {
-                    ;      dateText := cell.CachedValue
-                    ;      break
-                    ;  }
-                    ;}
-                    dateCellEle := rowEle.FindElement({ ControlType: "DataItem" }, , 1)
-                    ;dateCellEle := rowEle.FindCachedElement({ControlType: "DataItem"}, , 1)
-                    ;dateCellEle := rowEle.FindCachedElement({ControlType: "DataItem"})
-                    ;MsgBox(dateCellEle.CachedValue)
-                    if IsObject(dateCellEle) {
-                        ;dateText := dateCellEle.CachedValue
-                        dateText := dateCellEle.Value
-                    }
-                    ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
-                    ;MsgBox(dateText)
-                    Paste(ConvertRISDate(dateText))
-                    return
-                }
-            }
-        }
-        ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
-    }
-    catch as e {
-        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-    }
-}
-
-InsertSelectedPrevExamName() {
-    local STATE_SYSTEM_SELECTED := 0x2
-    try {
-        rowElements := RisController.PastReportTable.FindAll({ Type: 'Custom' })
-        if (rowElements.Length = 0)
-            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
-
-        for i, rowEle in rowElements {
-            if IsObject(rowEle.LegacyIAccessiblePattern) {
-                local legacyState := rowEle.LegacyIAccessiblePattern.State
-                if (legacyState & STATE_SYSTEM_SELECTED) {
-                    examnameText := ""
-                    dateCellEle := rowEle.FindElement({ ControlType: "DataItem" }, , 3)
-                    if IsObject(dateCellEle) {
-                        examnameText := dateCellEle.Value
-                    }
-                    Paste(examnameText)
-                    return
-                }
-            }
-        }
-    }
-    catch as e {
-        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
-    }
-}
-
-InsertSelectedPrevExamName_old() {
-    global risEle
-    local STATE_SYSTEM_SELECTED := 0x2
-    try {
-        ; 2. 獲取視窗元素
-        ;winEle := UIA.ElementFromHandle(WinGetID(RISReportWinTitle))
-        winEle := risEle
-        if !IsObject(winEle)
-            throw Error("找不到視窗: " . RISReportWinTitle)
-
-        ; 3. 尋找「表格」元素
-        tableEle := winEle.FindFirst(UIA_PastReportTable)
-        if !IsObject(tableEle)
-            throw Error("找不到 Table 物件！`n請檢查您的 UIA_PastReportTable 查詢條件。`n`n目前條件: " . UIA_PastReportTable)
-
-        rowElements := tableEle.FindAll({ Type: 'Custom' })
-        if (rowElements.Length = 0)
-            throw Error("表格找到了，但裡面沒有 'DataItem' (Row)。")
-
-        for i, rowEle in rowElements {
-            if IsObject(rowEle.LegacyIAccessiblePattern) {
-                local legacyState := rowEle.LegacyIAccessiblePattern.State
-                if (legacyState & STATE_SYSTEM_SELECTED) {
-                    examnameText := ""
-                    dateCellEle := rowEle.FindElement({ ControlType: "DataItem" }, , 3)
-                    if IsObject(dateCellEle) {
-                        examnameText := dateCellEle.Value
-                    }
-                    ;MsgBox("找到反白的行！ (透過 Legacy 狀態)`n`n行號 (邏輯): " . i . "`n內容: " . dateText)
-                    Paste(examnameText)
-                    return
-                }
-            }
-        }
-        ;MsgBox("掃描完畢，沒有找到任何 'Selected' (反白) 的行。")
-    }
-    catch as e {
-        MsgBox("UIA 發生錯誤:`n" . e.Message . "`n`n行: " . e.Line, "UIA Error", 16)
+        MsgBox "操作失敗: " err.Message
+        return
     }
 }
 

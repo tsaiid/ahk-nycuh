@@ -5,7 +5,6 @@
 ; MS MRI Forms
 
 ;; Hotstrings
-::kmrok::The anterior cruciate ligament, posterior cruciate ligament, medial collateral ligament, lateral collateral ligament, medial meniscus, and lateral meniscus, quadricep tendon and patellar tendon are unremarkable.
 ::mrarok::No arthrographic evidence of full-thickness tear of rotator cuff or adhesive capsulitis.
 ::pt::partial tear
 ::ct::complete tear
@@ -38,6 +37,31 @@
 ::mroa::marginal osteophyte formation, irregular joint space narrowing, cartilage loss, subchondral signal intensity changes in the pancompartment of knee, especially the medial compartment, in favor of osteoarthrosis.
 ::bb::bone bruise
 ::bmok::No abnormal signal intensity changes in the bone marrow space.
+::mcs::meniscocapsular separation
+::kmrok::
+{
+    MyForm := "
+    (
+Intact medial and lateral menisci without tear or abnormal signal.
+Intact ACL, PCL, MCL, and LCL.
+Unremarkable quadriceps and patellar tendons. Normal patellar alignment.
+Preserved articular cartilage. No fracture, bone contusion, or marrow edema.
+No significant joint effusion or Baker's cyst.
+    )"
+    Paste(MyForm)
+}
+::smrok::
+{
+    MyForm := "
+    (
+The rotator cuff is intact.
+Unremarkable long head of the biceps tendon and glenoid labrum.
+Normal appearance of the AC joint.
+No significant joint effusion or bursal fluid accumulation.
+Normal osseous structures without marrow edema.
+    )"
+    Paste(MyForm)
+}
 
 ;; MRI of Knee
 ::mrkr::
