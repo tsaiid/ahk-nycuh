@@ -289,13 +289,37 @@ class RisController {
 
     static EnableFontEnforcer(fontName := "Cascadia Code", fontSize := 12)
     {
-        if (this._hCustomFont == 0) {
-            dummyGui := Gui()
-            dummyGui.SetFont("s" fontSize, fontName)
-            dummyCtrl := dummyGui.Add("Text",, "Dummy")
-            this._hCustomFont := SendMessage(0x31, 0, 0, dummyCtrl.Hwnd)
+        ; 1. 計算 DPI 修正係數
+        ; A_ScreenDPI: 標準螢幕是 96，Retina 可能是 144, 192, 240...
+        ; 如果是 Retina (192)，ratio 會變成 0.5，把 14pt 變成 7pt，
+        ; 這樣 Windows 放大 200% 後，看起來就會剛好是原本 14pt 的大小。
+        dpiRatio := 96 / A_ScreenDPI
+
+        ; 計算實際要請求的字體大小 (取整數)
+        adjustedSize := Round(fontSize * dpiRatio, 1)
+
+        ; 2. 建立 Font Handle (若已存在先銷毀舊的，支援 RDP 重連後的解析度變更)
+        if (this._hCustomFont != 0) {
+            DllCall("DeleteObject", "Ptr", this._hCustomFont)
+            this._hCustomFont := 0
         }
+
+        ; 利用一個隱藏的 GUI 來產生合法的 HFONT
+        dummyGui := Gui()
+
+        ; 使用修正後的大小
+        dummyGui.SetFont("s" adjustedSize, fontName)
+        dummyCtrl := dummyGui.Add("Text",, "Dummy")
+
+        ; 取得 Handle
+        this._hCustomFont := SendMessage(0x31, 0, 0, dummyCtrl.Hwnd)
+
+        ; 3. 啟動 Timer
         SetTimer(ObjBindMethod(this, "_EnforceFontTask"), 1000)
+
+        ; 顯示除錯訊息 (確認是否有生效，之後可註解掉)
+        ; ToolTip "DPI: " A_ScreenDPI "`nRatio: " dpiRatio "`nAdj Size: " adjustedSize
+        ; SetTimer () => ToolTip(), -3000
     }
 
     ; =================================================================
@@ -327,33 +351,58 @@ class RisController {
 
     static _ApplyLayout(hFind, hImp)
     {
-        try {
-            ControlGetPos(&fX, &fY, &fW, &fH, hFind)
-            ControlGetPos(&iX, &iY, &iW, &iH, hImp)
-        } catch {
-            return
-        }
+        ; 1. 計算 DPI 縮放係數
+        ; 96 DPI (100%) -> scale 1.0
+        ; 192 DPI (200%) -> scale 2.0
+        dpiScale := A_ScreenDPI / 96
 
+        ; 2. 定義基礎間距 (這些是給標準螢幕用的數值)
+        baseGap  := 30    ; Finding 與 Impression 之間的留白 (給標籤用的空間)
+        baseLbl  := 25    ; 標籤要往上移多少距離
+
+        ; 3. 【關鍵修正】所有數值都乘上縮放係數
+        ; 這樣在 Retina 螢幕上，高度和間距會自動變大，才不會切到變大的字體
+        targetImpH  := this._targetImpressionHeight * dpiScale
+        gap         := baseGap * dpiScale
+        labelOffset := baseLbl * dpiScale
+
+        ; 4. 取得目前控制項的位置
+        ControlGetPos(&fX, &fY, &fW, &fH, hFind)
+        ControlGetPos(&iX, &iY, &iW, &iH, hImp)
+
+        ; 5. 計算座標
+        ; 以目前的底部為基準 (Anchor Bottom)
         currentBottom := iY + iH
-        targetImpH := this._targetImpressionHeight
-        gap := 30
 
+        ; 計算 Impression 新的 Y 軸
         targetImpY := currentBottom - targetImpH
+
+        ; 計算 Finding 新的高度 (填滿上方剩餘空間，並扣除變大後的 gap)
         targetFindH := (targetImpY - gap) - fY
 
-        if (Abs(iH - targetImpH) < 5 && Abs(iY - targetImpY) < 5 && Abs(fH - targetFindH) < 5)
+        ; 6. 檢查是否需要移動 (容許誤差也隨 DPI 放大)
+        tolerance := 5 * dpiScale
+        if (Abs(iH - targetImpH) < tolerance && Abs(iY - targetImpY) < tolerance && Abs(fH - targetFindH) < tolerance)
             return
 
-        ControlMove(,, iW, targetImpH, hImp)
-        ControlMove(, targetImpY,,, hImp)
+        ; 7. 開始移動
 
-        ControlMove(,,, targetFindH, hFind)
+        ; (A) 移動 Impression Edit
+        try ControlMove(,, iW, targetImpH, hImp) ; 先改高度
+        try ControlMove(, targetImpY,,, hImp)    ; 再改位置
 
+        ; (B) 移動 Finding Edit
+        try ControlMove(,,, targetFindH, hFind)
+
+        ; (C) 移動 Impression 標籤 (Label)
         try {
             elLabel := this._GetOrUpdateNode("ImpressionLabel")
             hLabel := elLabel.NativeWindowHandle
+
             if (hLabel) {
-                labelNewY := targetImpY - 25
+                ; 這裡使用縮放後的 labelOffset
+                ; 確保在高解析度下，標籤不會跟輸入框重疊
+                labelNewY := targetImpY - labelOffset
                 ControlMove(, labelNewY,,, hLabel)
             }
         }
