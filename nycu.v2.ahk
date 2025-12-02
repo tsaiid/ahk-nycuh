@@ -66,7 +66,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ; --- Business Logic ---
     ^Esc:: RisController.AppendPreviousReport()
 
-
     ; Alt+C: 取消 AutoNext 並存檔 (Save Only)
     !c:: {
         ; 1. 設定 AutoNext 為 False (取消勾選)
