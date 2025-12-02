@@ -190,12 +190,20 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ; Alt+Esc: 根據目前的檢查名稱，自動搜尋並選取歷史報告中的相似項目
     !Esc:: RisController.FindAndClickSimilarReport()
 
-    ; Alt+D: 插入目前選取的歷史報告日期 (自動轉西元)
-    !d:: {
+    ; Alt+Shift+D: 插入目前選取的歷史報告日期 (自動轉西元)
+    !+d:: {
         if !RisController.IsTargetFocused()
             Send "!d" ; 透傳
         else
             RisController.InsertSelectedHistoryDate()
+    }
+
+    ; Alt+D: 插入以複製的歷史報告日期 (自動轉西元)
+    !d:: {
+        if !RisController.IsTargetFocused()
+            Send "!d" ; 透傳
+        else
+            RisController.InsertCopiedReportDate()
     }
 
     ; Ctrl+Alt+E: 插入目前選取的歷史報告名稱

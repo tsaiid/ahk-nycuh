@@ -1272,4 +1272,28 @@ class RisController {
         }
         return ""
     }
+
+    /**
+     * 插入舊報告日期 (智慧判斷版)
+     * 優先順序：
+     * 1. 檢查是否有 AppendPreviousReport 留下的暫存日期 (且 MRN 吻合)
+     * 2. 如果沒有 (或是換病人了)，則從目前歷史清單選取的項目抓取
+     */
+    static InsertCopiedReportDate() {
+        ; 1. 取得目前畫面上的病歷號
+        currentMRN := this._GetCurrentMRN()
+
+        ; 2. 檢查暫存區 (Context)
+        ;    條件 A: 暫存區有病歷號 (代表曾經執行過 AppendPreviousReport)
+        ;    條件 B: 暫存區的病歷號 == 目前的病歷號 (確保沒有換病人)
+        if (this._compContext.MRN != "" && this._compContext.MRN == currentMRN) {
+            ; 直接輸出暫存的日期 (格式已經是 YYYY-MM-DD)
+            SendText(this._compContext.Date)
+            return
+        }
+
+        ; 3. 如果上述條件不成立 (沒暫存，或換了病人但沒貼舊報告)
+        ;    退回原本的邏輯：從歷史清單的選取行抓取
+        this.InsertSelectedHistoryDate()
+    }
 }
