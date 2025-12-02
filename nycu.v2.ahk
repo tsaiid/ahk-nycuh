@@ -166,12 +166,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
         Send "^a"
     }
 
-    #d:: {
-        Send "^a"
-        Sleep 100
-        Send "{Del}"
-    }
-
     ; Shift + Up: 智慧向上選取
     +Up:: {
         ; 如果沒執行智慧選取 (不在編輯框內)，則送出原生的 Shift+Up
@@ -253,6 +247,13 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ~LButton:: RisController.HandleTripleClick()
 
 #HotIf ; WinActive(RisController.WinTitle)
+
+; 只有在「RIS 視窗作用中」且「焦點在輸入框內」時，這個熱鍵才存在
+#HotIf WinActive(RisController.WinTitle) && RisController.IsTargetFocused()
+
+#d::RisController.ClearCurrentEdit()
+
+#HotIf  ; WinActive(RisController.WinTitle) && RisController.IsTargetFocused()
 
 ;; for JIS keyboard
 SC029:: RisController.ActivateOrToggleFocus() ; SC029 通常是 `~ 鍵

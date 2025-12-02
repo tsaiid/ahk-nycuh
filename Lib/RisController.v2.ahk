@@ -1296,4 +1296,25 @@ class RisController {
         ;    退回原本的邏輯：從歷史清單的選取行抓取
         this.InsertSelectedHistoryDate()
     }
+
+    /**
+     * 清空目前焦點所在的編輯框內容
+     * (需搭配 IsTargetFocused 使用)
+     */
+    static ClearCurrentEdit() {
+        try {
+            ; 1. 取得目前焦點的 Handle
+            focusedClass := ControlGetFocus("A")
+            if (!focusedClass)
+                return
+            hFocus := ControlGetHwnd(focusedClass, "A")
+
+            ; 2. 執行清空
+            ; ControlSetText 是最快且最乾淨的方法 (等同於發送 WM_SETTEXT 為空字串)
+            ControlSetText("", hFocus)
+
+            ; 3. 額外保險：如果介面沒有即時更新，可以嘗試發送一個重繪訊息 (通常不需要)
+            ; WinRedraw(hFocus)
+        }
+    }
 }
