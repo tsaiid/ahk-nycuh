@@ -69,6 +69,7 @@
 ::lr::linear `
 ::sn::solid nodule
 ::psn::part-solid nodule
+::nsn::non-solid nodule
 ::cn::calcified nodule
 ::cg::calcified granuloma
 ::rol::radiopaque lesion
