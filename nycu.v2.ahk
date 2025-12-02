@@ -27,7 +27,10 @@ global PRESERVE_CLIPBOARD := 0
 #Include Hotkeys\remapping-original-hotkeys-infinitt.v2.ahk
 
 ; 腳本啟動時執行，設定為 Fira Code, 大小 14 (根據您的螢幕解析度調整)
-RisController.EnableFontEnforcer("Cascadia Code", 12)
+;RisController.EnableFontEnforcer("Fira Code", 12)
+;RisController.EnableFontEnforcer("Cascadia Code", 12)
+;RisController.EnableFontEnforcer("Sarasa Mono TC", 12)
+RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
 #HotIf WinActive(RisController.WinTitle)
 
@@ -49,6 +52,7 @@ RisController.EnableFontEnforcer("Cascadia Code", 12)
     #Include Hotstrings\sono-guide.v2.ahk
     #Include Hotstrings\angio.v2.ahk
     #Include Hotstrings\sono.v2.ahk
+    #Include Hotstrings\comparisons.v2.ahk
 
     ^9:: {
     }
@@ -96,8 +100,12 @@ RisController.EnableFontEnforcer("Cascadia Code", 12)
         }
     }
 
-    ; Ctrl+D 刪除整行
     ^d:: {
+        Send "{Del}"
+    }
+
+    ; Ctrl+Y 刪除整行
+    ^y:: {
         ; 呼叫 Controller 執行刪除
         isDeleted := RisController.DeleteCurrentLine()
 

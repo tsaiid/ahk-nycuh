@@ -36,6 +36,7 @@ class RisController {
         "PathoDiagnosisText", { AutomationId: "txtDiagnosist" },
         "PathoDateText", { AutomationId: "mtxtRcpDTM" },
         "ImpressionLabel", { AutomationId: "label2" },
+        "MedRecNoLabel", { AutomationId: "txtMRNo" },
     )
 
     ; =================================================================
@@ -596,10 +597,12 @@ class RisController {
         }
     }
 
-    ; =================================================================
-    ; 帶入前次報告
-    ; =================================================================
+    /**
+     * 將舊報告的 Finding/Impression 附加到目前的編輯區
+     * 同時會自動抓取選取報告的日期，作為比較基準
+     */
     static AppendPreviousReport() {
+        ; 1. 嘗試取得控制項 Handle 與文字
         try {
             pastImp := ControlGetText(this.PastImpressionText.NativeWindowHandle)
             pastFind := ControlGetText(this.PastFindingText.NativeWindowHandle)
@@ -609,10 +612,28 @@ class RisController {
             return
         }
 
+        ; =========================================================
+        ; ★ 新增整合點：抓取選取行的日期並註冊到 Context
+        ; =========================================================
+        ; 假設日期在第 1 欄 (參考您原本 InsertSelectedHistoryDate 的設定)
+        rawDate := this._GetSelectedRowValue(1)
+
+        if (rawDate != "") {
+            ; 這裡傳入原始日期字串 (例如 "1141124")
+            ; SetComparisonContext 內部會自己處理格式化
+            this.SetComparisonContext(rawDate)
+
+            ; 視覺提示 (選填，讓你知道有抓到)
+            ; ShowTip("已設定比較日期: " rawDate)
+        }
+        ; =========================================================
+
+        ; 2. 定義 Win32 常數
         static EM_SETSEL := 0x00B1
         static EM_REPLACESEL := 0x00C2
         static EM_SCROLLCARET := 0x00B7
 
+        ; 3. 內部函式：附加文字到 Edit Control
         AppendToEdit(hEdit, textToAppend) {
             if (textToAppend == "")
                 return
@@ -624,18 +645,23 @@ class RisController {
                 currentLen := 0
             }
 
+            ; 移動游標到最後
             SendMessage(EM_SETSEL, currentLen, currentLen, hEdit)
 
+            ; 如果原本有字，先換行
             if (currentLen > 0)
                 textToAppend := "`r`n" . textToAppend
 
+            ; 插入文字並捲動
             SendMessage(EM_REPLACESEL, 1, StrPtr(textToAppend), hEdit)
             SendMessage(EM_SCROLLCARET, 0, 0, hEdit)
         }
 
+        ; 4. 執行附加
         AppendToEdit(hImpEdit, pastImp)
         AppendToEdit(hFindEdit, pastFind)
 
+        ; 5. 聚焦回 Finding Edit (方便繼續打字)
         try this.FindingEdit.SetFocus()
     }
 
@@ -777,34 +803,55 @@ class RisController {
         this._InsertFromSelectedRow(3, false)
     }
 
+    ; 負責「打字輸出」的邏輯
     static _InsertFromSelectedRow(colIndex, needDateConvert) {
         if !this.IsTargetFocused()
             return
 
+        ; 呼叫共用 Helper 取得值
+        foundValue := this._GetSelectedRowValue(colIndex)
+
+        if (foundValue != "") {
+            if (needDateConvert)
+                foundValue := this._ConvertRISDate(foundValue)
+
+            SendText foundValue
+        }
+    }
+
+    ; =================================================================
+    ; ★ 新增：共用 Helper (只負責「讀取」，不負責「輸出」)
+    ; =================================================================
+    /**
+     * 從 PastReportTable 中取得目前選取行的指定欄位值
+     * @param colIndex 欄位索引 (1-based)
+     * @returns {String} 欄位文字，若無選取則回傳 ""
+     */
+    static _GetSelectedRowValue(colIndex) {
         static STATE_SYSTEM_SELECTED := 0x2
+
         try {
+            ; 取得表格元件 (這會觸發 Cache 機制)
             tableEle := this.PastReportTable
+
+            ; 這裡保留您原本的 FindAll 邏輯，
+            ; 但建議確認 rowElements 是否過多，如果表格很大，FindAll 可能會慢
             rowElements := tableEle.FindAll({ Type: 'Custom' })
-            foundValue := ""
 
             for rowEle in rowElements {
                 if IsObject(rowEle.LegacyIAccessiblePattern) {
                     if (rowEle.LegacyIAccessiblePattern.State & STATE_SYSTEM_SELECTED) {
+                        ; 找到選取的行，抓取指定欄位
                         targetCell := rowEle.FindElement({ ControlType: "DataItem" }, , colIndex)
                         if IsObject(targetCell) {
-                            foundValue := targetCell.Value
+                            return targetCell.Value
                         }
-                        break
+                        break ; 找到就離開迴圈
                     }
                 }
             }
-
-            if (foundValue != "") {
-                if (needDateConvert)
-                    foundValue := this._ConvertRISDate(foundValue)
-                SendText foundValue
-            }
         }
+        return ""
     }
 
     static _GetCleanCurrentExamName() {
@@ -827,17 +874,34 @@ class RisController {
         return false
     }
 
+    /**
+     * 通用日期轉換函式 (修正版)
+     * 支援長字串截斷，例如 "11411271506" -> "2025-11-27"
+     */
     static _ConvertRISDate(inputString) {
+        ; 1. 清理字串：移除斜線、冒號、空白
+        ; 這樣可以同時支援 "114/11/27 15:06" 或 "11411271506"
         cleanString := StrReplace(inputString, "/")
-        if (StrLen(cleanString) < 7)
-            return inputString
+        cleanString := StrReplace(cleanString, ":")
+        cleanString := StrReplace(cleanString, " ")
 
-        minguoYear := SubStr(cleanString, 1, 3)
-        month := SubStr(cleanString, 4, 2)
-        day := SubStr(cleanString, 6, 2)
+        ; 2. 判斷格式
 
-        gregorianYear := minguoYear + 1911
-        return gregorianYear . "-" . month . "-" . day
+        ; 優先檢查：是否為西元年 (開頭為 19xx 或 20xx 的 8 碼數字)
+        if RegExMatch(cleanString, "^((?:19|20)\d{2})(\d{2})(\d{2})", &m) {
+            return Format("{:04}-{:02}-{:02}", m[1], m[2], m[3])
+        }
+
+        ; 其次檢查：是否為民國年 (開頭為 3 碼數字)
+        ; Regex 解釋: ^(\d{3}) 抓年, (\d{2}) 抓月, (\d{2}) 抓日
+        ; 後面不管有沒有接時間 (如 1506)，都會被忽略，只抓前 7 碼
+        if RegExMatch(cleanString, "^(\d{3})(\d{2})(\d{2})", &m) {
+            gregorianYear := Integer(m[1]) + 1911
+            return Format("{:04}-{:02}-{:02}", gregorianYear, m[2], m[3])
+        }
+
+        ; 如果都不符合，回傳原字串
+        return inputString
     }
 
     static _ClickUIAElement(el) {
@@ -1144,5 +1208,68 @@ class RisController {
         } catch as err {
             this.Notify("按鈕點擊失敗 (找不到元件)")
         }
+    }
+
+    ; =================================================================
+    ; 比較日期暫存模組 (Comparison Context)
+    ; =================================================================
+
+    ; 儲存結構：{MRN: "12345", Date: "2024-01-01"}
+    static _compContext := {MRN: "", Date: ""}
+
+    /**
+     * 設定比較基準 (在 AppendPreviousReport 時呼叫)
+     * @param targetDate 舊報告的日期 (字串)
+     * 會自動從畫面上抓取當前 MRN 綁定
+     */
+    static SetComparisonContext(targetDate)
+    {
+        ; 1. 嘗試抓取目前畫面上的病歷號 (當作 Key)
+        currentMRN := this._GetCurrentMRN()
+
+        ; 2. 格式化日期為 YYYY-MM-DD
+        formattedDate := this._ConvertRISDate(targetDate)
+
+        ; 3. 存入暫存
+        this._compContext.MRN := currentMRN
+        this._compContext.Date := formattedDate
+
+        ; (除錯用，確認有抓到)
+        ; ToolTip "Context Set: " currentMRN " / " formattedDate
+        ; SetTimer () => ToolTip(), -2000
+    }
+
+    /**
+     * 取得 " dated YYYY-MM-DD" 字串
+     * @returns {String} 如果病歷號吻合回傳日期後綴，否則回傳空字串
+     */
+    static GetComparisonSuffix()
+    {
+        ; 1. 抓取目前畫面上的病歷號
+        currentMRN := this._GetCurrentMRN()
+
+        ; 2. 檢查：
+        ;    (a) 暫存區有資料嗎？
+        ;    (b) 暫存的病歷號跟現在畫面上的病歷號一樣嗎？(防止切換病人後貼錯)
+        if (this._compContext.MRN != "" && this._compContext.MRN == currentMRN) {
+            return " dated " . this._compContext.Date
+        }
+
+        return ""
+    }
+
+    ; (內部 Helper) 抓取並解析病歷號
+    static _GetCurrentMRN()
+    {
+        try {
+            ; 取得文字，例如 "病歷號: 00001234"
+            rawText := this.GetText(this._GetOrUpdateNode("MedRecNoLabel"))
+
+            ; 只取出數字部分 (RegEx: \d+)
+            if RegExMatch(rawText, "\d+", &match)
+                return match[0]
+            return rawText ; 抓不到數字就回傳原文
+        }
+        return ""
     }
 }
