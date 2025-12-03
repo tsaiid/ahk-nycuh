@@ -35,7 +35,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 #HotIf WinActive(RisController.WinTitle)
 
     #Include Hotstrings\regex-hotstrings.v2.ahk
-    #Include Hotstrings\others.v2.ahk
     #Include Hotstrings\chest-ct.v2.ahk
     #Include Hotstrings\abdomen-ct.v2.ahk
     #Include Hotstrings\abdomen-mr.v2.ahk
@@ -53,6 +52,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     #Include Hotstrings\angio.v2.ahk
     #Include Hotstrings\sono.v2.ahk
     #Include Hotstrings\comparisons.v2.ahk
+    #Include Hotstrings\others.v2.ahk
 
     ^9:: {
     }
