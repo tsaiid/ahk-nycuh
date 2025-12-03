@@ -23,6 +23,7 @@
 ::panok1::No definite pancreatic tumor as expected.
 ::pz::peripheral zone
 ::jz::junctional zone
+::emok::No abnormal endometrial thickening.
 
 ;; General
 ::amrpan::

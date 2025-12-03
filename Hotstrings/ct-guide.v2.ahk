@@ -64,16 +64,14 @@ The patient was sent back to the ward under stable condition without complaint.
 Recommend close f/u patient's vital signs, bed rest and compression for at least 4 hours.
 F/U CXR 6 hours later.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 CT guide lung biopsy of  tumor was performed.
 Mild pneumothorax was noted. Follow-up is suggested.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; Lung Biopsy, pigtail for pneumothorax
@@ -136,11 +134,14 @@ Under CT guide, tissue specimens were smoothly taken for pathology examination.
 6. Specimen: pus.
 
 The patient was sent back to the ward under stable condition without complaint.
+  )"
+    RisController.PasteToFinding(MyForm)
 
-IMPRESSION:
+    MyForm := "
+  (
 CT guide drainage for  was performed.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; Drainage
@@ -162,11 +163,14 @@ Under CT guide, tissue specimens were smoothly taken for pathology examination.
 Gelfoam slurry was injected through the coaxial needle after biopsy.
 
 The patient was sent back to the ward under stable condition without complaint. Recommend close f/u patient's vital signs, bed rest and compression for at least 4 hours.
+  )"
+    RisController.PasteToFinding(MyForm)
 
-IMPRESSION:
+    MyForm := "
+  (
 CT guide biopsy for  was performed.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; RFA
