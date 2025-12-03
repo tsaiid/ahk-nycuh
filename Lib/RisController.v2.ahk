@@ -1317,4 +1317,58 @@ class RisController {
             ; WinRedraw(hFocus)
         }
     }
+
+    ; =================================================================
+    ; 編輯操作模組
+    ; =================================================================
+
+    /**
+     * Emacs 風格的 Kill Line (Ctrl+K) - 純原生 SendMessage 版
+     * 刪除從目前游標到行尾的內容，但不刪除換行符號
+     */
+    static KillLine() {
+        try {
+            ; 1. 取得目前焦點輸入框的 Handle
+            hEdit := ControlGetFocus("A")
+
+            ; 定義 Win32 訊息常數
+            static EM_GETSEL := 0x00B0
+            static EM_SETSEL := 0x00B1
+            static EM_REPLACESEL := 0x00C2
+
+            ; 2. 取得目前游標位置 (0-based)
+            ; EM_GETSEL 需要傳入指標來接收 Start 和 End 位置
+            ; 我們只需要 Start (游標位置)，所以只建立一個 Buffer
+            StartPosBuf := Buffer(4, 0)
+            SendMessage(EM_GETSEL, StartPosBuf.Ptr, 0, hEdit)
+            currentPos := NumGet(StartPosBuf, "UInt")
+
+            ; 3. 取得全文以計算刪除終點
+            text := ControlGetText(hEdit)
+
+            ; 4. 尋找下一個換行符號 (`r) 的位置
+            ; InStr 是 1-based，currentPos 是 0-based，所以從 currentPos + 1 開始找
+            foundPos := InStr(text, "`r", , currentPos + 1)
+
+            targetPos := 0
+            if (foundPos == 0) {
+                ; 沒找到 `r，代表是最後一行 -> 刪除到全文結尾
+                targetPos := StrLen(text)
+            } else {
+                ; 找到了 `r (1-based)，目標是 `r 的前一個位置
+                targetPos := foundPos - 1
+            }
+
+            ; 5. 執行刪除 (只有當有內容可刪時)
+            if (targetPos > currentPos) {
+                ; (A) 選取範圍 (Start, End)
+                SendMessage(EM_SETSEL, currentPos, targetPos, hEdit)
+
+                ; (B) 取代選取範圍為空字串
+                ; wParam = 1 代表此操作可被復原 (Undoable)
+                ; lParam = 替換字串的指標 (這裡是空字串)
+                SendMessage(EM_REPLACESEL, 1, StrPtr(""), hEdit)
+            }
+        }
+    }
 }

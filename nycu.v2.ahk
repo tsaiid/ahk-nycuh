@@ -121,6 +121,9 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ; Ctrl+W: 刪除前一個字 (Bash Style)
     ^w:: RisController.DeleteWordBackward()
 
+    ; Emacs style Kill Line
+    ^k::RisController.KillLine()
+
     ; Alt+E: 在游標處插入檢查名稱
     !e:: RisController.InsertExamNameAtCaret()
 
@@ -159,11 +162,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^!c:: RisController.CopyPathologyReport()
 
     ^d:: {
-        Send "{Del}"
-    }
-
-    ^k:: {
-        Send "+{End}"
         Send "{Del}"
     }
 
