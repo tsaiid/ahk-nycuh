@@ -25,11 +25,12 @@ class RisController {
     static AbnormalWinTitle := "檢查結果(frmPos)"
 
     static _AbnormalBtnMap := Map(
-        1,      "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13",
-        2,      "WindowsForms10.BUTTON.app.0.2780b98_r24_ad15",
-        3,      "WindowsForms10.BUTTON.app.0.2780b98_r24_ad16",
-        4,      "WindowsForms10.BUTTON.app.0.2780b98_r24_ad14",
-        "Save", "WindowsForms10.BUTTON.app.0.2780b98_r24_ad12"
+        1,          "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13",
+        2,          "WindowsForms10.BUTTON.app.0.2780b98_r24_ad15",
+        3,          "WindowsForms10.BUTTON.app.0.2780b98_r24_ad16",
+        4,          "WindowsForms10.BUTTON.app.0.2780b98_r24_ad14",
+        "Save",     {AutomationId: "btnSave"},  ; Changed to UIA
+        "Cancel",   {AutomationId: "btnBack"}   ; Changed to UIA
     )
 
     static Selectors := Map(
@@ -606,8 +607,29 @@ class RisController {
         if !this._AbnormalBtnMap.Has(index) {
             return
         }
+
+        target := this._AbnormalBtnMap[index]
+
         try {
-            ControlClick(this._AbnormalBtnMap[index], this.AbnormalWinTitle)
+            if IsObject(target) {
+                ; UIA Logic for Save/Cancel
+                hwnd := WinExist(this.AbnormalWinTitle)
+                elWindow := UIA.ElementFromHandle(hwnd)
+
+                ; FindElement 會根據傳入的 {AutomationId: "..."} 尋找
+                elBtn := elWindow.FindElement(target)
+
+                try {
+                    elBtn.Invoke()
+                } catch {
+                    elBtn.Click()
+                }
+            } else {
+                ; Legacy ControlClick for ClassNNs
+                ControlClick(target, this.AbnormalWinTitle)
+            }
+        } catch as err {
+            this.Notify("按鈕操作失敗: " . err.Message)
         }
     }
 

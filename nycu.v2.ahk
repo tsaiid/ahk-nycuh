@@ -194,7 +194,8 @@ SC029:: RisController.ActivateOrToggleFocus() ; SC029 通常是 `~ 鍵
     !4:: RisController.ClickAbnormalButton(4)
 
     ; 如果想加存檔熱鍵也很容易：
-    ; ^s:: RisController.ClickAbnormalButton("Save")
+    !s:: RisController.ClickAbnormalButton("Save")
+    ESC:: RisController.ClickAbnormalButton("Cancel")
 
 #HotIf ; WinActive(RisController.AbnormalWinTitle)
 
