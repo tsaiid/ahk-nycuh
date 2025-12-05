@@ -69,6 +69,7 @@ class RisController {
     static _currentNotifyGui := ""
     static _compContext := {MRN: "", Date: ""}
     static _hCustomFont := 0
+    static _hPastFont := 0  ; [新增] 用於儲存過往報告的字型 Handle
     static _targetImpressionHeight := 95
 
     ; =================================================================
@@ -454,19 +455,34 @@ class RisController {
     ; =================================================================
     ; 8. 其他功能 (UI 互動, 字體, 排版, 滑鼠)
     ; =================================================================
-    static EnableFontEnforcer(fontName := "Cascadia Code", fontSize := 12) {
+    ; [修改] 增加 pastFontSize 參數 (預設 10，比主要編輯區稍小)
+    static EnableFontEnforcer(fontName := "Cascadia Code", fontSize := 12, pastFontSize := 10) {
         dpiRatio := 96 / A_ScreenDPI
         adjustedSize := Round(fontSize * dpiRatio, 1)
+        adjustedPastSize := Round(pastFontSize * dpiRatio, 1) ; [新增] 計算過往報告字型大小
 
+        ; 清除舊的主字型 Handle
         if (this._hCustomFont != 0) {
             DllCall("DeleteObject", "Ptr", this._hCustomFont)
             this._hCustomFont := 0
         }
+        ; [新增] 清除舊的過往報告字型 Handle
+        if (this._hPastFont != 0) {
+            DllCall("DeleteObject", "Ptr", this._hPastFont)
+            this._hPastFont := 0
+        }
 
         dummyGui := Gui()
+
+        ; 1. 建立主編輯區字型 (Finding/Impression)
         dummyGui.SetFont("s" adjustedSize, fontName)
-        dummyCtrl := dummyGui.Add("Text",, "Dummy")
-        this._hCustomFont := SendMessage(0x0031, 0, 0, dummyCtrl.Hwnd)
+        dummyCtrl := dummyGui.Add("Text",, "DummyMain")
+        this._hCustomFont := SendMessage(0x0031, 0, 0, dummyCtrl.Hwnd) ; WM_GETFONT
+
+        ; 2. [新增] 建立過往報告字型 (PastFinding/PastImpression)
+        dummyGui.SetFont("s" adjustedPastSize, fontName)
+        dummyCtrlPast := dummyGui.Add("Text",, "DummyPast")
+        this._hPastFont := SendMessage(0x0031, 0, 0, dummyCtrlPast.Hwnd) ; WM_GETFONT
 
         SetTimer(ObjBindMethod(this, "_EnforceFontTask"), 1000)
     }
@@ -476,18 +492,33 @@ class RisController {
             return
         }
         try {
+            ; 取得主要編輯區 Handle
             hFind := this.FindingEdit.NativeWindowHandle
             hImp  := this.ImpressionEdit.NativeWindowHandle
+
+            ; [新增] 取得過往報告區 Handle
+            hPastFind := this.PastFindingText.NativeWindowHandle
+            hPastImp  := this.PastImpressionText.NativeWindowHandle
         } catch {
             return
         }
 
+        ; 套用主字型
         if (this._hCustomFont) {
             try {
                 SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hFind)
                 SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hImp)
             }
         }
+
+        ; [新增] 套用過往報告字型 (獨立的大小)
+        if (this._hPastFont) {
+            try {
+                SendMessage(this.MSG.SETFONT, this._hPastFont, 1, , "ahk_id " hPastFind)
+                SendMessage(this.MSG.SETFONT, this._hPastFont, 1, , "ahk_id " hPastImp)
+            }
+        }
+
         this._ApplyLayout(hFind, hImp)
     }
 
