@@ -489,13 +489,22 @@ class RisController {
     }
 
     static _ApplyLayout(hFind, hImp) {
+        ; 1. 安全檢查：如果 Handle 為 0 或空，直接離開
+        if !hFind || !hImp
+            return
+
         dpiScale := A_ScreenDPI / 96
         targetImpH  := this._targetImpressionHeight * dpiScale
         gap         := 30 * dpiScale
         labelOffset := 25 * dpiScale
 
-        ControlGetPos(&fX, &fY, &fW, &fH, hFind)
-        ControlGetPos(&iX, &iY, &iW, &iH, hImp)
+        ; 2. 加上 Try-Catch 保護：避免視窗切換瞬間抓不到位置而報錯
+        try {
+            ControlGetPos(&fX, &fY, &fW, &fH, hFind)
+            ControlGetPos(&iX, &iY, &iW, &iH, hImp)
+        } catch {
+            return ; 如果抓不到位置，這次就不調整
+        }
 
         currentBottom := iY + iH
         targetImpY := currentBottom - targetImpH
@@ -507,9 +516,9 @@ class RisController {
         }
 
         try {
+            ControlMove(,,, targetFindH, hFind) ; 先調整上面高度，避免重疊
             ControlMove(,, iW, targetImpH, hImp)
             ControlMove(, targetImpY,,, hImp)
-            ControlMove(,,, targetFindH, hFind)
         }
 
         try {
