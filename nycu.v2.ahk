@@ -153,13 +153,22 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^!+o:: RisController.ReorderSelection({discardSeIm: false})
 
     ; 移除編號，改用 "*"
-    ^+*:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "*"})
+    ^+*:: {
+        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
+        RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "*"})
+    }
 
     ; 移除編號，改用 "-"
-    ^+-:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "-"})
+    ^+-:: {
+        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
+        RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "-"})
+    }
 
     ; 移除編號，改用 ">"
-    ^+>:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: ">"})
+    ^+>:: {
+        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
+        RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: ">"})
+    }
 
     ^d:: {
         Send "{Del}"
