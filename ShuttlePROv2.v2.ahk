@@ -275,18 +275,25 @@ class ShuttleProController {
     }
 
     HandleInnerJog(newVal) {
-        isClockwise := false
-        if (newVal = 0 && this.LastShuttle > 127)
-            isClockwise := true
-        else if (this.LastShuttle = 0 && newVal < 128)
-            isClockwise := false
-        else
-            isClockwise := (newVal > this.LastShuttle)
+        ; 1. 計算當前數值與上一次數值的差值
+        diff := newVal - this.LastShuttle
 
-        if (isClockwise)
+        ; 2. 處理 0 <-> 255 的邊界跨越問題 (Wrap-around Correction)
+        ; 如果差值大於 128，表示從 0 附近逆轉到了 255 附近 (例如 0 -> 255, diff 為 255)，應視為負向移動
+        if (diff > 128)
+            diff := diff - 256
+        ; 如果差值小於 -128，表示從 255 附近正轉到了 0 附近 (例如 255 -> 0, diff 為 -255)，應視為正向移動
+        else if (diff < -128)
+            diff := diff + 256
+
+        ; 3. 根據修正後的 diff 執行動作
+        if (diff > 0) {
+            ; 順時針 (Clockwise) -> 向下滾動
             Click "WheelDown"
-        else
+        } else if (diff < 0) {
+            ; 逆時針 (Counter-Clockwise) -> 向上滾動
             Click "WheelUp"
+        }
     }
 
     ; ==========================================================================
