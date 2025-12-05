@@ -247,6 +247,9 @@ class RisController {
             }
 
             this._EditReplaceSel(hEdit, textToAppend)
+            ; 3. [關鍵修改] 插入後立刻取消反白，並將游標停在該欄位最後
+            ; 這樣可以確保 Impression 不會因為沒被 Focus 而一直亮著藍色反白
+            this._EditSetSel(hEdit, -1, -1)
             this._EditScrollCaret(hEdit)
         }
 
