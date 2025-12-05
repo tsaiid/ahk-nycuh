@@ -234,32 +234,40 @@ class ShuttleProController {
     ; 滾輪與轉盤邏輯 (修正版)
     ; ==========================================================================
     HandleOuterRing(rawSpeed, appCtx) {
+        ; 1. 轉換為有號整數 (-7 到 7)
+        ; 這是為了配合舊版邏輯進行比對
         newSpeed := (rawSpeed > 200) ? (rawSpeed - 256) : rawSpeed
         oldSpeed := (this.LastSpeed > 200) ? (this.LastSpeed - 256) : this.LastSpeed
 
+        ; 2. 停止當前的 Timer (重置節奏)
         SetTimer this.CurrentTimerObj, 0
 
+        ; 3. [核心還原]: 模擬舊版的 Bounce 機制
+        ; 邏輯來源: set_scroll_speed 函數
+        ; 只有在「加速」的時候才觸發立即滾動，減速時不觸發
+        if (oldSpeed < newSpeed && newSpeed > 0) {
+            ; 正向加速 (例如 0->1, 1->2)
+            Click "WheelDown"
+        } else if (oldSpeed > newSpeed && newSpeed < 0) {
+            ; 反向加速 (例如 0->-1, -1->-2)
+            ; 注意: 負數比較時，-1 > -2 為真，代表往負向更深處移動
+            Click "WheelUp"
+        }
+
+        ; 4. 設定後續的自動滾動 Timer
         if (newSpeed = 0)
             return
 
-        if (newSpeed > 0)
-            this.ScrollDirection := 1
-        else
-            this.ScrollDirection := -1
+        ; 設定滾動方向 (供 Timer 使用)
+        this.ScrollDirection := (newSpeed > 0) ? 1 : -1
 
-        ; [核心修正]: 只有加速或起步時才觸發瞬間點擊
-        if (Abs(newSpeed) >= Abs(oldSpeed)) {
-            if (newSpeed > 0)
-                Click "WheelDown"
-            else
-                Click "WheelUp"
-        }
-
+        ; 取得對應 App 的速度設定
         speedSettings := this.DefaultSpeeds
         if (appCtx != "") {
             speedSettings := appCtx.Speeds
         }
 
+        ; 啟動 Timer
         absSpeed := Abs(newSpeed)
         if (absSpeed >= 1 && absSpeed <= speedSettings.Length) {
             period := speedSettings[absSpeed]
