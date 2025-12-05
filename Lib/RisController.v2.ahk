@@ -904,6 +904,8 @@ class RisController {
             startPos := match.Pos + match.Len - 1
             this._EditSetSel(hEdit, startPos, -1)
             this._ReorderSelectedText(false, true, "-", false, hEdit)
+        } else {
+            this.Notify("報告格式不如預期，無法自動排版")
         }
     }
 
@@ -918,6 +920,8 @@ class RisController {
 
             this._EditSetSel(hEdit, startPos, endPos)
             this._ReorderSelectedText(false, false, "-", true, hEdit)
+        } else {
+            this.Notify("報告格式不如預期，無法自動排版")
         }
     }
 
