@@ -9,12 +9,14 @@ class RisController {
         SETFONT:       0x0030,
         GETSEL:        0x00B0,
         SETSEL:        0x00B1,
+        LINESCROLL:    0x00B6, ; [新增] 用於還原捲動位置
         SCROLLCARET:   0x00B7,
         GETLINECOUNT:  0x00BA,
         LINEINDEX:     0x00BB,
         LINELENGTH:    0x00C1,
         REPLACESEL:    0x00C2,
         LINEFROMCHAR:  0x00C9,
+        GETFIRSTVISIBLELINE: 0x00CE, ; [新增] 用於取得目前視窗最上方的行號
         CLEAR:         0x0303
     }
 
@@ -917,7 +919,30 @@ class RisController {
             }
         }
         finalText := RTrim(finalText, "`r`n")
+
+        ; =========================================================
+        ; [修改開始] 保持 Scroll 位置邏輯
+        ; =========================================================
+
+        ; 1. 記錄替換前，畫面最上方是第幾行
+        firstVisibleLineBefore := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, targetHwnd)
+
+        ; 2. 執行文字替換 (這通常會導致 Scroll 跳動以顯示 Caret)
         this._EditReplaceSel(targetHwnd, finalText)
+
+        ; 3. 取得替換後，畫面現在最上方是第幾行
+        firstVisibleLineAfter := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, targetHwnd)
+
+        ; 4. 計算差距並滾動回去 (EM_LINESCROLL)
+        ; 參數2: 水平滾動字元數 (0)
+        ; 參數3: 垂直滾動行數 (負數往上，正數往下)
+        linesToScroll := firstVisibleLineBefore - firstVisibleLineAfter
+        if (linesToScroll != 0) {
+            SendMessage(this.MSG.LINESCROLL, 0, linesToScroll, targetHwnd)
+        }
+        ; =========================================================
+        ; [修改結束]
+        ; =========================================================
     }
 
     static _FormatFindingForBasic(hEdit) {
