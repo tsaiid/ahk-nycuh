@@ -152,9 +152,7 @@ The visible paranasal sinuses and mastoids are unremarkable.
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 The mastoids are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
@@ -163,7 +161,7 @@ No obvious acute intracranial findings.
 No remarkable intracranial findings on noncontrast CT.
 No significant intracranial organic lesion.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; CTN2ok - Totally normal
@@ -178,15 +176,13 @@ No significant intracranial organic lesion.
 - No definite bony lesion in the skull.
 - The visible paranasal sinuses and mastoids are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No remarkable intracranial findings on noncontrast CT.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ctn2trok::
@@ -205,16 +201,14 @@ The mastoids are unremarkable.
 
 - No obvious fracture or dislocation of the cervical spine.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 1. No definite acute ICH, SAH, EDH, or SDH.
 2. No obvious fracture or dislocation of the cervical spine.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ctn2trok0::
@@ -229,16 +223,14 @@ The mastoids are unremarkable.
 - The visible paranasal sinuses and mastoids are unremarkable.
 - No obvious fracture or dislocation of the cervical spine.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 1. No definite acute ICH, SAH, EDH, or SDH.
 2. No obvious fracture or dislocation of the cervical spine.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; CTN2 - CVA
@@ -297,15 +289,13 @@ Mild atherosclerotic changes with calcification of intracranial portion of verte
 No definite bony lesion in the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Mild brain atrophy; leukoaraiosis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ctn2hich::
@@ -321,15 +311,13 @@ Mild brain atrophy; leukoaraiosis.
 - No definite bony lesion in the skull.
 - The visible paranasal sinuses, mastoids and skull base are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Hypertensive ICH in the right lentiform nucleus.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ctn2hichivh::
@@ -346,15 +334,13 @@ Hypertensive ICH in the right lentiform nucleus.
 REMARKS:
 * Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Possibly hypertensive ICH in the right basal ganglion and thalamus, with IVH.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ctn2sah::

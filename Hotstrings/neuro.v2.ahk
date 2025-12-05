@@ -286,15 +286,13 @@ FINDINGS:
 - The mastoid air cells are well-aerated.
 - Symmetric nasopharynx without mass lesion.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 C/W chronic paranasal sinusitis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ctpok::
@@ -313,15 +311,13 @@ FINDINGS:
 - The bony structure is unremarkable.
 - The mastoid air cells are well-aerated.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No evidence of paranasal sinusitis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::mriiac::
@@ -353,16 +349,14 @@ FINDINGS:
 - Post contrast study shows no abnormal enhancing lesion in the brain and no abnormal leptomeningeal enhancement noted.
 - The major dural venous sinuses are patent.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 1. No evidence of cochlear aplasia, cochlear nerve agenesis, or other malformations.
 2. Left mastoiditis or fluid collection.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::mricvaok::
@@ -379,15 +373,13 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No evidence of high signal intensity on DWI suggesting acute or recent ischemia infarction in the brain noted.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::mrbok::
@@ -409,16 +401,14 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis region.
 
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No remarkable intracranial findings.
 No evidence of intracranial metastasis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::mriich::
@@ -445,15 +435,13 @@ Findings:
 - Incidental finding of right side fetal type posterior cerebral artery (PCA) from right internal carotid artery (ICA) with hypoplasia changes at P1 segment of right PCA noted.
 - Presence of asymmetry of bilateral vertebral arteries, and more prominence over the right side, and patent flow of bilateral vertebral arteries noted, normal variation in favor.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Subacute ICH in the left temporo-parieto-occipital area. No definite etiology identified.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; MR Brachial Plexus
@@ -517,13 +505,11 @@ FINDINGS:
 - Normal pneumatization of the paranasal sinuses and mastoid air cells.
 - The visible lungs are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 The major neck and intracranial arteries are patent, without vascular anomaly nor luminal stenosis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }

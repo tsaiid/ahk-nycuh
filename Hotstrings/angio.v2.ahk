@@ -189,7 +189,11 @@ Then, sandbag compression for at least 4 hours, and bed rest for 8 hours.
 PLAN:
 Remove the right femoral sheath if no more bleeding after 24 hours.
 Then, sandbag compression for at least 4 hours, and bed rest for 8 hours.
+  )"
+    RisController.PasteToFinding(MyForm)
 
+  MyForm := "
+  (
 IMPRESSION:
 TAE was successfully performed.
 TAE for GI bleeding was successfully performed.
@@ -200,7 +204,7 @@ TAE for uterine arteries with Gelfoam slurry was successfully performed.
 Transarterial infusion of epinephrine and terlipressin for GI bleeding was performed.
 TAE at bilateral bronchial arteries for hemoptysis was successfully performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::taefu:: {

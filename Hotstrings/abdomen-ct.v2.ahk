@@ -97,7 +97,9 @@
 ::cdivs::colonic diverticulosis
 ::ffs::focal fatty sparing
 ::actluo::Mild left perirenal fat stranding, probably due to urinary obstruction. DDx: superimposed pyelonephritis.
+::actluo2::Mild left perirenal fat stranding and urinomas, probably due to urinary obstruction and/or forniceal rupture. DDx: superimposed pyelonephritis.
 ::actruo::Mild right perirenal fat stranding, probably due to urinary obstruction. DDx: superimposed pyelonephritis.
+::actruo2::Mild right perirenal fat stranding and urinomas, probably due to urinary obstruction and/or forniceal rupture. DDx: superimposed pyelonephritis.
 
 ::acttrok::
 {
