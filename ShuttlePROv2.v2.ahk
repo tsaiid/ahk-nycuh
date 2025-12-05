@@ -13,7 +13,9 @@ class ShuttleProController {
     LastShuttle := 0
     LastBtn1_8 := 255
     LastBtn9_15 := 255
-    ShuttleStart := True
+
+    ; 統一使用 IsFirstRun 作為旗標
+    IsFirstRun := True
 
     ; 預設滾動速度 (毫秒)
     DefaultSpeeds := [800, 600, 333, 200, 100, 50, 20]
@@ -174,22 +176,31 @@ class ShuttleProController {
         currentApp := this.GetActiveContext()
         appName := (currentApp != "") ? currentApp.Name : "Unknown"
 
+        ; [核心修改] 第一次執行時，只同步狀態，不執行動作
+        if (this.IsFirstRun) {
+            this.LastSpeed := byte1
+            this.LastShuttle := byte2
+            this.LastBtn1_8 := byte4
+            this.LastBtn9_15 := byte5
+            this.IsFirstRun := False
+            this.Log("Initialized: " . debugStr)
+            return ; 直接返回，不處理後續邏輯
+        }
+
+        ; --- 1. 處理 Outer Ring (Speed) ---
         if (byte1 != this.LastSpeed) {
             this.HandleOuterRing(byte1, currentApp)
         }
         this.LastSpeed := byte1
 
-        if (this.ShuttleStart) {
-            this.LastShuttle := byte2
-            this.ShuttleStart := False
-        } else {
-            if (byte2 != this.LastShuttle) {
-                this.HandleInnerJog(byte2)
-                debugStr .= " Jog"
-            }
+        ; --- 2. 處理 Inner Ring (Jog) ---
+        if (byte2 != this.LastShuttle) {
+            this.HandleInnerJog(byte2)
+            debugStr .= " Jog"
         }
         this.LastShuttle := byte2
 
+        ; --- 3. 處理 Buttons 1-8 ---
         diff4 := (this.LastBtn1_8 ^ byte4) & this.LastBtn1_8
         if (diff4 > 0) {
             loop 8 {
@@ -200,6 +211,7 @@ class ShuttleProController {
         }
         this.LastBtn1_8 := byte4
 
+        ; --- 4. 處理 Buttons 9-15 ---
         diff5 := (this.LastBtn9_15 ^ byte5) & this.LastBtn9_15
         if (diff5 > 0) {
             i := 9
@@ -235,7 +247,6 @@ class ShuttleProController {
     ; ==========================================================================
     HandleOuterRing(rawSpeed, appCtx) {
         ; 1. 轉換為有號整數 (-7 到 7)
-        ; 這是為了配合舊版邏輯進行比對
         newSpeed := (rawSpeed > 200) ? (rawSpeed - 256) : rawSpeed
         oldSpeed := (this.LastSpeed > 200) ? (this.LastSpeed - 256) : this.LastSpeed
 
@@ -243,14 +254,12 @@ class ShuttleProController {
         SetTimer this.CurrentTimerObj, 0
 
         ; 3. [核心還原]: 模擬舊版的 Bounce 機制
-        ; 邏輯來源: set_scroll_speed 函數
         ; 只有在「加速」的時候才觸發立即滾動，減速時不觸發
         if (oldSpeed < newSpeed && newSpeed > 0) {
             ; 正向加速 (例如 0->1, 1->2)
             Click "WheelDown"
         } else if (oldSpeed > newSpeed && newSpeed < 0) {
             ; 反向加速 (例如 0->-1, -1->-2)
-            ; 注意: 負數比較時，-1 > -2 為真，代表往負向更深處移動
             Click "WheelUp"
         }
 
@@ -287,19 +296,15 @@ class ShuttleProController {
         diff := newVal - this.LastShuttle
 
         ; 2. 處理 0 <-> 255 的邊界跨越問題 (Wrap-around Correction)
-        ; 如果差值大於 128，表示從 0 附近逆轉到了 255 附近 (例如 0 -> 255, diff 為 255)，應視為負向移動
         if (diff > 128)
             diff := diff - 256
-        ; 如果差值小於 -128，表示從 255 附近正轉到了 0 附近 (例如 255 -> 0, diff 為 -255)，應視為正向移動
         else if (diff < -128)
             diff := diff + 256
 
         ; 3. 根據修正後的 diff 執行動作
         if (diff > 0) {
-            ; 順時針 (Clockwise) -> 向下滾動
             Click "WheelDown"
         } else if (diff < 0) {
-            ; 逆時針 (Counter-Clockwise) -> 向上滾動
             Click "WheelUp"
         }
     }
@@ -361,10 +366,12 @@ class ShuttleProController {
 
     Log(msg) {
         timestamp := Format("{:02}:{:02}:{:02}", A_Hour, A_Min, A_Sec)
-        this.LbxLog.Add([timestamp . " " . msg])
-        SendMessage(0x018B, 0, 0, this.LbxLog.Hwnd)
-        count := SendMessage(0x018B, 0, 0, this.LbxLog.Hwnd)
-        if (count > 0)
-            SendMessage(0x0186, count - 1, 0, this.LbxLog.Hwnd)
+        try {
+            this.LbxLog.Add([timestamp . " " . msg])
+            SendMessage(0x018B, 0, 0, this.LbxLog.Hwnd)
+            count := SendMessage(0x018B, 0, 0, this.LbxLog.Hwnd)
+            if (count > 0)
+                SendMessage(0x0186, count - 1, 0, this.LbxLog.Hwnd)
+        }
     }
 }
