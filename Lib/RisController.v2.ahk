@@ -1005,6 +1005,7 @@ class RisController {
         selectedText := StrReplace(selectedText, "`r`n", "`n")
         txtAry := StrSplit(selectedText, "`n")
         finalText := ""
+        isSpine := false
         startLineNo := 1
         if (RegExMatch(selectedText, "^(\d+)", &existLineNo)) {
             startLineNo := existLineNo[1]
@@ -1013,7 +1014,9 @@ class RisController {
         for index, line in txtAry {
             if (!RegExMatch(line, "^\s*$")) {
                 tmpText := line
-                isSpine := RegExMatch(line, "^\s*[-\+\*]*\s*([Vv]arying degree|[Mm]ild).+causing:")
+                if (RegExMatch(line, "^\s*[-\+\*]*\s*([Vv]arying degree|[Mm]ild).+causing:")) {
+                    isSpine := true
+                }
 
                 if (!deOrder) {
                     orderChar := (itemChar != "" ? itemChar : startLineNo++ . ".")
