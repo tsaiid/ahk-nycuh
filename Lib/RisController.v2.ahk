@@ -60,6 +60,8 @@ class RisController {
         "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing", 1),
         "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST", 1),
         "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", 1),
+        "CT BRAIN (急診TRAUMA 專用)WITHOUT CONTRAST", Map("CT BRAIN WITHOUT CONTRAST", 1),
+        "CT BRAIN WITHOUT CONTRAST", Map("CT BRAIN (急診TRAUMA 專用)WITHOUT CONTRAST", 1),
     )
 
     ; =================================================================
