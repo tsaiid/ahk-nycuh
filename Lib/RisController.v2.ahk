@@ -437,24 +437,21 @@ class RisController {
         }
         try {
             hCtrl := ControlGetFocus("A")
+            bounds := this._GetLogicalLineBoundaries(hCtrl)
+
+            targetPos := 0
+            if (mode = "Start") {
+                targetPos := bounds.Start
+            } else if (mode = "End") {
+                targetPos := bounds.ContentEnd
+            }
+
+            this._EditSetSel(hCtrl, targetPos, targetPos)
+            this._EditScrollCaret(hCtrl)
+            return true
         } catch {
             return false
         }
-
-        lineIdx := SendMessage(this.MSG.LINEFROMCHAR, -1, 0, hCtrl)
-        lineStart := SendMessage(this.MSG.LINEINDEX, lineIdx, 0, hCtrl)
-        targetPos := 0
-
-        if (mode = "Start") {
-            targetPos := lineStart
-        } else if (mode = "End") {
-            lineLen := SendMessage(this.MSG.LINELENGTH, lineStart, 0, hCtrl)
-            targetPos := lineStart + lineLen
-        }
-
-        this._EditSetSel(hCtrl, targetPos, targetPos)
-        this._EditScrollCaret(hCtrl)
-        return true
     }
 
     static MoveCaretWord(direction) {
@@ -1069,35 +1066,54 @@ class RisController {
         this._EditReplaceSel(hCtrl, "")
     }
 
-    static _SelectLine(hCtrl) {
+    ; ----------------------------------------------------------------------------------
+    ; [新增] 邏輯行邊界計算 Helper
+    ; 回傳 Map: {Start: 0-based索引, ContentEnd: 不含換行, FullEnd: 含換行}
+    ; ----------------------------------------------------------------------------------
+    static _GetLogicalLineBoundaries(hCtrl) {
         try {
             fullText := ControlGetText(hCtrl)
         } catch {
-            return
-        }
-        if (fullText = "") {
-            return
+            return {Start: 0, ContentEnd: 0, FullEnd: 0}
         }
 
-        caretPos := this._EditGetSel(hCtrl).Start
-        ahkCaretPos := caretPos + 1
+        sel := this._EditGetSel(hCtrl)
+        caretPos := sel.Start
 
-        prevLineBreak := InStr(fullText, "`n", , ahkCaretPos, -1)
-        selStart := (prevLineBreak == 0) ? 0 : prevLineBreak
+        ; 1. 找開頭 (Start): 往前找 `n
+        ; InStr 是 1-based，caretPos + 1 確保從游標處包含搜尋
+        prevLineBreak := InStr(fullText, "`n", , caretPos + 1, -1)
 
-        nextR := InStr(fullText, "`r", , ahkCaretPos)
-        nextN := InStr(fullText, "`n", , ahkCaretPos)
-        selEnd := 0
+        ; 換行符號在 prevLineBreak，下一字元(行首)的位置剛好等於 prevLineBreak 的數值 (因為 0-based 轉換關係)
+        lineStart := (prevLineBreak == 0) ? 0 : prevLineBreak
 
-        if (nextR == 0 && nextN == 0) {
-            selEnd := StrLen(fullText)
-        } else if (nextR > 0 && (nextN == 0 || nextR < nextN)) {
-            selEnd := (SubStr(fullText, nextR + 1, 1) == "`n") ? nextR + 1 : nextR
+        ; 2. 找結尾 (End): 往後找 `r
+        nextLineBreak := InStr(fullText, "`r", , lineStart + 1)
+
+        if (nextLineBreak == 0) {
+            ; 最後一行，無換行符號
+            contentEnd := StrLen(fullText)
+            fullEnd := contentEnd
         } else {
-            selEnd := nextN
+            ; 找到 \r，ContentEnd 在 \r 之前 (index - 1)
+            contentEnd := nextLineBreak - 1
+
+            ; 判斷是否包含 \n (FullEnd)
+            if (SubStr(fullText, nextLineBreak + 1, 1) == "`n") {
+                fullEnd := nextLineBreak + 1 ; \r\n 之後
+            } else {
+                fullEnd := nextLineBreak ; 只有 \r 之後
+            }
         }
 
-        this._EditSetSel(hCtrl, selStart, selEnd)
+        return {Start: lineStart, ContentEnd: contentEnd, FullEnd: fullEnd}
+    }
+
+    static _SelectLine(hCtrl) {
+        bounds := this._GetLogicalLineBoundaries(hCtrl)
+        if (bounds.FullEnd > bounds.Start) {
+            this._EditSetSel(hCtrl, bounds.Start, bounds.FullEnd)
+        }
     }
 
     static _GetCleanCurrentExamName() {
