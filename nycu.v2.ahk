@@ -100,6 +100,9 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     SC070:: RisController.FormatImpressionText() ; 日文鍵盤的無變換鍵?
     ^!.::   RisController.FormatImpressionText()
 
+    ; --- Copy Finding to Impression ---
+    #c:: RisController.CopyFindingToImpression()
+
 #HotIf ; WinActive(RisController.WinTitle)
 
 ; 只有在「RIS 視窗作用中」且「焦點在輸入框內」時，這個熱鍵才存在

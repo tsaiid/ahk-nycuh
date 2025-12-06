@@ -309,6 +309,71 @@ class RisController {
         return true
     }
 
+    static CopyFindingToImpression() {
+        ; 1. 檢查 Focus 是否在 Finding
+        try {
+            hFocus := ControlGetFocus("A")
+            if (hFocus != this.FindingEdit.NativeWindowHandle) {
+                return
+            }
+        } catch {
+            return
+        }
+
+        ; 2. 記錄初始狀態與取得文字
+        initialSel := this._EditGetSel(hFocus)
+        textToCopy := ""
+        wasSelectionEmpty := (initialSel.Start == initialSel.End)
+
+        if (wasSelectionEmpty) {
+            ; === 狀況 A: 原本無反白 -> 自動抓整行並還原 ===
+            this._SelectLine(hFocus)
+
+            newSel := this._EditGetSel(hFocus)
+            fullText := ControlGetText(hFocus)
+            if (newSel.End > newSel.Start) {
+                textToCopy := SubStr(fullText, newSel.Start + 1, newSel.End - newSel.Start)
+            }
+
+            ; 還原 Caret 到原本位置
+            this._EditSetSel(hFocus, initialSel.Start, initialSel.Start)
+            this._EditScrollCaret(hFocus)
+        } else {
+            ; === 狀況 B: 原本有反白 -> 保持不動 ===
+            fullText := ControlGetText(hFocus)
+            textToCopy := SubStr(fullText, initialSel.Start + 1, initialSel.End - initialSel.Start)
+        }
+
+        if (textToCopy == "") {
+            return
+        }
+
+        ; 3. Append 到 Impression
+        try {
+            hImp := this.ImpressionEdit.NativeWindowHandle
+            currentImpText := ControlGetText(hImp)
+
+            ; [修改重點] 判斷結尾是否已為換行
+            ; SubStr(str, -1) 會取得最後一個字元
+            ; 如果是空字串 OR 最後一字是 `n (換行)，就不用補前綴
+            if (currentImpText == "" || SubStr(currentImpText, -1) == "`n") {
+                prefix := ""
+            } else {
+                prefix := "`r`n"
+            }
+
+            impLen := StrLen(currentImpText)
+
+            ; 移到 Impression 最後並貼上
+            this._EditSetSel(hImp, impLen, impLen)
+            this._EditReplaceSel(hImp, prefix . textToCopy)
+
+            this.Notify("已複製至 Impression")
+        } catch as err {
+            this.Notify("複製失敗: " . err.Message)
+        }
+    }
+
     ; =================================================================
     ; 6. 編輯器指令 (KillLine, Delete, Format)
     ; =================================================================
