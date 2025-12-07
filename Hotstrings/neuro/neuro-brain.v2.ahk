@@ -192,8 +192,8 @@ No remarkable intracranial findings on noncontrast CT.
 No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
-The bilateral lateral ventricles show symmetrical without dilatation.
-No obvious fracture of the skull base and the skull.
+The bilateral lateral ventricles are symmetrical without dilatation.
+No obvious fracture of the skull and facial bones.
 The paranasal sinuses and mastoids are unremarkable.
 
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
@@ -218,8 +218,8 @@ The mastoids are unremarkable.
 - No definite area of obvious abnormal density in the brain noted.
 - No definite abnormal mass lesion in the brain noted.
 - No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
-- The bilateral lateral ventricles show symmetrical without dilatation.
-- No obvious fracture of the skull base and the skull.
+- The bilateral lateral ventricles are symmetrical without dilatation.
+- No obvious fracture of the skull and facial bones.
 - The visible paranasal sinuses and mastoids are unremarkable.
 - No obvious fracture or dislocation of the cervical spine.
   )"
@@ -316,6 +316,7 @@ Mild brain atrophy; leukoaraiosis.
     MyForm := "
   (
 Hypertensive ICH in the right lentiform nucleus.
+Hypertensive ICH in the left lentiform nucleus.
   )"
     RisController.PasteToImpression(MyForm)
 }

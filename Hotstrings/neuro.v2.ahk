@@ -271,12 +271,6 @@ No significant vascular stenosis in the major intracranial arteries or aneurysm 
 {
     MyForm := "
   (
-Noncontrast CT of the paranasal sinuses was performed with a multi-slice CT scanner:
-SCAN RANGE: axial plane of the paranasal sinuses with 2 mm continuous scan, with coronal and sagittal reconstruction
-
-PREVIOUS CT SCAN of the paranasal sinuses: no
-
-FINDINGS:
 - Mild mucoperiosteal thickening and soft tissue density in the bilateral frontal, bilateral ethmoid, bilateral maxillary, and bilateral sphenoid sinuses, in favor of mild sinusitis.
 - Mild nasal septum deviation to left side.
 - Bilateral nasal turbinate hypertrophy.
