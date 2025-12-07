@@ -138,8 +138,11 @@ class RisController {
                     this.Notify("找不到或無法啟用 RIS 視窗")
                     return
                 }
-                try {
-                    this.FindingEdit.SetFocus()
+                ; 如果目前焦點 "不在" Finding 或 Impression 上，才強制聚焦到 Finding
+                if !this.IsTargetFocused() {
+                    try {
+                        this.FindingEdit.SetFocus()
+                    }
                 }
             } else {
                 try {
