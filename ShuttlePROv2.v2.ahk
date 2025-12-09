@@ -22,6 +22,11 @@ class ShuttleProController {
 
     ScrollDirection := 0
     CurrentTimerObj := unset
+
+    ; [新增] 用於處理過渡時間的屬性
+    TargetPeriod := 0      ; 記錄目標循環時間
+    IsTransitioning := False ; 標記是否正處於加速過渡期
+
     GuiObj := unset
     LbxLog := unset
     AppList := []
@@ -243,44 +248,74 @@ class ShuttleProController {
     }
 
     ; ==========================================================================
-    ; 滾輪與轉盤邏輯 (修正版)
+    ; 滾輪與轉盤邏輯 (雙向平滑版)
     ; ==========================================================================
     HandleOuterRing(rawSpeed, appCtx) {
-        ; 1. 轉換為有號整數 (-7 到 7)
+        ; 1. 轉換數值 (-7 到 7)
         newSpeed := (rawSpeed > 200) ? (rawSpeed - 256) : rawSpeed
         oldSpeed := (this.LastSpeed > 200) ? (this.LastSpeed - 256) : this.LastSpeed
 
-        ; 2. 停止當前的 Timer (重置節奏)
+        ; 2. 停止當前 Timer 並重置狀態
         SetTimer this.CurrentTimerObj, 0
+        this.IsTransitioning := False
 
-        ; 3. [核心還原]: 模擬舊版的 Bounce 機制
-        ; 只有在「加速」的時候才觸發立即滾動，減速時不觸發
-        if (oldSpeed < newSpeed && newSpeed > 0) {
-            ; 正向加速 (例如 0->1, 1->2)
-            Click "WheelDown"
-        } else if (oldSpeed > newSpeed && newSpeed < 0) {
-            ; 反向加速 (例如 0->-1, -1->-2)
-            Click "WheelUp"
-        }
-
-        ; 4. 設定後續的自動滾動 Timer
+        ; 如果是歸零（停車），直接返回，不要做任何延遲或過度
         if (newSpeed = 0)
             return
 
-        ; 設定滾動方向 (供 Timer 使用)
+        ; 3. 設定方向與取得速度表
         this.ScrollDirection := (newSpeed > 0) ? 1 : -1
+        speedSettings := (appCtx != "") ? appCtx.Speeds : this.DefaultSpeeds
 
-        ; 取得對應 App 的速度設定
-        speedSettings := this.DefaultSpeeds
-        if (appCtx != "") {
-            speedSettings := appCtx.Speeds
+        ; 4. 計算新舊週期 (Period)
+        absNew := Abs(newSpeed)
+        absOld := Abs(oldSpeed)
+
+        newPeriod := 0
+        if (absNew >= 1 && absNew <= speedSettings.Length)
+            newPeriod := speedSettings[absNew]
+
+        oldPeriod := 0
+        if (absOld >= 1 && absOld <= speedSettings.Length)
+            oldPeriod := speedSettings[absOld]
+
+        ; 若超出範圍或無效，直接退出
+        if (newPeriod == 0)
+            return
+
+        ; 5. 判斷加減速狀態
+        ; 加速：絕對速度變大 (且舊速度不為0)
+        isAccelerating := (absNew > absOld && oldSpeed != 0)
+        ; 減速：絕對速度變小 (且舊速度不為0)
+        isDecelerating := (absNew < absOld && oldSpeed != 0)
+
+        waitDelay := 0
+
+        if (isAccelerating) {
+            ; --- 加速邏輯 ---
+            ; 等待時間 = 差值的一半 (避免太快暴衝)
+            waitDelay := Floor(Abs(oldPeriod - newPeriod) / 2)
+        } else if (isDecelerating) {
+            ; --- 減速邏輯 (新增) ---
+            ; 等待時間 = 兩者平均值 (填補時間空隙，模擬慣性)
+            ; 例如：50ms -> 200ms，中間插入一個 125ms 的等待
+            waitDelay := Floor((oldPeriod + newPeriod) / 2)
+        } else {
+            ; --- 穩定狀態或從靜止啟動 ---
+            ; 直接使用新週期
+            SetTimer this.CurrentTimerObj, newPeriod
+            return
         }
 
-        ; 啟動 Timer
-        absSpeed := Abs(newSpeed)
-        if (absSpeed >= 1 && absSpeed <= speedSettings.Length) {
-            period := speedSettings[absSpeed]
-            SetTimer this.CurrentTimerObj, period
+        ; 6. 執行過渡 Timer
+        ; 人類感知閾值 (約 40ms)，如果延遲太短直接執行以免無感
+        if (waitDelay < 40) {
+            this.AutoScroll()
+            SetTimer this.CurrentTimerObj, newPeriod
+        } else {
+            this.IsTransitioning := True
+            this.TargetPeriod := newPeriod
+            SetTimer this.CurrentTimerObj, -waitDelay
         }
     }
 
@@ -289,6 +324,13 @@ class ShuttleProController {
             Click "WheelDown"
         else
             Click "WheelUp"
+
+        ; [新增] 如果剛剛是執行「過渡的一次性 Timer」
+        ; 執行完這次動作後，立刻將 Timer 設回目標的穩定循環週期
+        if (this.IsTransitioning) {
+            SetTimer this.CurrentTimerObj, this.TargetPeriod
+            this.IsTransitioning := False
+        }
     }
 
     HandleInnerJog(newVal) {
