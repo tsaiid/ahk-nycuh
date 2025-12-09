@@ -87,7 +87,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     }
 
     ; --- Pathology Copy ---
-    ^!c:: RisController.CopyPathologyReport()
+    ^+c:: RisController.CopyPathologyReport()
 
     ; Alt+Esc: 根據目前的檢查名稱，自動搜尋並選取歷史報告中的相似項目
     !Esc:: RisController.FindAndClickSimilarReport()
