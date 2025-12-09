@@ -94,7 +94,8 @@ class ShuttleProController {
             11, (*) => this.ToggleDiffExamSync(),
             12, "+z",
             13, (*) => this.ToggleSync(),
-            14, "o", 15, "{Down}"
+            14, "o",
+            15, "0"
         ), pacsSpeeds)
 
         ; 4. AWS (GE)
