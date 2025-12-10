@@ -10,6 +10,7 @@
 ::ct::complete tear
 ::ftt::full-thickness tear
 ::ptt::partial-thickness tear
+::ht::horizontal tear
 ::je::joint effusion
 ::be::bursal effusion
 ::jbe::joint and bursal effusion
