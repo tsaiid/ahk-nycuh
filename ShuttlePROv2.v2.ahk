@@ -27,12 +27,20 @@ class ShuttleProController {
     TargetPeriod := 0      ; 記錄目標循環時間
     IsTransitioning := False ; 標記是否正處於加速過渡期
 
+    ; [新增] 啟動緩衝相關屬性
+    StartupTimerObj := unset
+    IsStartupPending := False ; 是否正處於「剛起步觀察期」
+    StartupDelay := 80        ; 觀察期毫秒數 (建議 50~80 之間)
+
     GuiObj := unset
     LbxLog := unset
     AppList := []
 
     __New() {
         this.CurrentTimerObj := ObjBindMethod(this, "AutoScroll")
+        ; [新增] 初始化啟動緩衝 Timer
+        this.StartupTimerObj := ObjBindMethod(this, "ExecuteStartup")
+
         this.InitGui()
         this.InitConfig()
         this.RegisterHID()
@@ -249,47 +257,72 @@ class ShuttleProController {
     }
 
     ; ==========================================================================
-    ; 滾輪與轉盤邏輯 (雙向平滑版)
+    ; 滾輪與轉盤邏輯 (雙向平滑版 + 零延遲啟動)
     ; ==========================================================================
     HandleOuterRing(rawSpeed, appCtx) {
         ; 1. 轉換數值 (-7 到 7)
         newSpeed := (rawSpeed > 200) ? (rawSpeed - 256) : rawSpeed
         oldSpeed := (this.LastSpeed > 200) ? (this.LastSpeed - 256) : this.LastSpeed
 
-        ; 2. 停止當前 Timer 並重置狀態
-        SetTimer this.CurrentTimerObj, 0
-        this.IsTransitioning := False
-
-        ; 如果是歸零（停車），直接返回，不要做任何延遲或過度
-        if (newSpeed = 0)
+        ; 2. 判斷是否歸零 (停車)
+        if (newSpeed = 0) {
+            SetTimer this.CurrentTimerObj, 0  ; 停止循環 Timer
+            SetTimer this.StartupTimerObj, 0  ; 停止啟動觀察 Timer
+            this.IsTransitioning := False
+            this.IsStartupPending := False
             return
+        }
 
         ; 3. 設定方向與取得速度表
         this.ScrollDirection := (newSpeed > 0) ? 1 : -1
         speedSettings := (appCtx != "") ? appCtx.Speeds : this.DefaultSpeeds
 
-        ; 4. 計算新舊週期 (Period)
+        ; 4. 計算新週期 (Period)
         absNew := Abs(newSpeed)
-        absOld := Abs(oldSpeed)
-
         newPeriod := 0
         if (absNew >= 1 && absNew <= speedSettings.Length)
             newPeriod := speedSettings[absNew]
 
+        if (newPeriod == 0)
+            return
+
+        ; ======================================================================
+        ; [核心修改] 啟動緩衝邏輯
+        ; ======================================================================
+
+        ; 情況 A: 正在觀察期內 (例如 0->1 剛發生，尚未觸發，馬上又變成 2)
+        if (this.IsStartupPending) {
+            ; 這裡什麼都不用做 (Do Nothing)
+            ; 因為我們只是更新了 this.LastSpeed (在外部 OnInput 會更新)，
+            ; 並且更新了 newPeriod。
+            ; 等到 Startup Timer 時間到時，它會自動讀取最新的速度去執行。
+            ; 這樣就實現了「忽略中間檔位」的效果。
+            return
+        }
+
+        ; 情況 B: 從靜止啟動 (0 -> X)
+        if (oldSpeed == 0) {
+            this.IsStartupPending := True
+            ; 設定一個單次執行的 Timer，延遲 80ms
+            SetTimer this.StartupTimerObj, -this.StartupDelay
+            return
+        }
+
+        ; ======================================================================
+        ; 以下為「已經在轉動中」的變速邏輯 (1 -> 2 或 2 -> 1)
+        ; ======================================================================
+
+        ; 必須先停止原本的 Timer，準備變速
+        SetTimer this.CurrentTimerObj, 0
+        this.IsTransitioning := False
+
+        absOld := Abs(oldSpeed)
         oldPeriod := 0
         if (absOld >= 1 && absOld <= speedSettings.Length)
             oldPeriod := speedSettings[absOld]
 
-        ; 若超出範圍或無效，直接退出
-        if (newPeriod == 0)
-            return
-
-        ; 5. 判斷加減速狀態
-        ; 加速：絕對速度變大 (且舊速度不為0)
-        isAccelerating := (absNew > absOld && oldSpeed != 0)
-        ; 減速：絕對速度變小 (且舊速度不為0)
-        isDecelerating := (absNew < absOld && oldSpeed != 0)
-
+        isAccelerating := (absNew > absOld)
+        isDecelerating := (absNew < absOld)
         waitDelay := 0
 
         if (isAccelerating) {
@@ -350,6 +383,37 @@ class ShuttleProController {
         } else if (diff < 0) {
             Click "WheelUp"
         }
+    }
+
+    ExecuteStartup() {
+        ; 1. 緩衝期結束，標記解除
+        this.IsStartupPending := False
+
+        ; 2. 為了安全，重新獲取一次當前的目標週期
+        ; 因為在等待的 60ms 內，User 可能已經換了 App 或是速度變了
+        currentApp := this.GetActiveContext()
+        speedSettings := (currentApp != "") ? currentApp.Speeds : this.DefaultSpeeds
+
+        ; 獲取最新的速度 (利用 LastSpeed，因為它在 OnInput 已被更新到最新)
+        currSpeed := (this.LastSpeed > 200) ? (this.LastSpeed - 256) : this.LastSpeed
+        absSpeed := Abs(currSpeed)
+
+        if (currSpeed == 0) ; 如果等待期間使用者又停下來了
+            return
+
+        finalPeriod := 0
+        if (absSpeed >= 1 && absSpeed <= speedSettings.Length)
+            finalPeriod := speedSettings[absSpeed]
+
+        if (finalPeriod == 0)
+            return
+
+        ; 3. 立即執行第一槍 (達成無延遲感的啟動)
+        ; 這時候執行的就是「最新的檔位」，中間的檔位被跳過了
+        this.AutoScroll()
+
+        ; 4. 設定循環 Timer 進入穩定狀態
+        SetTimer this.CurrentTimerObj, finalPeriod
     }
 
     ; ==========================================================================
