@@ -90,6 +90,15 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ; Alt+E: 在游標處插入檢查名稱
     !e:: RisController.InsertExamNameAtCaret()
 
+    ; Alt+Shift+D: 插入目前選取的歷史報告日期 (自動轉西元)
+    !+d:: RisController.InsertSelectedHistoryDate()
+
+    ; Alt+D: 插入以複製的歷史報告日期 (自動轉西元)
+    !d:: RisController.InsertCopiedReportDate()
+
+    ; Ctrl+Alt+E: 插入目前選取的歷史報告名稱
+    ^!e:: RisController.InsertSelectedHistoryName()
+
     ; --- Pathology Copy ---
     ^+c:: RisController.CopyPathologyReport()
 
@@ -143,15 +152,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
     ; Shift + Down: 智慧向下選取
     +Down:: RisController.SmartExtendSelection("Down")
-
-    ; Alt+Shift+D: 插入目前選取的歷史報告日期 (自動轉西元)
-    !+d:: RisController.InsertSelectedHistoryDate()
-
-    ; Alt+D: 插入以複製的歷史報告日期 (自動轉西元)
-    !d:: RisController.InsertCopiedReportDate()
-
-    ; Ctrl+Alt+E: 插入目前選取的歷史報告名稱
-    ^!e:: RisController.InsertSelectedHistoryName()
 
     ; --- Selection Reordering (Manual) ---
     ; 重排選取文字 (預設：自動編號 1. 2. 3.)
