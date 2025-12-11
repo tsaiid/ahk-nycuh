@@ -1051,7 +1051,7 @@ class RisController {
                     }
                 }
                 if (itemChar == "" && discardSeIm) {
-                    tmpText := RegExReplace(tmpText, "\s*\((Srs|Ser)\/Img:[\s,-\/\d;]+\)", "")
+                    tmpText := RegExReplace(tmpText, "\s*\((Srs|Ser)\/Img:.+?\)", "")
                     tmpText := RegExReplace(tmpText, "Mark L\d+:\s*", "")
                 }
                 finalText .= RegExReplace(tmpText, "^(\s*)((\d+\.)|([-\+\*>=])|(\(?\d+\)))?(\s*)(\w?)(.*)", "$u{7}${8}")
