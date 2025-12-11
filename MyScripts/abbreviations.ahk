@@ -285,6 +285,7 @@
 ::eac::external acoustic canal
 ::hfi::hyperostosis frontalis interna
 ::com::chronic otitis media
+::np::nasopharynx
 
 ;; Spine
 ::aars::atlantoaxial rotary subluxation

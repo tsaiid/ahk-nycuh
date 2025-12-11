@@ -41,6 +41,7 @@
 ::cctpulhtn::Engorged pulmonary trunk with A/P ratio <1. Pulmonary hypertension may be suspected.
 ::aook::No evidence of aortic dissection or aneurysm.
 ::paok::No definite filling defect in the major pulmonary arteries.
+::paok1::No evidence of pulmonary embolism.
 ::plok::No pleural effusion.
 ::lu1::Lung-RADS Category 1: Negative.
 ::lu2::Lung-RADS Category 2: Benign - Based on imaging features or indolent behavior.

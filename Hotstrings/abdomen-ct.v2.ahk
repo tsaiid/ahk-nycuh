@@ -40,6 +40,7 @@
 ::actns::No evidence of high-attenuation stone along the urinary tracts.
 ::actbph::Enlarged prostate is noted, most likely benign prostatic hyperplasia.
 ::actbph1::Prostate enlargement with intravesical protrusion.
+::mactbph1::Mild prostate enlargement with intravesical protrusion.
 ::actbphc::Enlarged prostate with calcification is noted, most likely benign prostatic hyperplasia.
 ::mactbph::Mild enlarged prostate is noted, most likely benign prostatic hyperplasia.
 ::mactbphc::Mild enlarged prostate with calcification is noted, most likely benign prostatic hyperplasia.

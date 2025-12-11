@@ -17,7 +17,7 @@
 ::cm::cardiomegaly.
 ::cm1::enlarged cardiac shadow.
 ::cm2::Enlarged cardiac shadow. However, it could be due to supine.
-::np::No abnormal patch opacity in lung fields.
+;::np::No abnormal patch opacity in lung fields.
 ::nn::No nodular opacities (> 1cm) noted in both lung fields.
 ::cpok::Bilateral CP angles are clear and sharp.
 

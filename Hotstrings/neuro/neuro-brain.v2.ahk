@@ -275,11 +275,11 @@ No definite acute intracranial parenchymal hemorrhage or acute epidural or acute
 {
     MyForm := "
   (
-Presence of mild bilateral periventricular low density noted. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
-Presence of bilateral periventricular low density noted. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
-
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 No definite abnormal mass lesion in the brain noted.
+
+Presence of mild bilateral periventricular low density noted. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
+Presence of bilateral periventricular low density noted. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
 
 Mild dilatation of ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of mild brain atrophy.
 Enlargement of the ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of brain atrophy.
@@ -288,6 +288,8 @@ Mild atherosclerotic changes with calcification of intracranial portion of verte
 
 No definite bony lesion in the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
+Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
+The mastoids are unremarkable.
   )"
     RisController.PasteToFinding(MyForm)
 
