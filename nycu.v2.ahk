@@ -103,6 +103,10 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ; --- Copy Finding to Impression ---
     #c:: RisController.CopyFindingToImpression()
 
+    ; --- Triple Click Handler ---
+    ; 讓滑鼠左鍵通過，同時觸發連點檢查
+    ~LButton:: RisController.HandleTripleClick()
+
 #HotIf ; WinActive(RisController.WinTitle)
 
 ; 只有在「RIS 視窗作用中」且「焦點在輸入框內」時，這個熱鍵才存在
@@ -186,10 +190,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     XButton1:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "-"})
 
     XButton2:: RisController.ReorderSelection()
-
-    ; --- Triple Click Handler ---
-    ; 讓滑鼠左鍵通過，同時觸發連點檢查
-    ~LButton:: RisController.HandleTripleClick()
 
 #HotIf  ; WinActive(RisController.WinTitle) && RisController.IsTargetFocused()
 

@@ -791,6 +791,31 @@ class RisController {
         static lastClickTime := 0
         static DoubleClickTime := DllCall("GetDoubleClickTime")
 
+        ; 1. 取得滑鼠游標下的控制項 Handle (hMouseCtrl)
+        MouseGetPos , , , &hMouseCtrl, 2
+
+        ; 2. 驗證是否為目標欄位 (Finding 或 Impression)
+        isTarget := false
+        try {
+            ; 嘗試取得目前物件中定義的兩個 Edit 的 Handle
+            ; 注意：這裡會觸發 getter，如果 cache 有值會很快，沒值會透由 UIA 抓一次
+            hFind := this.FindingEdit.NativeWindowHandle
+            hImp  := this.ImpressionEdit.NativeWindowHandle
+
+            ; 比對滑鼠下的 handle 是否等於其中之一
+            if (hMouseCtrl && (hMouseCtrl == hFind || hMouseCtrl == hImp)) {
+                isTarget := true
+            }
+        }
+
+        ; 3. 如果不是目標欄位，重置計數並退出
+        ;    這樣可以防止你在別的地方點兩下，移過來點一下就觸發全選
+        if (!isTarget) {
+            clickCount := 0
+            return
+        }
+
+        ; 4. 計算點擊時間差
         timeSinceLast := A_TickCount - lastClickTime
         if (timeSinceLast <= DoubleClickTime) {
             clickCount++
@@ -800,15 +825,10 @@ class RisController {
 
         lastClickTime := A_TickCount
 
+        ; 5. 觸發三擊全選
         if (clickCount == 3) {
             clickCount := 0
-            MouseGetPos , , , &hCtrl, 2
-            try {
-                classNN := ControlGetClassNN(hCtrl)
-                if (InStr(classNN, "Edit") && !InStr(classNN, "RichEdit")) {
-                    this._SelectLine(hCtrl)
-                }
-            }
+            this._SelectLine(hMouseCtrl)
         }
     }
 
