@@ -53,6 +53,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     #Include Hotstrings\sono.v2.ahk
     #Include Hotstrings\comparisons.v2.ahk
     #Include Hotstrings\others.v2.ahk
+    #Include Hotstrings\special.v2.ahk
 
     ^9:: {
     }
@@ -85,6 +86,9 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     !q:: {
         Send "^e"
     }
+
+    ; Alt+E: 在游標處插入檢查名稱
+    !e:: RisController.InsertExamNameAtCaret()
 
     ; --- Pathology Copy ---
     ^+c:: RisController.CopyPathologyReport()
@@ -133,9 +137,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
     ; Emacs style Kill Line
     ^k::RisController.KillLine()
-
-    ; Alt+E: 在游標處插入檢查名稱
-    !e:: RisController.InsertExamNameAtCaret()
 
     ; Shift + Up: 智慧向上選取
     +Up:: RisController.SmartExtendSelection("Up")
