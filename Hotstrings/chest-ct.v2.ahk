@@ -49,6 +49,7 @@
 ::lu4a::Lung-RADS Category 4A: Suspicious.
 ::lu4b::Lung-RADS Category 4B: Very suspicious.
 ::lu4x::Lung-RADS Category 4X: Category 3 or 4 nodules with additional features or imaging findings that increase suspicion for lung cancer.
+::pe1::pulmonary embolism
 
 ::ccttrok::
 {

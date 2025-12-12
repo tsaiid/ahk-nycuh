@@ -361,15 +361,13 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 REMARKS:
 * Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Diffuse acute SAH. Rupture of intracranial aneurysm should be excluded.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ctn2sdh::

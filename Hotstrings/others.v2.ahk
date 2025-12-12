@@ -339,8 +339,8 @@
 ::mcor::(measured in the coronal view)
 ::smg1::Splenomegaly and prominent portosystemic collaterals suggest portal hypertension.
 
-::inact::Please refer to the concurrent CT abdomen for detailed evaluation.
-::incct::Please refer to the concurrent CT chest for detailed evaluation.
+::inact::For abdominal condition, please refer to the concurrent CT abdomen for detailed evaluation.
+::incct::For thoracic condition, please refer to the concurrent CT chest for detailed evaluation.
 
 ::fn::FOOTNOTE:{Enter}[{^}1]: `
 
