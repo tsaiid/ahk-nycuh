@@ -415,7 +415,7 @@ class RisController {
         try {
             hFocus := ControlGetFocus("A")
 
-            ; 1. 取得目前行邊界 (使用原本的 Helper)
+            ; 1. 取得目前行邊界
             bounds := this._GetLogicalLineBoundaries(hFocus)
 
             ; 判斷是否為最後一行
@@ -425,41 +425,21 @@ class RisController {
             if (!isLastLine) {
                 ; === 情況 A: 普通行 ===
                 ; 刪除行為：刪除整行 + 後方換行符號
-                ; 游標行為：自然停留在下一行遞補上來的位置，無需額外計算
                 this._EditSetSel(hFocus, bounds.Start, bounds.FullEnd)
                 SendMessage(this.MSG.CLEAR, 0, 0, hFocus)
             } else {
-                ; === 情況 B: 最後一行 ===
-                ; 刪除行為：刪除「前方」換行符號 + 整行內容 (合併回上一行)
-                ; 游標行為：回到「上一行」的邏輯開頭
+                ; === 情況 B: 最後一行 (標準編輯器行為) ===
 
                 if (bounds.Start == 0) {
                     ; 特例：文件只有這一行，直接清空
                     this._EditSetSel(hFocus, 0, bounds.FullEnd)
                     SendMessage(this.MSG.CLEAR, 0, 0, hFocus)
                 } else {
-                    ; 1. 計算刪除起始點 (包含前方的 \r\n，即 Start - 2)
-                    deleteStart := bounds.Start - 2
-
-                    ; 2. === 手動計算上一行的邏輯開頭 ===
-                    ; 我們需要知道「刪除點之前」最後一個換行符號在哪裡
-                    fullText := ControlGetText(hFocus)
-                    textBefore := SubStr(fullText, 1, deleteStart)
-
-                    ; 從尾部逆向搜尋最後一個 `\n`
-                    lastNL := InStr(textBefore, "`n", , -1)
-
-                    ; InStr 回傳的是 1-based index (例如第 5 個字是 \n)
-                    ; Edit Control 的 0-based index 剛好是該位置 (Index 5 就是 \n 的下一個字)
-                    ; 如果 lastNL 為 0 (沒找到)，代表上一行就是文件開頭 (Index 0)
-                    prevLineStart := lastNL
-
-                    ; 3. 執行刪除
-                    this._EditSetSel(hFocus, deleteStart, bounds.FullEnd)
+                    ; 標準刪除：刪除「前方」換行符號 + 整行內容
+                    ; 範圍：從 (Start - 2) 到 FullEnd
+                    ; 游標行為：Win32 Edit Control 清除後，游標會自然停在刪除點的位置 (即上一行的結尾)
+                    this._EditSetSel(hFocus, bounds.Start - 2, bounds.FullEnd)
                     SendMessage(this.MSG.CLEAR, 0, 0, hFocus)
-
-                    ; 4. 強制將游標移動到上一行的邏輯開頭
-                    this._EditSetSel(hFocus, prevLineStart, prevLineStart)
                 }
             }
 
