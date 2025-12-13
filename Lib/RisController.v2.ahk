@@ -1109,11 +1109,34 @@ class RisController {
         }
 
         i := caretPos
+
+        ; 輔助函數：判斷字元類型 (1:空白, 2:單字, 3:符號)
+        GetCharType(char) {
+            if (this._IsSpace(char))
+                return 1
+            if (IsAlnum(char) || char == "_")
+                return 2
+            return 3
+        }
+
+        ; --- 階段一：先貪婪地吃掉所有緊鄰的空白 ---
         while (i > 0 && this._IsSpace(SubStr(fullText, i, 1))) {
             i--
         }
-        while (i > 0 && !this._IsSpace(SubStr(fullText, i, 1))) {
-            i--
+
+        ; --- 階段二：空白吃完後，接著吃掉緊鄰的「那一組」東西 ---
+        ; 如果還沒刪到頭，就檢查現在停在什麼字元上 (單字 或是 符號)
+        if (i > 0) {
+            targetType := GetCharType(SubStr(fullText, i, 1))
+
+            ; 繼續往回刪，直到遇到「不同類型」的東西 (例如遇到另一個空白，或是從單字變符號)
+            while (i > 0) {
+                currentChar := SubStr(fullText, i, 1)
+                ; 如果遇到類型不同 (例如原本在刪單字，現在遇到 . 或 空白)，就停止
+                if (GetCharType(currentChar) != targetType)
+                    break
+                i--
+            }
         }
 
         this._EditSetSel(hCtrl, i, caretPos)
