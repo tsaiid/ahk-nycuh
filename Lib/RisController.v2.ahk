@@ -1168,7 +1168,7 @@ class RisController {
 
     static _FormatFindingForBasic(hEdit) {
         fullText := ControlGetText(hEdit)
-        if RegExMatch(fullText, "im)FINDINGS:\r?\n|:\s*\r?\n\s*\r?\n", &match) {
+        if RegExMatch(fullText, "m)FINDINGS:\r?\n|:\s*\r?\n\s*\r?\n", &match) {
             startPos := match.Pos + match.Len - 1
             this._EditSetSel(hEdit, startPos, -1)
             this._ReorderSelectedText(false, true, "-", false, hEdit)
@@ -1179,11 +1179,11 @@ class RisController {
 
     static _FormatFindingForAdvanced(hEdit) {
         fullText := ControlGetText(hEdit)
-        if RegExMatch(fullText, "im)FINDINGS:\r?\n|The study shows:\r?\n\r?\n|show the following findings:\r?\n\r?\n|which revealed:\r?\n\r?\n", &match) {
+        if RegExMatch(fullText, "m)FINDINGS:\r?\n|The study shows:\r?\n\r?\n|show the following findings:\r?\n\r?\n|which revealed:\r?\n\r?\n", &match) {
             startPos := match.Pos + match.Len - 1
             endPos := -1
-            if RegExMatch(fullText, "im)REMARKS?:|RECOMMENDATION:", &endMatch, startPos + 1) {
-                endPos := endMatch.Pos - 1 - (endMatch.Pos > 3 ? 2 : 0)
+            if RegExMatch(fullText, "m)(\r\n){1,2}REMARKS?:|RECOMMENDATION:", &endMatch, startPos + 1) {
+                endPos := endMatch.Pos - 1
             }
 
             this._EditSetSel(hEdit, startPos, endPos)
