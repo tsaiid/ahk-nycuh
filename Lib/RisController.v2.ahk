@@ -51,7 +51,9 @@ class RisController {
         "PathoDateText",    { AutomationId: "mtxtRcpDTM" },
         "ImpressionLabel",  { AutomationId: "label2" },
         "MedRecNoLabel",    { AutomationId: "txtMRNo" },
-        "mtxtReportDTM",    { AutomationId: "mtxtReportDTM" },
+        "PhExamColumn",     { AutomationId: "goxExamine" },
+        "PhExamDateText",   { AutomationId: "mtxtReportDTM" },
+        "PhExamReportText", { AutomationId: "txtReport" },
         "PhExamImpChkBox",  { AutomationId: "chBoxImpression" },
     )
 
@@ -92,6 +94,9 @@ class RisController {
     static PastReportTable => this._GetOrUpdateNode("PastReportTable")
     static PathoDiagnosisText => this._GetOrUpdateNode("PathoDiagnosisText")
     static PathoDateText => this._GetOrUpdateNode("PathoDateText")
+    static PhExamColumn => this._GetOrUpdateNode("PhExamColumn")
+    static PhExamDateText => this._GetOrUpdateNode("PhExamDateText")
+    static PhExamReportText => this._GetOrUpdateNode("PhExamReportText")
 
     ; =================================================================
     ; 4. 系統功能 (Notify & Focus)
@@ -639,6 +644,27 @@ class RisController {
         }
     }
 
+    static CopyOtherReport() {
+        isPhExam := false
+
+        ; 1. 嘗試判斷是否為檢查報告頁面
+        try {
+            ; 存取 PhExamColumn。如果不在該頁面，Getter 可能會因為找不到元件而拋出 Error。
+            ; 我們利用這個特性：如果拋錯，isPhExam 就維持 false，自然流向 else (病理報告)。
+            if (InStr(this.PhExamColumn.Name, "檢查報告") == 1) {
+                isPhExam := true
+            }
+        }
+
+        ; 2. 根據判斷結果分流執行
+        if (isPhExam) {
+            this.CopyPhExamReport()
+        } else {
+            ; 如果判斷為 false，或是找不到檢查報告欄位，預設執行病理報告複製
+            this.CopyPathologyReport()
+        }
+    }
+
     static CopyPathologyReport() {
         try {
             dateVal := this.PathoDateText.Value
@@ -650,6 +676,22 @@ class RisController {
             reportText := this._ConvertRISDate(dateVal) . ": " . diagVal
             A_Clipboard := reportText
             this.Notify("病理報告已複製")
+        } catch as err {
+            this.Notify("複製失敗: " err.Message)
+        }
+    }
+
+    static CopyPhExamReport() {
+        try {
+            dateVal := this.PhExamDateText.Value
+            repVal := this.PhExamReportText.Value
+            if (dateVal == "" && repVal == "") {
+                throw Error("找不到檢查報告內容")
+            }
+
+            reportText := this._ConvertRISDate(dateVal) . ": " . repVal
+            A_Clipboard := reportText
+            this.Notify("檢查報告已複製")
         } catch as err {
             this.Notify("複製失敗: " err.Message)
         }
