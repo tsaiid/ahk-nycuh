@@ -49,13 +49,13 @@ Brown, sandy, mucinous, pus like fluid was aspirated and collected for examinati
 The fluoroscopy confirmed the drain's location. Then, the drain was fixed with Nylon.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 PTGBD (8F pigtail drain without string lock) was performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 :*:sg-a:: {
@@ -68,13 +68,13 @@ Light yellow, serous fluid was aspirated and collected for Lab examination.
 Then, the drain was fixed with 3-0 Nylon.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Percutaneous drainage for ascites was performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 :*:sg-rpig:: {
@@ -159,16 +159,16 @@ Biopsy procedure: freehand technique, guided by 4C convex transducer
 Biopsy device: 18G Merit Temno biopsy device in 17G coaxial needle.
 Biopsy device: 18G Merit Temno biopsy device.
 Number of core samples: 4
-Use of Gelfoam slurry: yes
+Use of Gelfoam slurry: no
 Complication: nil
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Sono-guiding liver biopsy was successfully performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 :*:0sg-ld::Percutaneous drainage for liver abscess has been arranged.
@@ -198,14 +198,14 @@ Then, the drain was fixed with 3-0 Nylon.
 
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Percutaneous drain (8F pigtail) for right subphrenic biloma was performed.
 Percutaneous drain for liver abscess was performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 :*:sg-bb:: {
@@ -221,13 +221,13 @@ Biopsy device: 16G Merit Temno biopsy device in 15G coaxial needle.
 Number of core samples: 4
 Complication: nil
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Sono-guiding breast biopsy was successfully performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 :*:sg-kb:: {
@@ -243,13 +243,13 @@ Number of samples: 4 (1 immersed in normal saline, 1 in electron microscope pres
 Embolization: Yes, Gelfoam slurry
 Complication: nil
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Sono-guiding kidney biopsy was successfully performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 :*:sg-ta:: {
@@ -264,13 +264,13 @@ The sample was smeared and fixed.
 The sample was injected into the thin layer cytology fluid.
 The patient tolerated wall, and no immediate complication was noted.
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Sono-guiding find needle aspiration of thyroid was successfully performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 :*:sg-lnb:: {
@@ -285,13 +285,13 @@ Biopsy device: 18G Merit Temno biopsy device.
 Number of core samples: 4
 Complication: nil
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Sono-guiding lymph node biopsy was successfully performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 :*:sg-lna:: {
@@ -304,11 +304,11 @@ Fine needle aspiration was then performed.
 The sample was smeared and fixed.
 The patient tolerated wall, and no immediate complication was noted.
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Sono-guiding find needle aspiration of lymph node was successfully performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }

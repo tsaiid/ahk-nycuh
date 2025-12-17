@@ -139,6 +139,7 @@
 ::ijbe::increased joint and bursal effusion
 ::mijbe::mildly increased joint and bursal effusion
 ::uf::uterine fibroid
+::cuf::calcified uterine fibroid
 ::ppss::prominent portosystemic shunts
 ::sp::status post `
 ::ma::measures approximately `
@@ -307,7 +308,6 @@
 ::mfl1::mild fatty liver without focal lesion.
 ::sfl::severe fatty liver
 ::sfl1::severe fatty liver with focal fatty sparing around the GB fossa.
-::duf::degenerative uterine fibroid
 ::eso::esophagus
 ::gd::The greatest dimension is about  cm.{Left 4}
 ::pvs::(Previously,  mm.){Left 5}

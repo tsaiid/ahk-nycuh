@@ -39,6 +39,9 @@
 ::bb::bone bruise
 ::bmok::No abnormal signal intensity changes in the bone marrow space.
 ::mcs::meniscocapsular separation
+::mmte::Medial meniscal tear, including posterior root, with meniscal extrusion.
+::lmt::Lateral meniscal tear.
+::kmroa::marginal osteophyte formation, irregular joint space narrowing, cartilage erosions in the pan-compartment of knee, especially medial compartment, in favor of osteoarthrosis.
 ::kmrok::
 {
     MyForm := "

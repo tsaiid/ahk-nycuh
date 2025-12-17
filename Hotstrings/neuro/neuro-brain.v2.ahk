@@ -68,16 +68,14 @@ The major dural venous sinuses are patent.
 No obvious fracture of the skull base and the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No remarkable intracranial findings.
 No definite abnormal enhancing mass lesion in the brain noted.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; CTN2
@@ -199,6 +197,7 @@ The paranasal sinuses and mastoids are unremarkable.
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
 The mastoids are unremarkable.
 
+Mild spondylosis of the C-spine.
 - No obvious fracture or dislocation of the cervical spine.
   )"
     RisController.PasteToFinding(MyForm)
@@ -390,15 +389,13 @@ Subgaleal hematoma in the right parietal region.
 REMARKS:
 * Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Acute right anterior parafalcine SDH.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ctn2hie::
@@ -420,15 +417,13 @@ The bilateral lateral ventricles are symmetrical in shape with acceptable age-de
 
 No obvious fracture of the skull base and the skull.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Hypoxic-ischemic encephalopathy is suspected.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ; Benign enlargement of the subarachnoid spaces in infancy.
@@ -446,16 +441,14 @@ Mild widening of the bifrontal and anterior interhemispheric CSF spaces, without
 No obvious fracture of the skull base and the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No definite acute ICH, SAH, EDH, or SDH.
 Benign enlargement of the subarachnoid spaces in infancy.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; 1CTA
@@ -496,15 +489,13 @@ FINDINGS:
 - No significant vascular stenosis in the major intracranial arteries.
 - Right fetal type posterior cerebral artery.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No evidence of aneurysm, arterial-venous malformation (AVM), or other vascular lesion.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; 1CTA - SAH, aneurysm rupture
@@ -535,16 +526,14 @@ No definite abnormal mass lesion in the brain noted.
 No definite bony lesion in the skull.
 The visible paranasal sinuses and mastoids are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 PICA aneurysm ruptured with acute SAH.
 Mild obstructive hydrocephalus cannot be excluded.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; CT3D
@@ -643,9 +632,7 @@ MRV shows no evidence of venous thrombosis involving the intracranial venous sin
 MRV shows a suspicious segment of absent flow in the right transverse sinus. However, no definite abnormal signal intensity within the right transverse sinus is noted. Hypoplastic transverse sinus and/or flow gap artifact is considered. Suggest DSA if venous sinus thrombosis is still highly suspected clinically.
 
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
@@ -653,7 +640,7 @@ No obvious acute intracranial lesion.
 No obvious acute ischemic infarction.
 
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; MRICVA-1
@@ -853,16 +840,14 @@ MRA shows
 - Left fetal type posterior cerebral artery.
 - Hypoplasia of A1 portion of left anterior cerebral artery.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No evidence of brain metastasis.
 Left cerebellar metastasis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; MRB - Lung cancer staging - normal
@@ -894,15 +879,13 @@ The major dural venous sinuses are patent.
 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No evidence of brain metastasis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; MRB - Parkinson disease
@@ -939,16 +922,14 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
 
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 1. C/W Parkinson disease. DDx: dementia with Lewy bodies.
 2. Senile brain atrophy, mild leukoaraiosis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; No Parkinson disease
@@ -981,16 +962,14 @@ Mild dilatation of ventricular system and sulcal widening of bilateral cerebral 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
 
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 1. No strong evidence of Parkinson disease.
 2. Senile brain atrophy, mild leukoaraiosis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; MRB - Spontaneous intracranial hypotension
@@ -1022,15 +1001,13 @@ FINDINGS:
 - Right fetal type posterior cerebral artery is noted.
 - Hypoplasia of A1 portion of right anterior cerebral artery.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Although not fully fit the typical image findings, intracranial hypotension still may be suspected. Clinical correlation is suggested.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::mriseizure::
@@ -1068,16 +1045,14 @@ The mastoids and skull base are unremarkable.
 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No remarkable intracranial findings.
 Right mesial temporal sclerosis may be suspected. Clinical correlation is suggested.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::bctas::
@@ -1127,15 +1102,13 @@ Compared to asymptomatic contralateral hemisphere there is a delay of one phase 
 
 Compared to asymptomatic contralateral hemisphere, there is no delay and normal or increased prominence of peripheral vessels/ normal extent within the occluded arteries territory within the symptomatic hemisphere. University of Calgary classification score 5 (good collateral)
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Acute ischemic stroke, right MCA territory, ASPECTS: 7, with good collateral (University of Calgary classification score 4)
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::bctacol::
@@ -1184,15 +1157,13 @@ No definite area of obvious abnormal density in the brain parenchyma noted.
 The bilateral lateral ventricles showed symmetrical without dilatation.
 No obvious fracture of the skull base and the skull.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Ruptured ACom aneurysm, with acute SAH.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::bctaavm::
@@ -1235,13 +1206,11 @@ FINDINGS:
 - Bilateral intracranial VA, and BA are patent.
 - Major branches of bilateral ACA, MCA and PCA are patent.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Left temporal lobe AVM, with ICH. Spetzler-Martin grade: 1.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
