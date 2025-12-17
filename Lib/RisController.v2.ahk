@@ -51,6 +51,8 @@ class RisController {
         "PathoDateText",    { AutomationId: "mtxtRcpDTM" },
         "ImpressionLabel",  { AutomationId: "label2" },
         "MedRecNoLabel",    { AutomationId: "txtMRNo" },
+        "mtxtReportDTM",    { AutomationId: "mtxtReportDTM" },
+        "PhExamImpChkBox",  { AutomationId: "chBoxImpression" },
     )
 
     static _SimReportMap := Map(
@@ -627,6 +629,10 @@ class RisController {
 
         try {
             elLabel := this._GetOrUpdateNode("ImpressionLabel")
+            if (hLabel := elLabel.NativeWindowHandle) {
+                ControlMove(, targetImpY - labelOffset,,, hLabel)
+            }
+            elLabel := this._GetOrUpdateNode("PhExamImpChkBox")
             if (hLabel := elLabel.NativeWindowHandle) {
                 ControlMove(, targetImpY - labelOffset,,, hLabel)
             }
