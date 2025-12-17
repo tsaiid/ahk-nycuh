@@ -186,12 +186,8 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
         Send "^a"
     }
 
-    ^Up:: {
-        Send "{PgUp}"
-    }
-    ^Down:: {
-        Send "{PgDn}"
-    }
+    ^Up::RisController.SmartPageMove("Up")
+    ^Down::RisController.SmartPageMove("Down")
 
     ;-----------------------------------------------------------
     ; Mouse Remapping

@@ -504,6 +504,42 @@ class RisController {
         return true
     }
 
+    static SmartPageMove(direction) {
+        if !this.IsTargetFocused() {
+            return
+        }
+        try {
+            hEdit := ControlGetFocus("A")
+
+            ; 取得目前 Scroll 位置 (最上方的行號)
+            prevFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
+
+            if (direction == "Up") {
+                Send "{PgUp}"
+                Sleep 10 ; 等待 UI 更新
+                currFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
+
+                ; 如果無法再往上捲 (前後行號一樣，且已在第 0 行)，則移到最前
+                if (prevFirstLine == 0 && currFirstLine == 0) {
+                    this._EditSetSel(hEdit, 0, 0)
+                    this._EditScrollCaret(hEdit)
+                }
+            } else { ; Down
+                Send "{PgDn}"
+                Sleep 10 ; 等待 UI 更新
+                currFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
+
+                ; 如果無法再往下捲 (前後行號一樣)，則移到最後
+                if (prevFirstLine == currFirstLine) {
+                    fullText := ControlGetText(hEdit)
+                    len := StrLen(fullText)
+                    this._EditSetSel(hEdit, len, len)
+                    this._EditScrollCaret(hEdit)
+                }
+            }
+        }
+    }
+
     ; =================================================================
     ; 7. 格式化邏輯 (Format Finding/Impression)
     ; =================================================================
