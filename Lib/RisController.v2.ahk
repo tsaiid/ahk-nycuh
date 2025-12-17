@@ -231,48 +231,53 @@ class RisController {
     }
 
     static AppendPreviousReport() {
+        this._ShowWaitCursor() ; [新增] 開始時變更游標
         try {
-            pastImp := ControlGetText(this.PastImpressionText.NativeWindowHandle)
-            pastFind := ControlGetText(this.PastFindingText.NativeWindowHandle)
-            hImpEdit := this.ImpressionEdit.NativeWindowHandle
-            hFindEdit := this.FindingEdit.NativeWindowHandle
-        } catch {
-            return
-        }
-
-        rawDate := this._GetSelectedRowValue(1)
-        if (rawDate != "") {
-            this.SetComparisonContext(rawDate)
-        }
-
-        AppendToEdit(hEdit, textToAppend) {
-            if (textToAppend == "") {
+            try {
+                pastImp := ControlGetText(this.PastImpressionText.NativeWindowHandle)
+                pastFind := ControlGetText(this.PastFindingText.NativeWindowHandle)
+                hImpEdit := this.ImpressionEdit.NativeWindowHandle
+                hFindEdit := this.FindingEdit.NativeWindowHandle
+            } catch {
                 return
             }
 
-            currentText := ControlGetText(hEdit)
-            currentLen := StrLen(currentText)
-
-            this._EditSetSel(hEdit, currentLen, currentLen)
-            if (currentLen > 0) {
-                textToAppend := "`r`n" . textToAppend
+            rawDate := this._GetSelectedRowValue(1)
+            if (rawDate != "") {
+                this.SetComparisonContext(rawDate)
             }
 
-            this._EditReplaceSel(hEdit, textToAppend)
-            ; 3. [關鍵修改] 插入後立刻取消反白，並將游標停在該欄位最後
-            ; 這樣可以確保 Impression 不會因為沒被 Focus 而一直亮著藍色反白
-            this._EditSetSel(hEdit, -1, -1)
-            this._EditScrollCaret(hEdit)
-        }
+            AppendToEdit(hEdit, textToAppend) {
+                if (textToAppend == "") {
+                    return
+                }
 
-        AppendToEdit(hImpEdit, pastImp)
-        AppendToEdit(hFindEdit, pastFind)
+                currentText := ControlGetText(hEdit)
+                currentLen := StrLen(currentText)
 
-        try {
-            this.FindingEdit.SetFocus()
-            ; [新增] 將游標移至 Finding 開頭 (位置 0) 並捲動畫面
-            this._EditSetSel(hFindEdit, 0, 0)
-            this._EditScrollCaret(hFindEdit)
+                this._EditSetSel(hEdit, currentLen, currentLen)
+                if (currentLen > 0) {
+                    textToAppend := "`r`n" . textToAppend
+                }
+
+                this._EditReplaceSel(hEdit, textToAppend)
+                ; 3. [關鍵修改] 插入後立刻取消反白，並將游標停在該欄位最後
+                ; 這樣可以確保 Impression 不會因為沒被 Focus 而一直亮著藍色反白
+                this._EditSetSel(hEdit, -1, -1)
+                this._EditScrollCaret(hEdit)
+            }
+
+            AppendToEdit(hImpEdit, pastImp)
+            AppendToEdit(hFindEdit, pastFind)
+
+            try {
+                this.FindingEdit.SetFocus()
+                ; [新增] 將游標移至 Finding 開頭 (位置 0) 並捲動畫面
+                this._EditSetSel(hFindEdit, 0, 0)
+                this._EditScrollCaret(hFindEdit)
+            }
+        } finally {
+            this._RestoreCursor() ; [新增] 結束或 Return 前恢復游標
         }
     }
 
@@ -746,36 +751,41 @@ class RisController {
     }
 
     static FindAndClickSimilarReport() {
-        currExamName := this._GetCleanCurrentExamName()
-        if (currExamName == "") {
-            return
-        }
-
+        this._ShowWaitCursor() ; [新增]
         try {
-            tableEle := this.PastReportTable
-            rowElements := tableEle.FindAll({ Type: 'Custom' })
-            if (rowElements.Length = 0) {
-                throw Error("無資料")
+            currExamName := this._GetCleanCurrentExamName()
+            if (currExamName == "") {
+                return
             }
 
-            for rowEle in rowElements {
-                cellElements := rowEle.FindAll({ Type: 'DataItem' })
-                if (cellElements.Length = 0) {
-                    cellElements := rowEle.FindAll({ Type: 'Custom' })
+            try {
+                tableEle := this.PastReportTable
+                rowElements := tableEle.FindAll({ Type: 'Custom' })
+                if (rowElements.Length = 0) {
+                    throw Error("無資料")
                 }
 
-                if (cellElements.Length >= 3) {
-                    historyExamName := cellElements[3].Value
-                    if (this._IsRelatedReport(historyExamName, currExamName)) {
-                        this._ClickUIAElement(cellElements[3])
-                        this.Notify("已選取: " historyExamName)
-                        return
+                for rowEle in rowElements {
+                    cellElements := rowEle.FindAll({ Type: 'DataItem' })
+                    if (cellElements.Length = 0) {
+                        cellElements := rowEle.FindAll({ Type: 'Custom' })
+                    }
+
+                    if (cellElements.Length >= 3) {
+                        historyExamName := cellElements[3].Value
+                        if (this._IsRelatedReport(historyExamName, currExamName)) {
+                            this._ClickUIAElement(cellElements[3])
+                            this.Notify("已選取: " historyExamName)
+                            return
+                        }
                     }
                 }
+                this.Notify("未找到相似報告", 1000)
+            } catch as err {
+                this.Notify("搜尋失敗: " err.Message)
             }
-            this.Notify("未找到相似報告", 1000)
-        } catch as err {
-            this.Notify("搜尋失敗: " err.Message)
+        } finally {
+            this._RestoreCursor() ; [新增]
         }
     }
 
@@ -1319,5 +1329,52 @@ class RisController {
                 el.Invoke()
             }
         }
+    }
+
+    ; =================================================================
+    ; [精簡版] 既然檔案內含多重解析度，直接讀取並指定大小即可
+    ; =================================================================
+    static _ShowWaitCursor() {
+        try {
+            OCR_NORMAL := 32512
+            OCR_IBEAM := 32513
+            IMAGE_CURSOR := 2
+            LR_LOADFROMFILE := 0x0010
+
+            ; 1. 取得目前系統游標大小 (這是清晰的關鍵)
+            cx := DllCall("GetSystemMetrics", "Int", 13)
+            cy := DllCall("GetSystemMetrics", "Int", 14)
+
+            ; 2. 指定游標檔案
+            ;    由於現代 Windows 的 .ani 檔通常已內含所有尺寸，
+            ;    直接讀取標準檔名，讓 LoadImage 去挑選最適合的圖層即可。
+            cursorPath := A_WinDir . "\Cursors\aero_working.ani"
+
+            ; 防呆：萬一檔案不存在
+            if !FileExist(cursorPath) {
+                cursorPath := A_WinDir . "\Cursors\wait.cur"
+            }
+
+            ; 3. 載入並指定大小 (LoadImage 會自動從檔案中抓出符合 cx/cy 的高清圖層)
+            hCursorRaw := DllCall("LoadImage", "Ptr", 0, "Str", cursorPath, "UInt", IMAGE_CURSOR, "Int", cx, "Int", cy, "UInt", LR_LOADFROMFILE, "Ptr")
+
+            if (!hCursorRaw)
+                return
+
+            ; 4. 複製與替換
+            hCopyNormal := DllCall("CopyImage", "Ptr", hCursorRaw, "UInt", IMAGE_CURSOR, "Int", cx, "Int", cy, "UInt", 0, "Ptr")
+            hCopyIBeam  := DllCall("CopyImage", "Ptr", hCursorRaw, "UInt", IMAGE_CURSOR, "Int", cx, "Int", cy, "UInt", 0, "Ptr")
+
+            DllCall("SetSystemCursor", "Ptr", hCopyNormal, "Int", OCR_NORMAL)
+            DllCall("SetSystemCursor", "Ptr", hCopyIBeam, "Int", OCR_IBEAM)
+
+            ; 5. 清理
+            DllCall("DestroyCursor", "Ptr", hCursorRaw)
+        }
+    }
+
+    static _RestoreCursor() {
+        ; SPI_SETCURSORS = 0x0057, 重置系統所有游標回預設值
+        DllCall("SystemParametersInfo", "UInt", 0x0057, "UInt", 0, "Ptr", 0, "UInt", 0)
     }
 }
