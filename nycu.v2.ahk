@@ -186,6 +186,13 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
         Send "^a"
     }
 
+    ^Up:: {
+        Send "{PgUp}"
+    }
+    ^Down:: {
+        Send "{PgDn}"
+    }
+
     ;-----------------------------------------------------------
     ; Mouse Remapping
     XButton1:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "-"})
