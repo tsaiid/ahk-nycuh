@@ -955,27 +955,28 @@ class RisController {
     ; --- UIA 與 元件快取 ---
 
     static _GetOrUpdateNode(nodeName) {
+        ; 1. 取得目前實際視窗的 HWND (WinExist 速度極快，即使頻繁呼叫也無所謂)
         currentHwnd := WinExist(this.WinTitle)
         if !currentHwnd {
             throw TargetError("找不到 RIS 視窗")
         }
 
-        if this._cache.Has(nodeName) {
-            el := this._cache[nodeName]
-            try {
-                if (nodeName = "Ris" && el.WindowId != currentHwnd) {
-                    throw Error("ID Mismatch")
-                }
-                _ := el.ControlType ; Probe
-                return el
-            } catch {
-                this._cache.Delete(nodeName)
-                if (nodeName = "Ris") {
-                    this._cache := Map()
-                }
-            }
+        ; =================================================================
+        ; 2. [關鍵修改] 視窗身分驗證 (Window Identity Check)
+        ; 如果 Cache 裡記錄的 HWND 與目前的 HWND 不同，代表視窗重開過。
+        ; 此時必須「清空所有快取」，避免拿到上一個視窗的殭屍物件。
+        ; =================================================================
+        if (!this._cache.Has("_Hwnd") || this._cache["_Hwnd"] != currentHwnd) {
+            this._cache := Map()          ; 清空所有快取
+            this._cache["_Hwnd"] := currentHwnd ; 更新為新的 HWND
         }
 
+        ; 3. 經過上面的檢查，如果 nodeName 還在 cache 裡，代表它屬於目前的視窗，可直接回傳
+        if this._cache.Has(nodeName) {
+            return this._cache[nodeName]
+        }
+
+        ; 4. 如果不在 cache 裡，則重新抓取 (Fetch Logic)
         if (nodeName = "Ris") {
             try {
                 this._cache["Ris"] := UIA.ElementFromHandle(currentHwnd)
@@ -984,7 +985,9 @@ class RisController {
                 throw Error("Root Error: " err.Message)
             }
         } else {
+            ; 這裡會遞迴呼叫 this.Ris，而 this.Ris 會走上面的邏輯，確保拿到新的 Root
             parent := this.Ris
+
             if !this.Selectors.Has(nodeName) {
                 throw Error("Undefined Selector: " nodeName)
             }
