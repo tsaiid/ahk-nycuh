@@ -138,6 +138,9 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
     #d:: RisController.ClearCurrentEdit()
 
+    ; Ctrl+X 剪下選取文字或整行
+    ^x:: RisController.CutLineOrSelection()
+
     ; Ctrl+Y 刪除整行
     ^y:: RisController.DeleteCurrentLine()
 

@@ -17,6 +17,7 @@ class RisController {
         REPLACESEL:    0x00C2,
         LINEFROMCHAR:  0x00C9,
         GETFIRSTVISIBLELINE: 0x00CE, ; [新增] 用於取得目前視窗最上方的行號
+        CUT:           0x0300, ; [新增] 剪下
         CLEAR:         0x0303
     }
 
@@ -420,6 +421,27 @@ class RisController {
         }
     }
 
+    static CutLineOrSelection() {
+        if !this.IsTargetFocused() {
+            return false
+        }
+        try {
+            hFocus := ControlGetFocus("A")
+
+            ; 檢查是否有選取文字
+            sel := this._EditGetSel(hFocus)
+            if (sel.Start == sel.End) {
+                ; 沒有選取：選取目前所在的邏輯行 (準備剪下整行)
+                this._SelectLineForRemoval(hFocus)
+            }
+
+            ; 執行剪下 (包含複製到 Clipboard 與刪除)
+            SendMessage(this.MSG.CUT, 0, 0, hFocus)
+            this._EditScrollCaret(hFocus)
+        }
+        return true
+    }
+
     static DeleteCurrentLine() {
         if !this.IsTargetFocused() {
             return false
@@ -427,34 +449,11 @@ class RisController {
         try {
             hFocus := ControlGetFocus("A")
 
-            ; 1. 取得目前行邊界
-            bounds := this._GetLogicalLineBoundaries(hFocus)
+            ; 重構：使用共用的選取邏輯
+            this._SelectLineForRemoval(hFocus)
 
-            ; 判斷是否為最後一行
-            ; 如果 FullEnd (含換行結尾) 等於 ContentEnd (內容結尾)，表示後面沒有換行符號
-            isLastLine := (bounds.FullEnd == bounds.ContentEnd)
-
-            if (!isLastLine) {
-                ; === 情況 A: 普通行 ===
-                ; 刪除行為：刪除整行 + 後方換行符號
-                this._EditSetSel(hFocus, bounds.Start, bounds.FullEnd)
-                SendMessage(this.MSG.CLEAR, 0, 0, hFocus)
-            } else {
-                ; === 情況 B: 最後一行 (標準編輯器行為) ===
-
-                if (bounds.Start == 0) {
-                    ; 特例：文件只有這一行，直接清空
-                    this._EditSetSel(hFocus, 0, bounds.FullEnd)
-                    SendMessage(this.MSG.CLEAR, 0, 0, hFocus)
-                } else {
-                    ; 標準刪除：刪除「前方」換行符號 + 整行內容
-                    ; 範圍：從 (Start - 2) 到 FullEnd
-                    ; 游標行為：Win32 Edit Control 清除後，游標會自然停在刪除點的位置 (即上一行的結尾)
-                    this._EditSetSel(hFocus, bounds.Start - 2, bounds.FullEnd)
-                    SendMessage(this.MSG.CLEAR, 0, 0, hFocus)
-                }
-            }
-
+            ; 執行刪除 (Clear 不會影響 Clipboard)
+            SendMessage(this.MSG.CLEAR, 0, 0, hFocus)
             this._EditScrollCaret(hFocus)
         }
         return true
@@ -1287,6 +1286,33 @@ class RisController {
         bounds := this._GetLogicalLineBoundaries(hCtrl)
         if (bounds.FullEnd > bounds.Start) {
             this._EditSetSel(hCtrl, bounds.Start, bounds.FullEnd)
+        }
+    }
+
+    ; [新增] 用於刪除整行時的選取邏輯 (共用於 CutLineOrSelection 與 DeleteCurrentLine)
+    static _SelectLineForRemoval(hCtrl) {
+        bounds := this._GetLogicalLineBoundaries(hCtrl)
+
+        ; 判斷是否為最後一行
+        ; 如果 FullEnd (含換行結尾) 等於 ContentEnd (內容結尾)，表示後面沒有換行符號
+        isLastLine := (bounds.FullEnd == bounds.ContentEnd)
+
+        if (!isLastLine) {
+            ; === 情況 A: 普通行 ===
+            ; 刪除行為：刪除整行 + 後方換行符號
+            this._EditSetSel(hCtrl, bounds.Start, bounds.FullEnd)
+        } else {
+            ; === 情況 B: 最後一行 (標準編輯器行為) ===
+
+            if (bounds.Start == 0) {
+                ; 特例：文件只有這一行，直接清空
+                this._EditSetSel(hCtrl, 0, bounds.FullEnd)
+            } else {
+                ; 標準刪除：刪除「前方」換行符號 + 整行內容
+                ; 範圍：從 (Start - 2) 到 FullEnd
+                ; 游標行為：Win32 Edit Control 清除後，游標會自然停在刪除點的位置 (即上一行的結尾)
+                this._EditSetSel(hCtrl, bounds.Start - 2, bounds.FullEnd)
+            }
         }
     }
 
