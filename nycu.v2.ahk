@@ -116,6 +116,12 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ; --- Copy Finding to Impression ---
     #v:: RisController.CopyFindingToImpression()
 
+    ; Ctrl+W: 刪除前一個字 (Bash Style)
+    ^w:: {
+        Critical
+        RisController.DeleteWordBackward()
+    }
+
     ; --- Triple Click Handler ---
     ; 讓滑鼠左鍵通過，同時觸發連點檢查
     ~LButton:: RisController.HandleTripleClick()
@@ -146,9 +152,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
     ; Ctrl+Y 刪除整行
     ^y:: RisController.DeleteCurrentLine()
-
-    ; Ctrl+W: 刪除前一個字 (Bash Style)
-    ^w:: RisController.DeleteWordBackward()
 
     ; Emacs style Kill Line
     ^k::RisController.KillLine()
