@@ -18,6 +18,7 @@ class RisController {
         LINEFROMCHAR:  0x00C9,
         GETFIRSTVISIBLELINE: 0x00CE, ; [新增] 用於取得目前視窗最上方的行號
         CUT:           0x0300, ; [新增] 剪下
+        COPY:          0x0301, ; [新增] 複製
         CLEAR:         0x0303
     }
 
@@ -438,6 +439,34 @@ class RisController {
             ; 執行剪下 (包含複製到 Clipboard 與刪除)
             SendMessage(this.MSG.CUT, 0, 0, hFocus)
             this._EditScrollCaret(hFocus)
+        }
+        return true
+    }
+
+    static CopyLineOrSelection() {
+        if !this.IsTargetFocused() {
+            return false
+        }
+        try {
+            hFocus := ControlGetFocus("A")
+
+            ; 檢查是否有選取文字
+            sel := this._EditGetSel(hFocus)
+            didAutoSelect := false
+
+            if (sel.Start == sel.End) {
+                ; 沒有選取：選取目前所在的邏輯行 (Copy 使用 _SelectLine，保留後方換行)
+                this._SelectLine(hFocus)
+                didAutoSelect := true
+            }
+
+            ; 執行複製
+            SendMessage(this.MSG.COPY, 0, 0, hFocus)
+
+            ; 如果是自動選取整行，複製完後還原游標位置，避免影響打字
+            if (didAutoSelect) {
+                this._EditSetSel(hFocus, sel.Start, sel.Start)
+            }
         }
         return true
     }

@@ -114,7 +114,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^!.::   RisController.FormatImpressionText()
 
     ; --- Copy Finding to Impression ---
-    #c:: RisController.CopyFindingToImpression()
+    #v:: RisController.CopyFindingToImpression()
 
     ; --- Triple Click Handler ---
     ; 讓滑鼠左鍵通過，同時觸發連點檢查
@@ -137,6 +137,9 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     !b:: RisController.MoveCaretWord("Left")
 
     #d:: RisController.ClearCurrentEdit()
+
+    ; Ctrl+C 複製選取文字或整行
+    ^c:: RisController.CopyLineOrSelection()
 
     ; Ctrl+X 剪下選取文字或整行
     ^x:: RisController.CutLineOrSelection()
