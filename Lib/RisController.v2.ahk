@@ -59,16 +59,58 @@ class RisController {
         "PhExamImpChkBox",  { AutomationId: "chBoxImpression" },
     )
 
-    static _SimReportMap := Map(
-        "CHEST PA/AP", Map("CHEST PA/AP+LAT", 1),
-        "CHEST PA/AP+LAT", Map("CHEST PA/AP", 1),
-        "KUB", Map("KUB+ABD LAT", 1),
-        "KUB+L-SPINE LAT(supine)", Map("L-SPINE(AP+LAT)Standing", 1),
-        "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITHOUT CONTRAST", 1),
-        "WHOLE  ABDOMEN CT WITHOUT CONTRAST", Map("WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST", 1),
-        "CT BRAIN (急診TRAUMA 專用)WITHOUT CONTRAST", Map("CT BRAIN WITHOUT CONTRAST", 1),
-        "CT BRAIN WITHOUT CONTRAST", Map("CT BRAIN (急診TRAUMA 專用)WITHOUT CONTRAST", 1),
-    )
+    ; [修改] 資料結構優化：使用「群組列表」代替繁瑣的手動 Mapping
+    ; 只要將相似的檢查名稱放在同一個陣列 [] 裡，程式會自動建立雙向關聯。
+    static _SimGroups := [
+        ; Chest
+        ["CHEST PA/AP", "CHEST PA/AP+LAT"],
+
+        ; Abdomen / KUB / Spine
+        ["KUB", "KUB+ABD LAT"],
+        ["L-SPINE(AP+LAT)Standing", "KUB+L-SPINE LAT(supine)"],
+
+        ; CT Abdomen (雙向互通)
+        [
+            "WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST",
+            "WHOLE  ABDOMEN CT WITHOUT CONTRAST"
+        ],
+
+        ; CT Brain (建立完整互聯：包含 Trauma, Non-con, With+Without)
+        [
+            "CT BRAIN (急診TRAUMA 專用)WITHOUT CONTRAST",
+            "CT BRAIN WITHOUT CONTRAST",
+            "CT BRAIN WITH+ WITHOUT CONTRAST"
+        ]
+    ]
+
+    ; [新增] 執行期使用的快速查詢表 (由 __New 自動生成，無需手動維護)
+    static _SimReportMap := Map()
+
+    ; =================================================================
+    ; 1.1 初始化邏輯 (Initialization)
+    ; =================================================================
+
+    ; [新增] 類別載入時自動執行：將 _SimGroups 編譯為 _SimReportMap
+    static __New() {
+        this._SimReportMap.CaseSense := "Off" ; 設定為不分大小寫，增加比對容錯率
+
+        for group in this._SimGroups {
+            for item in group {
+                ; 確保每個項目都有一個對應的 Map
+                if !this._SimReportMap.Has(item) {
+                    this._SimReportMap[item] := Map()
+                    this._SimReportMap[item].CaseSense := "Off"
+                }
+
+                ; 將同群組內的其他項目加入該項目的關聯表
+                for peer in group {
+                    if (item != peer) {
+                        this._SimReportMap[item][peer] := 1
+                    }
+                }
+            }
+        }
+    }
 
     ; =================================================================
     ; 2. 內部狀態 (State)
