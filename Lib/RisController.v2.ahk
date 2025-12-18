@@ -75,6 +75,11 @@ class RisController {
             "WHOLE  ABDOMEN CT WITHOUT CONTRAST"
         ],
 
+        [
+            "CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONTRAST",
+            "CT LUNG/ PLEURA/ CHEST WALL WITH+ WITHOUT CONTRAST"
+        ],
+
         ; CT Brain (建立完整互聯：包含 Trauma, Non-con, With+Without)
         [
             "CT BRAIN (急診TRAUMA 專用)WITHOUT CONTRAST",
