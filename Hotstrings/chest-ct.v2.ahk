@@ -50,6 +50,7 @@
 ::lu4b::Lung-RADS Category 4B: Very suspicious.
 ::lu4x::Lung-RADS Category 4X: Category 3 or 4 nodules with additional features or imaging findings that increase suspicion for lung cancer.
 ::pe1::pulmonary embolism
+:c:MS::(Modifier S)
 
 ::ccttrok::
 {
@@ -739,6 +740,7 @@ Additional findings:
     impression := "
   (
 Total Calcium Score (Equivalent Agatston Score) is 0.
+No identifiable calcification.
   )"
     RisController.PasteToImpression(impression)
 }

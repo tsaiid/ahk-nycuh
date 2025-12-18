@@ -336,13 +336,6 @@ No osteolytic or osteoblastic bone lesion in the scanning range.
 {
     MyForm := "
   (
-TECHNIQUE:
-Non-contrast and contrast-enhanced abdominal CT scans.
-Scanning range: Liver to symphysis, 5-mm contiguous scan.
-
-Previous abdominal CT: none.
-
-FINDINGS:
 A swollen appendix, diameter about 1.1 cm, containing some appendicoliths, with mesoappendiceal fat stranding and regional peritoneal thickening, c/w acute appendicitis.
 A swollen appendix, diameter about 1.1 cm, with mesoappendiceal fat stranding, c/w acute appendicitis.
 
@@ -361,13 +354,16 @@ No evidence of intraperitoneal free air.
 The liver, gallbladder, spleen, pancreas, adrenals, kidneys, and urinary bladder are normal.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
+  )"
+    RisController.PasteToFinding(MyForm)
 
-IMPRESSION:
+    MyForm := "
+  (
 C/W acute appendicitis.
 Acute appendicitis.
 Acute appendicitis is suspected.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::actappr::
@@ -410,15 +406,13 @@ The liver, spleen, pancreas, adrenals, and kidneys are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Hollow organ perforation. Perforated peptic ulcer may be suspected.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::actdiv::
@@ -1336,9 +1330,7 @@ The lower abdomen and pelvis are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
@@ -1346,7 +1338,7 @@ C/W acute cholecystitis.
 C/W acute calculus cholecystitis.
 Early changes of acute cholecystitis is suspected. Suggest correlate with sonography and Murphy sign.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::actsc::
@@ -1398,12 +1390,15 @@ No obvious ascites.
 The liver, spleen, pancreas, adrenals, kidneys are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
+  )"
+    RisController.PasteToFinding(MyForm)
 
-IMPRESSION:
+    MyForm := "
+  (
 1. Colitis, whole ascending and transverse colon. Ischemic colitis is suspected. DDx: inflammatory bowel disease.
 2. No evidence of hollow organ perforation.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ; Portal hypertensive enteropathy
@@ -1435,12 +1430,15 @@ s/p Foley catheterization.
 Two thin-wall cystic lesions at both adnexa, size up to 6.5 cm. No mural nodule or thickened internal septum noted.
 
 Subsegmental atelectasis in both lower lungs.
+  )"
+    RisController.PasteToFinding(MyForm)
 
-IMPRESSION:
+    MyForm := "
+  (
 1. Diffuse edematous changes of the GI tract. DDx: Portal hypertensive gastropathy / enteropathy / colopathy, acute gastroenterocolitis, pseudomembranous colitis (may not involve stomach and small intestine). Clinical correlation is suggested.
 2. Cirrhosis, splenomegaly, ascites. Suspicious portal hypertension.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ; Small bowel obstruction
@@ -1448,13 +1446,6 @@ IMPRESSION:
 {
     MyForm := "
   (
-TECHNIQUE:
-Non-contrast and contrast-enhanced abdominal CT scans.
-Scanning range: Liver to symphysis, 5-mm contiguous scan.
-
-Previous abdominal CT: none.
-
-FINDINGS:
 Dilated small bowel loops with air-fluid levels. No definite transitional zone is identified. Paralytic ileus is suspected.
 No bowel wall thickening.
 No evidence of intraperitoneal free air.
@@ -1469,10 +1460,13 @@ No intraperitoneal free air.
 The liver, gallbladder, spleen, pancreas, adrenals, kidneys, and urinary bladder are unremarkable.
 No retroperitoneal or mesenteric lymphadenopathy.
 The lungs covered in the scanning range are unremarkable.
+  )"
+    RisController.PasteToFinding(MyForm)
 
-IMPRESSION:
+    MyForm := "
+  (
 Paralytic ileus is suspected.
 Small bowel obstruction, at distal ileum, probably due to adhesion. No evidence of bowel perforation or ischemia.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }

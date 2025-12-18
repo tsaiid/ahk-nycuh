@@ -48,6 +48,7 @@
 ::asp::aspiration
 ::cw::consistent with `
 ::ow::otherwise, `
+:c:RM::REMARK:`n
 ::rm::remarkable `
 ::urm::unremarkable
 ::cnbd::cannot be determined
