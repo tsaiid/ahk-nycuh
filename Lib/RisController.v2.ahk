@@ -646,21 +646,19 @@ class RisController {
                 if (currLine.Start == 0) ; 已經在第一行
                     return
 
-                ; [關鍵修正] 尋找上一行時，必須避開分隔兩行的 \r 或 \n
-                ; 我們從目前行的開頭往前探測，直到越過換行符號為止
-                probeIdx := currLine.Start
-                while (probeIdx > 0) {
-                    ; 檢查前一個字元 (1-based index 對應 probeIdx)
-                    char := SubStr(fullText, probeIdx, 1)
-                    if (char == "`n" || char == "`r") {
-                        probeIdx--
-                    } else {
-                        break
-                    }
+                ; [關鍵修正]
+                ; currLine.Start 指向的是前一行的結尾 \n 的位置。
+                ; 我們只需要往回跨過這個換行符號 (可能是 \n 或 \r\n)，就能找到上一行的內容。
+                ; 不要使用 while 迴圈，避免一次跨過多個空行。
+
+                searchPos := currLine.Start - 1 ; 先跨過已知的 \n
+
+                ; 如果前面還有 \r，也跨過去
+                if (searchPos > 0 && SubStr(fullText, searchPos, 1) == "`r") {
+                    searchPos -= 1
                 }
 
-                ; probeIdx - 1 轉為 0-based offset，若 < 0 代表文件開頭
-                searchPos := (probeIdx - 1 < 0) ? 0 : probeIdx - 1
+                ; 此時 searchPos 位於「上一行內容」的最後一個字 (若是空行，則是再上一行的 \n)
                 targetLine := this._GetLogicalLineBoundaries(hCtrl, searchPos)
 
                 ; 定義交換順序：Target(上) . Current(下) -> Current(上) . Target(下)
