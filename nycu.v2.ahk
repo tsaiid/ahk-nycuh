@@ -122,6 +122,9 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
         RisController.DeleteWordBackward()
     }
 
+    !Up::RisController.MoveCurrentLine("Up")
+    !Down::RisController.MoveCurrentLine("Down")
+
     ; --- Triple Click Handler ---
     ; 讓滑鼠左鍵通過，同時觸發連點檢查
     ~LButton:: RisController.HandleTripleClick()

@@ -620,6 +620,100 @@ class RisController {
         }
     }
 
+    ; [新增] 移動目前所在行 (Alt+Up / Alt+Down 功能實作)
+    static MoveCurrentLine(direction) {
+        if !this.IsTargetFocused() {
+            return
+        }
+
+        try {
+            hCtrl := ControlGetFocus("A")
+            sel := this._EditGetSel(hCtrl)
+
+            ; 只有在沒有選取範圍 (Caret 狀態) 時才執行
+            if (sel.Start != sel.End) {
+                return
+            }
+
+            fullText := ControlGetText(hCtrl)
+
+            ; 1. 取得目前行 (Line B)
+            currLine := this._GetLogicalLineBoundaries(hCtrl, sel.Start)
+
+            targetLine := {}
+
+            if (direction == "Up") {
+                if (currLine.Start == 0) ; 已經在第一行
+                    return
+
+                ; [關鍵修正] 尋找上一行時，必須避開分隔兩行的 \r 或 \n
+                ; 我們從目前行的開頭往前探測，直到越過換行符號為止
+                probeIdx := currLine.Start
+                while (probeIdx > 0) {
+                    ; 檢查前一個字元 (1-based index 對應 probeIdx)
+                    char := SubStr(fullText, probeIdx, 1)
+                    if (char == "`n" || char == "`r") {
+                        probeIdx--
+                    } else {
+                        break
+                    }
+                }
+
+                ; probeIdx - 1 轉為 0-based offset，若 < 0 代表文件開頭
+                searchPos := (probeIdx - 1 < 0) ? 0 : probeIdx - 1
+                targetLine := this._GetLogicalLineBoundaries(hCtrl, searchPos)
+
+                ; 定義交換順序：Target(上) . Current(下) -> Current(上) . Target(下)
+                topLine := targetLine
+                btmLine := currLine
+
+            } else { ; Down
+                if (currLine.FullEnd == StrLen(fullText)) ; 已經在最後一行
+                    return
+
+                ; 往下找比較簡單，直接從下一行的開頭 (FullEnd) 找即可
+                targetLine := this._GetLogicalLineBoundaries(hCtrl, currLine.FullEnd)
+
+                ; 定義交換順序：Current(上) . Target(下) -> Target(上) . Current(下)
+                topLine := currLine
+                btmLine := targetLine
+            }
+
+            ; 2. 取出文字
+            txtTop := SubStr(fullText, topLine.Start + 1, topLine.FullEnd - topLine.Start)
+            txtBtm := SubStr(fullText, btmLine.Start + 1, btmLine.FullEnd - btmLine.Start)
+
+            ; 3. 處理最後一行可能沒有換行符號的邊界狀況
+            ; 如果上面那行有換行，但下面那行沒有 (通常發生在與最後一行交換時)
+            if (SubStr(txtTop, -1) == "`n" && SubStr(txtBtm, -1) != "`n") {
+                txtTop := SubStr(txtTop, 1, StrLen(txtTop) - 2) ; 移除上行的 \r\n
+                txtBtm .= "`r`n"                                 ; 補給下行 \r\n
+            }
+
+            ; 4. 執行交換
+            newText := txtBtm . txtTop
+            this._EditSetSel(hCtrl, topLine.Start, btmLine.FullEnd)
+            this._EditReplaceSel(hCtrl, newText)
+
+            ; 5. 還原 Caret 位置
+            if (direction == "Up") {
+                ; 往上移：currLine 跑到上面，Caret 相對位置不變
+                offset := sel.Start - currLine.Start
+                newPos := topLine.Start + offset
+            } else {
+                ; 往下移：currLine 跑到下面 (txtBtm 是原本的 Target，現在變上面了)
+                offset := sel.Start - currLine.Start
+                newPos := topLine.Start + StrLen(txtBtm) + offset
+            }
+
+            this._EditSetSel(hCtrl, newPos, newPos)
+            this._EditScrollCaret(hCtrl)
+
+        } catch as err {
+            this.Notify("移動失敗: " err.Message)
+        }
+    }
+
     ; =================================================================
     ; 7. 格式化邏輯 (Format Finding/Impression)
     ; =================================================================
@@ -1319,15 +1413,21 @@ class RisController {
     ; [新增] 邏輯行邊界計算 Helper
     ; 回傳 Map: {Start: 0-based索引, ContentEnd: 不含換行, FullEnd: 含換行}
     ; ----------------------------------------------------------------------------------
-    static _GetLogicalLineBoundaries(hCtrl) {
+    ; [修改] 增加 specificPos 參數以支援查詢任意位置的行邊界
+    static _GetLogicalLineBoundaries(hCtrl, specificPos := -1) {
         try {
             fullText := ControlGetText(hCtrl)
         } catch {
             return {Start: 0, ContentEnd: 0, FullEnd: 0}
         }
 
-        sel := this._EditGetSel(hCtrl)
-        caretPos := sel.Start
+        ; 如果有指定位置則使用指定位置，否則抓取目前 Caret
+        if (specificPos != -1) {
+            caretPos := specificPos
+        } else {
+            sel := this._EditGetSel(hCtrl)
+            caretPos := sel.Start
+        }
 
         ; 1. 找開頭 (Start): 往前找 `n
         ; InStr 是 1-based，caretPos + 1 確保從游標處包含搜尋
