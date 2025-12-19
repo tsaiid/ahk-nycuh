@@ -28,8 +28,8 @@
 ::acthh::A -cm nodule in the S of liver, shows discontinuous, nodular, peripheral enhancement in arterial phase, and progressive peripheral enhancement with centripetal fill in in portal venous phase. Hepatic hemangioma is considered.
 ::actrn::A -cm nodule in the S of liver, shows enhancement in arterial phase, and isodense in portal venous phase, in favor of regenerative nodule.
 ::acthcc::A -cm nodule in the S of liver, shows arterial phase hyperenhancement, washout and enhancing capsule in portal venous phase, suggestive of hepatocellular carcinoma.
-::actraa::A __-cm fat-containing enhanced nodular lesion at the right adrenal gland, in favor of adenoma.
-::actlaa::A __-cm fat-containing enhanced nodular lesion at the left adrenal gland, in favor of adenoma.
+::actraa::A  cm fat-containing enhanced nodular lesion in the right adrenal gland, in favor of adenoma.
+::actlaa::A  cm fat-containing enhanced nodular lesion in the left adrenal gland, in favor of adenoma.
 ::actckd::Atrophic changes of bilateral kidneys, in favor of chronic kidney disease.
 ::mactckd::Mild atrophic changes of bilateral kidneys, in favor of mild chronic kidney disease.
 ::actckd1::Atrophic changes of bilateral kidneys with some renal cysts, in favor of chronic kidney disease.

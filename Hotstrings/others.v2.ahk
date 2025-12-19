@@ -204,6 +204,7 @@
 ::cbs::Correlation with bone scan is suggested.
 ::cercp::Correlation with ERCP is suggested.
 ::cmrcp::Correlation with MRCP is suggested.
+::cmri::Correlation with MRI is suggested.
 ::sgyn::GYN check-up is suggested.
 ::cgynsono::GYN check-up and sonographic correlation are suggested.
 ::scmp::Suggest compare with previous images if available.
