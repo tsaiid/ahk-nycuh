@@ -150,6 +150,8 @@ class RisController {
     ; =================================================================
     ; 4. 系統功能 (Notify & Focus)
     ; =================================================================
+
+    ; [MODIFIED] 現代化 Notify UI
     static Notify(text, duration := 1500) {
         if (this._currentNotifyGui) {
             try {
@@ -157,15 +159,48 @@ class RisController {
             }
             this._currentNotifyGui := ""
         }
-        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
-        g.BackColor := "333333"
-        g.SetFont("s16 cWhite bold", "微軟正黑體")
-        g.MarginX := 20
-        g.MarginY := 20
-        g.Add("Text", , text)
-        g.Show("NoActivate AutoSize Center")
-        this._currentNotifyGui := g
 
+        ; +AlwaysOnTop: 置頂
+        ; -Caption: 無標題列
+        ; +ToolWindow: 不顯示在工作列
+        ; +E0x20 (WS_EX_TRANSPARENT): 穿透滑鼠點擊
+        ; +E0x08000000 (WS_EX_NOACTIVATE): 不搶奪焦點
+        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20 +E0x08000000")
+
+        ; 現代深色風格背景 (Deep Dark Gray)
+        g.BackColor := "202020"
+
+        ; 使用更現代的 UI 字體，微軟正黑體 UI 或 Segoe UI
+        g.SetFont("s13 cWhite bold", "Microsoft JhengHei UI")
+
+        ; 增加邊距讓文字呼吸
+        g.MarginX := 25
+        g.MarginY := 15
+
+        g.Add("Text", "Center", text)
+
+        ; 先顯示出來以計算尺寸 (NoActivate)
+        g.Show("NoActivate AutoSize Center")
+
+        ; --- 視覺特效處理 ---
+        try {
+            hwnd := g.Hwnd
+            WinGetPos(,, &w, &h, hwnd)
+
+            ; 1. 圓角效果 (WinSetRegion)
+            ; r12-12 代表圓角半徑
+            WinSetRegion("0-0 w" w " h" h " r12-12", hwnd)
+
+            ; 2. 陰影效果 (CS_DROPSHADOW = 0x00020000)
+            ; 透過設定 Class Style 讓無邊框視窗擁有系統陰影
+            style := DllCall("GetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr") ; GCL_STYLE = -26
+            DllCall("SetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr", style | 0x00020000)
+
+            ; 3. 輕微透明度 (提升質感)
+            WinSetTransparent(235, hwnd)
+        }
+
+        this._currentNotifyGui := g
         SetTimer () => (IsObject(g) ? g.Destroy() : ""), -duration
     }
 
