@@ -287,7 +287,7 @@ REMARKS:
     ; 2. 定義器官與排除關鍵字 (依需求自行增減)
     organRules := Map()
     organRules["liver"]           := ["hepatic", "liver", "hcc", "hemangioma"]
-    organRules["gallbladder"]     := ["gallbladder", "gallstone", "cholecystitis"]
+    organRules["gallbladder"]     := ["gallbladder", "gallstone", "cholecystitis", "cholecystectomy"]
     organRules["spleen"]          := ["spleen", "splenic"]
     organRules["pancreas"]        := ["pancreas", "pancreatic"]
     organRules["adrenals"]        := ["adrenal"]
@@ -331,21 +331,6 @@ REMARKS:
     outputStr := FormatList(safeOrgans)
 
     Paste("The " . outputStr . " are unremarkable.")
-}
-
-; --- 輔助函式：處理 Oxford Comma 格式 ---
-FormatList(arr) {
-    str := ""
-    loop arr.Length {
-        if (A_Index == 1) {
-            str .= arr[A_Index]
-        } else if (A_Index == arr.Length) {
-            str .= ", and " arr[A_Index]
-        } else {
-            str .= ", " arr[A_Index]
-        }
-    }
-    return str
 }
 
 ::actok1::

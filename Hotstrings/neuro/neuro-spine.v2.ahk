@@ -328,6 +328,85 @@ SUGGESTION:
 ::mrl2::Lumbar spondylosis, spondylolisthesis, and degenerative disc disease, with spinal canal and neuroforaminal stenosis, as described above.
 ::mrl3::Lumbar scoliosis, spondylosis, spondylolisthesis, and degenerative disc disease, with spinal canal and neuroforaminal stenosis, as described above.
 
+::mrsp::
+{
+    ; 1. 取得文本內容
+    searchText := RisController.GetFindingContent()
+    if (searchText == "") {
+        try {
+            if (RisController.FindingEdit) {
+                searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
+            }
+        }
+    }
+
+    ; 若完全無內容，因為無法判斷部位，給出一個中性的預設值
+    if (searchText == "") {
+        Paste("Degenerative spine disease, as described above.")
+        return
+    }
+
+    ; 2. [新增] 部位偵測邏輯 (Cervical vs Lumbar)
+    spinePrefix := "Lumbar" ; 預設值 (萬一都沒提到，預設為 Lumbar)
+
+    ; 偵測 Cervical: 包含 C1-C7, Cervical, C-spine (不分大小寫)
+    if RegExMatch(searchText, "i)(C[1-7]|Cervical|C-spine)") {
+        spinePrefix := "Cervical"
+    }
+    ; 偵測 Lumbar: 包含 L1-L5, S1, Lumbar, L-spine (若同時有 C 和 L，上面的 if 會先抓到 C，視需求可調整優先權)
+    else if RegExMatch(searchText, "i)(L[1-5]|S1|Lumbar|L-spine)") {
+        spinePrefix := "Lumbar"
+    }
+
+    ; 3. 準備收集陽性發現的陣列
+    positiveFindings := []
+
+    ; --- 檢查邏輯 (關鍵字判斷) ---
+
+    ; (1) Scoliosis
+    if (ContainsKeywords(searchText, ["scoliosis"])) {
+        positiveFindings.Push("scoliosis")
+    }
+
+    ; (2) Spondylosis (包含骨刺)
+    if (ContainsKeywords(searchText, ["spondylosis", "spur", "osteophyte"])) {
+        positiveFindings.Push("spondylosis")
+    }
+
+    ; (3) Spondylolisthesis (包含 retrolisthesis)
+    if (ContainsKeywords(searchText, ["spondylolisthesis", "retrolisthesis", "anterolisthesis", "listhesis"])) {
+        positiveFindings.Push("spondylolisthesis")
+    }
+
+    ; (4) Disc Disease 邏輯
+    ; 規則：herniation 類 -> HIVD；bulging 類 -> DDD
+    if (ContainsKeywords(searchText, ["herniation", "extrusion", "sequestration", "hivd"])) {
+        positiveFindings.Push("HIVD")
+    } else if (ContainsKeywords(searchText, ["narrowing", "bulging", "protrusion", "desiccation", "vacum", "hypertrophy"])) {
+        positiveFindings.Push("degenerative disc disease")
+    }
+
+    ; 4. 組合主要病徵字串
+    if (positiveFindings.Length == 0) {
+        ; 如果有內容但沒抓到特定病徵，輸出通用句 (加上偵測到的部位)
+        Paste(spinePrefix . " degenerative spine disease, as described above.")
+        return
+    }
+
+    mainStr := FormatList(positiveFindings)
+
+    ; 5. 處理後綴 (Stenosis)
+    suffix := ""
+    if (ContainsKeywords(searchText, ["stenosis"])) {
+        suffix := ", with spinal canal and neuroforaminal stenosis"
+    }
+
+    ; 6. 最終組合 (部位 + 病徵 + 後綴)
+    finalStr := spinePrefix . " " . mainStr . suffix . ", as described above."
+
+    Paste(finalStr)
+}
+
 ;; MRSPL1
 ::mrspl1::
 {
