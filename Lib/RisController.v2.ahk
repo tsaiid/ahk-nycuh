@@ -147,6 +147,26 @@ class RisController {
     static PhExamDateText => this._GetOrUpdateNode("PhExamDateText")
     static PhExamReportText => this._GetOrUpdateNode("PhExamReportText")
 
+    ; [新增] 取得過濾後的 Finding 內文 (去除標題與結尾)
+    static GetFindingContent() {
+        try {
+            hEdit := this.FindingEdit.NativeWindowHandle
+            fullText := ControlGetText(hEdit)
+
+            ; 依照您的需求，這裡使用 Advanced (CT/MR) 的邏輯來剖析
+            range := this._FindContentRange(fullText, "Advanced")
+
+            if (!range) {
+                return ""
+            }
+
+            length := (range.End == -1) ? StrLen(fullText) - range.Start : range.End - range.Start
+            return SubStr(fullText, range.Start + 1, length)
+        } catch {
+            return ""
+        }
+    }
+
     ; =================================================================
     ; 4. 系統功能 (Notify & Focus)
     ; =================================================================
@@ -1370,9 +1390,10 @@ class RisController {
 
     static _FormatFindingForBasic(hEdit) {
         fullText := ControlGetText(hEdit)
-        if RegExMatch(fullText, "m)FINDINGS:\r?\n|:\s*\r?\n\s*\r?\n", &match) {
-            startPos := match.Pos + match.Len - 1
-            this._EditSetSel(hEdit, startPos, -1)
+        range := this._FindContentRange(fullText, "Basic")
+
+        if (range) {
+            this._EditSetSel(hEdit, range.Start, range.End)
             this._ReorderSelectedText(false, true, "-", false, hEdit)
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
@@ -1381,14 +1402,10 @@ class RisController {
 
     static _FormatFindingForAdvanced(hEdit) {
         fullText := ControlGetText(hEdit)
-        if RegExMatch(fullText, "m)FINDINGS:\r?\n|The study shows:\r?\n\r?\n|show the following findings:\r?\n\r?\n|which revealed:\r?\n\r?\n", &match) {
-            startPos := match.Pos + match.Len - 1
-            endPos := -1
-            if RegExMatch(fullText, "m)(\r\n){1,2}REMARKS?:|RECOMMENDATION:", &endMatch, startPos + 1) {
-                endPos := endMatch.Pos - 1
-            }
+        range := this._FindContentRange(fullText, "Advanced")
 
-            this._EditSetSel(hEdit, startPos, endPos)
+        if (range) {
+            this._EditSetSel(hEdit, range.Start, range.End)
             this._ReorderSelectedText(false, false, "-", true, hEdit)
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
@@ -1614,5 +1631,37 @@ class RisController {
     static _RestoreCursor() {
         ; SPI_SETCURSORS = 0x0057, 重置系統所有游標回預設值
         DllCall("SystemParametersInfo", "UInt", 0x0057, "UInt", 0, "Ptr", 0, "UInt", 0)
+    }
+
+    ; =================================================================
+    ; [新增] 共用的內容範圍搜尋邏輯
+    ; @param text  全文
+    ; @param mode  "Basic" or "Advanced"
+    ; @return      {Start: index, End: index} or false (if not found)
+    ; =================================================================
+    static _FindContentRange(text, mode) {
+        startPos := 0
+        endPos := -1
+
+        if (mode == "Advanced") {
+            ; CT/MR 的起始關鍵字
+            if RegExMatch(text, "m)FINDINGS:\r?\n|The study shows:\r?\n\r?\n|show the following findings:\r?\n\r?\n|which revealed:\r?\n\r?\n", &match) {
+                startPos := match.Pos + match.Len - 1
+
+                ; CT/MR 特有的結尾偵測 (REMARKS/RECOMMENDATION)
+                if RegExMatch(text, "m)(\r\n){1,2}REMARKS?:|RECOMMENDATION:", &endMatch, startPos + 1) {
+                    endPos := endMatch.Pos - 1
+                }
+                return {Start: startPos, End: endPos}
+            }
+        } else {
+            ; Basic (CR/US) 的起始關鍵字
+            if RegExMatch(text, "m)FINDINGS:\r?\n|:\s*\r?\n\s*\r?\n", &match) {
+                startPos := match.Pos + match.Len - 1
+                return {Start: startPos, End: -1} ; Basic 預設選到最後
+            }
+        }
+
+        return false
     }
 }
