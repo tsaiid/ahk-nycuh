@@ -232,13 +232,17 @@ F2:: {
 
 ; === 定義熱鍵 ===
 
-; 只有當偵測到日文輸入法配置 (0x0411) 時，SC029 才作為 RisController
-#HotIf (GetKeyboardHKL() == 0x04110409)
-    SC029:: RisController.ActivateOrToggleFocus() ; SC029 通常是 `~ 鍵
+; 【情境 A：US 鍵盤】ID 通常為 0x04090409
+; 當偵測到是 US 鍵盤時，將 Right Alt (RAlt) 設為觸發鍵
+#HotIf (GetKeyboardHKL() == 0x04090409)
+    RAlt::RisController.ActivateOrToggleFocus()
 #HotIf
 
-; 如果你需要明確定義 US 鍵盤下的行為（或者就讓它預設輸出 `~），可以不寫任何東西，
-; 上面的 #HotIf 不成立時，AHK 就不會攔截該按鍵，它會發送原本的 `~ 訊號。
+; 【情境 B：日文鍵盤】ID 為你查到的 0x04110409
+; 當偵測到是日文鍵盤時，將 SC029 (全形半形鍵) 設為觸發鍵
+#HotIf (GetKeyboardHKL() == 0x04110409)
+    SC029::RisController.ActivateOrToggleFocus()
+#HotIf
 
 
 ; 危急值視窗熱鍵區
