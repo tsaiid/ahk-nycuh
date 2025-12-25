@@ -270,11 +270,82 @@ REMARKS:
 
 ::actok::
 {
-    MyForm := "
-  (
-- The liver, gallbladder, spleen, pancreas, adrenals, kidneys, urinary bladder, and bowel are unremarkable.
-  )"
-    Paste(MyForm)
+    ; 1. 取得文本內容
+    ; 先嘗試用新 Helper 抓取精確的 Finding 區段
+    searchText := RisController.GetFindingContent()
+
+    ; [關鍵修正] 如果 Helper 回傳空 (例如尚未產生 FINDINGS: 標題時)，
+    ; 為了避免過濾失效導致重複輸出，改抓取整個編輯框的文字來檢查。
+    if (searchText == "") {
+        try {
+            if (RisController.FindingEdit) {
+                searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
+            }
+        }
+    }
+
+    ; 2. 定義器官與排除關鍵字 (依需求自行增減)
+    organRules := Map()
+    organRules["liver"]           := ["hepatic", "liver", "hcc", "hemangioma"]
+    organRules["gallbladder"]     := ["gallbladder", "gallstone", "cholecystitis"]
+    organRules["spleen"]          := ["spleen", "splenic"]
+    organRules["pancreas"]        := ["pancreas", "pancreatic"]
+    organRules["adrenals"]        := ["adrenal"]
+    organRules["kidneys"]         := ["kidney", "renal", "hydronephrosis", "nephro", "hydroureter", "urinary"]
+    organRules["urinary bladder"] := ["bladder", "cystitis", "foley", "urinary"]
+    organRules["bowel"]           := ["bowel", "appendix", "duodenum", "duodenal", "jejunum", "jejunal",
+                                      "ileum", "ileal", "colon", "colonic",
+                                      "diverticulitis", "diverticulum", "diverticula", "diverticulosis"]
+
+    ; 3. 執行過濾
+    safeOrgans := []
+    ; 使用固定陣列確保輸出順序符合解剖學邏輯 (Map 無序)
+    orderedKeys := ["liver", "gallbladder", "spleen", "pancreas", "adrenals", "kidneys", "urinary bladder", "bowel"]
+
+    for organ in orderedKeys {
+        if (!organRules.Has(organ))
+            continue
+
+        keywords := organRules[organ]
+        isMentioned := false
+
+        for kw in keywords {
+            ; InStr 預設不分大小寫
+            if InStr(searchText, kw) {
+                isMentioned := true
+                break
+            }
+        }
+
+        if (!isMentioned) {
+            safeOrgans.Push(organ)
+        }
+    }
+
+    ; 4. 輸出結果
+    if (safeOrgans.Length == 0) {
+        ; 如果全部都有提到，就不輸出任何文字
+        return
+    }
+
+    outputStr := FormatList(safeOrgans)
+
+    Paste("The " . outputStr . " are unremarkable.")
+}
+
+; --- 輔助函式：處理 Oxford Comma 格式 ---
+FormatList(arr) {
+    str := ""
+    loop arr.Length {
+        if (A_Index == 1) {
+            str .= arr[A_Index]
+        } else if (A_Index == arr.Length) {
+            str .= ", and " arr[A_Index]
+        } else {
+            str .= ", " arr[A_Index]
+        }
+    }
+    return str
 }
 
 ::actok1::
