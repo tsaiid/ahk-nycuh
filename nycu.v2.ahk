@@ -210,7 +210,35 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 #HotIf  ; WinActive(RisController.WinTitle) && RisController.IsTargetFocused()
 
 ;; for JIS keyboard
-SC029:: RisController.ActivateOrToggleFocus() ; SC029 通常是 `~ 鍵
+; 取得目前活動視窗的輸入法語言 ID
+GetKeyboardHKL() {
+    try {
+        hWnd := WinActive("A")
+        if !hWnd
+            return 0
+        ThreadID := DllCall("GetWindowThreadProcessId", "Ptr", hWnd, "Ptr", 0)
+
+        ; 【關鍵修正】加上 & 0xFFFFFFFF
+        ; 這會確保無論系統回傳的是 64 bit 還是有號整數，我們都只取低位的 32 bit ID
+        return DllCall("GetKeyboardLayout", "UInt", ThreadID, "Ptr") & 0xFFFFFFFF
+    } catch {
+        return 0
+    }
+}
+F2:: {
+    CurrentID := GetKeyboardHKL()
+    MsgBox("偵測到的 ID: " . Format("0x{:X}", CurrentID) . "`n" . "目標 ID: 0x04110409`n" . "是否相等? " . (CurrentID == 0x04110409 ? "YES" : "NO"))
+}
+
+; === 定義熱鍵 ===
+
+; 只有當偵測到日文輸入法配置 (0x0411) 時，SC029 才作為 RisController
+#HotIf (GetKeyboardHKL() == 0x04110409)
+    SC029:: RisController.ActivateOrToggleFocus() ; SC029 通常是 `~ 鍵
+#HotIf
+
+; 如果你需要明確定義 US 鍵盤下的行為（或者就讓它預設輸出 `~），可以不寫任何東西，
+; 上面的 #HotIf 不成立時，AHK 就不會攔截該按鍵，它會發送原本的 `~ 訊號。
 
 
 ; 危急值視窗熱鍵區
