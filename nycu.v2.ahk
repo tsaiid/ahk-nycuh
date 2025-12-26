@@ -100,7 +100,10 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^!e:: RisController.InsertSelectedHistoryName()
 
     ; --- Ph Exam or Pathology Copy ---
-    ^+c:: RisController.CopyOtherReport()
+    ^+c:: {
+        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
+        RisController.CopyOtherReport()
+    }
 
     ; Alt+Esc: 根據目前的檢查名稱，自動搜尋並選取歷史報告中的相似項目
     !Esc:: RisController.FindAndClickSimilarReport()
