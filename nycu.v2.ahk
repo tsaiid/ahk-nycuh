@@ -54,6 +54,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     #Include Hotstrings\comparisons.v2.ahk
     #Include Hotstrings\others.v2.ahk
     #Include Hotstrings\special.v2.ahk
+    #Include Hotstrings\breast-mr.v2.ahk
 
     ^9:: {
     }
