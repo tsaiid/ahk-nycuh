@@ -16,7 +16,7 @@ w::
     ;MsgBox(OutputVar)
 
     if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) = "Afx") {
-        DiffSyncBtns := ["Button1", "Button85"]
+        DiffSyncBtns := ["Button1", "Button85", "Button90", "Button102"]
         for idx, btn in DiffSyncBtns {
             try {
                 t := ControlGetText(btn)
@@ -44,7 +44,7 @@ f::
     ;MsgBox(OutputVar)
 
     if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) = "Afx") {
-        DiffSyncBtns := ["Button2", "Button86", "Button91"]
+        DiffSyncBtns := ["Button2", "Button86", "Button91", "Button103"]
         for idx, btn in DiffSyncBtns {
             try {
                 t := ControlGetText(btn)

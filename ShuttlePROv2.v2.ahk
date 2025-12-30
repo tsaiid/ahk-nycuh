@@ -434,11 +434,11 @@ class ShuttleProController {
     }
 
     ToggleSync() {
-        this.ClickButtonIfTextMatches("INFINITT PACS", ["Button1", "Button85"], [" Auto sync", "自動同步"])
+        this.ClickButtonIfTextMatches("INFINITT PACS", ["Button1", "Button85", "Button90", "Button102"], [" Auto sync", "自動同步"])
     }
 
     ToggleDiffExamSync() {
-        this.ClickButtonIfTextMatches("INFINITT PACS", ["Button2", "Button86", "Button91"], [" Sync with other exams", "不同檢查同步 "])
+        this.ClickButtonIfTextMatches("INFINITT PACS", ["Button2", "Button86", "Button91", "Button103"], [" Sync with other exams", "不同檢查同步 "])
     }
 
     ClickButtonIfTextMatches(winTitle, btnList, targetText) {
