@@ -20,7 +20,7 @@ w::
         for idx, btn in DiffSyncBtns {
             try {
                 t := ControlGetText(btn)
-                if (t = "自動同步") {
+                if (t == " Auto sync" || t == "自動同步") {
                     ControlClick(btn)
                     break
                 }
@@ -48,7 +48,7 @@ f::
         for idx, btn in DiffSyncBtns {
             try {
                 t := ControlGetText(btn)
-                if (t = "不同檢查同步 ") { ; 注意這裡原代碼有一個尾隨空白
+                if (t == " Sync with other exams" || t == "不同檢查同步 ") {
                     ControlClick(btn)
                     break
                 }
