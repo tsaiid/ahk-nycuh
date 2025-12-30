@@ -461,6 +461,8 @@ The deep veins of lower limb are engorged and non-compressible, with intralumina
     MyForm := "
 (
 The deep veins of the lower limb are patent, from the femoral to the popliteal level. No evidence of deep vein thrombosis.
+
+The major veins of the upper limbs are patent, including basilic, cephalic, axillary, and subclavian veins. No evidence of venous thrombosis.
 )"
     Paste(MyForm)
 }

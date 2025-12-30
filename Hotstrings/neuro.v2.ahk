@@ -372,6 +372,7 @@ MRA shows no significant vascular stenosis in the major intracranial arteries or
     MyForm := "
   (
 No evidence of high signal intensity on DWI suggesting acute or recent ischemia infarction in the brain noted.
+No remarkable intracranial findings.
   )"
     RisController.PasteToImpression(MyForm)
 }
