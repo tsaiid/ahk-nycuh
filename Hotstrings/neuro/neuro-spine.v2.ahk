@@ -2,6 +2,7 @@
 
 #Include ..\..\Lib\Paste.v2.ahk
 #Include ..\lib\ris-common.v2.ahk
+#Include <RisController.v2>
 
 ; Neuro Spine Forms
 ::rpbf::retropulsed bone fragment
