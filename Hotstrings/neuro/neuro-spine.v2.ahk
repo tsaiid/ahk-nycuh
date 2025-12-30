@@ -340,49 +340,45 @@ SUGGESTION:
         }
     }
 
-    ; 若完全無內容，因為無法判斷部位，給出一個中性的預設值
+    ; 若完全無內容，給出預設值
     if (searchText == "") {
         Paste("Degenerative spine disease, as described above.")
         return
     }
 
-    ; 2. [新增] 部位偵測邏輯 (Cervical vs Lumbar)
-    spinePrefix := "Lumbar" ; 預設值 (萬一都沒提到，預設為 Lumbar)
-
-    ; 偵測 Cervical: 包含 C1-C7, Cervical, C-spine (不分大小寫)
+    ; 2. 部位偵測邏輯 (Cervical vs Lumbar)
+    spinePrefix := "Lumbar" ; 預設值
     if RegExMatch(searchText, "i)(C[1-7]|Cervical|C-spine)") {
         spinePrefix := "Cervical"
-    }
-    ; 偵測 Lumbar: 包含 L1-L5, S1, Lumbar, L-spine (若同時有 C 和 L，上面的 if 會先抓到 C，視需求可調整優先權)
-    else if RegExMatch(searchText, "i)(L[1-5]|S1|Lumbar|L-spine)") {
+    } else if RegExMatch(searchText, "i)(L[1-5]|S1|Lumbar|L-spine)") {
         spinePrefix := "Lumbar"
     }
 
     ; 3. 準備收集陽性發現的陣列
     positiveFindings := []
 
-    ; --- 檢查邏輯 (關鍵字判斷) ---
+    ; --- 檢查邏輯 (使用新的 HasPositiveFinding 函式) ---
 
     ; (1) Scoliosis
-    if (ContainsKeywords(searchText, ["scoliosis"])) {
+    if (HasPositiveFinding(searchText, ["scoliosis"])) {
         positiveFindings.Push("scoliosis")
     }
 
     ; (2) Spondylosis (包含骨刺)
-    if (ContainsKeywords(searchText, ["spondylosis", "spur", "osteophyte"])) {
+    if (HasPositiveFinding(searchText, ["spondylosis", "spur", "osteophyte"])) {
         positiveFindings.Push("spondylosis")
     }
 
-    ; (3) Spondylolisthesis (包含 retrolisthesis)
-    if (ContainsKeywords(searchText, ["spondylolisthesis", "retrolisthesis", "anterolisthesis", "listhesis"])) {
+    ; (3) Spondylolisthesis (包含滑脫)
+    if (HasPositiveFinding(searchText, ["spondylolisthesis", "retrolisthesis", "anterolisthesis", "listhesis"])) {
         positiveFindings.Push("spondylolisthesis")
     }
 
     ; (4) Disc Disease 邏輯
-    ; 規則：herniation 類 -> HIVD；bulging 類 -> DDD
-    if (ContainsKeywords(searchText, ["herniation", "extrusion", "sequestration", "hivd"])) {
+    ; 注意：這裡假設 negative 邏輯通用，若有 "No herniation" 則不加入 HIVD
+    if (HasPositiveFinding(searchText, ["herniation", "extrusion", "sequestration", "hivd"])) {
         positiveFindings.Push("HIVD")
-    } else if (ContainsKeywords(searchText, ["narrowing", "bulging", "protrusion", "desiccation", "vacum", "hypertrophy"])) {
+    } else if (HasPositiveFinding(searchText, ["narrowing", "bulging", "protrusion", "desiccation", "vacum", "hypertrophy"])) {
         positiveFindings.Push("degenerative disc disease")
     }
 
@@ -395,13 +391,13 @@ SUGGESTION:
 
     mainStr := FormatList(positiveFindings)
 
-    ; 5. 處理後綴 (Stenosis)
+    ; 5. 處理後綴 (Stenosis) - 同樣套用否定檢查
     suffix := ""
-    if (ContainsKeywords(searchText, ["stenosis"])) {
+    if (HasPositiveFinding(searchText, ["stenosis"])) {
         suffix := ", with spinal canal and neuroforaminal stenosis"
     }
 
-    ; 6. 最終組合 (部位 + 病徵 + 後綴)
+    ; 6. 最終組合
     finalStr := spinePrefix . " " . mainStr . suffix . ", as described above."
 
     Paste(finalStr)
