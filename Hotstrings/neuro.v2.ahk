@@ -508,3 +508,73 @@ The major neck and intracranial arteries are patent, without vascular anomaly no
   )"
     RisController.PasteToImpression(MyForm)
 }
+
+::br::
+{
+    ; 1. 取得文本內容 (沿用既有邏輯)
+    searchText := RisController.GetFindingContent()
+    if (searchText == "") {
+        try {
+            if (RisController.FindingEdit) {
+                searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
+            }
+        }
+    }
+
+    ; 若完全無內容，直接 Return 或給出預設
+    if (searchText == "") {
+        Paste("Unremarkable study.")
+        return
+    }
+
+    ; 2. 準備收集陽性發現的陣列
+    positiveFindings := []
+
+    ; --- 檢查邏輯 (使用 HasPositiveFinding 進行負面表列過濾) ---
+
+    ; (1) Brain Atrophy
+    ; 關鍵字：atrophy (萎縮), involution (退化), volume loss (體積減少)
+    if (HasPositiveFinding(searchText, ["atrophy", "involution", "volume loss"])) {
+        positiveFindings.Push("brain atrophy")
+    }
+
+    ; (2) Leukoaraiosis (白質病變/小血管病變)
+    ; 關鍵字：leukoaraiosis, white matter (通常指 deep white matter ischemic change), SVD, demyelination
+    if (HasPositiveFinding(searchText, ["leukoaraiosis", "small vessel disease", "small vascular ischemic disease", "microangiopathy"])) {
+        positiveFindings.Push("leukoaraiosis")
+    }
+
+    ; (3) Old Lacunar Infarcts (陳舊性小洞性梗塞)
+    ; 關鍵字：lacunar, lacuna (放在 Old Insults 之前先偵測，避免被混淆)
+    if (HasPositiveFinding(searchText, ["lacunar", "lacuna"])) {
+        positiveFindings.Push("old lacunar infarcts")
+    }
+
+    ; (4) Old Insults (陳舊性腦損傷/軟化)
+    ; 關鍵字：encephalomalacia (腦軟化), gliosis (膠質增生), old insult, old infarct
+    ; 註：這裡排除 lacunar，避免重複，但若同時有大片軟化和小洞，兩者都會被列出
+    if (HasPositiveFinding(searchText, ["encephalomalacia", "gliosis", "old insult"])) {
+        positiveFindings.Push("old insults")
+    }
+
+    ; (5) Cerebral Atherosclerosis (腦動脈硬化)
+    ; 關鍵字：atherosclero (包含 atherosclerosis, atherosclerotic), dolichoectasia (延長擴張)
+    if (HasPositiveFinding(searchText, ["atherosclerosis", "atherosclerotic", "dolichoectasia"])) {
+        positiveFindings.Push("cerebral atherosclerosis")
+    }
+
+    ; 3. 組合字串
+    if (positiveFindings.Length == 0) {
+        ; 如果沒有抓到上述特定病徵
+        Paste("No specific intracranial abnormality.")
+        return
+    }
+
+    ; 4. 格式化輸出
+    mainStr := FormatList(positiveFindings)
+
+    ; 將首字母大寫 (Capitalize first letter)
+    finalStr := StrUpper(SubStr(mainStr, 1, 1)) . SubStr(mainStr, 2) . "."
+
+    Paste(finalStr)
+}
