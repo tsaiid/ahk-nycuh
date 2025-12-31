@@ -1,5 +1,7 @@
 #Requires AutoHotkey v2.0
 
+#Include <RisController.v2>
+
 ::b::bilateral `
 ::lt::left `
 ::rt::right `
@@ -178,8 +180,52 @@
 :c:IM2::IMPRESSION:`nAs aforementioned.
 :c:IM3::IMPRESSION:`nNo evidence of liver metastasis.
 :c:SG::SUGGESTION:`n
-:c:FD::FINDINGS:`n
 ::ci::clinical information: `
+:c:FD::
+{
+    ; 1. 先輸出原本的文字
+    Send("FINDINGS:")
+
+    ; 2. 判斷後方環境
+    try {
+        ; 取得目前焦點所在的 Edit Control
+        hCtrl := ControlGetFocus("A")
+
+        ; 利用 RisController 的 Helper 取得目前游標位置 (0-based)
+        ; 注意：此時游標已經在 "FINDINGS:" 之後了
+        sel := RisController._EditGetSel(hCtrl)
+        currentPos := sel.End
+
+        ; 取得目前 Edit 內的全部文字
+        fullText := ControlGetText(hCtrl)
+
+        ; === 判斷邏輯 ===
+
+        ; 狀況 A: 如果游標已經在整個文字的最後面 (End of File)
+        ; 代表後面完全沒有字，當然要補換行
+        if (currentPos >= StrLen(fullText)) {
+            Send("`n")
+            return
+        }
+
+        ; 狀況 B: 檢查游標「正後方」的那一個字元
+        ; AHK 的 SubStr 是 1-based，所以要用 currentPos + 1
+        nextChar := SubStr(fullText, currentPos + 1, 1)
+
+        ; 如果下一個字元 "不是" 換行符號 (\r 或 \n)
+        ; 代表後面有文字 (或是顯示上的最後一行但尚未換行)，則補上換行
+        if (nextChar != "`r" && nextChar != "`n") {
+            Send("`n")
+        }
+
+        ; 狀況 C: 如果下一個字元 "是" 換行符號
+        ; 代表原本就已經有換行了，什麼都不做，只停留在 FINDINGS: 後面
+
+    } catch {
+        ; 如果抓不到控制項 (例如在非標準 Edit 區)，預設行為補換行以防萬一
+        Send("`n")
+    }
+}
 
 ; recommendations
 ::sg::suggest
