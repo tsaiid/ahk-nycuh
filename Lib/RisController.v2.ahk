@@ -1365,6 +1365,21 @@ class RisController {
                     tmpText := RegExReplace(tmpText, "\s*\((Srs|Ser)\/Img:.+?\)", "")
                     tmpText := RegExReplace(tmpText, "Mark L\d+:\s*", "")
                 }
+
+                ; =========================================================
+                ; [新增] 句尾標點自動補全機制
+                ; =========================================================
+                ; 1. 先去除尾部空白，避免因空白造成誤判
+                tmpText := RTrim(tmpText)
+
+                ; 2. 檢查尾部字元：
+                ;    若"不是"以 [.] [:] [?] [!] 結尾，則補上 "."
+                ;    排除 [:] 是為了避免 "Liver:" 這種標題被改成 "Liver:."
+                if (tmpText != "" && !RegExMatch(tmpText, "[.:?!]$")) {
+                    tmpText .= "."
+                }
+                ; =========================================================
+
                 finalText .= RegExReplace(tmpText, "^(\s*)((\d+\.)|([-\+\*>=])|(\(?\d+\)))?(\s*)(\w?)(.*)", "$u{7}${8}")
                 finalText .= "`r`n"
             } else {
@@ -1376,7 +1391,7 @@ class RisController {
         finalText := RTrim(finalText, "`r`n")
 
         ; =========================================================
-        ; [修改開始] 保持 Scroll 位置邏輯
+        ; 保持 Scroll 位置邏輯
         ; =========================================================
 
         ; 1. 記錄替換前，畫面最上方是第幾行
@@ -1395,9 +1410,6 @@ class RisController {
         if (linesToScroll != 0) {
             SendMessage(this.MSG.LINESCROLL, 0, linesToScroll, targetHwnd)
         }
-        ; =========================================================
-        ; [修改結束]
-        ; =========================================================
     }
 
     static _FormatFindingForBasic(hEdit) {
