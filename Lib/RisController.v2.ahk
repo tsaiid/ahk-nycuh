@@ -242,6 +242,8 @@ class RisController {
     }
 
     static ActivateOrToggleFocus() {
+        targetHwnd := 0 ; [新增] 用來記錄最後聚焦的視窗 Handle
+
         try {
             if !WinActive(this.WinTitle) {
                 WinActivate(this.WinTitle)
@@ -253,6 +255,7 @@ class RisController {
                 if !this.IsTargetFocused() {
                     try {
                         this.FindingEdit.SetFocus()
+                        targetHwnd := this.FindingEdit.NativeWindowHandle ; 記錄
                     }
                 }
             } else {
@@ -270,13 +273,22 @@ class RisController {
                 if (hFocus == hFind) {
                     try {
                         this.ImpressionEdit.SetFocus()
+                        targetHwnd := this.ImpressionEdit.NativeWindowHandle ; 記錄
                     }
                 } else {
                     try {
                         this.FindingEdit.SetFocus()
+                        targetHwnd := this.FindingEdit.NativeWindowHandle ; 記錄
                     }
                 }
             }
+
+            ; 如果上面沒抓到，就抓目前系統焦點
+            if (!targetHwnd) {
+                try targetHwnd := ControlGetFocus("A")
+            }
+
+            SetTimer( () => this._HighlightCaret(targetHwnd), -50 )
         } catch as err {
             this.Notify("視窗切換失敗: " err.Message)
         }
@@ -1663,5 +1675,72 @@ class RisController {
         }
 
         return false
+    }
+
+    ; [紅色特效版] 紅色 + 半透明 + 圓形
+    static _HighlightCaret(hTargetCtrl := 0) {
+        try {
+            ; 1. 設定座標模式
+            CoordMode "Caret", "Screen"
+            CoordMode "Mouse", "Screen"
+
+            x := 0, y := 0
+            isFound := false
+
+            ; 2. 抓取座標
+            if CaretGetPos(&cx, &cy) {
+                x := cx
+                y := cy
+                isFound := true
+            } else if (hTargetCtrl) {
+                try {
+                    WinGetPos(&wx, &wy, &ww, &wh, "ahk_id " hTargetCtrl)
+                    x := wx + (ww / 2) - 20 ; 減去半徑 (40/2)
+                    y := wy + (wh / 2) - 20
+                    isFound := true
+                }
+            }
+
+            if (!isFound)
+                return
+
+            ; 3. 計算圓形位置
+            ;    設定圓形直徑為 40px
+            ;    對於 Caret，我們將圓心對準 Caret 的中心 (假設 Caret 高度約 20px)
+            if (x == cx) {
+                finalX := x - 20      ; 往左移半徑
+                finalY := y - 10      ; 往上移半徑的一半，讓圓心包住 Caret
+            } else {
+                finalX := x
+                finalY := y
+            }
+
+            ; 4. 建立 GUI (保留 -DPIScale 確保位置正確)
+            g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20 +E0x08000000 -DPIScale")
+
+            ; =============================================
+            ; 關鍵設定：紅色 (您確認看得到的顏色)
+            ; =============================================
+            g.BackColor := "Red"
+
+            ; 5. 顯示 GUI (先顯示出來)
+            g.Show("NA x" finalX " y" finalY " w40 h40")
+
+            ; 6. 套用特效 (嘗試裁切與透明)
+            try {
+                ; 裁切成圓形 (E = Ellipse)
+                WinSetRegion("0-0 w40 h40 E", g.Hwnd)
+
+                ; 設定半透明 (100 為半透明，範圍 0-255)
+                ; 如果這個特效導致消失，代表您的系統不支援透明視窗
+                WinSetTransparent(100, g.Hwnd)
+            }
+
+            ; 7. 0.4 秒後消失
+            SetTimer () => (IsObject(g) ? g.Destroy() : ""), -400
+
+        } catch {
+            ; 靜默失敗
+        }
     }
 }
