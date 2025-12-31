@@ -40,12 +40,13 @@ P.T.C.C.D:
 (
 Under sonography guidance, the gallbladder was localized.
 The skin was prepared and the area was draped.
-After local anesthesia, a 6 Fr one-step pigtail catheter (with string lock) was placed transhepatically into the gallbladder.
-After local anesthesia, a 18G Chiba needle was introduced transhepatically into the gallbladder, followed by J-curve guiding wire, and a 6Fr pigtail catheter was placed using Seldinger technique.
+After local anesthesia, a 8 Fr one-step pigtail catheter (without string lock) was placed transhepatically into the gallbladder.
+After local anesthesia, a 18G Chiba needle was introduced transhepatically into the gallbladder, followed by J-curve guiding wire, and a 8Fr pigtail catheter was placed using Seldinger technique.
 
 Dark green, mucinous fluid was aspirated and collected for examination.
 Brown, sandy, mucinous, pus like fluid was aspirated and collected for examination.
 
+Then, the drain was fixed with Nylon.
 The fluoroscopy confirmed the drain's location. Then, the drain was fixed with Nylon.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"

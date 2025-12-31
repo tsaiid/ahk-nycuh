@@ -192,7 +192,7 @@ Then, sandbag compression for at least 4 hours, and bed rest for 8 hours.
   )"
     RisController.PasteToFinding(MyForm)
 
-  MyForm := "
+    MyForm := "
   (
 IMPRESSION:
 TAE was successfully performed.
@@ -828,15 +828,15 @@ Under fluoroscopy guidance and using Seldinger's technique, a 8Fr pigtail drain 
 Its patency was confirmed, and then, the drain was fixed with Nylon at external mark 18 cm.
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
+
     MyForm := "
 (
 Left PCN (8F pigtail) was successfully performed.
 Right PCN (8F pigtail) was successfully performed.
 Bilateral PCN (8F pigtail) was successfully performed.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::xapcnr:: {
@@ -1058,14 +1058,17 @@ Procedure and Findings:
 - Bile was collected for laboratory examination.
 
 - Because the patient was uncooperative, marked abdominal motion, and intolerable to prolonged procedure, the right IHD could not be approached. Another PTCD in a few days or consult ANES for general anesthesia procedure is suggested.
+)"
+    RisController.PasteToFinding(MyForm)
 
-Impression:
+    MyForm := "
+(
 PTCD was done.
 Left PTCD (8F pigtail with string lock, tip in the CBD) was done.
 Right PTCD (8F pigtail with string lock, tip in the CBD) was done.
 Right PTCD (8F pigtail with string lock and homemade side holes, tip in the duodenum) was done.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::xaptcdr:: {
