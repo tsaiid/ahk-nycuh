@@ -149,6 +149,7 @@ The paranasal sinuses are clear.
 ::nacf::No definite acute intracranial findings.
 ::csptrok::No obvious fracture or dislocation of the cervical spine.
 ::icr::intracranial
+::mritumorcpok::No evidence of abnormal tumor mass lesion over the skull base, bilateral CP angle cistern, and bilateral pre-pontine cistern region noted.
 
 ::li1::
 {
