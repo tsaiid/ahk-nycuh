@@ -89,6 +89,8 @@
 ::lcl::lateral collateral ligament
 ::acl::anterior cruciate ligament
 ::pcl::posterior cruciate ligament
+::mpfl::medial patellofemoral ligament
+::lpfl::lateral patellofemoral ligament
 ::thr::total hip replacement
 ::tka::total knee arthroplasty
 ::as::ankylosing spondylitis
