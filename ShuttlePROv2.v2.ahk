@@ -89,7 +89,7 @@ class ShuttleProController {
         ; 3. G3PACS (Infinitt)
         pacsSpeeds := [800, 600, 333, 200, 100, 50, 20]
         this.RegisterApp("G3PACS", "ahk_exe G3PACS.exe", Map(
-            1, "q",
+            1, "8",
             2, "7",
             3, "5",
             4, "6",
