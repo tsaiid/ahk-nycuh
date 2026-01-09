@@ -151,6 +151,9 @@ The paranasal sinuses are clear.
 ::csptrok::No obvious fracture or dislocation of the cervical spine.
 ::icr::intracranial
 ::mritumorcpok::No evidence of abnormal tumor mass lesion over the skull base, bilateral CP angle cistern, and bilateral pre-pontine cistern region noted.
+::riol::Status post right intraocular lens (IOL) implantation.
+::liol::Status post left intraocular lens (IOL) implantation.
+::biol::Status post bilateral intraocular lens (IOL) implantations.
 
 ::li1::
 {
@@ -536,7 +539,7 @@ The major neck and intracranial arteries are patent, without vascular anomaly no
 
     ; (1) Brain Atrophy
     ; 關鍵字：atrophy (萎縮), involution (退化), volume loss (體積減少)
-    if (HasPositiveFinding(searchText, ["atrophy", "involution", "volume loss"])) {
+    if (HasPositiveFinding(searchText, ["atrophy", "atrophic", "involution", "volume loss"])) {
         positiveFindings.Push("brain atrophy")
     }
 
@@ -555,7 +558,7 @@ The major neck and intracranial arteries are patent, without vascular anomaly no
     ; (4) Old Insults (陳舊性腦損傷/軟化)
     ; 關鍵字：encephalomalacia (腦軟化), gliosis (膠質增生), old insult, old infarct
     ; 註：這裡排除 lacunar，避免重複，但若同時有大片軟化和小洞，兩者都會被列出
-    if (HasPositiveFinding(searchText, ["encephalomalacia", "gliosis", "old insult"])) {
+    if (HasPositiveFinding(searchText, ["encephalomalacia", "gliosis", "old insult", "ischemic insult"])) {
         positiveFindings.Push("old insults")
     }
 

@@ -38,6 +38,14 @@ P.T.C.C.D:
 ::sg-ptgbd:: {
     MyForm := "
 (
+PTGBD:
+
+- Image Guidance: CT and ultrasound.
+- Anesthesia: Local anesthesia.
+- Drainage: 8 Fr one-step pigtail catheter (non-locking) was placed and secured at a depth of 16 cm.
+- Specimen: Dark green, mucinous fluid.
+- Complications: None.
+
 Under sonography guidance, the gallbladder was localized.
 The skin was prepared and the area was draped.
 After local anesthesia, a 8 Fr one-step pigtail catheter (without string lock) was placed transhepatically into the gallbladder.
@@ -54,6 +62,7 @@ The whole procedure was smooth, the patient tolerated well, and no immediate com
 
     MyForm := "
 (
+PTGBD (8F pigtail non-locking drain) was performed.
 PTGBD (8F pigtail drain without string lock) was performed.
 )"
     RisController.PasteToImpression(MyForm)
