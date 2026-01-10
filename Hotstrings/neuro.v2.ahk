@@ -516,6 +516,18 @@ The major neck and intracranial arteries are patent, without vascular anomaly no
 
 ::br::
 {
+    GenerateBrainImpression(false)
+}
+
+::mbr::
+{
+    GenerateBrainImpression(true)
+}
+
+; --- Core Logic ---
+
+GenerateBrainImpression(isMild := false)
+{
     ; 1. 取得文本內容 (沿用既有邏輯)
     searchText := RisController.GetFindingContent()
     if (searchText == "") {
@@ -578,8 +590,12 @@ The major neck and intracranial arteries are patent, without vascular anomaly no
     ; 4. 格式化輸出
     mainStr := FormatList(positiveFindings)
 
+    ; 根據參數決定是否加入 "Mild " 前綴
+    prefix := isMild ? "Mild " : ""
+    combinedStr := prefix . mainStr
+
     ; 將首字母大寫 (Capitalize first letter)
-    finalStr := StrUpper(SubStr(mainStr, 1, 1)) . SubStr(mainStr, 2) . "."
+    finalStr := StrUpper(SubStr(combinedStr, 1, 1)) . SubStr(combinedStr, 2) . "."
 
     Paste(finalStr)
 }
