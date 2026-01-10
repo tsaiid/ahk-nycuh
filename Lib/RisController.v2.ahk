@@ -779,46 +779,26 @@ class RisController {
         }
     }
 
-    static InsertNewLineBelow() {
+    ; [整合] 邏輯行換行增強功能 (支援 Above / Below)
+    static InsertNewLine(mode := "Below") {
         if !this.IsTargetFocused() {
             return
         }
         try {
             hEdit := ControlGetFocus("A")
-            ; 利用現有 helper 取得邏輯行邊界
             bounds := this._GetLogicalLineBoundaries(hEdit)
 
-            ; 1. 將游標移至該行內容的末尾 (不含換行符號)
-            this._EditSetSel(hEdit, bounds.ContentEnd, bounds.ContentEnd)
+            if (mode = "Above") {
+                ; Shift+Enter 邏輯：移至行首 -> 插入 -> 游標回新行行首
+                this._EditSetSel(hEdit, bounds.Start, bounds.Start)
+                this._EditReplaceSel(hEdit, "`r`n")
+                this._EditSetSel(hEdit, bounds.Start, bounds.Start)
+            } else {
+                ; Ctrl+Enter 邏輯：移至行尾 -> 插入 -> 游標自然停在新行
+                this._EditSetSel(hEdit, bounds.ContentEnd, bounds.ContentEnd)
+                this._EditReplaceSel(hEdit, "`r`n")
+            }
 
-            ; 2. 插入換行符號
-            ; 使用 REPLACESEL (1, StrPtr) 可以保留 Undo 歷史且不會跳動畫面
-            this._EditReplaceSel(hEdit, "`r`n")
-
-            ; 3. 確保新插入的游標位置可見
-            this._EditScrollCaret(hEdit)
-        }
-    }
-
-    static InsertNewLineAbove() {
-        if !this.IsTargetFocused() {
-            return
-        }
-        try {
-            hEdit := ControlGetFocus("A")
-            ; 1. 取得目前邏輯行的起始索引
-            bounds := this._GetLogicalLineBoundaries(hEdit)
-
-            ; 2. 將游標移至該行最前端
-            this._EditSetSel(hEdit, bounds.Start, bounds.Start)
-
-            ; 3. 插入換行符號 (這會將原本的內容推到下一行)
-            this._EditReplaceSel(hEdit, "`r`n")
-
-            ; 4. 將游標移動回剛產生的新行起始處 (原本 Start 的位置)
-            this._EditSetSel(hEdit, bounds.Start, bounds.Start)
-
-            ; 5. 確保畫面捲動至正確位置
             this._EditScrollCaret(hEdit)
         }
     }

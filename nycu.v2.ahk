@@ -205,8 +205,8 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^Up::RisController.SmartPageMove("Up")
     ^Down::RisController.SmartPageMove("Down")
 
-    ^Enter::RisController.InsertNewLineBelow() ; Ctrl+Enter: 下方插入
-    +Enter::RisController.InsertNewLineAbove() ; Shift+Enter: 上方插入
+    ^Enter::RisController.InsertNewLine("Below") ; Ctrl+Enter: 下方插入
+    +Enter::RisController.InsertNewLine("Above") ; Shift+Enter: 上方插入
 
     ;-----------------------------------------------------------
     ; Mouse Remapping
