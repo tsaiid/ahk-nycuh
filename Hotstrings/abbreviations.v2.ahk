@@ -226,6 +226,7 @@
 ::thad::transient hepatic attenuation difference
 ::thid::transient hepatic intensity difference
 ::hpb::hepato-pancreato-biliary
+::rsj::rectosigmoid junction
 
 ;; Brain
 ::ich::intracranial hemorrhage
