@@ -112,6 +112,7 @@
 ::plsp::Status post instrumented fixation of the lumbar spine.
 ::plsp0::Status post laminectomy, transpedicular screws, rods fixation at L1-2, L2-3, L3-4, L4-5, L5-S1.{Enter}Post interbody cage placement at L1-2, L2-3, L3-4, L4-5, L5-S1.
 ::spok::No disc space narrowing, spondylolisthesis, or fracture.
+::spok2::No spondylolisthesis or fracture.
 ::lspok::L-spine: No disc space narrowing, spondylolisthesis, or fracture.
 ::wsplok::Normal cervical and lumbar lordotic curves.{Enter}Normal thoracic kyphotic curve.
 ::oaf::Joint space narrowing and marginal osteophyte formation, involving several DIP and PIP joints. These findings are consistent with osteoarthritis.

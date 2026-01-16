@@ -12,6 +12,7 @@
 ::la1hp::hypoplasia of left A1 anterior cerebral artery.
 ::rv4hp::hypoplasia of right V4 vertebral artery.
 ::lv4hp::hypoplasia of left V4 vertebral artery.
+::vok::The bilateral lateral ventricles show no dilatation, and no midline shift is noted.
 
 ;; CTN1
 ::ctn1::

@@ -389,6 +389,7 @@
 
 ::inact::For abdominal condition, please refer to the concurrent CT abdomen for detailed evaluation.
 ::incct::For thoracic condition, please refer to the concurrent CT chest for detailed evaluation.
+::innct::For neck condition, please refer to the concurrent CT neck for detailed evaluation.
 
 ::fn::FOOTNOTE:{Enter}[{^}1]: `
 
