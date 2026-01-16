@@ -331,6 +331,19 @@ SUGGESTION:
 
 ::mrsp::
 {
+    GenerateSpineImpression(false)
+}
+
+::mmrsp::
+{
+    GenerateSpineImpression(true)
+}
+
+; =================================================================
+; Logic: Spine Impression Generator
+; =================================================================
+GenerateSpineImpression(isMild := false)
+{
     ; 1. 取得文本內容
     searchText := RisController.GetFindingContent()
     if (searchText == "") {
@@ -341,65 +354,70 @@ SUGGESTION:
         }
     }
 
-    ; 若完全無內容，給出預設值
+    ; 若完全無內容，給出預設值 (依照 isMild 決定前綴)
     if (searchText == "") {
-        Paste("Degenerative spine disease, as described above.")
+        ; 預設為 Lumbar，若無內容無法判斷部位，暫定 Lumbar
+        defStr := (isMild ? "Mild " : "") . "Lumbar degenerative spine disease, as described above."
+        Paste(defStr)
         return
     }
 
     ; 2. 部位偵測邏輯 (Cervical vs Lumbar)
-    spinePrefix := "Lumbar" ; 預設值
+    ; 預設小寫，由最後的 Capitalize 統一處理首字大寫
+    spineLoc := "lumbar"
     if RegExMatch(searchText, "i)(C[1-7]|Cervical|C-spine)") {
-        spinePrefix := "Cervical"
+        spineLoc := "cervical"
     } else if RegExMatch(searchText, "i)(L[1-5]|S1|Lumbar|L-spine)") {
-        spinePrefix := "Lumbar"
+        spineLoc := "lumbar"
     }
 
     ; 3. 準備收集陽性發現的陣列
     positiveFindings := []
 
-    ; --- 檢查邏輯 (使用新的 HasPositiveFinding 函式) ---
-
+    ; --- 檢查邏輯 ---
     ; (1) Scoliosis
     if (HasPositiveFinding(searchText, ["scoliosis"])) {
         positiveFindings.Push("scoliosis")
     }
 
-    ; (2) Spondylosis (包含骨刺)
+    ; (2) Spondylosis
     if (HasPositiveFinding(searchText, ["spondylosis", "spur", "osteophyte"])) {
         positiveFindings.Push("spondylosis")
     }
 
-    ; (3) Spondylolisthesis (包含滑脫)
+    ; (3) Spondylolisthesis
     if (HasPositiveFinding(searchText, ["spondylolisthesis", "retrolisthesis", "anterolisthesis", "listhesis"])) {
         positiveFindings.Push("spondylolisthesis")
     }
 
-    ; (4) Disc Disease 邏輯
-    ; 注意：這裡假設 negative 邏輯通用，若有 "No herniation" 則不加入 HIVD
+    ; (4) Disc Disease
     if (HasPositiveFinding(searchText, ["herniation", "extrusion", "sequestration", "hivd"])) {
         positiveFindings.Push("HIVD")
     } else if (HasPositiveFinding(searchText, ["narrowing", "bulging", "protrusion", "desiccation", "vacum", "hypertrophy"])) {
         positiveFindings.Push("degenerative disc disease")
     }
 
-    ; 4. 組合主要病徵字串
+    ; 4. 組合字串
     if (positiveFindings.Length == 0) {
-        ; 如果有內容但沒抓到特定病徵，輸出通用句 (加上偵測到的部位)
-        Paste(spinePrefix . " degenerative spine disease, as described above.")
-        return
+        ; Fallback: [Mild] [lumbar] degenerative spine disease...
+        rawStr := (isMild ? "mild " : "") . spineLoc . " degenerative spine disease, as described above."
+    } else {
+        mainStr := FormatList(positiveFindings)
+
+        ; 處理後綴 (Stenosis)
+        suffix := ""
+        if (HasPositiveFinding(searchText, ["stenosis"])) {
+            suffix := ", with spinal canal and neuroforaminal stenosis"
+        }
+
+        ; 組合: [Mild] [lumbar] [findings][suffix]...
+        rawStr := (isMild ? "mild " : "") . spineLoc . " " . mainStr . suffix . ", as described above."
     }
 
-    mainStr := FormatList(positiveFindings)
-
-    ; 5. 處理後綴 (Stenosis) - 同樣套用否定檢查
-    suffix := ""
-    if (HasPositiveFinding(searchText, ["stenosis"])) {
-        suffix := ", with spinal canal and neuroforaminal stenosis"
-    }
-
-    ; 6. 最終組合
-    finalStr := spinePrefix . " " . mainStr . suffix . ", as described above."
+    ; 5. 統一格式化輸出 (首字大寫 + 句點)
+    ; 確保 rawStr 去除前後空白
+    rawStr := Trim(rawStr)
+    finalStr := StrUpper(SubStr(rawStr, 1, 1)) . SubStr(rawStr, 2)
 
     Paste(finalStr)
 }
