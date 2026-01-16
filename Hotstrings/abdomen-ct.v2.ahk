@@ -268,23 +268,8 @@ REMARKS:
     Paste(MyForm)
 }
 
-::actok::
-{
-    ; 1. 取得文本內容
-    ; 先嘗試用新 Helper 抓取精確的 Finding 區段
-    searchText := RisController.GetFindingContent()
-
-    ; [關鍵修正] 如果 Helper 回傳空 (例如尚未產生 FINDINGS: 標題時)，
-    ; 為了避免過濾失效導致重複輸出，改抓取整個編輯框的文字來檢查。
-    if (searchText == "") {
-        try {
-            if (RisController.FindingEdit) {
-                searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
-            }
-        }
-    }
-
-    ; 2. 定義器官與排除關鍵字 (依需求自行增減)
+GetUnremarkableOrgans(searchText) {
+    ; 定義器官與關鍵字
     organRules := Map()
     organRules["liver"]           := ["hepatic", "liver", "hcc", "hemangioma"]
     organRules["gallbladder"]     := ["gallbladder", "gallstone", "cholecystitis", "cholecystectomy"]
@@ -297,52 +282,74 @@ REMARKS:
                                       "ileum", "ileal", "colon", "colonic",
                                       "diverticulitis", "diverticulum", "diverticula", "diverticulosis"]
 
-    ; 3. 執行過濾
-    safeOrgans := []
-    ; 使用固定陣列確保輸出順序符合解剖學邏輯 (Map 無序)
     orderedKeys := ["liver", "gallbladder", "spleen", "pancreas", "adrenals", "kidneys", "urinary bladder", "bowel"]
+    safeOrgans := []
 
     for organ in orderedKeys {
-        if (!organRules.Has(organ))
-            continue
-
-        keywords := organRules[organ]
         isMentioned := false
-
-        for kw in keywords {
-            ; InStr 預設不分大小寫
-            if InStr(searchText, kw) {
+        for kw in organRules[organ] {
+            if (InStr(searchText, kw)) {
                 isMentioned := true
                 break
             }
         }
-
         if (!isMentioned) {
             safeOrgans.Push(organ)
         }
     }
+    return safeOrgans
+}
 
-    ; 4. 輸出結果
-    if (safeOrgans.Length == 0) {
-        ; 如果全部都有提到，就不輸出任何文字
-        return
+::actok::
+{
+    ; 1. 取得文本
+    searchText := RisController.GetFindingContent()
+    if (searchText == "" && RisController.FindingEdit) {
+        try {
+            searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
+        }
     }
 
-    outputStr := FormatList(safeOrgans)
+    ; 2. 呼叫 Helper 取得未提及器官
+    safeOrgans := GetUnremarkableOrgans(searchText)
 
-    Paste("The " . outputStr . " are unremarkable.")
+    ; 3. 輸出
+    if (safeOrgans.Length > 0) {
+        Paste("The " . FormatList(safeOrgans) . " are unremarkable.")
+    }
 }
 
 ::actok1::
 {
-    MyForm := "
-  (
-- The liver, gallbladder, spleen, pancreas, adrenals, kidneys, urinary bladder, and bowel are unremarkable.
-- The lower abdomen and pelvis are unremarkable.
-- No retroperitoneal or mesenteric lymphadenopathy.
-- The lungs covered in the scanning range are unremarkable.
-  )"
-    Paste(MyForm)
+    ; 1. 取得文本
+    searchText := RisController.GetFindingContent()
+    if (searchText == "" && RisController.FindingEdit) {
+        try {
+            searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
+        }
+    }
+
+    ; 2. 處理器官部分 (與 actok 相同)
+    safeOrgans := GetUnremarkableOrgans(searchText)
+
+    finalOutput := ""
+    if (safeOrgans.Length > 0) {
+        finalOutput .= "The " . FormatList(safeOrgans) . " are unremarkable. "
+    }
+
+    ; 3. [新增] 偵測 Free Air 與 Ascites
+    if (!InStr(searchText, "free air")) {
+        finalOutput .= "`nNo evidence of intraperitoneal free air."
+    }
+
+    if (!InStr(searchText, "ascites")) {
+        finalOutput .= "`nNo obvious ascites."
+    }
+
+    ; 4. 執行輸出
+    if (Trim(finalOutput) != "") {
+        Paste(Trim(finalOutput))
+    }
 }
 
 ::actok2::
