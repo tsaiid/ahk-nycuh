@@ -4,37 +4,6 @@
 #Include lib\ris-common.v2.ahk
 
 ; CT-guide Forms
-::0ctg-lb::
-{
-    MyForm := "
-  (
-CT-guide lung biopsy is indicated and has been scheduled on / PM. If specimen for tissue culture is needed, please prepare other specimen collecting bottles and send to CT room with the patient. Otherwise, only specimen immersed in formalin will be harvested.
-  )"
-    Paste(MyForm)
-}
-
-::1ctg-lb::
-{
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-  (
-CT guide lung biopsy was performed in {1}. Please follow up CXR if pneumothorax develops or progresses.
-  )",
-        currDateStr)
-    Paste(MyForm)
-}
-
-::1ctg-b::
-{
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-  (
-CT guide biopsy was performed in {1}. Please keep bed rest and check if internal bleeding occurs.
-  )",
-        currDateStr)
-    Paste(MyForm)
-}
-
 ;; Lung Biopsy
 ::ctg-lb::
 {
@@ -108,17 +77,6 @@ F/U CXR 6 hours later.
 }
 
 ;; Drainage
-::1ctg-d::
-{
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-  (
-CT guide drainage was performed in {1}. A 8 Fr pigtail drain was inserted. 10 ml of aspirated pus was collected for Lab exam.
-  )",
-        currDateStr)
-    Paste(MyForm)
-}
-
 ::ctg-d::
 {
     MyForm := "

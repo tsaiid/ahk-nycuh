@@ -298,6 +298,8 @@ Benchmark(funcObj, times := 1) {
 ; =================================================================
 #HotIf WinActive(RisController.ConsultationWinTitle)
 
+    #Include Hotstrings\consultation.v2.ahk
+
 ^t::
 {
     RisController.AddConsultationTime(20)

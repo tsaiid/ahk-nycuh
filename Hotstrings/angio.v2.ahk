@@ -584,16 +584,6 @@ Operator: Dr. Huang,
     Paste(MyForm)
 }
 
-::1xahaic:: {
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-(
-The temporary HAIC catheter was placed in {1}. Please keep infusion of the catheter to prevent clotting. If oozing from the puncture area occurs, please check KUB to make sure the catheter tip location is proper. If further TAE with Lipiodol after this HAIC session is needed, please arrange the exam.
-)",
-        currDateStr)
-    Paste(MyForm)
-}
-
 ::xahaic:: {
     MyForm := "
 (
@@ -699,16 +689,6 @@ The infusion catheter for HAIC was exchanged.
 
 ::0xadj::Antegrade double-J ureteral stent placement has been arranged.
 
-::1xadj:: {
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-(
-Antegrade double-J ureteral stent placement was performed in {1}. Please keep PCN drainage if hematuria persists. For PCN removal, if needed, please clamp the PCN first, if no discomfort nor fever for hours to a day, arrange antegrade pyelography to check the patency of ureteral stent. If patent, I will remove the PCND at that time.
-)",
-        currDateStr)
-    Paste(MyForm)
-}
-
 ::xadj:: {
     MyForm := "
 (
@@ -794,15 +774,6 @@ PROCEDURE AND FINDINGS:
 IMPRESSION:
 Patent ureteral stent and successful removal of PCND.
 )"
-    Paste(MyForm)
-}
-
-::1xapcn:: {
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-(
-Percutaneous nephrostomy (8F pigtail) was performed in {1}.
-)", currDateStr)
     Paste(MyForm)
 }
 
@@ -968,20 +939,6 @@ IMPRESSION:
     Paste(MyForm)
 }
 
-::0xale::Angiography of lower extremity has been arranged.
-
-::1xale:: {
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-(
-Aortography and angiography of lower extremity were performed in {1}.
-Angiography of lower extremity was performed in {1}.
-Please keep external compression on the puncture site and check if bleeding or hematoma occurs.
-)",
-        currDateStr)
-    Paste(MyForm)
-}
-
 ::xale:: {
     MyForm := "
 (
@@ -1022,15 +979,6 @@ Peripheral arterial occlusive disease of left lower limb.
 
 Patent major left lower extremity arteries.
 )"
-    Paste(MyForm)
-}
-
-::1xaptcd:: {
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-(
-PTCD was performed in {1}. A 8 Fr pigtail drain was inserted through left / right IHD.
-)", currDateStr)
     Paste(MyForm)
 }
 

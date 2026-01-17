@@ -4,24 +4,6 @@
 #Include lib\ris-common.v2.ahk
 
 ; Sono-guide
-::0sg-ptccd:: {
-    MyForm := "
-(
-PTCCD is indicated and has been arranged.
-)"
-    Paste(MyForm)
-}
-
-::1sg-ptgbd:: {
-    currDateStr := FormatTime(, "M/d tt")
-    MyForm := Format("
-(
-PTCCD was performed in {1}. A 6 Fr pigtail drain with safety lock was inserted. 10 ml of aspirated bile was collected for Lab exam.
-)",
-        currDateStr)
-    Paste(MyForm)
-}
-
 ::ptccd:: {
     MyForm := "
 (
@@ -180,8 +162,6 @@ Sono-guiding liver biopsy was successfully performed.
 )"
     RisController.PasteToImpression(MyForm)
 }
-
-:*:0sg-ld::Percutaneous drainage for liver abscess has been arranged.
 
 :*:sg-ld:: {
     MyForm := "
