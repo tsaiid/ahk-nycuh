@@ -266,18 +266,6 @@ F2:: {
 
 #HotIf ; WinActive(RisController.AbnormalWinTitle)
 
-
-;
-; Global Remap
-;
-^!r:: Reload
-
-#^p:: {
-    ProcessClose("G3PACS.exe")
-}
-
-SC07B::LButton
-
 ; ==============================================================================
 ; 3. Benchmark 工具函數 (高精確度)
 ; ==============================================================================
@@ -304,3 +292,26 @@ Benchmark(funcObj, times := 1) {
     ; 5. 計算耗時 ( (結束-開始) / 頻率 * 1000 轉換為毫秒 )
     return (end - start) / freq * 1000
 }
+
+; =================================================================
+; 會診視窗專屬熱鍵
+; =================================================================
+#HotIf WinActive(RisController.ConsultationWinTitle)
+
+^t::
+{
+    RisController.AddConsultationTime(20)
+}
+
+#HotIf ; 關閉條件判斷區
+
+;
+; Global Remap
+;
+^!r:: Reload
+
+#^p:: {
+    ProcessClose("G3PACS.exe")
+}
+
+SC07B::LButton

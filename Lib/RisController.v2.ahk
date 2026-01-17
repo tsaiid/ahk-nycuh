@@ -27,6 +27,7 @@ class RisController {
     ; =================================================================
     static WinTitle := "報告作業(frmRISReport)"
     static AbnormalWinTitle := "檢查結果(frmPos)"
+    static ConsultationWinTitle := "會診資訊(frmReqCon)"
 
     static _AbnormalBtnMap := Map(
         1,          "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13",
@@ -90,6 +91,11 @@ class RisController {
 
     ; [新增] 執行期使用的快速查詢表 (由 __New 自動生成，無需手動維護)
     static _SimReportMap := Map()
+
+    static _ConsultationCtrls := Map(
+        "SourceTime", "WindowsForms10.EDIT.app.0.2780b98_r24_ad116", ; 原始時間 (國曆)
+        "TargetTime", "WindowsForms10.EDIT.app.0.2780b98_r24_ad114"  ; 目標填入欄位
+    )
 
     ; =================================================================
     ; 1.1 初始化邏輯 (Initialization)
@@ -1161,6 +1167,47 @@ class RisController {
         if (clickCount == 3) {
             clickCount := 0
             this._SelectLine(hMouseCtrl)
+        }
+    }
+
+    ; 會診補時方法
+    static AddConsultationTime(offsetMinutes := 20) {
+        if !WinActive(this.ConsultationWinTitle) {
+            this.Notify("請先切換至會診資訊視窗")
+            return
+        }
+
+        try {
+            ; 1. 取得原始時間字串 (格式: 115/01/17 08:47)
+            rawText := ControlGetText(this._ConsultationCtrls["SourceTime"], this.ConsultationWinTitle)
+
+            if !RegExMatch(rawText, "^(\d{3})/(\d{2})/(\d{2})\s+(\d{2}):(\d{2})", &m) {
+                throw Error("無法解析原始時間格式")
+            }
+
+            ; 2. 轉換為 AHK 標準時間戳 (YYYYMMDDHH24MISS)
+            ; 民國年 m[1] + 1911 = 西元年
+            standardTime := Format("{:04}{:02}{:02}{:02}{:02}00", Integer(m[1]) + 1911, m[2], m[3], m[4], m[5])
+
+            ; 3. 加上分鐘數
+            newTime := DateAdd(standardTime, offsetMinutes, "Minutes")
+
+            ; 4. 格式化回民國年字串 (YYY/MM/DD HH:MI)
+            finalYear := SubStr(newTime, 1, 4) - 1911
+            finalDate := Format("{:03}/{:02}/{:02} {:02}:{:02}",
+                finalYear,
+                SubStr(newTime, 5, 2),
+                SubStr(newTime, 7, 2),
+                SubStr(newTime, 9, 2),
+                SubStr(newTime, 11, 2)
+            )
+
+            ; 5. 填入目標控制項
+            ControlSetText(finalDate, this._ConsultationCtrls["TargetTime"], this.ConsultationWinTitle)
+            this.Notify("時間已補上 " . offsetMinutes . " 分鐘")
+
+        } catch as err {
+            this.Notify("補時失敗: " . err.Message)
         }
     }
 
