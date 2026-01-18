@@ -3,10 +3,10 @@
 #Include ..\Lib\Paste.v2.ahk
 #Include lib\ris-common.v2.ahk
 
-::0sg-ptccd:: {
+::0sg-ptgbd:: {
     MyForm := "
 (
-PTCCD is indicated and has been arranged.
+PTGBD is indicated and has been arranged.
 )"
     Paste(MyForm)
 }
@@ -15,7 +15,7 @@ PTCCD is indicated and has been arranged.
     currDateStr := FormatTime(, "M/d tt")
     MyForm := Format("
 (
-PTCCD was performed in {1}. A 8 Fr pigtail drain was inserted. 10 ml of aspirated bile was collected for Lab exam.
+PTGBD was performed in {1}. A 8 Fr pigtail drain was inserted. 10 ml of aspirated bile was collected for Lab exam.
 )",
         currDateStr)
     Paste(MyForm)

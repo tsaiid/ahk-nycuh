@@ -741,6 +741,7 @@ Additional findings:
   (
 Total Calcium Score (Equivalent Agatston Score) is 0.
 No identifiable calcification.
+Mild calcification.
   )"
     RisController.PasteToImpression(impression)
 }

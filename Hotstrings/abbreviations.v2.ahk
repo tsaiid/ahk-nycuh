@@ -252,15 +252,6 @@
 ::eca::external carotid artery
 ::caa::cerebral amyloid angiopathy
 ::ene::encephalomalacia
-::sba::senile brain atrophy
-::sba2::Senile brain atrophy; leukoaraiosis.
-::sba3::Senile brain atrophy; leukoaraiosis; old lacunar infarcts.
-::sba4::Senile brain atrophy; leukoaraiosis; old lacunar infarcts; atherosclerosis.
-::mba::mild brain atrophy
-::mba2::Mild brain atrophy; leukoaraiosis.
-::mba2dd::Mild brain atrophy; leukoaraiosis. DDx: hydrocephalus with transependymal edema.
-::mba3::Mild brain atrophy; leukoaraiosis; old lacunar infarcts.
-::mba4::Mild brain atrophy; leukoaraiosis; old lacunar infarcts; cerebral atherosclerosis.
 ::bg::basal ganglion
 ::vb::vertebral body
 ::vbs::vertebral bodies

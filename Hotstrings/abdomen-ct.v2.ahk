@@ -273,7 +273,7 @@ GetUnremarkableOrgans(searchText) {
     organRules := Map()
     organRules["liver"]           := ["hepatic", "liver", "hcc", "hemangioma"]
     organRules["gallbladder"]     := ["gallbladder", "gallstone", "cholecystitis", "cholecystectomy"]
-    organRules["spleen"]          := ["spleen", "splenic"]
+    organRules["spleen"]          := ["spleen", "splenic", "splenomegaly"]
     organRules["pancreas"]        := ["pancreas", "pancreatic"]
     organRules["adrenals"]        := ["adrenal"]
     organRules["kidneys"]         := ["kidney", "renal", "hydronephrosis", "nephro", "hydroureter", "urinary"]
