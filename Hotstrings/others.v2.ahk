@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0
 
-#Include <RisController.v2>
+#Include ..\Lib\RisController.v2.ahk
+#Include ..\Lib\Paste.v2.ahk
 
 ::b::bilateral `
 ::lt::left `

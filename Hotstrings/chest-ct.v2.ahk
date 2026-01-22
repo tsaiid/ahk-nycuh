@@ -1,5 +1,6 @@
 #Requires AutoHotkey v2.0
 
+#Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
 #Include lib\ris-common.v2.ahk
 
@@ -741,7 +742,9 @@ Additional findings:
   (
 Total Calcium Score (Equivalent Agatston Score) is 0.
 No identifiable calcification.
+Minimal identifiable calcification.
 Mild calcification.
+Moderate calcification.
   )"
     RisController.PasteToImpression(impression)
 }

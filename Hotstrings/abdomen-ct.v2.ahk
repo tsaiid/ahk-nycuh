@@ -1,5 +1,6 @@
 #Requires AutoHotkey v2.0
 
+#Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
 #Include lib\ris-common.v2.ahk
 
@@ -101,6 +102,7 @@
 ::actluo2::Mild left perirenal fat stranding and urinomas, probably due to urinary obstruction and/or forniceal rupture. DDx: superimposed pyelonephritis.
 ::actruo::Mild right perirenal fat stranding, probably due to urinary obstruction. DDx: superimposed pyelonephritis.
 ::actruo2::Mild right perirenal fat stranding and urinomas, probably due to urinary obstruction and/or forniceal rupture. DDx: superimposed pyelonephritis.
+::laok::No evidence of liver or adrenal metastasis.
 
 ::acttrok::
 {
