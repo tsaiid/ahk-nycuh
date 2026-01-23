@@ -140,6 +140,11 @@ class RisController {
     static _hCustomFont := 0
     static _targetImpressionHeight := 95
 
+    ; [新增] 自動更新相關狀態
+    static _lastUpdateTick := 0           ; 上次更新的時間 (A_TickCount)
+    static _updateInterval := 3600000     ; 更新間隔: 1 小時 (ms)
+    static _idleThreshold  := 30000      ; 閒置門檻: 5 分鐘 (ms)
+
     ; =================================================================
     ; 3. 公開屬性 (Getters)
     ; =================================================================
@@ -1226,6 +1231,9 @@ class RisController {
             return
         }
 
+        ; [新增] 更新時間戳記 (無論是手動還是自動觸發，執行了就重算 1 小時)
+        this._lastUpdateTick := A_TickCount
+
         this._ShowWaitCursor()
         try {
             hwnd := WinExist(this.WorklistWinTitle)
@@ -1284,6 +1292,35 @@ class RisController {
         } finally {
             this._RestoreCursor()
         }
+    }
+
+    ; [新增] 啟動背景自動更新機制 (請在腳本啟動時呼叫此方法)
+    static EnableAutoWorklistUpdate() {
+        ; 每 60 秒檢查一次是否符合更新條件
+        SetTimer(this._CheckAutoUpdate.Bind(this), 60000)
+    }
+
+    ; [新增] 內部檢查邏輯 (由 Timer 呼叫)
+    static _CheckAutoUpdate() {
+        ; 條件 1: 距離上次更新是否超過 1 小時
+        timeSinceLast := A_TickCount - this._lastUpdateTick
+        if (timeSinceLast < this._updateInterval) {
+            return
+        }
+
+        ; 條件 2: 使用者是否閒置超過 5 分鐘 (避免在打字時視窗突然跳掉)
+        if (A_TimeIdle < this._idleThreshold) {
+            return
+        }
+
+        ; 條件 3: 確保工作清單視窗存在 (避免開啟程式時報錯)
+        if !WinExist(this.WorklistWinTitle) {
+            return
+        }
+
+        ; 符合所有條件，執行更新
+        ; 這裡傳入 true 代表是自動執行的，可以依此決定是否要顯示 Notify (如果不想打擾可傳參控制)
+        this.GetWorklistJson()
     }
 
     ; =================================================================

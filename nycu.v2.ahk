@@ -32,6 +32,9 @@ global PRESERVE_CLIPBOARD := 0
 ;RisController.EnableFontEnforcer("Sarasa Mono TC", 12)
 RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
+; 啟動自動更新排程
+RisController.EnableAutoWorklistUpdate()
+
 #HotIf WinActive(RisController.WinTitle)
 
     #Include Hotstrings\regex-hotstrings.v2.ahk
@@ -215,6 +218,10 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     XButton2:: RisController.ReorderSelection()
 
 #HotIf  ; WinActive(RisController.WinTitle) && RisController.IsTargetFocused()
+
+#w:: {
+    RisController.GetWorklistJson()
+}
 
 ;; for JIS keyboard
 ; 取得目前活動視窗的輸入法語言 ID
