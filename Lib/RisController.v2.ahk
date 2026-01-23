@@ -143,7 +143,7 @@ class RisController {
     ; [新增] 自動更新相關狀態
     static _lastUpdateTick := 0           ; 上次更新的時間 (A_TickCount)
     static _updateInterval := 3600000     ; 更新間隔: 1 小時 (ms)
-    static _idleThreshold  := 30000      ; 閒置門檻: 5 分鐘 (ms)
+    static _idleThreshold  := 1800000     ; 閒置門檻: 30 分鐘 (ms)
 
     ; =================================================================
     ; 3. 公開屬性 (Getters)
@@ -1225,9 +1225,12 @@ class RisController {
     }
 
     ; [新增] 讀取工作清單統計並轉為 JSON
-    static GetWorklistJson() {
+    ; [修改] 新增 isAuto 參數，預設為 false (手動模式)
+    static GetWorklistJson(isAuto := false) {
+        ; 定義內部 Log 邏輯：手動時 Notify，自動時僅 OutputDebug
+        Log := (msg) => (isAuto ? OutputDebug("[RisAuto] " . msg . "`n") : this.Notify(msg))
+
         if !WinExist(this.WorklistWinTitle) {
-            ; 找不到視窗不視為錯誤，只是還沒開啟，直接離開
             return
         }
 
@@ -1236,75 +1239,62 @@ class RisController {
             hwnd := WinExist(this.WorklistWinTitle)
             elWindow := UIA.ElementFromHandle(hwnd)
 
-            ; =============================================================
-            ; 1. [檢查 I] 點擊更新按鈕 (嚴格檢查模式)
-            ; =============================================================
+            ; 1. 點擊更新
             try {
                 btnSelector := this._WorklistCtrls["RefreshButton"]
                 elBtn := elWindow.FindElement(btnSelector)
-
-                ; 嘗試點擊，如果這裡報錯，代表按鈕不可用或找不到
                 try {
                     elBtn.Invoke()
                 } catch {
                     elBtn.Click()
                 }
             } catch {
-                ; [修改] 如果無法點擊更新，視為狀態異常，不繼續執行
-                this.Notify("⚠️ 無法點擊更新按鈕 (可能視窗忙碌中)，取消讀取")
+                ; [修改] 使用 Log 取代直接 Notify
+                Log("⚠️ 無法點擊更新按鈕，取消讀取")
                 return
             }
 
-            Sleep(800) ; 等待資料載入
+            Sleep(800)
 
-            ; =============================================================
-            ; 2. 依序讀取表格並組裝 JSON
-            ; =============================================================
+            ; 2. 讀取表格
             categories := ["ER", "ADM", "OPD"]
             jsonStr := "{"
-            validDataCount := 0 ; [新增] 用來計算讀到了多少筆有效資料
+            validDataCount := 0
 
             for i, cat in categories {
                 gridData := this._ExtractGridData(elWindow, this._WorklistCtrls[cat])
-
-                ; 累加讀到的資料筆數
                 validDataCount += gridData.Count
 
                 if (i > 1)
                     jsonStr .= ", "
-
                 jsonStr .= '"' . cat . '": {'
 
                 isFirstProp := true
                 for k, v in gridData {
                     if (!isFirstProp)
                         jsonStr .= ", "
-
                     safeKey := StrReplace(k, "-", "_")
                     valStr := IsNumber(v) ? v : '"' . v . '"'
                     jsonStr .= Format('"{1}": {2}', safeKey, valStr)
-
                     isFirstProp := false
                 }
                 jsonStr .= "}"
             }
-
             jsonStr .= "}"
 
-            ; =============================================================
-            ; 3. [檢查 II] 確認資料是否為空
-            ; =============================================================
+            ; 3. 檢查資料
             if (validDataCount == 0) {
-                this.Notify("⚠️ 讀取到的統計資料為空，取消上傳")
+                Log("⚠️ 統計資料為空，取消上傳")
                 return
             }
 
-            ; 只有在檢查都通過後，才更新「上次更新時間」，並執行上傳
             this._lastUpdateTick := A_TickCount
-            this.PostDataToWebhook(jsonStr)
+
+            ; [修改] 將 isAuto 傳給上傳方法 (控制是否靜音)
+            this.PostDataToWebhook(jsonStr, isAuto)
 
         } catch as err {
-            this.Notify("操作失敗: " . err.Message)
+            Log("操作失敗: " . err.Message)
         } finally {
             this._RestoreCursor()
         }
@@ -1312,8 +1302,8 @@ class RisController {
 
     ; [新增] 啟動背景自動更新機制 (請在腳本啟動時呼叫此方法)
     static EnableAutoWorklistUpdate() {
-        ; 每 60 秒檢查一次是否符合更新條件
-        SetTimer(this._CheckAutoUpdate.Bind(this), 60000)
+        ; 每 10 分鐘檢查一次是否符合更新條件
+        SetTimer(this._CheckAutoUpdate.Bind(this), 600000)
     }
 
     ; [新增] 內部檢查邏輯 (由 Timer 呼叫)
@@ -1336,7 +1326,7 @@ class RisController {
 
         ; 符合所有條件，執行更新
         ; 這裡傳入 true 代表是自動執行的，可以依此決定是否要顯示 Notify (如果不想打擾可傳參控制)
-        this.GetWorklistJson()
+        this.GetWorklistJson(true)
     }
 
     ; =================================================================
@@ -2007,16 +1997,18 @@ class RisController {
     }
 
     ; [新增] 發送 JSON 至 Webhook
-    static PostDataToWebhook(jsonStr) {
-        configFile := "config.private.ini"
+    ; [修改] 新增 isSilent 參數
+    static PostDataToWebhook(jsonStr, isSilent := false) {
+        ; 定義內部 Log
+        Log := (msg) => (isSilent ? OutputDebug("[RisPost] " . msg . "`n") : this.Notify(msg))
 
-        ; 1. 讀取設定檔 (如果讀不到會回傳預設值空字串)
+        configFile := "config.private.ini"
         url  := IniRead(configFile, "n8n", "WebhookURL", "")
         user := IniRead(configFile, "n8n", "Username", "")
         pass := IniRead(configFile, "n8n", "Password", "")
 
         if (url == "") {
-            this.Notify("❌ 錯誤：找不到 WebhookURL 設定 (config.private.ini)")
+            Log("❌ 錯誤：找不到 WebhookURL 設定")
             return
         }
 
@@ -2025,9 +2017,7 @@ class RisController {
             req.Open("POST", url, False)
             req.SetRequestHeader("Content-Type", "application/json")
 
-            ; 2. 處理 Authentication
             if (user != "" && pass != "") {
-                ; Basic Auth 格式: "Authorization: Basic <Base64(user:pass)>"
                 authStr := this._Base64Encode(user . ":" . pass)
                 req.SetRequestHeader("Authorization", "Basic " . authStr)
             }
@@ -2035,14 +2025,12 @@ class RisController {
             req.Send(jsonStr)
 
             if (req.Status == 200) {
-                this.Notify("✅ 資料已上傳至 n8n")
+                Log("✅ 資料已上傳至 n8n")
             } else {
-                this.Notify("❌ 上傳失敗 (Status: " . req.Status . ")")
-                ; 偵錯用：如果 401 代表密碼錯，403 代表被擋，404 網址錯
-                ; MsgBox(req.ResponseText)
+                Log("❌ 上傳失敗 (Status: " . req.Status . ")")
             }
         } catch as err {
-            this.Notify("❌ 網路錯誤: " . err.Message)
+            Log("❌ 網路錯誤: " . err.Message)
         }
     }
 
