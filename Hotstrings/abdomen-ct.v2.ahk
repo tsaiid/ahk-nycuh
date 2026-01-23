@@ -54,8 +54,8 @@
 ::mactc::Mild irregular surface of the liver with nodularity, suspicious mild cirrhosis.
 ::actac::Wall thickening of the urinary bladder with perivesical fat stranding, suggestive of acute cystitis.
 ::mactac::Mild wall thickening of the urinary bladder with perivesical fat stranding, suggestive of acute cystitis.
-::actcc::Wall thickening of the urinary bladder with trabeculation without perivesical fat stranding, suggestive of chronic cystitis.
-::mactcc::mild wall thickening of the urinary bladder without perivesical fat stranding, suggestive of mild chronic cystitis.
+::actcc::Wall thickening of the urinary bladder, suspicious for chronic cystitis.
+::mactcc::mild wall thickening of the urinary bladder, suspicious for mild chronic cystitis.
 ::actccdd::Wall thickening of the urinary bladder without perivesical fat stranding. DDx: chronic cystitis, insufficient UB distention related changes.
 ::mactccdd::Mild wall thickening of the urinary bladder. DDx: chronic cystitis, insufficient UB distention related changes.
 ::nifa::No evidence of intraperitoneal free air.

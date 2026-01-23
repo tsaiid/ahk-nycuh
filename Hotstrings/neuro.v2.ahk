@@ -46,7 +46,8 @@
 ::ctpbi::Presence of tiny/small low density involved ___ basal ganglion, ___ thalamus, and ___ periventricular white matter, previous brain ischemic insult, such as old tiny ischemic infarction considered.
 ::ctpbi2::Presence of brain tissue loss changes involving right temporal, right parietal, and left frontal regions, with compensatory dilatation of left lateral ventricle, in favor of previous brain insult, such as old ischemic infarction.
 ::mrpbi::Presence of several tiny hyperintensities in the periventricular white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
-::cteps::Small low density near right/left side of anterior commissure, in favor of enlarged perivascular space.
+::ctepvs::Small low density near right/left side of anterior commissure, in favor of enlarged perivascular space.
+::mrepvs::Some tiny T2 hyperintensity spots in both basal ganglia, in favor of enlarged perivascular spaces.
 ::necsprt::Diffuse thickening and enhancement over the epiglottis, arytenoepiglottic folds, and posterior pharyngeal wall over the oropharynx and hypopharynx, c/w post-radiation changes.
 ::mrnecsprt::Presence of high signal intensity on T1WI over the C-spine, compatible with post radiation changes.
 ::mrnecspc::Mild mucosal and submucosal soft tissue thickening over the nasopharyngeal and oropharyngeal regions, in favor of post-treatment changes. Follow-up is suggested.
@@ -163,6 +164,8 @@ The visible paranasal sinuses and mastoids are unremarkable.
   (
 A small low density in the left basal ganglion region, in favor of old lacunar infarct.
 A small low density in the right basal ganglion region, in favor of old lacunar infarct.
+A small old lacunar infarct in the left basal ganglion.
+A small old lacunar infarct in the right basal ganglion.
   )"
     Paste(MyForm)
 }
