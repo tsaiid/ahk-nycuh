@@ -1231,7 +1231,7 @@ class RisController {
             hwnd := WinExist(this.WorklistWinTitle)
             elWindow := UIA.ElementFromHandle(hwnd)
 
-            ; 1. 點擊更新 (只需點一次，所有表格應該都會更新)
+            ; 1. 點擊更新
             try {
                 btnSelector := this._WorklistCtrls["RefreshButton"]
                 elBtn := elWindow.FindElement(btnSelector)
@@ -1241,26 +1241,21 @@ class RisController {
                     elBtn.Click()
                 }
             } catch {
-                ; 允許失敗繼續執行，也許已經是最新狀態
+                ; 允許失敗 (也許已是最新)
             }
 
             Sleep(800) ; 等待資料載入
 
-            ; 2. 依序讀取三個表格並組裝 JSON
-            categories := ["ER", "ADM", "OPD"] ; 定義要讀取的類別順序
-
+            ; 2. 依序讀取表格
+            categories := ["ER", "ADM", "OPD"]
             jsonStr := "{"
 
             for i, cat in categories {
-                ; 呼叫 Helper 讀取資料
                 gridData := this._ExtractGridData(elWindow, this._WorklistCtrls[cat])
 
-                ; --- 組裝 JSON 字串 ---
-                ; 如果不是第一個類別，前面加逗號
                 if (i > 1)
                     jsonStr .= ", "
 
-                ; 類別標題 (例如 "ER": { )
                 jsonStr .= '"' . cat . '": {'
 
                 isFirstProp := true
@@ -1268,19 +1263,21 @@ class RisController {
                     if (!isFirstProp)
                         jsonStr .= ", "
 
-                    ; 判斷是否為數字
+                    ; [關鍵修改] n8n Data Table 不支援 "-"，替換為 "_" (例如 "CR-I" -> "CR_I")
+                    safeKey := StrReplace(k, "-", "_")
+
                     valStr := IsNumber(v) ? v : '"' . v . '"'
-                    jsonStr .= Format('"{1}": {2}', k, valStr)
+                    jsonStr .= Format('"{1}": {2}', safeKey, valStr)
 
                     isFirstProp := false
                 }
-                jsonStr .= "}" ; 類別結尾 }
+                jsonStr .= "}"
             }
 
-            jsonStr .= "}" ; 整體結尾 }
+            jsonStr .= "}"
 
-            ; 3. 顯示結果
-            MsgBox(jsonStr, "工作清單統計 (JSON)")
+            ; 3. [修改] 發送至 n8n Webhook
+            this.PostDataToWebhook(jsonStr)
 
         } catch as err {
             this.Notify("操作失敗: " . err.Message)
@@ -1954,5 +1951,63 @@ class RisController {
             ; 忽略單一表格的非預期錯誤，避免影響整體流程
         }
         return data
+    }
+
+    ; [新增] 發送 JSON 至 Webhook
+    static PostDataToWebhook(jsonStr) {
+        configFile := "config.private.ini"
+
+        ; 1. 讀取設定檔 (如果讀不到會回傳預設值空字串)
+        url  := IniRead(configFile, "n8n", "WebhookURL", "")
+        user := IniRead(configFile, "n8n", "Username", "")
+        pass := IniRead(configFile, "n8n", "Password", "")
+
+        if (url == "") {
+            this.Notify("❌ 錯誤：找不到 WebhookURL 設定 (config.private.ini)")
+            return
+        }
+
+        try {
+            req := ComObject("WinHttp.WinHttpRequest.5.1")
+            req.Open("POST", url, False)
+            req.SetRequestHeader("Content-Type", "application/json")
+
+            ; 2. 處理 Authentication
+            if (user != "" && pass != "") {
+                ; Basic Auth 格式: "Authorization: Basic <Base64(user:pass)>"
+                authStr := this._Base64Encode(user . ":" . pass)
+                req.SetRequestHeader("Authorization", "Basic " . authStr)
+            }
+
+            req.Send(jsonStr)
+
+            if (req.Status == 200) {
+                this.Notify("✅ 資料已上傳至 n8n")
+            } else {
+                this.Notify("❌ 上傳失敗 (Status: " . req.Status . ")")
+                ; 偵錯用：如果 401 代表密碼錯，403 代表被擋，404 網址錯
+                ; MsgBox(req.ResponseText)
+            }
+        } catch as err {
+            this.Notify("❌ 網路錯誤: " . err.Message)
+        }
+    }
+
+    ; [新增] 用於 Basic Auth 的 Base64 編碼 Helper
+    static _Base64Encode(text) {
+        buf := Buffer(StrPut(text, "UTF-8"))
+        StrPut(text, buf, "UTF-8")
+
+        ; CRYPT_STRING_BASE64 = 0x00000001
+        ; CRYPT_STRING_NOCRLF = 0x40000000 (不換行)
+        flags := 0x40000001
+
+        reqSize := 0
+        DllCall("Crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", buf.Size - 1, "UInt", flags, "Ptr", 0, "UInt*", &reqSize)
+
+        outBuf := Buffer(reqSize * 2)
+        DllCall("Crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", buf.Size - 1, "UInt", flags, "Ptr", outBuf, "UInt*", &reqSize)
+
+        return StrGet(outBuf)
     }
 }
