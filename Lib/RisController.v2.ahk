@@ -28,6 +28,7 @@ class RisController {
     static WinTitle := "報告作業(frmRISReport)"
     static AbnormalWinTitle := "檢查結果(frmPos)"
     static ConsultationWinTitle := "會診資訊(frmReqCon)"
+    static WorklistWinTitle := "工作清單(frmRIS)"
 
     static _AbnormalBtnMap := Map(
         1,          "WindowsForms10.BUTTON.app.0.2780b98_r24_ad13",
@@ -95,6 +96,13 @@ class RisController {
     static _ConsultationCtrls := Map(
         "SourceTime", "WindowsForms10.EDIT.app.0.2780b98_r24_ad116", ; 原始時間 (國曆)
         "TargetTime", "WindowsForms10.EDIT.app.0.2780b98_r24_ad114"  ; 目標填入欄位
+    )
+
+    static _WorklistCtrls := Map(
+        "RefreshButton", {AutomationId: "btnRefresh"},
+        "ER",            {AutomationId: "dgvClassifyOPDE"}, ; 急診
+        "ADM",           {AutomationId: "dgvClassifyADM"},  ; 住院
+        "OPD",           {AutomationId: "dgvClassifyOPDR"}  ; 門診
     )
 
     ; =================================================================
@@ -1211,6 +1219,76 @@ class RisController {
         }
     }
 
+    ; [新增] 讀取工作清單統計並轉為 JSON
+    static GetWorklistJson() {
+        if !WinExist(this.WorklistWinTitle) {
+            this.Notify("找不到工作清單視窗")
+            return
+        }
+
+        this._ShowWaitCursor()
+        try {
+            hwnd := WinExist(this.WorklistWinTitle)
+            elWindow := UIA.ElementFromHandle(hwnd)
+
+            ; 1. 點擊更新 (只需點一次，所有表格應該都會更新)
+            try {
+                btnSelector := this._WorklistCtrls["RefreshButton"]
+                elBtn := elWindow.FindElement(btnSelector)
+                try {
+                    elBtn.Invoke()
+                } catch {
+                    elBtn.Click()
+                }
+            } catch {
+                ; 允許失敗繼續執行，也許已經是最新狀態
+            }
+
+            Sleep(800) ; 等待資料載入
+
+            ; 2. 依序讀取三個表格並組裝 JSON
+            categories := ["ER", "ADM", "OPD"] ; 定義要讀取的類別順序
+
+            jsonStr := "{"
+
+            for i, cat in categories {
+                ; 呼叫 Helper 讀取資料
+                gridData := this._ExtractGridData(elWindow, this._WorklistCtrls[cat])
+
+                ; --- 組裝 JSON 字串 ---
+                ; 如果不是第一個類別，前面加逗號
+                if (i > 1)
+                    jsonStr .= ", "
+
+                ; 類別標題 (例如 "ER": { )
+                jsonStr .= '"' . cat . '": {'
+
+                isFirstProp := true
+                for k, v in gridData {
+                    if (!isFirstProp)
+                        jsonStr .= ", "
+
+                    ; 判斷是否為數字
+                    valStr := IsNumber(v) ? v : '"' . v . '"'
+                    jsonStr .= Format('"{1}": {2}', k, valStr)
+
+                    isFirstProp := false
+                }
+                jsonStr .= "}" ; 類別結尾 }
+            }
+
+            jsonStr .= "}" ; 整體結尾 }
+
+            ; 3. 顯示結果
+            MsgBox(jsonStr, "工作清單統計 (JSON)")
+
+        } catch as err {
+            this.Notify("操作失敗: " . err.Message)
+        } finally {
+            this._RestoreCursor()
+        }
+    }
+
     ; =================================================================
     ; 9. 內部 Helper (Low-level Helpers)
     ; =================================================================
@@ -1822,5 +1900,59 @@ class RisController {
         } catch {
             ; 靜默失敗
         }
+    }
+
+    ; [新增] 通用表格讀取 Helper (回傳 Map 物件)
+    static _ExtractGridData(elWindow, gridSelector) {
+        data := Map()
+        try {
+            ; 1. 尋找表格
+            try {
+                elGrid := elWindow.FindElement(gridSelector)
+            } catch {
+                return data ; 如果找不到該表格(例如該院區無此單位)，回傳空 Map
+            }
+
+            ; 2. 找出所有資料列 (Custom 容器)
+            try {
+                rowElements := elGrid.FindAll({Type: "Custom"})
+            } catch {
+                return data
+            }
+
+            if (rowElements.Length == 0)
+                return data
+
+            ; 3. 遍歷讀取
+            walker := UIA.TreeWalkerTrue
+
+            for row in rowElements {
+                ; 抓 Key (第一個子物件)
+                keyEl := walker.TryGetFirstChildElement(row)
+                if (!keyEl)
+                    continue
+
+                ; 抓 Value (下一個兄弟)
+                valEl := walker.TryGetNextSiblingElement(keyEl)
+                if (!valEl)
+                    continue
+
+                ; 讀取數值
+                k := "", v := "0"
+                try k := keyEl.Value
+                try v := valEl.Value
+
+                if (k != "") {
+                    k := Trim(k)
+                    v := Trim(v)
+                    if (v == "")
+                        v := 0
+                    data[k] := v
+                }
+            }
+        } catch {
+            ; 忽略單一表格的非預期錯誤，避免影響整體流程
+        }
+        return data
     }
 }
