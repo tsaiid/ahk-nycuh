@@ -1227,39 +1227,48 @@ class RisController {
     ; [新增] 讀取工作清單統計並轉為 JSON
     static GetWorklistJson() {
         if !WinExist(this.WorklistWinTitle) {
-            this.Notify("找不到工作清單視窗")
+            ; 找不到視窗不視為錯誤，只是還沒開啟，直接離開
             return
         }
-
-        ; [新增] 更新時間戳記 (無論是手動還是自動觸發，執行了就重算 1 小時)
-        this._lastUpdateTick := A_TickCount
 
         this._ShowWaitCursor()
         try {
             hwnd := WinExist(this.WorklistWinTitle)
             elWindow := UIA.ElementFromHandle(hwnd)
 
-            ; 1. 點擊更新
+            ; =============================================================
+            ; 1. [檢查 I] 點擊更新按鈕 (嚴格檢查模式)
+            ; =============================================================
             try {
                 btnSelector := this._WorklistCtrls["RefreshButton"]
                 elBtn := elWindow.FindElement(btnSelector)
+
+                ; 嘗試點擊，如果這裡報錯，代表按鈕不可用或找不到
                 try {
                     elBtn.Invoke()
                 } catch {
                     elBtn.Click()
                 }
             } catch {
-                ; 允許失敗 (也許已是最新)
+                ; [修改] 如果無法點擊更新，視為狀態異常，不繼續執行
+                this.Notify("⚠️ 無法點擊更新按鈕 (可能視窗忙碌中)，取消讀取")
+                return
             }
 
             Sleep(800) ; 等待資料載入
 
-            ; 2. 依序讀取表格
+            ; =============================================================
+            ; 2. 依序讀取表格並組裝 JSON
+            ; =============================================================
             categories := ["ER", "ADM", "OPD"]
             jsonStr := "{"
+            validDataCount := 0 ; [新增] 用來計算讀到了多少筆有效資料
 
             for i, cat in categories {
                 gridData := this._ExtractGridData(elWindow, this._WorklistCtrls[cat])
+
+                ; 累加讀到的資料筆數
+                validDataCount += gridData.Count
 
                 if (i > 1)
                     jsonStr .= ", "
@@ -1271,9 +1280,7 @@ class RisController {
                     if (!isFirstProp)
                         jsonStr .= ", "
 
-                    ; [關鍵修改] n8n Data Table 不支援 "-"，替換為 "_" (例如 "CR-I" -> "CR_I")
                     safeKey := StrReplace(k, "-", "_")
-
                     valStr := IsNumber(v) ? v : '"' . v . '"'
                     jsonStr .= Format('"{1}": {2}', safeKey, valStr)
 
@@ -1284,7 +1291,16 @@ class RisController {
 
             jsonStr .= "}"
 
-            ; 3. [修改] 發送至 n8n Webhook
+            ; =============================================================
+            ; 3. [檢查 II] 確認資料是否為空
+            ; =============================================================
+            if (validDataCount == 0) {
+                this.Notify("⚠️ 讀取到的統計資料為空，取消上傳")
+                return
+            }
+
+            ; 只有在檢查都通過後，才更新「上次更新時間」，並執行上傳
+            this._lastUpdateTick := A_TickCount
             this.PostDataToWebhook(jsonStr)
 
         } catch as err {
