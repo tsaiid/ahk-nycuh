@@ -140,10 +140,11 @@ class RisController {
     static _hCustomFont := 0
     static _targetImpressionHeight := 95
 
-    ; [新增] 自動更新相關狀態
-    static _lastUpdateTick := 0           ; 上次更新的時間 (A_TickCount)
-    static _updateInterval := 3600000     ; 更新間隔: 1 小時 (ms)
-    static _idleThreshold  := 1800000     ; 閒置門檻: 30 分鐘 (ms)
+    ; [自動更新相關狀態]
+    static _lastUpdateTick := 0           ; 上次更新的時間
+    static _updateInterval := 1800000     ; 30 分鐘 (標準生產環境設定)
+    static _idleThreshold  := 300000      ; 5 分鐘
+    static _isUpdating     := false       ; 防卡死旗標
 
     ; =================================================================
     ; 3. 公開屬性 (Getters)
@@ -1224,10 +1225,70 @@ class RisController {
         }
     }
 
-    ; [新增] 讀取工作清單統計並轉為 JSON
-    ; [修改] 新增 isAuto 參數，預設為 false (手動模式)
+    ; [新增] 啟動背景自動更新機制 (請在腳本啟動時呼叫此方法)
+    static EnableAutoWorklistUpdate() {
+        ; 檢查頻率: 每 5 分鐘偵測一次 (300,000 ms)
+        checkFrequency := 300000
+
+        OutputDebug("[RisAuto] >>> 自動更新機制已啟動 <<<`n")
+        OutputDebug("[RisAuto] 設定：每 " . (checkFrequency/60000) . " 分鐘偵測一次閒置狀況`n")
+
+        SetTimer(ObjBindMethod(this, "_CheckAutoUpdate"), checkFrequency)
+    }
+
+    static _CheckAutoUpdate() {
+        OutputDebug("[RisAuto] --- Timer 心跳檢查 (" . A_Hour . ":" . A_Min . ") ---`n")
+
+        ; A. 防重疊鎖 (Mutex)
+        if (this._isUpdating) {
+            OutputDebug("[RisAuto] ⚠️ 跳過：上一次更新尚未完成 (可能卡住)`n")
+            return
+        }
+
+        ; B. 環境預檢：檢查 RDP/Session 是否鎖定
+        ; 如果 User32\OpenInputDesktop 失敗，代表畫面被鎖定 (RDP斷線 或 Win+L)
+        ; 此時 UIA 必死無疑，直接跳過，等待下次連線恢復
+        if !DllCall("User32\OpenInputDesktop", "uint", 0, "int", 0, "uint", 0, "ptr") {
+            OutputDebug("[RisAuto] 💤 狀態：Session 已鎖定或無畫面 (RDP 斷線中)，暫停動作`n")
+            return
+        }
+
+        ; C. 視窗存在檢查
+        if !WinExist(this.WorklistWinTitle) {
+            OutputDebug("[RisAuto] ℹ️ 狀態：找不到工作清單視窗`n")
+            return
+        }
+
+        ; D. 冷卻時間檢查
+        timeSinceLast := A_TickCount - this._lastUpdateTick
+        if (this._lastUpdateTick != 0 && timeSinceLast < this._updateInterval) {
+            minutesLeft := Round((this._updateInterval - timeSinceLast) / 60000, 1)
+            OutputDebug("[RisAuto] ⏳ 狀態：冷卻中 (尚需 " . minutesLeft . " 分鐘)`n")
+            return
+        }
+
+        ; E. 閒置檢查
+        if (A_TimeIdle < this._idleThreshold) {
+            idleSec := Round(A_TimeIdle / 1000, 1)
+            OutputDebug("[RisAuto] ✋ 狀態：使用者活動中 (閒置 " . idleSec . "s < 門檻)`n")
+            return
+        }
+
+        OutputDebug("[RisAuto] 🚀 條件全數吻合，開始執行更新...`n")
+
+        ; F. 執行更新 (使用 Try-Finally 確保鎖定解除)
+        this._isUpdating := true
+        try {
+            this.GetWorklistJson(true)
+        } catch as err {
+            OutputDebug("[RisAuto] ❌ 更新發生錯誤: " . err.Message . "`n")
+        } finally {
+            this._isUpdating := false
+        }
+    }
+
+    ; 3. 讀取與上傳主程式 (回復為 UIA 版本)
     static GetWorklistJson(isAuto := false) {
-        ; 定義內部 Log 邏輯：手動時 Notify，自動時僅 OutputDebug
         Log := (msg) => (isAuto ? OutputDebug("[RisAuto] " . msg . "`n") : this.Notify(msg))
 
         if !WinExist(this.WorklistWinTitle) {
@@ -1239,7 +1300,7 @@ class RisController {
             hwnd := WinExist(this.WorklistWinTitle)
             elWindow := UIA.ElementFromHandle(hwnd)
 
-            ; 1. 點擊更新
+            ; 點擊更新按鈕
             try {
                 btnSelector := this._WorklistCtrls["RefreshButton"]
                 elBtn := elWindow.FindElement(btnSelector)
@@ -1249,14 +1310,13 @@ class RisController {
                     elBtn.Click()
                 }
             } catch {
-                ; [修改] 使用 Log 取代直接 Notify
-                Log("⚠️ 無法點擊更新按鈕，取消讀取")
+                Log("⚠️ 無法點擊更新按鈕")
                 return
             }
 
-            Sleep(800)
+            Sleep(1500) ; 等待重新整理
 
-            ; 2. 讀取表格
+            ; 讀取表格資料
             categories := ["ER", "ADM", "OPD"]
             jsonStr := "{"
             validDataCount := 0
@@ -1282,15 +1342,12 @@ class RisController {
             }
             jsonStr .= "}"
 
-            ; 3. 檢查資料
             if (validDataCount == 0) {
-                Log("⚠️ 統計資料為空，取消上傳")
+                Log("⚠️ 統計資料為空，略過上傳")
                 return
             }
 
             this._lastUpdateTick := A_TickCount
-
-            ; [修改] 將 isAuto 傳給上傳方法 (控制是否靜音)
             this.PostDataToWebhook(jsonStr, isAuto)
 
         } catch as err {
@@ -1298,35 +1355,6 @@ class RisController {
         } finally {
             this._RestoreCursor()
         }
-    }
-
-    ; [新增] 啟動背景自動更新機制 (請在腳本啟動時呼叫此方法)
-    static EnableAutoWorklistUpdate() {
-        ; 每 10 分鐘檢查一次是否符合更新條件
-        SetTimer(this._CheckAutoUpdate.Bind(this), 600000)
-    }
-
-    ; [新增] 內部檢查邏輯 (由 Timer 呼叫)
-    static _CheckAutoUpdate() {
-        ; 條件 1: 距離上次更新是否超過 1 小時
-        timeSinceLast := A_TickCount - this._lastUpdateTick
-        if (timeSinceLast < this._updateInterval) {
-            return
-        }
-
-        ; 條件 2: 使用者是否閒置超過 5 分鐘 (避免在打字時視窗突然跳掉)
-        if (A_TimeIdle < this._idleThreshold) {
-            return
-        }
-
-        ; 條件 3: 確保工作清單視窗存在 (避免開啟程式時報錯)
-        if !WinExist(this.WorklistWinTitle) {
-            return
-        }
-
-        ; 符合所有條件，執行更新
-        ; 這裡傳入 true 代表是自動執行的，可以依此決定是否要顯示 Notify (如果不想打擾可傳參控制)
-        this.GetWorklistJson(true)
     }
 
     ; =================================================================
