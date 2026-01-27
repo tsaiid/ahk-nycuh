@@ -1,5 +1,6 @@
 #Requires AutoHotkey v2.0
 
+#Include ..\..\Lib\RisController.v2.ahk
 #Include ..\..\Lib\Paste.v2.ahk
 #Include ..\lib\ris-common.v2.ahk
 
@@ -192,7 +193,10 @@ No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 The bilateral lateral ventricles are symmetrical without dilatation.
+
+No obvious fracture of the skull.
 No obvious fracture of the skull and facial bones.
+
 The paranasal sinuses and mastoids are unremarkable.
 
 Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses, in favor of mild sinusitis.
@@ -219,8 +223,12 @@ Mild spondylosis of the C-spine.
 - No definite abnormal mass lesion in the brain noted.
 - No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 - The bilateral lateral ventricles are symmetrical without dilatation.
+
+- No obvious fracture of the skull.
 - No obvious fracture of the skull and facial bones.
+
 - The visible paranasal sinuses and mastoids are unremarkable.
+
 - No obvious fracture or dislocation of the cervical spine.
   )"
     RisController.PasteToFinding(MyForm)
@@ -1015,16 +1023,6 @@ Although not fully fit the typical image findings, intracranial hypotension stil
 {
     MyForm := "
   (
-The MR of the brain performed
-- Axial T2WI, FLAIR, DWI with ADC map, GRE T2*WI
-- Thin slice coronal T2WI focusing on temporal lobe.
-- Thin slice axial T1 weighted image
-- And post Gadolinium (0.1 mmol/kg) enhancement with axial, coronal, and sagittal T1 weighted image
-- Intracranial MRA with 3D TOF and focus on the circle of Willis:
-
-Previous MRI of brain: none
-
-FINDINGS:
 Mild atrophy of right hippocampus (Se/Im: 7/9) with increased T2 signal intensity and enlargement of the temporal horn of the lateral ventricle. Mesial temporal sclerosis may be suspected.
 
 No evidence of hippocampal atrophy or abnormal signal intensity.
@@ -1051,6 +1049,7 @@ MRA shows no significant vascular stenosis in the major intracranial arteries or
     MyForm := "
   (
 No remarkable intracranial findings.
+No definite epileptogenic lesion is identified.
 Right mesial temporal sclerosis may be suspected. Clinical correlation is suggested.
   )"
     RisController.PasteToImpression(MyForm)

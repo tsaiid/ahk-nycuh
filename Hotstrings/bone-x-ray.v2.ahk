@@ -340,9 +340,6 @@ The epiglottis is normal.
 No obvious dislocation or fracture.
 The paranasal sinuses are clear.
 The mastoid air cells are well-aerated.
-
-IMPRESSION:
-No obvious dislocation or fracture.
 )"
     Paste(MyForm)
 }

@@ -384,6 +384,7 @@
 ::rkup::upper portion of right kidney
 ::rklp::lower portion of right kidney
 ::md::maximum diameter
+::mt::maximum thickness
 ::msag::(measured in the sagittal view)
 ::mcor::(measured in the coronal view)
 ::smg1::Splenomegaly and prominent portosystemic collaterals suggest portal hypertension.
