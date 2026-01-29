@@ -40,8 +40,10 @@
 ::bmok::No abnormal signal intensity changes in the bone marrow space.
 ::mcs::meniscocapsular separation
 ::mmt::Medial meniscal tear.
+::mmht::Horizontal tear of the lateral meniscus.
 ::mmte::Medial meniscal tear, including posterior root, with meniscal extrusion.
 ::lmt::Lateral meniscal tear.
+::lmht::Horizontal tear of the lateral meniscus.
 ::kmroa::marginal osteophyte formation, irregular joint space narrowing, cartilage erosions in the pan-compartment of knee, especially the medial compartment, in favor of osteoarthrosis.
 ::kmrok::
 {
