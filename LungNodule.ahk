@@ -144,7 +144,10 @@ UpdateGUI() {
 
     global MyGui := Gui("+AlwaysOnTop +ToolWindow +Caption +Border", "Nodule Tracker")
     MyGui.SetFont("s10", "Segoe UI")
-    MyGui.BackColor := "FFFFE0" ; ★ 修改 1: 背景改為淺黃色 (Light Yellow)
+    MyGui.BackColor := "FFFFE0"
+
+    ; ★ 新增這一行：當使用者關閉視窗 (按 X) 時，觸發 WindowClosed 函數
+    MyGui.OnEvent("Close", WindowClosed)
 
     ; --- 功能按鈕區 ---
     MyGui.SetFont("s11 Bold", "Segoe UI")
@@ -160,7 +163,7 @@ UpdateGUI() {
 
     MyGui.Add("Text", "x10 y+10 w300 h1 0x10")
 
-    ; ★ 修改 2: 在重繪介面前，對所有部位的資料進行「數值由小到大」排序
+    ; 排序資料 (Sort)
     For key, arr in NoduleData {
         SortArrayNumeric(arr)
     }
@@ -288,4 +291,23 @@ SortArrayNumeric(arr) {
     arr.Length := 0
     Loop Parse, sortedStr, "`n"
         arr.Push(A_LoopField)
+}
+
+/**
+ * 當視窗關閉時觸發：記憶位置並清除資料
+ */
+WindowClosed(*) {
+    ; 1. 趁視窗還沒完全消失，趕快記憶最後的位置
+    try {
+        if (MyGui && WinExist("ahk_id " MyGui.Hwnd)) {
+            WinGetPos(&currentX, &currentY,,, "ahk_id " MyGui.Hwnd)
+            global GuiX := currentX
+            global GuiY := currentY
+        }
+    }
+
+    ; 2. 清空資料 (不呼叫 UpdateGUI，因為視窗正要關閉)
+    For key, arr in NoduleData {
+        NoduleData[key] := []
+    }
 }
