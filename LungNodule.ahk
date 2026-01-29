@@ -52,24 +52,27 @@ Esc::ClearAll()   ; Esc 清除
 ; ==============================================================================
 CaptureNodule(location) {
     try {
-        imgNum := GetImageNumberFromFocus()
+        ; 取得物件資訊 {srs: "xxx", img: "xxx"}
+        info := GetNoduleInfoFromFocus()
 
-        if (imgNum == "") {
-            ShowTip("⚠️ 抓取失敗 (數值為空)", 2000)
+        if (info.img == "" || info.srs == "") {
+            ShowTip("⚠️ 抓取失敗 (數值或 Series 為空)", 2000)
             return
         }
 
-        For existingNum in NoduleData[location] {
-            if (existingNum == imgNum) {
-                ShowTip("⚠️ 已存在: " imgNum " (忽略)", 1000)
+        ; 檢查重複 (同時比對 srs 與 img)
+        For existingItem in NoduleData[location] {
+            if (existingItem.srs == info.srs && existingItem.img == info.img) {
+                ShowTip("⚠️ 已存在: " info.srs "/" info.img " (忽略)", 1000)
                 return
             }
         }
 
-        NoduleData[location].Push(imgNum)
+        ; 存入資料結構
+        NoduleData[location].Push(info)
         UpdateGUI()
 
-        ShowTip("✅ " location ": " imgNum, 1000)
+        ShowTip("✅ " location ": " info.srs "/" info.img, 1000)
 
     } catch Error as e {
         ShowTip("❌ 錯誤: " e.Message, 2000)
@@ -81,7 +84,11 @@ ShowTip(msg, duration) {
     SetTimer(() => ToolTip(), -duration)
 }
 
-GetImageNumberFromFocus() {
+/**
+ * 從 Focus 元素推算 Image Number 與 Series Number
+ * @returns {Object} {srs: string, img: string}
+ */
+GetNoduleInfoFromFocus() {
     try {
         focusedEl := Acc.ElementFromPoint()
         if !focusedEl {
@@ -94,21 +101,50 @@ GetImageNumberFromFocus() {
         if (pathParts.Length < 2)
             throw Error("路徑層級不足")
 
+        ; 基準索引 (原本的 8 位置)
         targetIdx := pathParts.Length - 1
-        pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
 
-        newPathBase := ""
+        ; 1. 取得 Image Number (Value)
+        ; 路徑邏輯: ...8,4 -> ...9,4,1,4,2,4
+        pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1 ; 8 -> 9
+
+        basePath := ""
         Loop targetIdx {
-            newPathBase .= pathParts[A_Index] ","
+            basePath .= pathParts[A_Index] ","
         }
 
-        finalPath := newPathBase . pathParts[pathParts.Length] . ",1,4,2,4"
+        ; 組合 Image Path
+        imgPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
+        imgEl := Acc.GetRootElement()[imgPath]
+        imgVal := Trim(imgEl.Value)
 
-        targetEl := Acc.GetRootElement()[finalPath]
-        return Trim(targetEl.Value)
+        ; 2. 取得 Series Number (Name)
+        ; 路徑邏輯: ...8,4 -> ...10,4,2,4 (注意: Series 跳過了中間的 1,4 層級)
+        pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1 ; 9 -> 10
+
+        basePath := ""
+        Loop targetIdx {
+            basePath .= pathParts[A_Index] ","
+        }
+
+        ; 組合 Series Path
+        srsPath := basePath . pathParts[pathParts.Length] . ",2,4"
+        srsEl := Acc.GetRootElement()[srsPath]
+        srsNameRaw := srsEl.Name ; 例如 "(2) Thorax 5.00 Bl60 S2"
+
+        ; Regex 提取括號內的數字
+        srsVal := ""
+        if RegExMatch(srsNameRaw, "^\((\d+)\)", &match) {
+            srsVal := match[1]
+        } else {
+            ; 如果格式不符，嘗試直接抓取或報錯，這裡暫時回傳原始值或空
+            srsVal := ""
+        }
+
+        return {srs: srsVal, img: imgVal}
     }
     catch {
-        return ""
+        return {srs: "", img: ""}
     }
 }
 
@@ -146,7 +182,6 @@ UpdateGUI() {
     MyGui.SetFont("s10", "Segoe UI")
     MyGui.BackColor := "FFFFE0"
 
-    ; ★ 新增這一行：當使用者關閉視窗 (按 X) 時，觸發 WindowClosed 函數
     MyGui.OnEvent("Close", WindowClosed)
 
     ; --- 功能按鈕區 ---
@@ -165,7 +200,7 @@ UpdateGUI() {
 
     ; 排序資料 (Sort)
     For key, arr in NoduleData {
-        SortArrayNumeric(arr)
+        SortNoduleData(arr)
     }
 
     ; ========================================================
@@ -203,16 +238,20 @@ RenderSection(label, xPos) {
     MyGui.SetFont("s10 Bold", "Segoe UI")
     MyGui.Add("Text", "x" xPos " y+5 w" COL_WIDTH " Center c003366", label)
 
-    nums := NoduleData[label]
+    items := NoduleData[label]
 
-    if (nums.Length == 0) {
+    if (items.Length == 0) {
         MyGui.SetFont("s9 Norm cGray", "Segoe UI")
         MyGui.Add("Text", "xp y+2 w" COL_WIDTH " Center", "-")
     } else {
         MyGui.SetFont("s10 Norm", "Segoe UI")
-        For index, num in nums {
-            textX := xPos + (COL_WIDTH / 2) - 25
-            MyGui.Add("Text", "x" textX " y+5 w30 Right", num)
+        For index, item in items {
+            ; 顯示格式: Srs/Img
+            displayText := item.srs . "/" . item.img
+
+            textX := xPos + (COL_WIDTH / 2) - 35 ; 稍微往左移一點留給長數字
+            MyGui.Add("Text", "x" textX " y+5 w50 Right", displayText)
+
             btnDel := MyGui.Add("Button", "x+5 yp-3 w20 h20", "x")
             btnDel.OnEvent("Click", DeleteItem.Bind(label, index))
         }
@@ -236,18 +275,56 @@ CopyReport(*) {
     global LobeOrder := ["RUL", "RML", "RLL", "LUL", "LLL"]
 
     For label in LobeOrder {
-        nums := NoduleData[label]
-        if (nums.Length > 0) {
-            ; ★ 修改 3: 產生報告前確保數值由小到大排序
-            SortArrayNumeric(nums)
+        items := NoduleData[label]
+        if (items.Length > 0) {
+            SortNoduleData(items)
 
-            numStr := ""
-            For n in nums {
-                numStr .= n . ","
+            ; 分組：依據 Series Number
+            ; seriesMap 結構: Map("2", [3, 5, 8], "4", [33, 35])
+            seriesMap := Map()
+
+            For item in items {
+                s := item.srs
+                i := item.img
+                if !seriesMap.Has(s)
+                    seriesMap[s] := []
+                seriesMap[s].Push(i)
             }
-            numStr := Trim(numStr, ",")
-            part := label . " (Srs/Img: 4/" . numStr . ")"
-            reportParts.Push(part)
+
+            ; 處理 Series 順序 (取出 Key 並排序)
+            srsKeys := []
+            For k, v in seriesMap {
+                srsKeys.Push(k)
+            }
+            ; 簡單氣泡排序 Series Key
+            if (srsKeys.Length > 1) {
+                Loop srsKeys.Length {
+                    idx := A_Index
+                    Loop srsKeys.Length - idx {
+                        j := A_Index
+                        if (Integer(srsKeys[j]) > Integer(srsKeys[j+1])) {
+                            t := srsKeys[j], srsKeys[j] := srsKeys[j+1], srsKeys[j+1] := t
+                        }
+                    }
+                }
+            }
+
+            ; 組合該肺葉的字串： 2/3,5,8; 4/33,35
+            lobeStr := ""
+            For sKey in srsKeys {
+                imgArr := seriesMap[sKey]
+                ; 排序 Image
+                imgStr := ""
+                For val in imgArr ; imgArr 已經是依據 SortNoduleData 排好的，但為了保險可再排一次，這裡省略
+                    imgStr .= val . ","
+                imgStr := Trim(imgStr, ",")
+
+                lobeStr .= sKey . "/" . imgStr . "; "
+            }
+            lobeStr := Trim(lobeStr, "; ")
+
+            fullLobeReport := label . " (Srs/Img: " . lobeStr . ")"
+            reportParts.Push(fullLobeReport)
         }
     }
 
@@ -256,6 +333,7 @@ CopyReport(*) {
         return
     }
 
+    ; 組合最終報告 (Oxford Comma)
     finalStr := ""
     if (reportParts.Length == 1) {
         finalStr := reportParts[1]
@@ -265,7 +343,7 @@ CopyReport(*) {
         Loop reportParts.Length - 1 {
             finalStr .= reportParts[A_Index] . ", "
         }
-        finalStr := Trim(finalStr, ", ") . ", and " . reportParts[reportParts.Length]
+        finalStr .= "and " . reportParts[reportParts.Length]
     }
 
     A_Clipboard := finalStr
@@ -273,31 +351,47 @@ CopyReport(*) {
 }
 
 /**
- * 輔助函數：將陣列內容進行數值排序 (由小到大)
+ * 對 NoduleData 的陣列進行排序
+ * 規則：先比 Series (數值)，再比 Image (數值)
  */
-SortArrayNumeric(arr) {
+SortNoduleData(arr) {
     if (arr.Length < 2)
         return
 
-    ; 將陣列轉為換行字串
-    str := ""
-    For item in arr
-        str .= item . "`n"
+    ; 簡單氣泡排序 (Bubble Sort) 適用於少量資料
+    Loop arr.Length {
+        i := A_Index
+        Loop arr.Length - i {
+            j := A_Index
+            item1 := arr[j]
+            item2 := arr[j+1]
 
-    ; 使用 AHK 的 Sort 函數，選項 N 代表數值排序，D`n 代表以換行分隔
-    sortedStr := Sort(Trim(str, "`n"), "N D`n")
+            s1 := Integer(item1.srs)
+            s2 := Integer(item2.srs)
+            i1 := Integer(item1.img)
+            i2 := Integer(item2.img)
 
-    ; 清空原陣列並填回排序後的數值
-    arr.Length := 0
-    Loop Parse, sortedStr, "`n"
-        arr.Push(A_LoopField)
+            swap := false
+            if (s1 > s2) {
+                swap := true
+            } else if (s1 == s2) {
+                if (i1 > i2)
+                    swap := true
+            }
+
+            if (swap) {
+                temp := arr[j]
+                arr[j] := arr[j+1]
+                arr[j+1] := temp
+            }
+        }
+    }
 }
 
 /**
  * 當視窗關閉時觸發：記憶位置並清除資料
  */
 WindowClosed(*) {
-    ; 1. 趁視窗還沒完全消失，趕快記憶最後的位置
     try {
         if (MyGui && WinExist("ahk_id " MyGui.Hwnd)) {
             WinGetPos(&currentX, &currentY,,, "ahk_id " MyGui.Hwnd)
@@ -306,7 +400,6 @@ WindowClosed(*) {
         }
     }
 
-    ; 2. 清空資料 (不呼叫 UpdateGUI，因為視窗正要關閉)
     For key, arr in NoduleData {
         NoduleData[key] := []
     }
