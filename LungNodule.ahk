@@ -1,5 +1,11 @@
 #Requires AutoHotkey v2.0
 #Include <Acc.v2>
+#Include <OCR.v2>  ; 引用您指定的 lib 名稱
+
+; ==============================================================================
+; ★ 關鍵修正：設定 DPI 感知，解決多螢幕 OCR 座標錯位問題
+; ==============================================================================
+DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")
 
 ; ==============================================================================
 ; 全域變數與設定
@@ -17,7 +23,7 @@ global GuiX := 100
 global GuiY := 150
 global MyGui := ""
 
-; 佈局設定：左右欄位的 X 座標與欄位寬度
+; 佈局設定
 global COL_LEFT_X  := 10
 global COL_RIGHT_X := 170
 global COL_WIDTH   := 140
@@ -29,14 +35,14 @@ UpdateGUI()
 ; ==============================================================================
 #HotIf WinActive("ahk_exe G3PACS.exe")
 
-; --- 原有的儲存並更新 GUI ---
+; --- 儲存並更新 GUI (Alt + Key) ---
 !q::CaptureNodule("RUL")
 !a::CaptureNodule("RML")
 !z::CaptureNodule("RLL")
 !w::CaptureNodule("LUL")
 !s::CaptureNodule("LLL")
 
-; --- 新增：Shift+Alt+Key 直接複製報告 (不存資料/不更新GUI) ---
+; --- 直接複製報告 (Shift + Alt + Key) ---
 +!q::DirectCopy("RUL")
 +!a::DirectCopy("RML")
 +!z::DirectCopy("RLL")
@@ -46,29 +52,27 @@ UpdateGUI()
 #HotIf
 
 ; ==============================================================================
-; 視窗專用快捷鍵 (僅在 Nodule Tracker 視窗有效)
+; 視窗專用快捷鍵
 ; ==============================================================================
 #HotIf WinActive("Nodule Tracker ahk_class AutoHotkeyGUI")
-
-^c::CopyReport()  ; Ctrl + C 複製
-Esc::ClearAll()   ; Esc 清除
-
+^c::CopyReport()
+Esc::ClearAll()
 #HotIf
 
 ; ==============================================================================
 ; 核心功能函數
 ; ==============================================================================
+
 CaptureNodule(location) {
     try {
-        ; 取得物件資訊 {srs: "xxx", img: "xxx"}
-        info := GetNoduleInfoFromFocus()
+        info := GetNoduleInfoFromFocus() ; 取得 {srs, img}
 
         if (info.img == "" || info.srs == "") {
-            ShowTip("⚠️ 抓取失敗 (數值或 Series 為空)", 2000)
+            ShowTip("⚠️ 抓取失敗 (數值為空)", 2000)
             return
         }
 
-        ; 檢查重複 (同時比對 srs 與 img)
+        ; 檢查重複
         For existingItem in NoduleData[location] {
             if (existingItem.srs == info.srs && existingItem.img == info.img) {
                 ShowTip("⚠️ 已存在: " info.srs "/" info.img " (忽略)", 1000)
@@ -76,10 +80,8 @@ CaptureNodule(location) {
             }
         }
 
-        ; 存入資料結構
         NoduleData[location].Push(info)
         UpdateGUI()
-
         ShowTip("✅ " location ": " info.srs "/" info.img, 1000)
 
     } catch Error as e {
@@ -87,22 +89,16 @@ CaptureNodule(location) {
     }
 }
 
-/**
- * 直接複製單一病灶報告到剪貼簿，不儲存到清單
- */
 DirectCopy(location) {
     try {
-        ; 取得物件資訊 {srs: "xxx", img: "xxx"}
         info := GetNoduleInfoFromFocus()
 
         if (info.img == "" || info.srs == "") {
-            ShowTip("⚠️ 抓取失敗 (數值或 Series 為空)", 2000)
+            ShowTip("⚠️ 抓取失敗 (數值為空)", 2000)
             return
         }
 
-        ; 格式範例: RUL of lung (Srs/Img: 2/4)
         reportStr := location . " of lung (Srs/Img: " . info.srs . "/" . info.img . ")"
-
         A_Clipboard := reportStr
         ShowTip("📋 Copied:`n" reportStr, 2000)
 
@@ -117,14 +113,15 @@ ShowTip(msg, duration) {
 }
 
 /**
- * 從 Focus 元素推算 Image Number 與 Series Number
- * @returns {Object} {srs: string, img: string}
+ * 整合 ACC (Value) 與 OCR (Text) 來取得資訊
+ * Image Number: 透過 ACC Value 取得 (路徑 ...8 -> ...9)
+ * Series Number: 透過 OCR 辨識取得 (路徑 ...8 -> ...10)
  */
 GetNoduleInfoFromFocus() {
     try {
         focusedEl := Acc.ElementFromPoint()
         if !focusedEl {
-            throw Error("無法偵測到元素 (請確認滑鼠位置)")
+            throw Error("無法偵測到元素")
         }
 
         fullPath := GetFullPath(focusedEl)
@@ -133,43 +130,63 @@ GetNoduleInfoFromFocus() {
         if (pathParts.Length < 2)
             throw Error("路徑層級不足")
 
-        ; 基準索引 (原本的 8 位置)
+        ; 取得目標層級索引 (例如原本是 ...8,4 中的 8 的位置)
         targetIdx := pathParts.Length - 1
 
-        ; 1. 取得 Image Number (Value)
-        ; 路徑邏輯: ...8,4 -> ...9,4,1,4,2,4
-        pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1 ; 8 -> 9
+        ; ==================================================
+        ; 1. 取得 Image Number (維持原有的 ACC Value 方法)
+        ; ==================================================
+        ; 邏輯：原本是 8，+1 變成 9
+        pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
 
         basePath := ""
-        Loop targetIdx {
+        Loop targetIdx
             basePath .= pathParts[A_Index] ","
-        }
 
-        ; 組合 Image Path
+        ; Image Path: ...9,4,1,4,2,4
         imgPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
-        imgEl := Acc.GetRootElement()[imgPath]
-        imgVal := Trim(imgEl.Value)
-
-        ; 2. 取得 Series Number (Name)
-        ; 路徑邏輯: ...8,4 -> ...10,4,2,4 (注意: Series 跳過了中間的 1,4 層級)
-        pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1 ; 9 -> 10
-
-        basePath := ""
-        Loop targetIdx {
-            basePath .= pathParts[A_Index] ","
+        try {
+            imgEl := Acc.GetRootElement()[imgPath]
+            imgVal := Trim(imgEl.Value)
+        } catch {
+            imgVal := "" ; 容錯
         }
 
-        ; 組合 Series Path
-        srsPath := basePath . pathParts[pathParts.Length] . ",2,4"
-        srsEl := Acc.GetRootElement()[srsPath]
-        srsNameRaw := srsEl.Name ; 例如 "(2) Thorax 5.00 Bl60 S2"
+        ; ==================================================
+        ; 2. 取得 Series Number (改用 OCR)
+        ; ==================================================
+        ; 邏輯：原本是 8，+2 變成 10 (因為上面已經 +1 變 9 了，所以這裡再 +1 就好)
+        pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
 
-        ; Regex 提取括號內的數字
+        basePath := ""
+        Loop targetIdx
+            basePath .= pathParts[A_Index] ","
+
+        ; Series Path: ...10,4 (直接抓取顯示文字的容器)
+        srsPath := basePath . pathParts[pathParts.Length]
+
         srsVal := ""
-        if RegExMatch(srsNameRaw, "^\((\d+)\)", &match) {
-            srsVal := match[1]
-        } else {
-            ; 如果格式不符，嘗試直接抓取或報錯，這裡暫時回傳原始值或空
+        try {
+            srsEl := Acc.GetRootElement()[srsPath]
+            loc := srsEl.Location
+
+            if (loc.w > 0 && loc.h > 0) {
+                ; 執行 OCR
+                ; scale: 2 可以提高對小字體的辨識率
+                ocrResult := OCR.FromRect(loc.x, loc.y, loc.w, loc.h, {scale: 2})
+                rawText := ocrResult.Text ; 例如 "10 , tl_vibe..."
+
+                ; 解析字串：取第一個逗號前的部分
+                splitText := StrSplit(rawText, ",")
+                if (splitText.Length > 0) {
+                    firstPart := splitText[1]
+                    ; 使用 RegEx 提取純數字 (避免 OCR 雜訊如空白)
+                    if RegExMatch(firstPart, "(\d+)", &match) {
+                        srsVal := match[1]
+                    }
+                }
+            }
+        } catch {
             srsVal := ""
         }
 
@@ -201,7 +218,6 @@ GetFullPath(oEl) {
 ; ==============================================================================
 ; GUI 介面繪製
 ; ==============================================================================
-
 UpdateGUI() {
     if (MyGui && WinExist("ahk_id " MyGui.Hwnd)) {
         WinGetPos(&currentX, &currentY,,, "ahk_id " MyGui.Hwnd)
@@ -213,36 +229,29 @@ UpdateGUI() {
     global MyGui := Gui("+AlwaysOnTop +ToolWindow +Caption +Border", "Nodule Tracker")
     MyGui.SetFont("s10", "Segoe UI")
     MyGui.BackColor := "FFFFE0"
-
     MyGui.OnEvent("Close", WindowClosed)
 
-    ; --- 功能按鈕區 ---
+    ; Title
     MyGui.SetFont("s11 Bold", "Segoe UI")
     MyGui.Add("Text", "w320 Center", "Nodule Tracker")
 
+    ; Buttons
     MyGui.SetFont("s9 Norm", "Segoe UI")
     btnX := (320 - 220) / 2
     btnCopy := MyGui.Add("Button", "x" btnX " w100 h30", "Copy Report")
     btnCopy.OnEvent("Click", CopyReport)
-
     btnClear := MyGui.Add("Button", "x+20 w100 h30", "Clear All")
     btnClear.OnEvent("Click", ClearAll)
-
     MyGui.Add("Text", "x10 y+10 w300 h1 0x10")
 
-    ; 排序資料 (Sort)
+    ; Sort Data
     For key, arr in NoduleData {
         SortNoduleData(arr)
     }
 
-    ; ========================================================
-    ; 雙欄排版區
-    ; ========================================================
-
     ; Left Column (Right Lung)
     MyGui.SetFont("s11 Bold", "Segoe UI")
     MyGui.Add("Text", "Section x" COL_LEFT_X " y+10 w" COL_WIDTH " Center cBlue", "Right Lung")
-
     RenderSection("RUL", COL_LEFT_X)
     RenderSection("RML", COL_LEFT_X)
     RenderSection("RLL", COL_LEFT_X)
@@ -250,7 +259,6 @@ UpdateGUI() {
     ; Right Column (Left Lung)
     MyGui.SetFont("s11 Bold", "Segoe UI")
     MyGui.Add("Text", "ys x" COL_RIGHT_X " w" COL_WIDTH " Center cBlue", "Left Lung")
-
     RenderSection("LUL", COL_RIGHT_X)
 
     if (NoduleData["RML"].Length > 0)
@@ -265,29 +273,20 @@ UpdateGUI() {
 
 RenderSection(label, xPos) {
     global MyGui
-
-    ; 部位標題 (Title)
     MyGui.SetFont("s10 Bold", "Segoe UI")
     MyGui.Add("Text", "x" xPos " y+5 w" COL_WIDTH " Center c003366", label)
 
     items := NoduleData[label]
 
     if (items.Length == 0) {
-        ; 若無資料：設定為灰色
         MyGui.SetFont("s9 Norm cGray", "Segoe UI")
         MyGui.Add("Text", "xp y+2 w" COL_WIDTH " Center", "-")
     } else {
-        ; ★ 修改重點：有資料時，強制設定為 cDefault (系統預設色/黑色)
-        ; 否則會沿用到上一個區塊如果是空值時設定的 cGray
-        MyGui.SetFont("s10 Norm cDefault", "Segoe UI")
-
+        MyGui.SetFont("s10 Norm cDefault", "Segoe UI") ; 確保顏色重置為黑色
         For index, item in items {
-            ; 顯示格式: Srs/Img
             displayText := item.srs . "/" . item.img
-
             textX := xPos + (COL_WIDTH / 2) - 35
             MyGui.Add("Text", "x" textX " y+5 w50 Right", displayText)
-
             btnDel := MyGui.Add("Button", "x+5 yp-3 w20 h20", "x")
             btnDel.OnEvent("Click", DeleteItem.Bind(label, index))
         }
@@ -315,10 +314,7 @@ CopyReport(*) {
         if (items.Length > 0) {
             SortNoduleData(items)
 
-            ; 分組：依據 Series Number
-            ; seriesMap 結構: Map("2", [3, 5, 8], "4", [33, 35])
             seriesMap := Map()
-
             For item in items {
                 s := item.srs
                 i := item.img
@@ -327,12 +323,10 @@ CopyReport(*) {
                 seriesMap[s].Push(i)
             }
 
-            ; 處理 Series 順序 (取出 Key 並排序)
             srsKeys := []
             For k, v in seriesMap {
                 srsKeys.Push(k)
             }
-            ; 簡單氣泡排序 Series Key
             if (srsKeys.Length > 1) {
                 Loop srsKeys.Length {
                     idx := A_Index
@@ -345,22 +339,17 @@ CopyReport(*) {
                 }
             }
 
-            ; 組合該肺葉的字串： 2/3,5,8; 4/33,35
             lobeStr := ""
             For sKey in srsKeys {
                 imgArr := seriesMap[sKey]
-                ; 排序 Image
                 imgStr := ""
-                For val in imgArr ; imgArr 已經是依據 SortNoduleData 排好的，但為了保險可再排一次，這裡省略
+                For val in imgArr
                     imgStr .= val . ","
                 imgStr := Trim(imgStr, ",")
-
                 lobeStr .= sKey . "/" . imgStr . "; "
             }
             lobeStr := Trim(lobeStr, "; ")
-
-            fullLobeReport := label . " (Srs/Img: " . lobeStr . ")"
-            reportParts.Push(fullLobeReport)
+            reportParts.Push(label . " (Srs/Img: " . lobeStr . ")")
         }
     }
 
@@ -369,16 +358,14 @@ CopyReport(*) {
         return
     }
 
-    ; 組合最終報告 (Oxford Comma)
     finalStr := ""
     if (reportParts.Length == 1) {
         finalStr := reportParts[1]
     } else if (reportParts.Length == 2) {
         finalStr := reportParts[1] . " and " . reportParts[2]
     } else {
-        Loop reportParts.Length - 1 {
+        Loop reportParts.Length - 1
             finalStr .= reportParts[A_Index] . ", "
-        }
         finalStr .= "and " . reportParts[reportParts.Length]
     }
 
@@ -386,47 +373,22 @@ CopyReport(*) {
     ShowTip("Copied:`n" finalStr, 3000)
 }
 
-/**
- * 對 NoduleData 的陣列進行排序
- * 規則：先比 Series (數值)，再比 Image (數值)
- */
 SortNoduleData(arr) {
     if (arr.Length < 2)
         return
-
-    ; 簡單氣泡排序 (Bubble Sort) 適用於少量資料
     Loop arr.Length {
         i := A_Index
         Loop arr.Length - i {
             j := A_Index
-            item1 := arr[j]
-            item2 := arr[j+1]
-
-            s1 := Integer(item1.srs)
-            s2 := Integer(item2.srs)
-            i1 := Integer(item1.img)
-            i2 := Integer(item2.img)
-
-            swap := false
-            if (s1 > s2) {
-                swap := true
-            } else if (s1 == s2) {
-                if (i1 > i2)
-                    swap := true
-            }
-
-            if (swap) {
-                temp := arr[j]
-                arr[j] := arr[j+1]
-                arr[j+1] := temp
+            s1 := Integer(arr[j].srs), s2 := Integer(arr[j+1].srs)
+            i1 := Integer(arr[j].img), i2 := Integer(arr[j+1].img)
+            if (s1 > s2) || (s1 == s2 && i1 > i2) {
+                t := arr[j], arr[j] := arr[j+1], arr[j+1] := t
             }
         }
     }
 }
 
-/**
- * 當視窗關閉時觸發：記憶位置並清除資料
- */
 WindowClosed(*) {
     try {
         if (MyGui && WinExist("ahk_id " MyGui.Hwnd)) {
@@ -435,7 +397,6 @@ WindowClosed(*) {
             global GuiY := currentY
         }
     }
-
     For key, arr in NoduleData {
         NoduleData[key] := []
     }
