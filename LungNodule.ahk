@@ -29,11 +29,19 @@ UpdateGUI()
 ; ==============================================================================
 #HotIf WinActive("ahk_exe G3PACS.exe")
 
+; --- 原有的儲存並更新 GUI ---
 !q::CaptureNodule("RUL")
 !a::CaptureNodule("RML")
 !z::CaptureNodule("RLL")
 !w::CaptureNodule("LUL")
 !s::CaptureNodule("LLL")
+
+; --- 新增：Shift+Alt+Key 直接複製報告 (不存資料/不更新GUI) ---
++!q::DirectCopy("RUL")
++!a::DirectCopy("RML")
++!z::DirectCopy("RLL")
++!w::DirectCopy("LUL")
++!s::DirectCopy("LLL")
 
 #HotIf
 
@@ -73,6 +81,30 @@ CaptureNodule(location) {
         UpdateGUI()
 
         ShowTip("✅ " location ": " info.srs "/" info.img, 1000)
+
+    } catch Error as e {
+        ShowTip("❌ 錯誤: " e.Message, 2000)
+    }
+}
+
+/**
+ * 直接複製單一病灶報告到剪貼簿，不儲存到清單
+ */
+DirectCopy(location) {
+    try {
+        ; 取得物件資訊 {srs: "xxx", img: "xxx"}
+        info := GetNoduleInfoFromFocus()
+
+        if (info.img == "" || info.srs == "") {
+            ShowTip("⚠️ 抓取失敗 (數值或 Series 為空)", 2000)
+            return
+        }
+
+        ; 格式範例: RUL of lung (Srs/Img: 2/4)
+        reportStr := location . " of lung (Srs/Img: " . info.srs . "/" . info.img . ")"
+
+        A_Clipboard := reportStr
+        ShowTip("📋 Copied:`n" reportStr, 2000)
 
     } catch Error as e {
         ShowTip("❌ 錯誤: " e.Message, 2000)
