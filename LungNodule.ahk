@@ -49,6 +49,9 @@ UpdateGUI()
 +!w::DirectCopy("LUL")
 +!s::DirectCopy("LLL")
 
+; 新增：Shift+Alt+C 通用簡化複製 (不帶部位名稱)
++!c::SimpleDirectCopy()
+
 #HotIf
 
 ; ==============================================================================
@@ -99,6 +102,29 @@ DirectCopy(location) {
         }
 
         reportStr := location . " of lung (Srs/Img: " . info.srs . "/" . info.img . ")"
+        A_Clipboard := reportStr
+        ShowTip("📋 Copied:`n" reportStr, 2000)
+
+    } catch Error as e {
+        ShowTip("❌ 錯誤: " e.Message, 2000)
+    }
+}
+
+/**
+ * 簡化版直接複製：僅複製 (Srs/Img: X/Y) 格式
+ */
+SimpleDirectCopy() {
+    try {
+        info := GetNoduleInfoFromFocus()
+
+        if (info.img == "" || info.srs == "") {
+            ShowTip("⚠️ 抓取失敗 (數值為空)", 2000)
+            return
+        }
+
+        ; 格式範例: (Srs/Img: 2/4)
+        reportStr := "(Srs/Img: " . info.srs . "/" . info.img . ")"
+
         A_Clipboard := reportStr
         ShowTip("📋 Copied:`n" reportStr, 2000)
 
