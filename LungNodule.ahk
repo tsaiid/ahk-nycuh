@@ -234,22 +234,26 @@ UpdateGUI() {
 RenderSection(label, xPos) {
     global MyGui
 
-    ; 部位標題
+    ; 部位標題 (Title)
     MyGui.SetFont("s10 Bold", "Segoe UI")
     MyGui.Add("Text", "x" xPos " y+5 w" COL_WIDTH " Center c003366", label)
 
     items := NoduleData[label]
 
     if (items.Length == 0) {
+        ; 若無資料：設定為灰色
         MyGui.SetFont("s9 Norm cGray", "Segoe UI")
         MyGui.Add("Text", "xp y+2 w" COL_WIDTH " Center", "-")
     } else {
-        MyGui.SetFont("s10 Norm", "Segoe UI")
+        ; ★ 修改重點：有資料時，強制設定為 cDefault (系統預設色/黑色)
+        ; 否則會沿用到上一個區塊如果是空值時設定的 cGray
+        MyGui.SetFont("s10 Norm cDefault", "Segoe UI")
+
         For index, item in items {
             ; 顯示格式: Srs/Img
             displayText := item.srs . "/" . item.img
 
-            textX := xPos + (COL_WIDTH / 2) - 35 ; 稍微往左移一點留給長數字
+            textX := xPos + (COL_WIDTH / 2) - 35
             MyGui.Add("Text", "x" textX " y+5 w50 Right", displayText)
 
             btnDel := MyGui.Add("Button", "x+5 yp-3 w20 h20", "x")
