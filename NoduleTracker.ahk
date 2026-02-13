@@ -48,29 +48,43 @@ GenerateMaps()
 UpdateGUI()
 
 ; ==============================================================================
-; ★ 映射表生成 (雙模式)
+; ★ 映射表生成 (擴充至 Pattern D)
 ; ==============================================================================
 GenerateMaps() {
     classPrefix := "Afx:00400000:b:00000000:00000013:00000000"
 
-    ; --- 模式 A (低機率) ---
-    ; Focus: 3... | Combo: 10... | Afx: 47...
-    Loop 8 {
-        i := A_Index - 1
-        f := classPrefix . (3 + i)
-        c := "ComboBox" . (10 + (i * 6))
-        a := "AfxWnd140u" . (47 + (i * 3))
-        MapPatternA[f] := {img: c, srs: a, type: "Pattern A"}
-    }
+    ; 初始化所有 Map
+    global MapPatternA := Map(), MapPatternB := Map()
+    global MapPatternC := Map(), MapPatternD := Map()
 
-    ; --- 模式 B (高機率 - 優先) ---
-    ; Focus: 5... | Combo: 57... | Afx: 47...
     Loop 8 {
         i := A_Index - 1
-        f := classPrefix . (5 + i)
-        c := "ComboBox" . (57 + (i * 6))
-        a := "AfxWnd140u" . (47 + (i * 3))
-        MapPatternB[f] := {img: c, srs: a, type: "Pattern B"}
+
+        ; --- Pattern A ---
+        fA := classPrefix . (3 + i)
+        cA := "ComboBox" . (10 + (i * 6))
+        aA := "AfxWnd140u" . (47 + (i * 3))
+        MapPatternA[fA] := {img: cA, srs: aA, type: "Pattern A"}
+
+        ; --- Pattern B ---
+        fB := classPrefix . (5 + i)
+        cB := "ComboBox" . (57 + (i * 6))
+        aB := "AfxWnd140u" . (47 + (i * 3))
+        MapPatternB[fB] := {img: cB, srs: aB, type: "Pattern B"}
+
+        ; --- Pattern C (新) ---
+        ; Focus: ...3 | Combo: 10... | Afx: 31...
+        fC := classPrefix . (3 + i)
+        cC := "ComboBox" . (10 + (i * 6))
+        aC := "AfxWnd140u" . (31 + (i * 3))
+        MapPatternC[fC] := {img: cC, srs: aC, type: "Pattern C"}
+
+        ; --- Pattern D (新) ---
+        ; Focus: ...3 | Combo: 10... | Afx: 37...
+        fD := classPrefix . (3 + i)
+        cD := "ComboBox" . (10 + (i * 6))
+        aD := "AfxWnd140u" . (37 + (i * 3))
+        MapPatternD[fD] := {img: cD, srs: aD, type: "Pattern D"}
     }
 }
 
@@ -126,73 +140,70 @@ GetSmartInfo() {
     return {srs: "", img: "", valid: false, error: lastError}
 }
 
-/**
- * 探針函數：嘗試用 ClassNN 抓取 (增強錯誤診斷)
- */
+; ==============================================================================
+; ★ 核心邏輯：精確 Pattern 判定 (三重驗證：ComboBox -> VMTool 標籤 -> OCR)
+; ==============================================================================
 GetInfo_ByProbe() {
     try {
         focusHwnd := ControlGetFocus("A")
         if (!focusHwnd) {
-            return {srs: "", img: "", valid: false, error: "無法取得焦點控制項 (Focus Lost)"}
+            return {srs: "", img: "", valid: false, error: "無法取得焦點控制項"}
         }
 
         focusNN := ControlGetClassNN(focusHwnd)
         hwnd := WinActive("A")
-        target := ""
 
-        ; 檢查是否在已知模式中
-        isPatternB := MapPatternB.Has(focusNN)
-        isPatternA := MapPatternA.Has(focusNN)
+        ; 依序測試各個模式映射表
+        patternList := [MapPatternA, MapPatternB, MapPatternC, MapPatternD]
 
-        if (!isPatternB && !isPatternA) {
-            return {srs: "", img: "", valid: false, error: "未匹配已知 ClassNN: " . focusNN}
-        }
+        for pMap in patternList {
+            if (pMap.Has(focusNN)) {
+                candidate := pMap[focusNN]
 
-        ; === 策略優化：優先檢查模式 B ===
-        if (isPatternB) {
-            candidate := MapPatternB[focusNN]
-            if (ProbeComboBox(candidate.img, hwnd)) {
-                target := candidate
-            } else {
-                return {srs: "", img: "", valid: false, error: "Pattern B 匹配但 ComboBox 無效: " . candidate.img}
+                ; --- 第一重驗證：ComboBox 必須有數字 (Image No.) ---
+                imgVal := ""
+                try {
+                    imgVal := ControlGetText(candidate.img, hwnd)
+                }
+                if (!IsNumber(Trim(imgVal))) {
+                    continue
+                }
+
+                ; --- 第二重驗證：Series 控制項的 Text 必須包含 "VMTool" ---
+                ; 這是極速過濾，避免對非 Series 區域執行 OCR
+                try {
+                    ctrlText := ControlGetText(candidate.srs, hwnd)
+                    if (!InStr(ctrlText, "VMTool")) {
+                        continue ; Text 不符，表示這不是我們要找的 Series 區域
+                    }
+                } catch {
+                    continue ; 無法取得 Text 亦跳過
+                }
+
+                ; --- 第三重驗證：OCR 實際解析 Series 編號 ---
+                srsVal := ""
+                try {
+                    ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
+
+                    ; 座標轉換 (Client -> Screen)
+                    pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
+                    DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
+                    screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
+
+                    if (cW > 0 && cH > 0) {
+                        ocrResult := OCR.FromRect(screenX, screenY, cW, cH, {scale: 2})
+                        srsVal := ParseSrs(ocrResult.Text)
+                    }
+                }
+
+                ; 只有當前兩重文字驗證與最終 OCR 都通過時，才視為命中
+                if (srsVal != "") {
+                    return {srs: srsVal, img: imgVal, valid: true, method: candidate.type}
+                }
             }
         }
 
-        ; === 若 B 失敗，檢查模式 A ===
-        if (target == "" && isPatternA) {
-            candidate := MapPatternA[focusNN]
-            if (ProbeComboBox(candidate.img, hwnd)) {
-                target := candidate
-            } else {
-                return {srs: "", img: "", valid: false, error: "Pattern A 匹配但 ComboBox 無效: " . candidate.img}
-            }
-        }
-
-        ; === 命中目標，開始取值 ===
-        imgVal := ControlGetText(target.img, hwnd)
-        if (imgVal == "") {
-             return {srs: "", img: "", valid: false, error: "ComboBox 內容為空"}
-        }
-
-        srsVal := ""
-        ControlGetPos(&cX, &cY, &cW, &cH, target.srs, hwnd)
-
-        ; 座標轉換
-        pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
-        DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
-        screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
-
-        if (cW > 0 && cH > 0) {
-            ocrResult := OCR.FromRect(screenX, screenY, cW, cH, {scale: 2})
-            srsVal := ParseSrs(ocrResult.Text)
-            if (srsVal == "") {
-                return {srs: "", img: imgVal, valid: false, error: "OCR 無法辨識 Series: " . ocrResult.Text}
-            }
-        } else {
-            return {srs: "", img: imgVal, valid: false, error: "Series 區域座標異常 (W:" cW " H:" cH ")"}
-        }
-
-        return {srs: srsVal, img: imgVal, valid: true, method: target.type}
+        return {srs: "", img: "", valid: false, error: "所有模式驗證失敗 (標籤不符或 OCR 無效)"}
 
     } catch Error as e {
         return {srs: "", img: "", valid: false, error: "Probe Runtime Error: " . e.Message}
@@ -284,60 +295,66 @@ ShowTip(msg, duration) {
 }
 
 ; ==============================================================================
-; ★ 工具：F12 探針 (保留給您除錯用)
+; ★ 工具：F12 探針 (更新顯示資訊)
 ; ==============================================================================
 ProbeControl() {
     MouseGetPos(,, &hwnd, &ctrlClassNN)
-
-    try {
-        txt := ControlGetText(ctrlClassNN, hwnd)
-    } catch {
-        txt := "無文字或無法讀取"
-    }
-
-    msg := "【探針資訊】`n"
-    msg .= "ClassNN: " ctrlClassNN "`n"
-    msg .= "Text內容: " txt "`n`n"
-    msg .= "對應檢查：`n"
-    msg .= "Pattern A (Focus->Combo): +1 -> +6`n"
-    msg .= "Pattern B (Focus->Combo): +5 -> +57"
-
+    ; ... (前面邏輯不變)
+    msg := "【探針資訊】`nClassNN: " ctrlClassNN "`n`n模式檢查：`n"
+    msg .= "Pattern B: " . (MapPatternB.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
+    msg .= "Pattern C: " . (MapPatternC.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
+    msg .= "Pattern A: " . (MapPatternA.Has(ctrlClassNN) ? "✅" : "❌")
     MsgBox(msg)
 }
 
 ; ==============================================================================
-; ★ 效能測試 (F11)
+; ★ 效能測試 (F11) - 支援 A/B/C/D 全模式診斷
 ; ==============================================================================
 RunSmartBenchmark() {
-    resultText := "★ 極速模式測試結果 (Priority: B) ★`n`n"
+    resultText := "★ 智慧抓取效能測試 (Pattern A-D) ★`n`n"
+    hwnd := WinActive("A")
+    focusHwnd := ControlGetFocus("A")
 
-    ; 1. 測試新方法 (探針)
-    start := A_TickCount
-    newInfo := GetInfo_ByProbe()
-    newTime := A_TickCount - start
-
-    if (newInfo.valid) {
-        resultText .= "🚀 新方法成功 (" newInfo.method ")`n"
-        resultText .= "耗時: " newTime " ms`n"
-        resultText .= "數值: Srs " newInfo.srs " / Img " newInfo.img "`n`n"
-    } else {
-        resultText .= "❌ 新方法失敗 (未命中任何模式)`n"
-        resultText .= "耗時: " newTime " ms`n`n"
+    if (!focusHwnd) {
+        MsgBox("❌ 測試失敗：無法取得視窗焦點。")
+        return
     }
 
-    ; 2. 測試舊方法 (Acc) 對照
-    start := A_TickCount
-    oldInfo := GetNoduleInfoFromFocus()
-    oldTime := A_TickCount - start
+    focusNN := ControlGetClassNN(focusHwnd)
+    resultText .= "當前焦點: " . focusNN . "`n" . "----------------------------------`n"
 
-    resultText .= "🐢 舊方法 (Acc)`n"
-    resultText .= "耗時: " oldTime " ms`n"
-    resultText .= "數值: Srs " oldInfo.srs " / Img " oldInfo.img "`n`n"
+    ; 1. 測試極速模式 (Probe)
+    startProbe := A_TickCount
+    info := GetInfo_ByProbe() ; 這裡會跑完 A->B->C->D 邏輯
+    probeTime := A_TickCount - startProbe
 
-    ; 結論
-    if (newInfo.valid) {
-        speedup := Round(oldTime / (newTime > 0 ? newTime : 1), 1)
-        resultText .= "🏆 速度提升: " speedup " 倍!"
+    if (info.valid) {
+        resultText .= "🚀 極速模式成功！`n"
+        resultText .= "命中模式: " . info.method . "`n"
+        resultText .= "耗時: " . probeTime . " ms`n"
+        resultText .= "數值: Srs " . info.srs . " / Img " . info.img . "`n`n"
+    } else {
+        errReason := info.HasOwnProp("error") ? info.error : "未知原因"
+        resultText .= "❌ 極速模式失敗`n"
+        resultText .= "原因: " . errReason . "`n`n"
+    }
+
+    ; 2. 測試舊方法 (Acc) 作為基準
+    startAcc := A_TickCount
+    accInfo := GetNoduleInfoFromFocus()
+    accTime := A_TickCount - startAcc
+
+    resultText .= "🐢 基準方法 (Acc)`n"
+    resultText .= "耗時: " . accTime . " ms`n"
+    resultText .= "數值: Srs " . (accInfo.srs ? accInfo.srs : "N/A") . " / Img " . (accInfo.img ? accInfo.img : "N/A") . "`n"
+    resultText .= "----------------------------------`n"
+
+    ; 3. 效能總結
+    if (info.valid) {
+        speedup := Round(accTime / (probeTime > 0 ? probeTime : 1), 1)
+        resultText .= "🏆 速度提升: " . speedup . " 倍"
+    } else {
+        resultText .= "💡 建議：請檢查 F12 探針資訊以修正 Pattern 映射表。"
     }
 
     MsgBox(resultText)
