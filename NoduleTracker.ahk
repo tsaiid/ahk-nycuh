@@ -101,7 +101,7 @@ F12::ProbeControl()
 #HotIf
 
 ; ==============================================================================
-; ★ 核心邏輯：智慧抓取 (Smart Capture) - 優先順序已調整
+; ★ 修改核心邏輯：加入詳細錯誤診斷 (Diagnostic Capture)
 ; ==============================================================================
 
 GetSmartInfo() {
@@ -111,74 +111,91 @@ GetSmartInfo() {
         return fastInfo
     }
 
+    ; 保存 Probe 的錯誤原因，如果 Acc 也失敗，可以參考
+    lastError := fastInfo.HasOwnProp("error") ? fastInfo.error : "Unknown Probe Error"
+
     ; 2. 失敗則回退到慢速方法 (Acc)
-    return GetNoduleInfoFromFocus()
+    accInfo := GetNoduleInfoFromFocus()
+    if (accInfo.srs != "" && accInfo.img != "") {
+        accInfo.valid := true
+        accInfo.method := "Acc"
+        return accInfo
+    }
+
+    ; 3. 全部失敗，回傳最後的錯誤原因
+    return {srs: "", img: "", valid: false, error: lastError}
 }
 
 /**
- * 探針函數：嘗試用 ClassNN 抓取
- * 優化：優先檢查 Pattern B
+ * 探針函數：嘗試用 ClassNN 抓取 (增強錯誤診斷)
  */
 GetInfo_ByProbe() {
     try {
         focusHwnd := ControlGetFocus("A")
         if (!focusHwnd) {
-            return {srs: "", img: "", valid: false}
+            return {srs: "", img: "", valid: false, error: "無法取得焦點控制項 (Focus Lost)"}
         }
 
         focusNN := ControlGetClassNN(focusHwnd)
         hwnd := WinActive("A")
         target := ""
 
-        ; === 策略優化：優先檢查模式 B (高機率) ===
-        if (MapPatternB.Has(focusNN)) {
+        ; 檢查是否在已知模式中
+        isPatternB := MapPatternB.Has(focusNN)
+        isPatternA := MapPatternA.Has(focusNN)
+
+        if (!isPatternB && !isPatternA) {
+            return {srs: "", img: "", valid: false, error: "未匹配已知 ClassNN: " . focusNN}
+        }
+
+        ; === 策略優化：優先檢查模式 B ===
+        if (isPatternB) {
             candidate := MapPatternB[focusNN]
             if (ProbeComboBox(candidate.img, hwnd)) {
                 target := candidate
+            } else {
+                return {srs: "", img: "", valid: false, error: "Pattern B 匹配但 ComboBox 無效: " . candidate.img}
             }
         }
 
-        ; === 若 B 失敗，檢查模式 A (低機率) ===
-        if (target == "" && MapPatternA.Has(focusNN)) {
+        ; === 若 B 失敗，檢查模式 A ===
+        if (target == "" && isPatternA) {
             candidate := MapPatternA[focusNN]
             if (ProbeComboBox(candidate.img, hwnd)) {
                 target := candidate
+            } else {
+                return {srs: "", img: "", valid: false, error: "Pattern A 匹配但 ComboBox 無效: " . candidate.img}
             }
-        }
-
-        ; === 兩者皆空，放棄 ===
-        if (target == "") {
-            return {srs: "", img: "", valid: false}
         }
 
         ; === 命中目標，開始取值 ===
-
-        ; 1. 取 Img
         imgVal := ControlGetText(target.img, hwnd)
+        if (imgVal == "") {
+             return {srs: "", img: "", valid: false, error: "ComboBox 內容為空"}
+        }
 
-        ; 2. 取 Srs (OCR)
         srsVal := ""
-        try {
-            ControlGetPos(&cX, &cY, &cW, &cH, target.srs, hwnd)
+        ControlGetPos(&cX, &cY, &cW, &cH, target.srs, hwnd)
 
-            ; 座標轉換 (Client -> Screen)
-            pt := Buffer(8)
-            NumPut("int", cX, pt, 0)
-            NumPut("int", cY, pt, 4)
-            DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
-            screenX := NumGet(pt, 0, "int")
-            screenY := NumGet(pt, 4, "int")
+        ; 座標轉換
+        pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
+        DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
+        screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
 
-            if (cW > 0 && cH > 0) {
-                ocrResult := OCR.FromRect(screenX, screenY, cW, cH, {scale: 2})
-                srsVal := ParseSrs(ocrResult.Text)
+        if (cW > 0 && cH > 0) {
+            ocrResult := OCR.FromRect(screenX, screenY, cW, cH, {scale: 2})
+            srsVal := ParseSrs(ocrResult.Text)
+            if (srsVal == "") {
+                return {srs: "", img: imgVal, valid: false, error: "OCR 無法辨識 Series: " . ocrResult.Text}
             }
+        } else {
+            return {srs: "", img: imgVal, valid: false, error: "Series 區域座標異常 (W:" cW " H:" cH ")"}
         }
 
         return {srs: srsVal, img: imgVal, valid: true, method: target.type}
 
-    } catch {
-        return {srs: "", img: "", valid: false}
+    } catch Error as e {
+        return {srs: "", img: "", valid: false, error: "Probe Runtime Error: " . e.Message}
     }
 }
 
@@ -202,19 +219,20 @@ ParseSrs(text) {
 }
 
 ; ==============================================================================
-; ★ 應用層函數
+; ★ 修改應用層函數：顯示具體錯誤
 ; ==============================================================================
 
 CaptureNodule(location) {
     try {
         info := GetSmartInfo()
 
-        if (info.img == "" || info.srs == "") {
-            ShowTip("⚠️ 抓取失敗 (請確認焦點)", 1500)
+        if (!info.valid) {
+            errLog := info.HasOwnProp("error") ? info.error : "未知錯誤"
+            ShowTip("⚠️ " . errLog, 2500)
             return
         }
 
-        ; 檢查重複
+        ; 檢查重複 (保留原有邏輯)
         For existingItem in NoduleData[location] {
             if (existingItem.srs == info.srs && existingItem.img == info.img) {
                 ShowTip("⚠️ 已存在 (忽略)", 1000)
@@ -229,23 +247,20 @@ CaptureNodule(location) {
         ShowTip("✅ " methodTag location ": " info.srs "/" info.img, 1000)
 
     } catch Error as e {
-        ShowTip("❌ " e.Message, 2000)
+        ShowTip("❌ Critical: " e.Message, 3000)
     }
 }
 
+; 修改 DirectCopy 以支援錯誤詳解
 DirectCopy(location) {
-    try {
-        info := GetSmartInfo()
-        if (info.img == "" || info.srs == "") {
-            ShowTip("⚠️ 抓取失敗", 2000)
-            return
-        }
-        reportStr := location . " of lung (Srs/Img: " . info.srs . "/" . info.img . ")"
-        A_Clipboard := reportStr
-        ShowTip("📋 Copied:`n" reportStr, 2000)
-    } catch Error as e {
-        ShowTip("❌ " e.Message, 2000)
+    info := GetSmartInfo()
+    if (!info.valid) {
+        ShowTip("⚠️ 複製失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2500)
+        return
     }
+    reportStr := location . " of lung (Srs/Img: " . info.srs . "/" . info.img . ")"
+    A_Clipboard := reportStr
+    ShowTip("📋 Copied:`n" reportStr, 2000)
 }
 
 SimpleDirectCopy() {
