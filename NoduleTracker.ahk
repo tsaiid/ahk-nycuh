@@ -105,12 +105,37 @@ F12::ProbeControl()
 !w::CaptureNodule("LUL")
 !s::CaptureNodule("LLL")
 
-+!q::DirectCopy("RUL")
-+!a::DirectCopy("RML")
-+!z::DirectCopy("RLL")
-+!w::DirectCopy("LUL")
-+!s::DirectCopy("LLL")
-+!c::SimpleDirectCopy()
+; 使用大括號語法 (AHK v2)，並加入 vkE8 阻斷語言切換偵測
+
++!q:: {
+    Send("{Blind}{vkE8}")
+    DirectCopy("RUL")
+}
+
++!a:: {
+    Send("{Blind}{vkE8}")
+    DirectCopy("RML")
+}
+
++!z:: {
+    Send("{Blind}{vkE8}")
+    DirectCopy("RLL")
+}
+
++!w:: {
+    Send("{Blind}{vkE8}")
+    DirectCopy("LUL")
+}
+
++!s:: {
+    Send("{Blind}{vkE8}")
+    DirectCopy("LLL")
+}
+
++!c:: {
+    Send("{Blind}{vkE8}")
+    SimpleDirectCopy()
+}
 
 #HotIf
 
