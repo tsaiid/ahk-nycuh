@@ -95,7 +95,10 @@ RisController.EnableAutoWorklistUpdate()
     !e:: RisController.InsertExamNameAtCaret()
 
     ; Alt+Shift+D: 插入目前選取的歷史報告日期 (自動轉西元)
-    !+d:: RisController.InsertSelectedHistoryDate()
+    !+d:: {
+        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
+        RisController.InsertSelectedHistoryDate()
+    }
 
     ; Alt+D: 插入以複製的歷史報告日期 (自動轉西元)
     !d:: RisController.InsertCopiedReportDate()
