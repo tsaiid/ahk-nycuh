@@ -89,6 +89,7 @@
 ::stm::small to moderate `
 ::mtm::mild to moderate `
 ::mts::moderate to severe `
+::hg::high-grade `
 ::sl::slightly `
 ::sip::superimposed `
 ::pos::position

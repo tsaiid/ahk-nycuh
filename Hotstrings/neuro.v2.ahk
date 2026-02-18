@@ -134,7 +134,7 @@ The visible paranasal sinuses and mastoids are unremarkable.
 ::c2::Cavum septum pellucidum and cavum vergae.
 ::c3::Cavum veli interpositi.
 ::mrbccvm::A 1.3-cm nodular lesion at right frontal subcortical region, with a popcorn appearance, a rim of signal loss, and blooming effect on T2*WI. The postcontrast images show mild central enhancement. A cavernoma (cavernous venous malformation) is suspected.
-::latv::lateral ventricle
+::lv::lateral ventricle
 ::3v::third ventricle
 ::4v::fourth ventricle
 ::casc::cerebral atherosclerosis
@@ -228,8 +228,7 @@ Presence of hyperintensity on T2WI in the right/left/bilateral sphenoid, right/l
 {
     MyForm := "
   (
-Mild mucoperiosteal thickening and hyperintensity on T2WI over the paranasal sinuses, in favor of mild sinusitis.
-Hyperintensity on T2WI over the paranasal sinuses, in favor of mild sinusitis.
+Mild mucoperiosteal thickening and hyperintensity on T2WI in the paranasal sinuses, in favor of mild sinusitis.
   )"
     Paste(MyForm)
 }
@@ -260,6 +259,7 @@ Multiphase CTA:
     Paste(MyForm)
 }
 
+::mraok0::MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
 ::mraok::
 {
     MyForm := "
