@@ -367,7 +367,7 @@ class RisController {
     }
 
     static AppendPreviousReport() {
-        this._ShowWaitCursor() ; [新增] 開始時變更游標
+        this._ShowWaitCursor()
         try {
             try {
                 pastImp := ControlGetText(this.PastImpressionText.NativeWindowHandle)
@@ -377,6 +377,9 @@ class RisController {
             } catch {
                 return
             }
+
+            ; [紀錄] 紀錄 Finding 目前的 Caret 位置
+            initialFindSel := this._EditGetSel(hFindEdit)
 
             rawDate := this._GetSelectedRowValue(1)
             if (rawDate != "") {
@@ -397,8 +400,6 @@ class RisController {
                 }
 
                 this._EditReplaceSel(hEdit, textToAppend)
-                ; 3. [關鍵修改] 插入後立刻取消反白，並將游標停在該欄位最後
-                ; 這樣可以確保 Impression 不會因為沒被 Focus 而一直亮著藍色反白
                 this._EditSetSel(hEdit, -1, -1)
                 this._EditScrollCaret(hEdit)
             }
@@ -408,12 +409,12 @@ class RisController {
 
             try {
                 this.FindingEdit.SetFocus()
-                ; [新增] 將游標移至 Finding 開頭 (位置 0) 並捲動畫面
-                this._EditSetSel(hFindEdit, 0, 0)
+                ; [修改] 不再強制移至 0，而是還原至 initialFindSel.Start
+                this._EditSetSel(hFindEdit, initialFindSel.Start, initialFindSel.Start)
                 this._EditScrollCaret(hFindEdit)
             }
         } finally {
-            this._RestoreCursor() ; [新增] 結束或 Return 前恢復游標
+            this._RestoreCursor()
         }
     }
 
