@@ -53,6 +53,15 @@
 ::pe1::pulmonary embolism
 :c:MS::(Modifier S)
 
+::ccttrok0::
+{
+    MyForm := "
+  (
+- No pneumothorax or hemothorax.
+- No lung contusion, pneumothorax, or hemothorax.
+  )"
+    Paste(MyForm)
+}
 ::ccttrok::
 {
     MyForm := "

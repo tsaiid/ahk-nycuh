@@ -178,6 +178,7 @@ Several small low densities in the bilateral basal ganglion regions, in favor of
 Several tiny low densities in the left basal ganglion region, in favor of old lacunar infarcts.
 Several tiny low densities in the right basal ganglion region, in favor of old lacunar infarcts.
 Presence of tiny old ischemic infarction involving bilateral basal ganglion region.
+Old lacunar infarcts in the bilateral basal ganglia.
   )"
     Paste(MyForm)
 }
