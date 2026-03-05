@@ -40,6 +40,12 @@ global NoduleData := Map("RUL", [], "RML", [], "RLL", [], "LUL", [], "LLL", [])
 global GuiX := 100, GuiY := 150, MyGui := ""
 global COL_LEFT_X := 10, COL_RIGHT_X := 170, COL_WIDTH := 140
 
+; ★ 新增：Acc 慢速模式的總開關 (強烈建議設為 false，徹底杜絕卡死)
+global EnableAccFallback := true
+
+global GuiStatusMsg := "Ready"
+global txtStatus := ""
+
 ; ★ 定義兩個映射表
 global MapPatternA := Map() ; 原始模式
 global MapPatternB := Map() ; 新發現模式 (高效能 & 高機率)
@@ -140,20 +146,21 @@ F12::ProbeControl()
 #HotIf
 
 ; ==============================================================================
-; ★ 修改核心邏輯：加入詳細錯誤診斷 (Diagnostic Capture)
+; ★ 修改核心邏輯：移除過渡提示，僅回傳最終診斷結果
 ; ==============================================================================
-
 GetSmartInfo() {
-    ; 1. 嘗試極速方法 (ClassNN)
     fastInfo := GetInfo_ByProbe()
     if (fastInfo.valid) {
         return fastInfo
     }
 
-    ; 保存 Probe 的錯誤原因，如果 Acc 也失敗，可以參考
     lastError := fastInfo.HasOwnProp("error") ? fastInfo.error : "Unknown Probe Error"
 
-    ; 2. 失敗則回退到慢速方法 (Acc)
+    if (!EnableAccFallback) {
+        return {srs: "", img: "", valid: false, error: "Probe 失敗 (" . lastError . ")，已停用 Acc"}
+    }
+
+    ; 直接執行 Acc 備用方案 (不顯示過渡狀態)
     accInfo := GetNoduleInfoFromFocus()
     if (accInfo.srs != "" && accInfo.img != "") {
         accInfo.valid := true
@@ -161,8 +168,9 @@ GetSmartInfo() {
         return accInfo
     }
 
-    ; 3. 全部失敗，回傳最後的錯誤原因
-    return {srs: "", img: "", valid: false, error: lastError}
+    ; 若連 Acc 也失敗，將兩者的錯誤訊息合併回傳
+    accError := accInfo.HasOwnProp("error") ? accInfo.error : "未知 Acc 錯誤"
+    return {srs: "", img: "", valid: false, error: "Probe 失敗 (" . lastError . ")，Acc 也失敗 (" . accError . ")"}
 }
 
 ; ==============================================================================
@@ -255,20 +263,21 @@ ParseSrs(text) {
 }
 
 ; ==============================================================================
-; ★ 修改應用層函數：顯示具體錯誤
+; ★ 修改應用層函數：精準分流狀態列 (GUI) 與浮動提示 (ToolTip)
 ; ==============================================================================
-
 CaptureNodule(location) {
     try {
         info := GetSmartInfo()
 
+        ; 狀態 1：Probe 與 Acc 雙雙失敗 -> 顯示於 GUI 狀態列
         if (!info.valid) {
             errLog := info.HasOwnProp("error") ? info.error : "未知錯誤"
-            ShowTip("⚠️ " . errLog, 2500)
+            global GuiStatusMsg := "❌ " . errLog
+            UpdateGUI()
             return
         }
 
-        ; 檢查重複 (保留原有邏輯)
+        ; 檢查重複：恢復使用 ToolTip 顯示，不干擾 GUI
         For existingItem in NoduleData[location] {
             if (existingItem.srs == info.srs && existingItem.img == info.img) {
                 ShowTip("⚠️ 已存在 (忽略)", 1000)
@@ -276,14 +285,26 @@ CaptureNodule(location) {
             }
         }
 
+        ; 加入資料陣列
         NoduleData[location].Push(info)
-        UpdateGUI()
 
-        methodTag := (info.HasOwnProp("method")) ? "[" info.method "] " : "[Acc] "
-        ShowTip("✅ " methodTag location ": " info.srs "/" info.img, 1000)
+        ; 狀態分流邏輯
+        if (info.HasOwnProp("method") && info.method == "Acc") {
+            ; 狀態 2：Probe 失敗但 Acc 成功 -> 顯示於 GUI 狀態列 (常駐警告)
+            global GuiStatusMsg := "⚠️ Probe 失敗，Acc 抓取成功 (建議按 F12 擴充)"
+            UpdateGUI()
+        } else {
+            ; 狀態 3：Probe 完美成功 -> 清空 GUI 狀態列，並透過 ToolTip 顯示
+            global GuiStatusMsg := ""
+            UpdateGUI()
+
+            methodTag := (info.HasOwnProp("method")) ? "[" info.method "] " : ""
+            ShowTip("✅ " methodTag location ": " info.srs "/" info.img, 1000)
+        }
 
     } catch Error as e {
-        ShowTip("❌ Critical: " e.Message, 3000)
+        global GuiStatusMsg := "❌ Critical: " e.Message
+        UpdateGUI()
     }
 }
 
@@ -386,24 +407,53 @@ RunSmartBenchmark() {
 }
 
 ; ==============================================================================
-; ★ 舊方法保留 (Acc)
+; ★ 方案 B 核心：限制 Acc 掃描範圍於當前視窗 (防止 VS Code/系統卡死)
 ; ==============================================================================
 GetNoduleInfoFromFocus() {
     try {
-        focusedEl := Acc.ElementFromPoint()
-        if (!focusedEl) {
-            return {srs: "", img: ""}
+        ; 1. 取得當前活動視窗 (PACS) 的 Handle 與 Acc 根節點
+        pacsHwnd := WinActive("A")
+        if (!pacsHwnd) {
+            return {srs: "", img: "", error: "Acc: 找不到活動視窗"}
+        }
+        pacsRoot := Acc.ElementFromHandle(pacsHwnd) ; ★ 範圍鎖定，絕對不碰桌面
+
+        ; 2. 取得當前焦點控制項
+        focusHwnd := ControlGetFocus("ahk_id " pacsHwnd)
+        if (!focusHwnd) {
+            return {srs: "", img: "", error: "Acc: 無法取得焦點控制項"}
         }
 
-        fullPath := GetFullPath(focusedEl)
+        ; 3. 精準取得控制項在螢幕上的絕對中心點座標 (Screen 座標)
+        pt := Buffer(8), NumPut("int", 0, pt, 0), NumPut("int", 0, pt, 4)
+        DllCall("ClientToScreen", "ptr", focusHwnd, "ptr", pt)
+        screenX := NumGet(pt, 0, "int")
+        screenY := NumGet(pt, 4, "int")
+        ControlGetPos(,, &cW, &cH, focusHwnd, "ahk_id " pacsHwnd)
+
+        targetX := screenX + (cW // 2)
+        targetY := screenY + (cH // 2)
+
+        ; 4. 從精確座標取得目標節點
+        focusedEl := Acc.ElementFromPoint(targetX, targetY)
+        if (!focusedEl) {
+            return {srs: "", img: "", error: "Acc: 無法從座標取得節點"}
+        }
+
+        ; 5. ★ 取得「相對於 PACS 視窗」的路徑
+        fullPath := GetRelativePath(focusedEl, pacsRoot)
+        if (fullPath == "") {
+            return {srs: "", img: "", error: "Acc: 路徑不在當前視窗內或解析超時"}
+        }
+
         pathParts := StrSplit(fullPath, ",")
         if (pathParts.Length < 2) {
-            return {srs: "", img: ""}
+            return {srs: "", img: "", error: "Acc: 路徑層級過淺"}
         }
 
         targetIdx := pathParts.Length - 1
 
-        ; Img
+        ; 解析 Img
         pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
         basePath := ""
         Loop targetIdx {
@@ -411,13 +461,13 @@ GetNoduleInfoFromFocus() {
         }
         imgPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
         try {
-            imgEl := Acc.GetRootElement()[imgPath]
+            imgEl := pacsRoot[imgPath]  ; ★ 直接從 pacsRoot 往下找
             imgVal := Trim(imgEl.Value)
         } catch {
             imgVal := ""
         }
 
-        ; Srs
+        ; 解析 Srs
         pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
         basePath := ""
         Loop targetIdx {
@@ -426,7 +476,7 @@ GetNoduleInfoFromFocus() {
         srsPath := basePath . pathParts[pathParts.Length]
         srsVal := ""
         try {
-            srsEl := Acc.GetRootElement()[srsPath]
+            srsEl := pacsRoot[srsPath]  ; ★ 直接從 pacsRoot 往下找
             loc := srsEl.Location
             if (loc.w > 0 && loc.h > 0) {
                 ocrResult := OCR.FromRect(loc.x, loc.y, loc.w, loc.h, {scale: 2})
@@ -435,27 +485,71 @@ GetNoduleInfoFromFocus() {
         }
 
         return {srs: srsVal, img: imgVal}
-    } catch {
-        return {srs: "", img: ""}
+    } catch Error as e {
+        return {srs: "", img: "", error: "Acc Error: " . e.Message}
     }
 }
 
-GetFullPath(oEl) {
+; ==============================================================================
+; ★ 搭配 Helper：只在指定根節點內尋找路徑 (防死鎖關鍵)
+; ==============================================================================
+GetRelativePath(targetEl, rootEl) {
     path := ""
-    curr := oEl
+    curr := targetEl
+    startTime := A_TickCount
+    maxDepth := 50
+    timeoutMs := 2500
+
     try {
-        while (curr.Parent) {
+        Loop maxDepth {
+            ; ★ 如果已經往上爬到我們指定的根節點 (PACS 視窗)，就停止
+            if (curr.IsEqual(rootEl)) {
+                break
+            }
+
+            ; 如果爬到沒有父節點 (撞到桌面)，代表發生異常越界
+            if (!curr.Parent) {
+                return ""
+            }
+
+            ; 防死鎖超時判定
+            if (A_TickCount - startTime > timeoutMs) {
+                throw Error("Acc 相對路徑解析超時")
+            }
+
             p := curr.Parent
+            matchFound := false
             for idx, child in p {
                 if (child.IsEqual(curr)) {
                     path := idx "," path
+                    matchFound := true
                     break
                 }
             }
+
+            if (!matchFound) {
+                break
+            }
             curr := p
         }
+    } catch {
+        return ""
     }
+
     return Trim(path, ",")
+}
+
+; ==============================================================================
+; ★ UI 狀態列 Helper
+; ==============================================================================
+SetGuiStatus(msg, color := "cRed") {
+    global GuiStatusMsg := msg
+    if (IsSet(txtStatus) && Type(txtStatus) == "Gui.Text") {
+        try {
+            txtStatus.Opt(color)
+            txtStatus.Value := msg
+        }
+    }
 }
 
 ; ==============================================================================
@@ -475,6 +569,11 @@ UpdateGUI() {
 
     MyGui.SetFont("s11 Bold", "Segoe UI")
     MyGui.Add("Text", "w320 Center", "Nodule Tracker")
+
+    ; ★ 新增：狀態顯示列 (依照內容判斷顏色)
+    MyGui.SetFont("s9 Bold", "Segoe UI")
+    statusColor := InStr(GuiStatusMsg, "✅") ? "cBlue" : "cRed"
+    global txtStatus := MyGui.Add("Text", "w320 h30 Center " . statusColor, GuiStatusMsg)
 
     MyGui.SetFont("s9 Norm", "Segoe UI")
     btnX := (320 - 220) / 2
@@ -537,6 +636,7 @@ ClearAll(*) {
     For key, arr in NoduleData {
         NoduleData[key] := []
     }
+    global GuiStatusMsg := "Ready" ; ★ 清空時重置狀態
     UpdateGUI()
 }
 
