@@ -54,14 +54,14 @@ GenerateMaps()
 UpdateGUI()
 
 ; ==============================================================================
-; ★ 映射表生成 (擴充至 Pattern D)
+; ★ 映射表生成 (擴充至 Pattern E)
 ; ==============================================================================
 GenerateMaps() {
     classPrefix := "Afx:00400000:b:00000000:00000013:00000000"
 
     ; 初始化所有 Map
     global MapPatternA := Map(), MapPatternB := Map()
-    global MapPatternC := Map(), MapPatternD := Map()
+    global MapPatternC := Map(), MapPatternD := Map(), MapPatternE := Map()
 
     Loop 8 {
         i := A_Index - 1
@@ -78,19 +78,26 @@ GenerateMaps() {
         aB := "AfxWnd140u" . (47 + (i * 3))
         MapPatternB[fB] := {img: cB, srs: aB, type: "Pattern B"}
 
-        ; --- Pattern C (新) ---
+        ; --- Pattern C ---
         ; Focus: ...3 | Combo: 10... | Afx: 31...
         fC := classPrefix . (3 + i)
         cC := "ComboBox" . (10 + (i * 6))
         aC := "AfxWnd140u" . (31 + (i * 3))
         MapPatternC[fC] := {img: cC, srs: aC, type: "Pattern C"}
 
-        ; --- Pattern D (新) ---
+        ; --- Pattern D ---
         ; Focus: ...3 | Combo: 10... | Afx: 37...
         fD := classPrefix . (3 + i)
         cD := "ComboBox" . (10 + (i * 6))
         aD := "AfxWnd140u" . (37 + (i * 3))
         MapPatternD[fD] := {img: cD, srs: aD, type: "Pattern D"}
+
+        ; --- Pattern E (新) ---
+        ; Focus: ...3 | Combo: 10... | Afx: 41...
+        fE := classPrefix . (3 + i)
+        cE := "ComboBox" . (10 + (i * 6))
+        aE := "AfxWnd140u" . (41 + (i * 3))
+        MapPatternE[fE] := {img: cE, srs: aE, type: "Pattern E"}
     }
 }
 
@@ -187,7 +194,7 @@ GetInfo_ByProbe() {
         hwnd := WinActive("A")
 
         ; 依序測試各個模式映射表
-        patternList := [MapPatternA, MapPatternB, MapPatternC, MapPatternD]
+        patternList := [MapPatternA, MapPatternB, MapPatternC, MapPatternD, MapPatternE]
 
         for pMap in patternList {
             if (pMap.Has(focusNN)) {
@@ -345,10 +352,12 @@ ShowTip(msg, duration) {
 ; ==============================================================================
 ProbeControl() {
     MouseGetPos(,, &hwnd, &ctrlClassNN)
-    ; ... (前面邏輯不變)
+    ; (前面取得 ClassNN 的邏輯如果有的話保持不變)
     msg := "【探針資訊】`nClassNN: " ctrlClassNN "`n`n模式檢查：`n"
+    msg .= "Pattern E: " . (MapPatternE.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
     msg .= "Pattern B: " . (MapPatternB.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
     msg .= "Pattern C: " . (MapPatternC.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
+    msg .= "Pattern D: " . (MapPatternD.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
     msg .= "Pattern A: " . (MapPatternA.Has(ctrlClassNN) ? "✅" : "❌")
     MsgBox(msg)
 }
@@ -553,7 +562,7 @@ SetGuiStatus(msg, color := "cRed") {
 }
 
 ; ==============================================================================
-; ★ GUI 介面繪製
+; ★ GUI 介面繪製 (佈局優化與狀態列置底)
 ; ==============================================================================
 UpdateGUI() {
     if (MyGui && WinExist("ahk_id " MyGui.Hwnd)) {
@@ -567,22 +576,24 @@ UpdateGUI() {
     MyGui.BackColor := "FFFFE0"
     MyGui.OnEvent("Close", WindowClosed)
 
+    ; --- 標題區 ---
+    ; 配合資料區總寬度 (10 到 310 = 寬度 300)，統一使用 x10 w300 達成完美置中
     MyGui.SetFont("s11 Bold", "Segoe UI")
-    MyGui.Add("Text", "w320 Center", "Nodule Tracker")
+    MyGui.Add("Text", "x10 w300 Center", "Nodule Tracker")
 
-    ; ★ 新增：狀態顯示列 (依照內容判斷顏色)
-    MyGui.SetFont("s9 Bold", "Segoe UI")
-    statusColor := InStr(GuiStatusMsg, "✅") ? "cBlue" : "cRed"
-    global txtStatus := MyGui.Add("Text", "w320 h30 Center " . statusColor, GuiStatusMsg)
-
+    ; --- 按鈕區 ---
     MyGui.SetFont("s9 Norm", "Segoe UI")
-    btnX := (320 - 220) / 2
-    btnCopy := MyGui.Add("Button", "x" btnX " w100 h30", "Copy Report")
+    ; 按鈕總寬: 100 + 20間距 + 100 = 220。置中左邊界為: 10 + (300-220)/2 = 50
+    btnX := 50
+    btnCopy := MyGui.Add("Button", "x" btnX " y+10 w100 h30", "Copy Report")
     btnCopy.OnEvent("Click", CopyReport)
     btnClear := MyGui.Add("Button", "x+20 w100 h30", "Clear All")
     btnClear.OnEvent("Click", ClearAll)
-    MyGui.Add("Text", "x10 y+10 w300 h1 0x10")
 
+    ; --- 上分隔線 ---
+    MyGui.Add("Text", "x10 y+15 w300 h1 0x10")
+
+    ; --- 列表區 ---
     For key, arr in NoduleData {
         SortNoduleData(arr)
     }
@@ -603,6 +614,17 @@ UpdateGUI() {
         MyGui.Add("Text", "x" COL_RIGHT_X " y+5", "")
     }
     RenderSection("LLL", COL_RIGHT_X)
+
+    ; --- 狀態列區 (置底) ---
+    ; 加入下分隔線
+    MyGui.Add("Text", "x10 y+15 w300 h1 0x10")
+
+    MyGui.SetFont("s9 Bold", "Segoe UI")
+    ; 動態判定顏色，並確保即使沒有訊息 (空字串) 也給予一格空白，避免 GUI 高度閃爍跳動
+    statusColor := InStr(GuiStatusMsg, "✅") ? "cBlue" : "cRed"
+    displayMsg := (GuiStatusMsg == "") ? " " : GuiStatusMsg
+
+    global txtStatus := MyGui.Add("Text", "x10 y+5 w300 h30 Center " . statusColor, displayMsg)
 
     MyGui.Show("x" GuiX " y" GuiY " NoActivate AutoSize")
 }
