@@ -577,13 +577,11 @@ UpdateGUI() {
     MyGui.OnEvent("Close", WindowClosed)
 
     ; --- 標題區 ---
-    ; 配合資料區總寬度 (10 到 310 = 寬度 300)，統一使用 x10 w300 達成完美置中
     MyGui.SetFont("s11 Bold", "Segoe UI")
     MyGui.Add("Text", "x10 w300 Center", "Nodule Tracker")
 
     ; --- 按鈕區 ---
     MyGui.SetFont("s9 Norm", "Segoe UI")
-    ; 按鈕總寬: 100 + 20間距 + 100 = 220。置中左邊界為: 10 + (300-220)/2 = 50
     btnX := 50
     btnCopy := MyGui.Add("Button", "x" btnX " y+10 w100 h30", "Copy Report")
     btnCopy.OnEvent("Click", CopyReport)
@@ -604,6 +602,11 @@ UpdateGUI() {
     RenderSection("RML", COL_LEFT_X)
     RenderSection("RLL", COL_LEFT_X)
 
+    ; ★ 取得左欄最底部的 Y 座標
+    dummyLeft := MyGui.Add("Text", "x" COL_LEFT_X " y+0 w0 h0", "")
+    dummyLeft.GetPos(, &leftY,, &leftH)
+    maxLeftY := leftY + leftH
+
     MyGui.SetFont("s11 Bold", "Segoe UI")
     MyGui.Add("Text", "ys x" COL_RIGHT_X " w" COL_WIDTH " Center cBlue", "Left Lung")
     RenderSection("LUL", COL_RIGHT_X)
@@ -615,12 +618,19 @@ UpdateGUI() {
     }
     RenderSection("LLL", COL_RIGHT_X)
 
+    ; ★ 取得右欄最底部的 Y 座標
+    dummyRight := MyGui.Add("Text", "x" COL_RIGHT_X " y+0 w0 h0", "")
+    dummyRight.GetPos(, &rightY,, &rightH)
+    maxRightY := rightY + rightH
+
+    ; ★ 計算兩欄中的最大 Y 座標，確保下方的控制項絕對不會重疊
+    bottomY := (maxLeftY > maxRightY) ? maxLeftY : maxRightY
+
     ; --- 狀態列區 (置底) ---
-    ; 加入下分隔線
-    MyGui.Add("Text", "x10 y+15 w300 h1 0x10")
+    ; 加入下分隔線 (使用絕對座標取代相對座標)
+    MyGui.Add("Text", "x10 y" (bottomY + 15) " w300 h1 0x10")
 
     MyGui.SetFont("s9 Bold", "Segoe UI")
-    ; 動態判定顏色，並確保即使沒有訊息 (空字串) 也給予一格空白，避免 GUI 高度閃爍跳動
     statusColor := InStr(GuiStatusMsg, "✅") ? "cBlue" : "cRed"
     displayMsg := (GuiStatusMsg == "") ? " " : GuiStatusMsg
 
