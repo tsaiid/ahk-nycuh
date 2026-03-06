@@ -46,58 +46,44 @@ global EnableAccFallback := true
 global GuiStatusMsg := "Ready"
 global txtStatus := ""
 
-; ★ 定義兩個映射表
-global MapPatternA := Map() ; 原始模式
-global MapPatternB := Map() ; 新發現模式 (高效能 & 高機率)
+; ★ 將分散的 Map 改為統一的 PatternList 陣列統一管理
+global PatternList := []
 
 GenerateMaps()
 UpdateGUI()
 
 ; ==============================================================================
-; ★ 映射表生成 (擴充至 Pattern E)
+; ★ 映射表生成 (極簡陣列配置)
 ; ==============================================================================
 GenerateMaps() {
     classPrefix := "Afx:00400000:b:00000000:00000013:00000000"
+    global PatternList := []
 
-    ; 初始化所有 Map
-    global MapPatternA := Map(), MapPatternB := Map()
-    global MapPatternC := Map(), MapPatternD := Map(), MapPatternE := Map()
+    ; ★ 極簡配置：只需依序填入 [Focus起始, Combo起始, Afx起始]
+    configs := [
+        [3, 10, 41],
+        [3, 10, 45],
+        [3, 10, 47],
+        [3, 10, 31],
+        [3, 10, 37],
+        [5, 57, 45],
+        [5, 57, 47],
+    ]
 
-    Loop 8 {
-        i := A_Index - 1
+    for idx, cfg in configs {
+        pMap := Map()
+        pName := "Pattern " . idx
 
-        ; --- Pattern A ---
-        fA := classPrefix . (3 + i)
-        cA := "ComboBox" . (10 + (i * 6))
-        aA := "AfxWnd140u" . (47 + (i * 3))
-        MapPatternA[fA] := {img: cA, srs: aA, type: "Pattern A"}
+        Loop 8 {
+            i := A_Index - 1
+            f := classPrefix . (cfg[1] + i)
+            c := "ComboBox" . (cfg[2] + (i * 6))
+            a := "AfxWnd140u" . (cfg[3] + (i * 3))
+            pMap[f] := {img: c, srs: a, type: pName}
+        }
 
-        ; --- Pattern B ---
-        fB := classPrefix . (5 + i)
-        cB := "ComboBox" . (57 + (i * 6))
-        aB := "AfxWnd140u" . (47 + (i * 3))
-        MapPatternB[fB] := {img: cB, srs: aB, type: "Pattern B"}
-
-        ; --- Pattern C ---
-        ; Focus: ...3 | Combo: 10... | Afx: 31...
-        fC := classPrefix . (3 + i)
-        cC := "ComboBox" . (10 + (i * 6))
-        aC := "AfxWnd140u" . (31 + (i * 3))
-        MapPatternC[fC] := {img: cC, srs: aC, type: "Pattern C"}
-
-        ; --- Pattern D ---
-        ; Focus: ...3 | Combo: 10... | Afx: 37...
-        fD := classPrefix . (3 + i)
-        cD := "ComboBox" . (10 + (i * 6))
-        aD := "AfxWnd140u" . (37 + (i * 3))
-        MapPatternD[fD] := {img: cD, srs: aD, type: "Pattern D"}
-
-        ; --- Pattern E (新) ---
-        ; Focus: ...3 | Combo: 10... | Afx: 41...
-        fE := classPrefix . (3 + i)
-        cE := "ComboBox" . (10 + (i * 6))
-        aE := "AfxWnd140u" . (41 + (i * 3))
-        MapPatternE[fE] := {img: cE, srs: aE, type: "Pattern E"}
+        ; 將生成好的 Map 及其自動生成的名稱推入全域列表
+        PatternList.Push({name: pName, map: pMap})
     }
 }
 
@@ -193,10 +179,10 @@ GetInfo_ByProbe() {
         focusNN := ControlGetClassNN(focusHwnd)
         hwnd := WinActive("A")
 
-        ; 依序測試各個模式映射表
-        patternList := [MapPatternA, MapPatternB, MapPatternC, MapPatternD, MapPatternE]
+        ; ★ 改用動態生成的 PatternList 依序測試
+        for patternData in PatternList {
+            pMap := patternData.map
 
-        for pMap in patternList {
             if (pMap.Has(focusNN)) {
                 candidate := pMap[focusNN]
 
@@ -348,18 +334,49 @@ ShowTip(msg, duration) {
 }
 
 ; ==============================================================================
-; ★ 工具：F12 探針 (更新顯示資訊)
+; ★ 工具：F12 探針 (動態顯示資訊 - 精準唯一命中判定)
 ; ==============================================================================
 ProbeControl() {
     MouseGetPos(,, &hwnd, &ctrlClassNN)
-    ; (前面取得 ClassNN 的邏輯如果有的話保持不變)
-    msg := "【探針資訊】`nClassNN: " ctrlClassNN "`n`n模式檢查：`n"
-    msg .= "Pattern E: " . (MapPatternE.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
-    msg .= "Pattern B: " . (MapPatternB.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
-    msg .= "Pattern C: " . (MapPatternC.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
-    msg .= "Pattern D: " . (MapPatternD.Has(ctrlClassNN) ? "✅" : "❌") . "`n"
-    msg .= "Pattern A: " . (MapPatternA.Has(ctrlClassNN) ? "✅" : "❌")
-    MsgBox(msg)
+    msg := "【探針資訊】`n當前指向 ClassNN: " ctrlClassNN "`n`n"
+
+    matchFound := false
+
+    ; ★ 動態驗證所有 Pattern，找出唯一真正符合條件的那一個
+    for patternData in PatternList {
+        pMap := patternData.map
+
+        if (pMap.Has(ctrlClassNN)) {
+            candidate := pMap[ctrlClassNN]
+
+            ; 模擬前兩重驗證：檢查對應的 Img 與 Srs 控制項是否真實存在且符合條件
+            imgVal := ""
+            try {
+                imgVal := ControlGetText(candidate.img, hwnd)
+            }
+
+            srsText := ""
+            try {
+                srsText := ControlGetText(candidate.srs, hwnd)
+            }
+
+            ; 判定條件：Img 必須是數字，且 Srs 必須包含 "VMTool"
+            if (IsNumber(Trim(imgVal)) && InStr(srsText, "VMTool")) {
+                msg .= "🎯 實際命中: " patternData.name "`n"
+                msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
+                msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合)`n"
+                matchFound := true
+                break ; 找到真正吻合的就跳出，確保最多只命中一個
+            }
+        }
+    }
+
+    if (!matchFound) {
+        msg .= "❌ 狀態：未命中任何完整 Pattern 規則。`n"
+        msg .= "💡 建議：若這是新的影像版型，請擷取上述 ClassNN 以便新增至 Pattern 陣列。"
+    }
+
+    MsgBox(Trim(msg, "`n"))
 }
 
 ; ==============================================================================
