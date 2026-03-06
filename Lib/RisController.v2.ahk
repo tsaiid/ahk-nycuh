@@ -266,11 +266,26 @@ class RisController {
 
         try {
             if !WinActive(this.WinTitle) {
-                WinActivate(this.WinTitle)
-                if !WinWaitActive(this.WinTitle, , 2) {
-                    this.Notify("找不到或無法啟用 RIS 視窗")
+                ; [修改] 1. 先確認視窗是否確實存在
+                if !WinExist(this.WinTitle) {
+                    this.Notify("找不到 RIS 視窗")
                     return
                 }
+
+                ; [修改] 2. 嘗試啟用視窗
+                WinActivate(this.WinTitle)
+
+                ; [修改] 3. 縮短第一次等待時間，若失敗則進行「強制喚醒」突破系統鎖定
+                if !WinWaitActive(this.WinTitle, , 1) {
+                    WinShow(this.WinTitle)     ; 確保視窗不是隱藏狀態
+                    WinActivate(this.WinTitle) ; 再次要求焦點
+
+                    if !WinWaitActive(this.WinTitle, , 1) {
+                        this.Notify("無法啟用 RIS 視窗 (可能被系統阻擋)")
+                        return
+                    }
+                }
+
                 ; 如果目前焦點 "不在" Finding 或 Impression 上，才強制聚焦到 Finding
                 if !this.IsTargetFocused() {
                     try {
@@ -305,7 +320,9 @@ class RisController {
 
             ; 如果上面沒抓到，就抓目前系統焦點
             if (!targetHwnd) {
-                try targetHwnd := ControlGetFocus("A")
+                try {
+                    targetHwnd := ControlGetFocus("A")
+                }
             }
 
             SetTimer( () => this._HighlightCaret(targetHwnd), -10 )
