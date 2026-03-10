@@ -33,7 +33,7 @@ global PRESERVE_CLIPBOARD := 0
 RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
 ; 啟動自動更新排程
-RisController.EnableAutoWorklistUpdate()
+;RisController.EnableAutoWorklistUpdate()
 
 #HotIf WinActive(RisController.WinTitle)
 
