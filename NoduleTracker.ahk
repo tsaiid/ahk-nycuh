@@ -131,8 +131,8 @@ F12::ProbeControl()
     DirectCopy("LLL")
 }
 
-+!c:: {
-    Send("{Blind}{vkE8}")
+m:: {
+    ;Send("{Blind}{vkE8}")
     SimpleDirectCopy()
 }
 
