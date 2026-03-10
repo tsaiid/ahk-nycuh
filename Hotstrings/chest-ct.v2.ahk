@@ -45,11 +45,17 @@
 ::paok1::No evidence of pulmonary embolism.
 ::plok::No pleural effusion.
 ::lu1::Lung-RADS Category 1: Negative.
+::lu1s::Lung-RADS Category 1S: Negative (with other significant findings).
 ::lu2::Lung-RADS Category 2: Benign - Based on imaging features or indolent behavior.
+::lu2s::Lung-RADS Category 2S: Benign - Based on imaging features or indolent behavior (with other significant findings).
 ::lu3::Lung-RADS Category 3: Probably Benign - Based on imaging features or behavior.
+::lu3s::Lung-RADS Category 3S: Probably Benign - Based on imaging features or behavior (with other significant findings).
 ::lu4a::Lung-RADS Category 4A: Suspicious.
+::lu4as::Lung-RADS Category 4AS: Suspicious (with other significant findings).
 ::lu4b::Lung-RADS Category 4B: Very suspicious.
+::lu4bs::Lung-RADS Category 4BS: Very suspicious (with other significant findings).
 ::lu4x::Lung-RADS Category 4X: Category 3 or 4 nodules with additional features or imaging findings that increase suspicion for lung cancer.
+::lu4xs::Lung-RADS Category 4XS: Category 3 or 4 nodules with additional features or imaging findings that increase suspicion for lung cancer (with other significant findings).
 ::pe1::pulmonary embolism
 :c:MS::(Modifier S)
 
