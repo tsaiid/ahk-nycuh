@@ -14,6 +14,7 @@
 ::rv4hp::hypoplasia of right V4 vertebral artery.
 ::lv4hp::hypoplasia of left V4 vertebral artery.
 ::vok::The bilateral lateral ventricles show no dilatation, and no midline shift is noted.
+::bmetok::Post contrast study shows no abnormal enhanced tumor mass lesion in the brain and no abnormal leptomeningeal enhancement noted.
 
 ;; CTN1
 ::ctn1::
