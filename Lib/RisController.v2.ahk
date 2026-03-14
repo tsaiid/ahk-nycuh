@@ -952,6 +952,36 @@ class RisController {
             }
         }
         this._ApplyLayout(hFind, hImp)
+
+        ; [新增] 利用背景 Timer 預先載入 AI 所需的欄位快取
+        this._PreloadAICache()
+    }
+
+    ; [修改] 靜默快取 AI 所需欄位 (導入負向快取與單次執行鎖)
+    static _PreloadAICache() {
+        ; 若已經執行過預載 (無論成功或失敗)，就不再重複執行，直到換病人 (cache 被清空)
+        if (this._cache.Has("_AI_Preloaded")) {
+            return
+        }
+
+        this._cache["_AI_Preloaded"] := true ; 標記為已預載
+
+        ; 將所有需要預載的欄位做成陣列，獨立執行 try-catch
+        aiFields := ["GenderText", "AgeText", "ExamnameText", "OrderDeptText"
+                   , "SubjectiveText", "ObjectiveText", "AssessmentText", "PlanText"]
+
+        for field in aiFields {
+            if (!this._cache.Has(field)) {
+                try {
+                    ; 動態觸發 Getter 抓取元件並存入 cache
+                    _ := this.%field%
+                } catch {
+                    ; [關鍵] 負向快取 (Negative Cache)：
+                    ; 找不到就存成 false。避免下次觸發時重複進行 1000ms 的 UIA 深度搜尋
+                    this._cache[field] := false
+                }
+            }
+        }
     }
 
     static _ApplyLayout(hFind, hImp) {
@@ -2232,6 +2262,9 @@ class RisController {
 
     ; [修改] 使用 _FastGetCtrlText 取代原本的 this.GetText()
     static _GetAndFormatClinicalData() {
+        ; [新增] 防呆：確保預載邏輯一定有跑過 (萬一 Timer 還沒觸發就被手動執行)
+        this._PreloadAICache()
+
         ; 逐一嘗試抓取，即使某個欄位找不到也不會中斷整個字串的組合
         gender := this._FastGetCtrlText("GenderText")
         age    := this._FastGetCtrlText("AgeText")
