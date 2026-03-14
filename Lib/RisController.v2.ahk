@@ -2151,8 +2151,6 @@ class RisController {
                 }
             }
 
-            this.Notify("AI 分析中，請稍候...", 3000)
-
             ; 4. 從設定檔讀取模型名稱，預設使用 gemini-2.5-flash 作為保底
             configFile := "config.private.ini"
             modelName := IniRead(configFile, "GoogleAI", "Model", "gemini-2.5-flash")
@@ -2195,7 +2193,6 @@ class RisController {
             ; 直接對目標 Handle 發送取代文字與捲動游標的訊息
             this._EditReplaceSel(targetHwnd, result . "`r`n`r`n")
             this._EditScrollCaret(targetHwnd)
-            this.Notify("已插入 Indication")
         } catch as err {
             if (debugMode) {
                 ; Debug 模式下顯示完整的錯誤捕捉視窗
