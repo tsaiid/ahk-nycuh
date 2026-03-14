@@ -2126,9 +2126,13 @@ class RisController {
     ; =================================================================
 
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
+    ; [修改] 增加 Benchmark 效能測量
     static GenerateAndInsertIndication(debugMode := false) {
         this._ShowWaitCursor()
         try {
+            ; --- Benchmark: 記錄開始時間 ---
+            t0 := A_TickCount
+
             ; 1. 取得並組合病歷資料
             clinicalData := this._GetAndFormatClinicalData()
             if (clinicalData == "") {
@@ -2136,27 +2140,38 @@ class RisController {
                 return
             }
 
+            ; --- Benchmark: 計算取資料耗時 ---
+            t1 := A_TickCount
+            extractTime := t1 - t0
+
             ; 2. 準備 Prompt
             systemPrompt := "[Role]`nYou are a professional Radiologist assistant specialized in clinical data extraction.`n`n[Background]`nThe following is a patient's medical record in SOAP format, including demographics and the planned imaging study.`n`n[Task]`nSummarize the core clinical reason (indication) for the requested imaging study into one or two concise English sentences.`n`n[Input Data]`n"
             constraint := "`n`n[Constraint]`n1. Start the response strictly with the prefix `"INDICATION:`".`n2. Focus on the mechanism of injury (e.g., collision), symptoms (e.g., thigh pain), and suspected diagnosis (e.g., femur fracture).`n3. Do not include unrelated physical exam findings (like heart/lung sounds) unless abnormal.`n4. Output in professional medical English.`n5. Note: Dates and specific identifiers in the text have been replaced with placeholders like [DATE] or [PATIENT_NAME] for privacy. Please ignore the placeholders and focus on the clinical findings.`n`n[Output]`nINDICATION:"
 
             fullPrompt := systemPrompt . clinicalData . constraint
 
-            ; 3. Debug 模式：顯示 Prompt 並可中斷
+            ; 3. Debug 模式：顯示 Prompt 與取資料耗時並可中斷
             if (debugMode) {
                 A_Clipboard := fullPrompt
-                ans := MsgBox("Debug 模式開啟。`nPrompt 已複製到剪貼簿。是否繼續呼叫 API？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
+                ans := MsgBox("Debug 模式開啟。`n【Benchmark】資料提取耗時: " . extractTime . " ms`n`nPrompt 已複製到剪貼簿。是否繼續呼叫 API？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
                 if (ans == "No") {
                     return
                 }
             }
 
-            ; 4. 從設定檔讀取模型名稱，預設使用 gemini-2.5-flash 作為保底
+            ; 4. 從設定檔讀取模型名稱
             configFile := "config.private.ini"
             modelName := IniRead(configFile, "GoogleAI", "Model", "gemini-2.5-flash")
 
+            ; --- Benchmark: 記錄 API 呼叫前時間 ---
+            t2 := A_TickCount
+
             ; 呼叫 Google AI
             result := this._CallGoogleAI(fullPrompt, modelName)
+
+            ; --- Benchmark: 計算 API 耗時 ---
+            t3 := A_TickCount
+            apiTime := t3 - t2
 
             ; 由於 Prompt 要求嚴格以 "INDICATION:" 開頭，若 API 返回時缺少或格式異常，可做基本處理
             if (!InStr(result, "INDICATION:")) {
@@ -2164,11 +2179,10 @@ class RisController {
             }
 
             if (debugMode) {
-                MsgBox("API 回傳結果：`n`n" . result, "AI Debug")
+                MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . result, "AI Debug")
             }
 
             ; 5. 插入結果至目標欄位
-            ; 【修正】確保視窗啟動，防止 Debug 的 MsgBox 搶走焦點導致抓不到 Active 視窗
             if !WinActive(this.WinTitle) {
                 WinActivate(this.WinTitle)
                 WinWaitActive(this.WinTitle, , 2)
@@ -2176,26 +2190,25 @@ class RisController {
 
             targetHwnd := 0
 
-            ; 如果焦點正好在目標上，嘗試取得目前焦點；否則預設指向 FindingEdit
             if this.IsTargetFocused() {
                 try {
                     targetHwnd := ControlGetFocus("A")
                 }
             }
 
-            ; 如果上面沒抓到，或者焦點不在目標上，強制聚焦並使用確定的 Handle
             if (!targetHwnd) {
                 this.FindingEdit.SetFocus()
                 targetHwnd := this.FindingEdit.NativeWindowHandle
-                Sleep(50) ; 給予系統焦點切換的微小緩衝時間
+                Sleep(50)
             }
 
-            ; 直接對目標 Handle 發送取代文字與捲動游標的訊息
             this._EditReplaceSel(targetHwnd, result . "`r`n`r`n")
             this._EditScrollCaret(targetHwnd)
+
+            ; 將 Benchmark 數據顯示在完成的 Notify 中
+            this.Notify(Format("已插入 Indication (取資:{}ms, API:{}ms)", extractTime, apiTime))
         } catch as err {
             if (debugMode) {
-                ; Debug 模式下顯示完整的錯誤捕捉視窗
                 fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
                 this._ShowDebugError(fullErrorMsg)
             } else {
