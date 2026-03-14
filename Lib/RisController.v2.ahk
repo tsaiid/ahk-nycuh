@@ -2209,25 +2209,38 @@ class RisController {
         }
     }
 
-    static _GetAndFormatClinicalData() {
+    ; [新增] 極速讀取 Helper：繞過 UIA Fallback，直接調用 Win32 API
+    static _FastGetCtrlText(propName) {
         try {
-            ; 使用現有 Helper (GetText) 提取值，避免 null 錯誤
-            gender := this.GetText(this.GenderText)
-            age    := this.GetText(this.AgeText)
-            exam   := this.GetText(this.ExamnameText)
-            dept   := this.GetText(this.OrderDeptText)
-
-            sText  := this.GetText(this.SubjectiveText)
-            oText  := this.GetText(this.ObjectiveText)
-            aText  := this.GetText(this.AssessmentText)
-            pText  := this.GetText(this.PlanText)
-
-            rawText := Format("{1}`n{2}`n{3}`n{4}`n`nS: {5}`n`nO: {6}`n`nA: {7}`n`nP: {8}", gender, age, exam, dept, sText, oText, aText, pText)
-
-            return this._DeidentifyText(rawText)
+            ; 利用 AHK v2 的動態屬性 (this.%propName%) 觸發 Getter
+            ; 直接向底層 Handle 拿文字，不走 UIA 備用機制
+            return ControlGetText(this.%propName%.NativeWindowHandle)
         } catch {
+            return "" ; 欄位不存在或發生例外時，安全回傳空字串
+        }
+    }
+
+    ; [修改] 使用 _FastGetCtrlText 取代原本的 this.GetText()
+    static _GetAndFormatClinicalData() {
+        ; 逐一嘗試抓取，即使某個欄位找不到也不會中斷整個字串的組合
+        gender := this._FastGetCtrlText("GenderText")
+        age    := this._FastGetCtrlText("AgeText")
+        exam   := this._FastGetCtrlText("ExamnameText")
+        dept   := this._FastGetCtrlText("OrderDeptText")
+
+        sText  := this._FastGetCtrlText("SubjectiveText")
+        oText  := this._FastGetCtrlText("ObjectiveText")
+        aText  := this._FastGetCtrlText("AssessmentText")
+        pText  := this._FastGetCtrlText("PlanText")
+
+        ; 如果全部欄位都是空的，代表可能抓錯視窗
+        if (gender == "" && sText == "" && oText == "") {
             return ""
         }
+
+        rawText := Format("{1}`n{2}`n{3}`n{4}`n`nS: {5}`n`nO: {6}`n`nA: {7}`n`nP: {8}", gender, age, exam, dept, sText, oText, aText, pText)
+
+        return this._DeidentifyText(rawText)
     }
 
     static _DeidentifyText(text) {
