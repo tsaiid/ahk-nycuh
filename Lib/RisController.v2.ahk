@@ -59,6 +59,15 @@ class RisController {
         "PhExamDateText",   { AutomationId: "mtxtReportDTM" },
         "PhExamReportText", { AutomationId: "txtReport" },
         "PhExamImpChkBox",  { AutomationId: "chBoxImpression" },
+
+        ; [新增] SOAP 與基本資料欄位
+        "SubjectiveText",   { AutomationId: "rtxtSubjective" },
+        "ObjectiveText",    { AutomationId: "rtxtObjective" },
+        "AssessmentText",   { AutomationId: "rtxtICD10" },
+        "PlanText",         { AutomationId: "rtxtAdmInICD" },
+        "OrderDeptText",    { AutomationId: "txtAppSecName" },
+        "GenderText",       { AutomationId: "txtGender" },
+        "AgeText",          { AutomationId: "txtPtAge" },
     )
 
     ; [修改] 資料結構優化：使用「群組列表」代替繁瑣的手動 Mapping
@@ -166,6 +175,15 @@ class RisController {
     static PhExamColumn => this._GetOrUpdateNode("PhExamColumn")
     static PhExamDateText => this._GetOrUpdateNode("PhExamDateText")
     static PhExamReportText => this._GetOrUpdateNode("PhExamReportText")
+
+    ; [新增] SOAP 與基本資料 Getters
+    static SubjectiveText => this._GetOrUpdateNode("SubjectiveText")
+    static ObjectiveText  => this._GetOrUpdateNode("ObjectiveText")
+    static AssessmentText => this._GetOrUpdateNode("AssessmentText")
+    static PlanText       => this._GetOrUpdateNode("PlanText")
+    static OrderDeptText  => this._GetOrUpdateNode("OrderDeptText")
+    static GenderText     => this._GetOrUpdateNode("GenderText")
+    static AgeText        => this._GetOrUpdateNode("AgeText")
 
     ; [新增] 取得過濾後的 Finding 內文 (去除標題與結尾)
     static GetFindingContent() {
@@ -2101,5 +2119,212 @@ class RisController {
         DllCall("Crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", buf.Size - 1, "UInt", flags, "Ptr", outBuf, "UInt*", &reqSize)
 
         return StrGet(outBuf)
+    }
+
+    ; =================================================================
+    ; 10. AI 應用功能 (AI & NLP Integration)
+    ; =================================================================
+
+    ; [新增] 外部呼叫的主函式：產生並插入 Indication
+    static GenerateAndInsertIndication(debugMode := false) {
+        this._ShowWaitCursor()
+        try {
+            ; 1. 取得並組合病歷資料
+            clinicalData := this._GetAndFormatClinicalData()
+            if (clinicalData == "") {
+                this.Notify("無法取得病歷資料，請確認是否在正確視窗內")
+                return
+            }
+
+            ; 2. 準備 Prompt
+            systemPrompt := "[Role]`nYou are a professional Radiologist assistant specialized in clinical data extraction.`n`n[Background]`nThe following is a patient's medical record in SOAP format, including demographics and the planned imaging study.`n`n[Task]`nSummarize the core clinical reason (indication) for the requested imaging study into one or two concise English sentences.`n`n[Input Data]`n"
+            constraint := "`n`n[Constraint]`n1. Start the response strictly with the prefix `"INDICATION:`".`n2. Focus on the mechanism of injury (e.g., collision), symptoms (e.g., thigh pain), and suspected diagnosis (e.g., femur fracture).`n3. Do not include unrelated physical exam findings (like heart/lung sounds) unless abnormal.`n4. Output in professional medical English.`n5. Note: Dates and specific identifiers in the text have been replaced with placeholders like [DATE] or [PATIENT_NAME] for privacy. Please ignore the placeholders and focus on the clinical findings.`n`n[Output]`nINDICATION:"
+
+            fullPrompt := systemPrompt . clinicalData . constraint
+
+            ; 3. Debug 模式：顯示 Prompt 並可中斷
+            if (debugMode) {
+                A_Clipboard := fullPrompt
+                ans := MsgBox("Debug 模式開啟。`nPrompt 已複製到剪貼簿。是否繼續呼叫 API？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
+                if (ans == "No") {
+                    return
+                }
+            }
+
+            this.Notify("AI 分析中，請稍候...", 3000)
+
+            ; 4. 從設定檔讀取模型名稱，預設使用 gemini-2.5-flash 作為保底
+            configFile := "config.private.ini"
+            modelName := IniRead(configFile, "GoogleAI", "Model", "gemini-2.5-flash")
+
+            ; 呼叫 Google AI
+            result := this._CallGoogleAI(fullPrompt, modelName)
+
+            ; 由於 Prompt 要求嚴格以 "INDICATION:" 開頭，若 API 返回時缺少或格式異常，可做基本處理
+            if (!InStr(result, "INDICATION:")) {
+                result := "INDICATION: " . result
+            }
+
+            if (debugMode) {
+                MsgBox("API 回傳結果：`n`n" . result, "AI Debug")
+            }
+
+            ; 5. 插入結果至目標欄位
+            ; 【修正】確保視窗啟動，防止 Debug 的 MsgBox 搶走焦點導致抓不到 Active 視窗
+            if !WinActive(this.WinTitle) {
+                WinActivate(this.WinTitle)
+                WinWaitActive(this.WinTitle, , 2)
+            }
+
+            targetHwnd := 0
+
+            ; 如果焦點正好在目標上，嘗試取得目前焦點；否則預設指向 FindingEdit
+            if this.IsTargetFocused() {
+                try {
+                    targetHwnd := ControlGetFocus("A")
+                }
+            }
+
+            ; 如果上面沒抓到，或者焦點不在目標上，強制聚焦並使用確定的 Handle
+            if (!targetHwnd) {
+                this.FindingEdit.SetFocus()
+                targetHwnd := this.FindingEdit.NativeWindowHandle
+                Sleep(50) ; 給予系統焦點切換的微小緩衝時間
+            }
+
+            ; 直接對目標 Handle 發送取代文字與捲動游標的訊息
+            this._EditReplaceSel(targetHwnd, result . "`r`n`r`n")
+            this._EditScrollCaret(targetHwnd)
+            this.Notify("已插入 Indication")
+        } catch as err {
+            if (debugMode) {
+                ; Debug 模式下顯示完整的錯誤捕捉視窗
+                fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
+                this._ShowDebugError(fullErrorMsg)
+            } else {
+                this.Notify("AI 處理失敗: " . err.Message)
+            }
+        } finally {
+            this._RestoreCursor()
+        }
+    }
+
+    static _GetAndFormatClinicalData() {
+        try {
+            ; 使用現有 Helper (GetText) 提取值，避免 null 錯誤
+            gender := this.GetText(this.GenderText)
+            age    := this.GetText(this.AgeText)
+            exam   := this.GetText(this.ExamnameText)
+            dept   := this.GetText(this.OrderDeptText)
+
+            sText  := this.GetText(this.SubjectiveText)
+            oText  := this.GetText(this.ObjectiveText)
+            aText  := this.GetText(this.AssessmentText)
+            pText  := this.GetText(this.PlanText)
+
+            rawText := Format("{1}`n{2}`n{3}`n{4}`n`nS: {5}`n`nO: {6}`n`nA: {7}`n`nP: {8}", gender, age, exam, dept, sText, oText, aText, pText)
+
+            return this._DeidentifyText(rawText)
+        } catch {
+            return ""
+        }
+    }
+
+    static _DeidentifyText(text) {
+        if (text == "") {
+            return ""
+        }
+
+        ; 1. 處理日期：民國/西元 (115/03/13, 2026-03-13, 115.3.13)
+        text := RegExReplace(text, "i)(\d{3,4})[/\.\-]\d{1,2}[/\.\-]\d{1,2}", "[DATE]")
+
+        ; 2. 處理連寫日期：(1150313), 20260313
+        text := RegExReplace(text, "i)\(?\b(\d{7,8})\b\)?", "([DATE])")
+
+        ; 3. 處理年齡：將 "29 歲 9 月" 轉換為 "20s-yo"
+        ; 保留大致年齡段對放射科診斷有臨床價值，但移除精確月分
+        if (RegExMatch(text, "(\d{1,2})\s*(歲|y|years?)", &m)) {
+            age := Number(m[1])
+            decade := Floor(age / 10) * 10
+            text := RegExReplace(text, "\d{1,2}\s*(歲|y|years?)\s*(\d{1,2}\s*(月|m|months?))?", decade . "s-yo")
+        }
+
+        ; 4. 處理身分證字號 (台灣格式：首位字母 + 9位數字，涵蓋本國人 1/2 與外籍人士 8/9)
+        text := RegExReplace(text, "i)[A-Z][1289]\d{8}", "[ID_REDACTED]")
+
+        ; 5. 處理電話號碼 (09xx-xxx-xxx 或 02-xxxx-xxxx)
+        text := RegExReplace(text, "i)0\d{1,2}-?\d{3,4}-?\d{3,4}", "[PHONE_REDACTED]")
+
+        ; 6. 移除姓名標籤後的內容 (處理到行尾)
+        text := RegExReplace(text, "i)(Name|姓名|Patient)\s*[:：]\s*\V+", "$1: [PATIENT_NAME]")
+
+        return text
+    }
+
+    static _CallGoogleAI(promptText, modelName) {
+        configFile := "config.private.ini"
+        apiKey := IniRead(configFile, "GoogleAI", "APIKey", "")
+        if (apiKey == "") {
+            throw Error("請在 " . configFile . " 中設定 [GoogleAI] APIKey")
+        }
+
+        ; 組合 Google AI API 網址
+        url := "https://generativelanguage.googleapis.com/v1beta/models/" . modelName . ":generateContent?key=" . apiKey
+
+        ; JSON 逃脫處理 (針對雙引號與換行)
+        escapedPrompt := StrReplace(promptText, "\", "\\")
+        escapedPrompt := StrReplace(escapedPrompt, "`"", "\`"")
+        escapedPrompt := StrReplace(escapedPrompt, "`n", "\n")
+        escapedPrompt := StrReplace(escapedPrompt, "`r", "\r")
+        escapedPrompt := StrReplace(escapedPrompt, "`t", "\t")
+
+        payload := '{"contents": [{"parts": [{"text": "' . escapedPrompt . '"}]}]}'
+
+        req := ComObject("WinHttp.WinHttpRequest.5.1")
+        req.Open("POST", url, False)
+        req.SetRequestHeader("Content-Type", "application/json")
+        req.Send(payload)
+
+        if (req.Status != 200) {
+            throw Error("HTTP " . req.Status . " - " . req.ResponseText)
+        }
+
+        ; 簡易解析 Gemini API 回傳的 JSON (提取 content 內的 text)
+        if (RegExMatch(req.ResponseText, 's)"text":\s*"(.*?)(?<!\\)"', &match)) {
+            val := match[1]
+            ; 還原 JSON 內的跳脫字元
+            val := StrReplace(val, "\n", "`n")
+            val := StrReplace(val, '\"', '"')
+            val := StrReplace(val, "\\", "\")
+            return val
+        }
+
+        throw Error("無法解析回傳的資料結構")
+    }
+
+    ; [新增] 專用於 Debug 的持久化錯誤視窗
+    static _ShowDebugError(errMsg) {
+        ; 建立新 GUI：置頂、有標題列、有外框
+        errGui := Gui("+AlwaysOnTop +Resize", "AI Debug - 處理失敗")
+        errGui.SetFont("s10", "Microsoft JhengHei UI")
+
+        errGui.Add("Text", "w500", "API 呼叫或處理過程中發生例外錯誤：")
+
+        ; 使用唯讀的 Edit 控制項來裝載可能很長的錯誤訊息，並啟用垂直捲軸
+        errGui.Add("Edit", "w500 h250 ReadOnly Multi vErrText", errMsg)
+
+        ; 一鍵複製按鈕
+        btnCopy := errGui.Add("Button", "w120 x10 y+15", "📋 複製完整訊息")
+        btnCopy.OnEvent("Click", (*) => (
+            A_Clipboard := errMsg,
+            this.Notify("已複製錯誤訊息至剪貼簿！", 2000)
+        ))
+
+        ; 關閉按鈕
+        btnClose := errGui.Add("Button", "w100 x+270", "關閉")
+        btnClose.OnEvent("Click", (*) => errGui.Destroy())
+
+        ; 顯示在畫面中央
+        errGui.Show("AutoSize Center")
     }
 }

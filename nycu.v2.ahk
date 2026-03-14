@@ -143,6 +143,8 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
 ; 只有在「RIS 視窗作用中」且「焦點在輸入框內」時，這個熱鍵才存在
 #HotIf WinActive(RisController.WinTitle) && RisController.IsTargetFocused()
+    ; Insert Indication by AI
+    !i:: RisController.GenerateAndInsertIndication()
 
     ; --- Emacs Word Movement ---
     ; Ctrl+A: Emacs 行首 (若不在目標框則為全選)
