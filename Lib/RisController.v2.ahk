@@ -953,32 +953,34 @@ class RisController {
         }
         this._ApplyLayout(hFind, hImp)
 
-        ; [新增] 利用背景 Timer 預先載入 AI 所需的欄位快取
-        this._PreloadAICache()
+        ; [修改] 改為呼叫全面預載機制
+        this._PreloadCache()
     }
 
-    ; [修改] 靜默快取 AI 所需欄位 (導入負向快取與單次執行鎖)
-    static _PreloadAICache() {
-        ; 若已經執行過預載 (無論成功或失敗)，就不再重複執行，直到換病人 (cache 被清空)
-        if (this._cache.Has("_AI_Preloaded")) {
+    ; [修改] 全面靜默快取主畫面元件 (取代原本的 _PreloadAICache)
+    static _PreloadCache() {
+        ; 若已經執行過預載，就不再重複執行，直到換病人 (cache 被清空)
+        if (this._cache.Has("_UI_Preloaded")) {
             return
         }
 
-        this._cache["_AI_Preloaded"] := true ; 標記為已預載
+        this._cache["_UI_Preloaded"] := true ; 標記為已預載
 
-        ; 將所有需要預載的欄位做成陣列，獨立執行 try-catch
-        aiFields := ["GenderText", "AgeText", "ExamnameText", "OrderDeptText"
-                   , "SubjectiveText", "ObjectiveText", "AssessmentText", "PlanText"]
+        ; 遍歷所有定義在 Selectors 裡的元件名稱
+        for key in this.Selectors {
+            ; 略過不在主畫面的病理報告元件，等實際切換過去時再取
+            if (key == "PathoDiagnosisText" || key == "PathoDateText") {
+                continue
+            }
 
-        for field in aiFields {
-            if (!this._cache.Has(field)) {
+            if (!this._cache.Has(key)) {
                 try {
                     ; 動態觸發 Getter 抓取元件並存入 cache
-                    _ := this.%field%
+                    _ := this.%key%
                 } catch {
-                    ; [關鍵] 負向快取 (Negative Cache)：
+                    ; 負向快取 (Negative Cache)：
                     ; 找不到就存成 false。避免下次觸發時重複進行 1000ms 的 UIA 深度搜尋
-                    this._cache[field] := false
+                    this._cache[key] := false
                 }
             }
         }
@@ -2262,8 +2264,8 @@ class RisController {
 
     ; [修改] 使用 _FastGetCtrlText 取代原本的 this.GetText()
     static _GetAndFormatClinicalData() {
-        ; [新增] 防呆：確保預載邏輯一定有跑過 (萬一 Timer 還沒觸發就被手動執行)
-        this._PreloadAICache()
+        ; [修改] 防呆：確保全面預載邏輯一定有跑過
+        this._PreloadCache()
 
         ; 逐一嘗試抓取，即使某個欄位找不到也不會中斷整個字串的組合
         gender := this._FastGetCtrlText("GenderText")
