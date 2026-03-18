@@ -96,7 +96,7 @@ GenerateMaps() {
 ; ==============================================================================
 ; ★ 快捷鍵區域
 ; ==============================================================================
-#HotIf WinActive("ahk_exe G3PACS.exe")
+#HotIf WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS")
 
 ; F11: 效能測試
 F11::RunSmartBenchmark()
