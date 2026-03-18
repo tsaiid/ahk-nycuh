@@ -72,6 +72,7 @@ GenerateMaps() {
         [3, 10, 37],
         [3, 10, 39],
         [3, 10, 41],
+        [3, 10, 43],
         [3, 10, 45],
         [3, 10, 47],
         [5, 57, 31],
@@ -246,11 +247,15 @@ GetInfo_ByProbe() {
                     screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
 
                     if (cW > 0 && cH > 0) {
-                        ocrResult := OCR.FromRect(screenX, screenY, cW, cH, {scale: 2})
+                        ; 限制掃描最大寬度為 150 px
+                        scanW := (cW > 150) ? 150 : cW
+
+                        ; ★ 改用帶有半透明紅框濾鏡的 OCR 函數
+                        ocrResult := CaptureOcrWithFilter(screenX, screenY, scanW, cH, 2)
                         srsVal := ParseSrs(ocrResult.Text)
 
                         if (DebugOCR) {
-                            MsgBox("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " cW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal "`n`n[幾何驗證]: 通過", "Debug OCR", "T5")
+                            MsgBox("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " scanW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal "`n`n[幾何驗證]: 通過", "Debug OCR", "T5")
                         }
                     }
                 }
@@ -368,22 +373,25 @@ ShowTip(msg, duration) {
 }
 
 ; ==============================================================================
-; ★ 工具：F12 探針 (動態顯示資訊 - 精準唯一命中判定)
+; ★ 工具：F12 探針 (動態顯示資訊 - 新增 Acc 抓取文字與 OCR 原始結果除錯)
 ; ==============================================================================
 ProbeControl() {
     MouseGetPos(,, &hwnd, &ctrlClassNN)
-    msg := "【探針資訊】`n當前指向 ClassNN: " ctrlClassNN "`n`n"
+    focusHwnd := ControlGetFocus(hwnd)
+    if (!focusHwnd) {
+        focusHwnd := hwnd
+    }
 
+    msg := "【Pattern 探針資訊】`n當前指向 ClassNN: " ctrlClassNN "`n`n"
     matchFound := false
 
-    ; ★ 動態驗證所有 Pattern，找出唯一真正符合條件的那一個
+    ; ★ 動態驗證所有 Pattern
     for patternData in PatternList {
         pMap := patternData.map
 
         if (pMap.Has(ctrlClassNN)) {
             candidate := pMap[ctrlClassNN]
 
-            ; 模擬前兩重驗證：檢查對應的 Img 與 Srs 控制項是否真實存在且符合條件
             imgVal := ""
             try {
                 imgVal := ControlGetText(candidate.img, hwnd)
@@ -394,33 +402,25 @@ ProbeControl() {
                 srsText := ControlGetText(candidate.srs, hwnd)
             }
 
-            ; 判定條件：Img 必須是數字，且 Srs 必須包含 "VMTool"
             if (IsNumber(Trim(imgVal)) && InStr(srsText, "VMTool")) {
 
-                ; ★★★ F12 進階幾何除錯 ★★★
                 if (DebugOCR) {
-                    ; 1. 取得 Srs 區域 (Screen) -> 紅色
                     ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
                     ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
-                    ; ★ 修正：補上 "ptr"
                     DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptC)
                     srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
 
-                    ; 2. 取得 Focus 區域 (Screen) -> 綠色
                     ControlGetPos(&fX, &fY, &fW, &fH, ctrlClassNN, hwnd)
                     ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
-                    ; ★ 修正：補上 "ptr"
                     DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
                     focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
 
-                    ; 畫出雙色框
                     ShowDebugRects([
                         {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},
                         {x: focX, y: focY, w: fW, h: fH, color: "Green"}
                     ])
                 }
 
-                ; ★ 增加空間幾何驗證
                 spatialPass := VerifySpatialMatch(candidate.srs, ctrlClassNN, hwnd)
 
                 if (DebugOCR) {
@@ -428,21 +428,110 @@ ProbeControl() {
                 }
 
                 if (!spatialPass) {
-                    continue ; 雖然文字符合，但是是別格的控制項，直接跳過
+                    continue
                 }
 
                 msg .= "🎯 實際命中: " patternData.name "`n"
                 msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
                 msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合，且通過空間驗證)`n"
                 matchFound := true
-                break ; 找到真正吻合的就跳出，確保最多只命中一個
+                break
             }
         }
     }
 
     if (!matchFound) {
         msg .= "❌ 狀態：未命中任何完整 Pattern 規則。`n"
-        msg .= "💡 建議：若這是新的影像版型，請擷取上述 ClassNN 以便新增至 Pattern 陣列。"
+    }
+
+    ; ==============================================================================
+    ; ★ Acc 備用方案深度除錯 (新增文字解析顯示)
+    ; ==============================================================================
+    msg .= "`n====================`n【Acc 備用方案除錯】`n"
+
+    try {
+        pacsRoot := Acc.ElementFromHandle(hwnd)
+        ControlGetPos(,, &cW, &cH, focusHwnd, "ahk_id " hwnd)
+
+        pt := Buffer(8, 0)
+        DllCall("ClientToScreen", "ptr", focusHwnd, "ptr", pt)
+        targetX := NumGet(pt, 0, "int") + (cW // 2)
+        targetY := NumGet(pt, 4, "int") + (cH // 2)
+
+        msg .= "- 中心座標: X" targetX ", Y" targetY "`n"
+
+        focusedEl := Acc.ElementFromPoint(targetX, targetY)
+        if (!focusedEl) {
+            msg .= "❌ 無法從該座標取得 Acc 節點`n"
+        } else {
+            fullPath := GetRelativePath(focusedEl, pacsRoot)
+
+            if (fullPath == "") {
+                msg .= "❌ 無法解析相對路徑 (越界或超時)`n"
+            } else {
+                msg .= "- 原始相依路徑: " fullPath "`n"
+
+                pathParts := StrSplit(fullPath, ",")
+                if (pathParts.Length >= 2) {
+                    targetIdx := pathParts.Length - 1
+                    pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
+
+                    basePath := ""
+                    Loop targetIdx {
+                        basePath .= pathParts[A_Index] ","
+                    }
+
+                    imgPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
+                    srsPath := basePath . pathParts[pathParts.Length]
+
+                    try {
+                        imgEl := pacsRoot[imgPath]
+                        msg .= "   ✅ 抓取 Img 值: [" Trim(imgEl.Value) "]`n"
+                    } catch {
+                        msg .= "   ❌ 預測的 Img 路徑無效`n"
+                    }
+
+                    try {
+                        srsEl := pacsRoot[srsPath]
+                        loc := srsEl.Location
+                        msg .= "   ✅ Srs 座標框: W" loc.w " H" loc.h "`n"
+
+                        ; ★ 新增：顯示底層到底是抓到什麼字！
+                        rawText := ""
+                        try {
+                            rawText := srsEl.Name
+                        }
+                        if (rawText == "") {
+                            try {
+                                rawText := srsEl.Value
+                            }
+                        }
+
+                        if (rawText != "") {
+                            msg .= "   🔍 Acc 屬性文字: [" rawText "]`n"
+                            msg .= "   🎯 解析結果: [" ParseSrs(rawText) "]`n"
+                        } else {
+                            msg .= "   ⚠️ Acc 無內建文字，啟動 OCR...`n"
+                            if (loc.w > 0 && loc.h > 0) {
+                                scanW := (loc.w > 150) ? 150 : loc.w
+                                ocrResult := OCR.FromRect(loc.x, loc.y, scanW, loc.h, {scale: 2})
+                                ; 避免文字太多換行破壞版面，替換為空格
+                                safeText := StrReplace(ocrResult.Text, "`n", " ")
+                                msg .= "   🔍 OCR 原始文字: [" safeText "]`n"
+                                msg .= "   🎯 解析結果: [" ParseSrs(ocrResult.Text) "]`n"
+                            }
+                        }
+
+                    } catch {
+                        msg .= "   ❌ 預測的 Srs 路徑無效`n"
+                    }
+                } else {
+                    msg .= "❌ 路徑太短，無法計算偏移`n"
+                }
+            }
+        }
+    } catch Error as e {
+        msg .= "❌ Acc 發生執行期錯誤: " e.Message "`n"
     }
 
     MsgBox(Trim(msg, "`n"))
@@ -503,6 +592,7 @@ RunSmartBenchmark() {
 
 ; ==============================================================================
 ; ★ 方案 B 核心：限制 Acc 掃描範圍於當前視窗 (防止 VS Code/系統卡死)
+; ★ 修正：限制 Srs OCR 掃描寬度，避免讀取到全螢幕雜訊
 ; ==============================================================================
 GetNoduleInfoFromFocus() {
     try {
@@ -511,7 +601,7 @@ GetNoduleInfoFromFocus() {
         if (!pacsHwnd) {
             return {srs: "", img: "", error: "Acc: 找不到活動視窗"}
         }
-        pacsRoot := Acc.ElementFromHandle(pacsHwnd) ; ★ 範圍鎖定，絕對不碰桌面
+        pacsRoot := Acc.ElementFromHandle(pacsHwnd)
 
         ; 2. 取得當前焦點控制項
         focusHwnd := ControlGetFocus("ahk_id " pacsHwnd)
@@ -535,7 +625,7 @@ GetNoduleInfoFromFocus() {
             return {srs: "", img: "", error: "Acc: 無法從座標取得節點"}
         }
 
-        ; 5. ★ 取得「相對於 PACS 視窗」的路徑
+        ; 5. 取得「相對於 PACS 視窗」的路徑
         fullPath := GetRelativePath(focusedEl, pacsRoot)
         if (fullPath == "") {
             return {srs: "", img: "", error: "Acc: 路徑不在當前視窗內或解析超時"}
@@ -556,7 +646,7 @@ GetNoduleInfoFromFocus() {
         }
         imgPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
         try {
-            imgEl := pacsRoot[imgPath]  ; ★ 直接從 pacsRoot 往下找
+            imgEl := pacsRoot[imgPath]
             imgVal := Trim(imgEl.Value)
         } catch {
             imgVal := ""
@@ -570,12 +660,34 @@ GetNoduleInfoFromFocus() {
         }
         srsPath := basePath . pathParts[pathParts.Length]
         srsVal := ""
+
         try {
-            srsEl := pacsRoot[srsPath]  ; ★ 直接從 pacsRoot 往下找
-            loc := srsEl.Location
-            if (loc.w > 0 && loc.h > 0) {
-                ocrResult := OCR.FromRect(loc.x, loc.y, loc.w, loc.h, {scale: 2})
-                srsVal := ParseSrs(ocrResult.Text)
+            srsEl := pacsRoot[srsPath]
+
+            ; ★ 優化 1：先嘗試直接從 Acc 屬性讀取文字，省去 OCR 負擔與錯誤率
+            rawText := ""
+            try {
+                rawText := srsEl.Name
+            }
+            if (rawText == "") {
+                try {
+                    rawText := srsEl.Value
+                }
+            }
+
+            if (rawText != "") {
+                srsVal := ParseSrs(rawText)
+            }
+
+            ; ★ 優化 2：如果 Acc 屬性沒有文字，才使用 OCR
+            if (srsVal == "") {
+                loc := srsEl.Location
+                if (loc.w > 0 && loc.h > 0) {
+                    scanW := (loc.w > 150) ? 150 : loc.w
+                    ; ★ 改用帶有半透明紅框濾鏡的 OCR 函數
+                    ocrResult := CaptureOcrWithFilter(loc.x, loc.y, scanW, loc.h, 2)
+                    srsVal := ParseSrs(ocrResult.Text)
+                }
             }
         }
 
@@ -662,6 +774,35 @@ ShowDebugRects(rectList) {
         dGui.Show("x" r.x " y" r.y " w" r.w " h" r.h " NoActivate")
         debugGuis.Push(dGui) ; 存入陣列防銷毀
     }
+}
+
+; ==============================================================================
+; ★ 新增 Helper：帶有物理濾鏡的 OCR 抓取 (解決對比度與中文字體幻覺)
+; ==============================================================================
+CaptureOcrWithFilter(x, y, w, h, scale := 2) {
+    ; 1. 建立一個穿透點擊、無邊框的半透明紅色 GUI 作為濾鏡
+    filterGui := Gui("+AlwaysOnTop -Caption +ToolWindow -DPIScale +E0x20")
+    filterGui.BackColor := "Red"
+    filterGui.Opt("+LastFound")
+    WinSetTransparent(100)
+
+    ; 2. 顯示濾鏡覆蓋在目標區域
+    filterGui.Show("x" x " y" y " w" w " h" h " NoActivate")
+
+    ; 3. 給予極短的延遲，讓 Windows DWM 渲染這個紅框
+    Sleep(50)
+
+    ; 4. 執行 OCR 截圖 (此時畫面已加上紅底濾鏡)
+    try {
+        ocrResult := OCR.FromRect(x, y, w, h, {scale: scale})
+    } catch {
+        ocrResult := {Text: ""}
+    }
+
+    ; 5. 截圖完畢，立刻銷毀濾鏡 (視覺上只會閃爍一下)
+    filterGui.Destroy()
+
+    return ocrResult
 }
 
 ; ==============================================================================
