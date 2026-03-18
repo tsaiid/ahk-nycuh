@@ -51,8 +51,10 @@ global txtStatus := ""
 
 ; ★ 將分散的 Map 改為統一的 PatternList 陣列統一管理
 global PatternList := []
+global StatsFile := A_ScriptDir "\PatternStats.ini" ; ★ 新增：統計數據儲存路徑
 
 GenerateMaps()
+OptimizePatternOrder() ; ★ 新增：初始化時依照歷史命中率重新排序 PatternList
 UpdateGUI()
 
 ; ==============================================================================
@@ -66,19 +68,23 @@ GenerateMaps() {
     configs := [
         [3, 10, 31],
         [3, 10, 33],
+        [3, 10, 35],
         [3, 10, 37],
         [3, 10, 39],
         [3, 10, 41],
         [3, 10, 45],
         [3, 10, 47],
+        [5, 57, 31],
         [5, 57, 39],
+        [5, 57, 41],
         [5, 57, 45],
         [5, 57, 47],
     ]
 
     for idx, cfg in configs {
         pMap := Map()
-        pName := "Pattern " . idx
+        ; ★ 核心修正：使用配置參數組成唯一 ID (例如 Pattern_5_57_31)
+        pName := "Pattern_" . cfg[1] . "_" . cfg[2] . "_" . cfg[3]
 
         Loop 8 {
             i := A_Index - 1
@@ -185,7 +191,6 @@ GetInfo_ByProbe() {
         focusNN := ControlGetClassNN(focusHwnd)
         hwnd := WinActive("A")
 
-        ; ★ 改用動態生成的 PatternList 依序測試
         for patternData in PatternList {
             pMap := patternData.map
 
@@ -202,67 +207,57 @@ GetInfo_ByProbe() {
                 }
 
                 ; --- 第二重驗證：Series 控制項的 Text 必須包含 "VMTool" ---
-                ; 這是極速過濾，避免對非 Series 區域執行 OCR
                 try {
                     ctrlText := ControlGetText(candidate.srs, hwnd)
                     if (!InStr(ctrlText, "VMTool")) {
-                        continue ; Text 不符，表示這不是我們要找的 Series 區域
+                        continue
                     }
 
-                    ; ★★★ 進階幾何除錯 ★★★
                     if (DebugOCR) {
-                        ; 1. 取得 Srs 區域 (Screen) -> 紅色
                         ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
                         ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
                         DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptC)
                         srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
 
-                        ; 2. 取得 Focus 區域 (Screen) -> 綠色
                         ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
                         ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
                         DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
                         focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
 
-                        ; 畫出雙色框
                         ShowDebugRects([
-                            {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},  ; Target Srs
-                            {x: focX, y: focY, w: fW, h: fH, color: "Green"} ; Current Focus
+                            {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},
+                            {x: focX, y: focY, w: fW, h: fH, color: "Green"}
                         ])
                     }
 
-                    ; 新增：空間防錯驗證，確保 srs 控制項真的落在這個 focus 視窗的範圍內
                     if (!VerifySpatialMatch(candidate.srs, focusNN, hwnd)) {
-                        continue ; 發生 Cross-Talk (抓到別格的資訊)，跳過此 Pattern
+                        continue
                     }
                 } catch {
-                    continue ; 無法取得 Text 亦跳過
+                    continue
                 }
 
                 ; --- 第三重驗證：OCR 實際解析 Series 編號 ---
                 srsVal := ""
                 try {
                     ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
-
-                    ; 座標轉換 (Client -> Screen)
                     pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
                     DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
                     screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
 
                     if (cW > 0 && cH > 0) {
-                        ; OCR 不需要重複畫框，上面已經畫過了
-
                         ocrResult := OCR.FromRect(screenX, screenY, cW, cH, {scale: 2})
                         srsVal := ParseSrs(ocrResult.Text)
 
-                        ; ★ 顯示原始 OCR 字串與解析結果，比對是否抓錯
                         if (DebugOCR) {
                             MsgBox("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " cW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal "`n`n[幾何驗證]: 通過", "Debug OCR", "T5")
                         }
                     }
                 }
 
-                ; 只有當前兩重文字驗證與最終 OCR 都通過時，才視為命中
+                ; ★ 修改：只有當前兩重文字驗證與最終 OCR 都通過時，才視為命中並記錄數據
                 if (srsVal != "") {
+                    RecordPatternHit(patternData.name) ; ★ 新增：寫入命中統計
                     return {srs: srsVal, img: imgVal, valid: true, method: candidate.type}
                 }
             }
@@ -697,6 +692,49 @@ VerifySpatialMatch(childNN, focusNN, hwnd) {
         return true
     } catch {
         return false
+    }
+}
+
+; ==============================================================================
+; ★ 命中率統計與動態排序 Helper
+; ==============================================================================
+RecordPatternHit(patternName) {
+    try {
+        ; 1. 更新該 Pattern 的累計命中數
+        hits := Integer(IniRead(StatsFile, "Hits", patternName, 0))
+        IniWrite(hits + 1, StatsFile, "Hits", patternName)
+
+        ; 2. 檢查是否需要執行跨日重新排序 (每天第一次命中時觸發)
+        lastSort := IniRead(StatsFile, "Settings", "LastSortDate", "")
+        currentDate := FormatTime(A_Now, "yyyyMMdd")
+
+        if (lastSort != currentDate) {
+            IniWrite(currentDate, StatsFile, "Settings", "LastSortDate")
+            OptimizePatternOrder()
+        }
+    }
+}
+
+OptimizePatternOrder() {
+    global PatternList
+    try {
+        ; 讀取每個 Pattern 的歷史命中數，存入物件屬性中
+        for patternData in PatternList {
+            patternData.hits := Integer(IniRead(StatsFile, "Hits", patternData.name, 0))
+        }
+
+        ; 氣泡排序：依命中數 (hits) 降冪排序 (高頻命中排前面)
+        Loop PatternList.Length {
+            i := A_Index
+            Loop PatternList.Length - i {
+                j := A_Index
+                if (PatternList[j].hits < PatternList[j+1].hits) {
+                    temp := PatternList[j]
+                    PatternList[j] := PatternList[j+1]
+                    PatternList[j+1] := temp
+                }
+            }
+        }
     }
 }
 
