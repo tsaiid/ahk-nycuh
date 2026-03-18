@@ -44,7 +44,7 @@ global COL_LEFT_X := 10, COL_RIGHT_X := 170, COL_WIDTH := 140
 global EnableAccFallback := true
 
 ; ★ 新增：OCR 視覺化與文字除錯開關 (發布或實戰時請改為 false)
-global DebugOCR := true
+global DebugOCR := false
 
 global GuiStatusMsg := "Ready"
 global txtStatus := ""
@@ -208,6 +208,32 @@ GetInfo_ByProbe() {
                     if (!InStr(ctrlText, "VMTool")) {
                         continue ; Text 不符，表示這不是我們要找的 Series 區域
                     }
+
+                    ; ★★★ 進階幾何除錯 ★★★
+                    if (DebugOCR) {
+                        ; 1. 取得 Srs 區域 (Screen) -> 紅色
+                        ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
+                        ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
+                        DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptC)
+                        srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
+
+                        ; 2. 取得 Focus 區域 (Screen) -> 綠色
+                        ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
+                        ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
+                        DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
+                        focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
+
+                        ; 畫出雙色框
+                        ShowDebugRects([
+                            {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},  ; Target Srs
+                            {x: focX, y: focY, w: fW, h: fH, color: "Green"} ; Current Focus
+                        ])
+                    }
+
+                    ; 新增：空間防錯驗證，確保 srs 控制項真的落在這個 focus 視窗的範圍內
+                    if (!VerifySpatialMatch(candidate.srs, focusNN, hwnd)) {
+                        continue ; 發生 Cross-Talk (抓到別格的資訊)，跳過此 Pattern
+                    }
                 } catch {
                     continue ; 無法取得 Text 亦跳過
                 }
@@ -223,17 +249,14 @@ GetInfo_ByProbe() {
                     screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
 
                     if (cW > 0 && cH > 0) {
-                        ; ★ 視覺化確認 OCR 矩形範圍
-                        if (DebugOCR) {
-                            ShowDebugRect(screenX, screenY, cW, cH)
-                        }
+                        ; OCR 不需要重複畫框，上面已經畫過了
 
                         ocrResult := OCR.FromRect(screenX, screenY, cW, cH, {scale: 2})
                         srsVal := ParseSrs(ocrResult.Text)
 
                         ; ★ 顯示原始 OCR 字串與解析結果，比對是否抓錯
                         if (DebugOCR) {
-                            MsgBox("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " cW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal, "Debug OCR", "T5")
+                            MsgBox("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " cW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal "`n`n[幾何驗證]: 通過", "Debug OCR", "T5")
                         }
                     }
                 }
@@ -378,20 +401,44 @@ ProbeControl() {
 
             ; 判定條件：Img 必須是數字，且 Srs 必須包含 "VMTool"
             if (IsNumber(Trim(imgVal)) && InStr(srsText, "VMTool")) {
-                ; ★ 計算座標並顯示資訊
-                ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
-                pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
-                DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
-                sX := NumGet(pt, 0, "int"), sY := NumGet(pt, 4, "int")
+
+                ; ★★★ F12 進階幾何除錯 ★★★
+                if (DebugOCR) {
+                    ; 1. 取得 Srs 區域 (Screen) -> 紅色
+                    ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
+                    ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
+                    ; ★ 修正：補上 "ptr"
+                    DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptC)
+                    srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
+
+                    ; 2. 取得 Focus 區域 (Screen) -> 綠色
+                    ControlGetPos(&fX, &fY, &fW, &fH, ctrlClassNN, hwnd)
+                    ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
+                    ; ★ 修正：補上 "ptr"
+                    DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
+                    focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
+
+                    ; 畫出雙色框
+                    ShowDebugRects([
+                        {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},
+                        {x: focX, y: focY, w: fW, h: fH, color: "Green"}
+                    ])
+                }
+
+                ; ★ 增加空間幾何驗證
+                spatialPass := VerifySpatialMatch(candidate.srs, ctrlClassNN, hwnd)
 
                 if (DebugOCR) {
-                    ShowDebugRect(sX, sY, cW, cH)
+                     msg .= "【幾何驗證結果】: " (spatialPass ? "✅ 通過" : "❌ 失敗") "`n------------------`n"
+                }
+
+                if (!spatialPass) {
+                    continue ; 雖然文字符合，但是是別格的控制項，直接跳過
                 }
 
                 msg .= "🎯 實際命中: " patternData.name "`n"
                 msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
-                msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合)`n"
-                msg .= "  - Srs 實際座標 (Screen): X:" sX " Y:" sY " W:" cW " H:" cH "`n"
+                msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合，且通過空間驗證)`n"
                 matchFound := true
                 break ; 找到真正吻合的就跳出，確保最多只命中一個
             }
@@ -593,27 +640,64 @@ GetRelativePath(targetEl, rootEl) {
 }
 
 ; ==============================================================================
-; ★ 修改：畫面選取範圍視覺化 Helper (取消定時銷毀，直到下次觸發或手動清除)
+; ★ 修改 Helper：多重區域視覺化 (除錯用，支援不同顏色與常駐)
 ; ==============================================================================
-ShowDebugRect(x, y, w, h) {
-    global debugGui ; 改用全域變數，方便其他函數(如 ClearAll)也能存取並手動關閉它
+ShowDebugRects(rectList) {
+    global debugGuis ; 改用陣列儲存多個 GUI
 
-    ; 避免重複建立導致殘影，每次呼叫時先銷毀舊的
-    if (IsSet(debugGui) && debugGui) {
-        try {
-            debugGui.Destroy()
+    ; 每次呼叫前，先清空舊的框框
+    if (IsSet(debugGuis) && debugGuis) {
+        For dGui in debugGuis {
+            try {
+                dGui.Destroy()
+            }
         }
     }
+    global debugGuis := []
 
-    ; 建立一個穿透點擊 (E0x20)、無邊框、永遠在上的純色 GUI
-    debugGui := Gui("+AlwaysOnTop -Caption +ToolWindow -DPIScale +E0x20")
-    debugGui.BackColor := "Red"
+    For r in rectList {
+        ; 建立一個穿透點擊、無邊框、永遠在上的純色 GUI
+        dGui := Gui("+AlwaysOnTop -Caption +ToolWindow -DPIScale +E0x20")
+        dGui.BackColor := r.color
 
-    ; 設定透明度 (0-255，100 為半透明)
-    debugGui.Opt("+LastFound")
-    WinSetTransparent(100)
+        ; 設定透明度 (0-255，100 為半透明)
+        dGui.Opt("+LastFound")
+        WinSetTransparent(100)
 
-    debugGui.Show("x" x " y" y " w" w " h" h " NoActivate")
+        dGui.Show("x" r.x " y" r.y " w" r.w " h" r.h " NoActivate")
+        debugGuis.Push(dGui) ; 存入陣列防銷毀
+    }
+}
+
+; ==============================================================================
+; ★ 修改 Helper：邊緣距離防錯驗證 (嚴格比對 Focus 上緣與 Srs 下緣)
+; ==============================================================================
+VerifySpatialMatch(childNN, focusNN, hwnd) {
+    try {
+        ControlGetPos(&cX, &cY, &cW, &cH, childNN, hwnd)
+        ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
+
+        focusTop := fY
+        srsBottom := cY + cH
+
+        ; 1. 垂直驗證：Focus 的上緣 (fY) 離 Srs 的下緣 (cY + cH)，距離不能超過 50 px
+        ; 使用 Abs() 確保無論 Srs 是在 Focus 框外正上方，還是 Focus 框內的最上緣，都能被涵蓋
+        if (Abs(focusTop - srsBottom) > 50) {
+            return false
+        }
+
+        ; 2. 水平驗證：確保 Srs 沒有跑到左右隔壁的格子
+        ; 容許 10 pixel 誤差，Srs 中心點必須落在 Focus 的 X 座標範圍內
+        centerX := cX + (cW / 2)
+        hMargin := 10
+        if !(centerX >= (fX - hMargin) && centerX <= (fX + fW + hMargin)) {
+            return false
+        }
+
+        return true
+    } catch {
+        return false
+    }
 }
 
 ; ==============================================================================
@@ -739,12 +823,15 @@ ClearAll(*) {
     global GuiStatusMsg := "Ready" ; ★ 清空時重置狀態
     UpdateGUI()
 
-    ; ★ 關閉除錯紅框
-    global debugGui
-    if (IsSet(debugGui) && debugGui) {
-        try {
-            debugGui.Destroy()
+    ; ★ 關閉所有除錯紅框
+    global debugGuis
+    if (IsSet(debugGuis) && debugGuis) {
+        For dGui in debugGuis {
+            try {
+                dGui.Destroy()
+            }
         }
+        global debugGuis := []
     }
 }
 
