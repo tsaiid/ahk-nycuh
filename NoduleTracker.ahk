@@ -43,6 +43,9 @@ global COL_LEFT_X := 10, COL_RIGHT_X := 170, COL_WIDTH := 140
 ; ★ 新增：Acc 慢速模式的總開關 (強烈建議設為 false，徹底杜絕卡死)
 global EnableAccFallback := true
 
+; ★ 新增：OCR 視覺化與文字除錯開關 (發布或實戰時請改為 false)
+global DebugOCR := true
+
 global GuiStatusMsg := "Ready"
 global txtStatus := ""
 
@@ -64,6 +67,7 @@ GenerateMaps() {
         [3, 10, 31],
         [3, 10, 33],
         [3, 10, 37],
+        [3, 10, 39],
         [3, 10, 41],
         [3, 10, 45],
         [3, 10, 47],
@@ -219,8 +223,18 @@ GetInfo_ByProbe() {
                     screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
 
                     if (cW > 0 && cH > 0) {
+                        ; ★ 視覺化確認 OCR 矩形範圍
+                        if (DebugOCR) {
+                            ShowDebugRect(screenX, screenY, cW, cH)
+                        }
+
                         ocrResult := OCR.FromRect(screenX, screenY, cW, cH, {scale: 2})
                         srsVal := ParseSrs(ocrResult.Text)
+
+                        ; ★ 顯示原始 OCR 字串與解析結果，比對是否抓錯
+                        if (DebugOCR) {
+                            MsgBox("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " cW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal, "Debug OCR", "T5")
+                        }
                     }
                 }
 
@@ -364,9 +378,20 @@ ProbeControl() {
 
             ; 判定條件：Img 必須是數字，且 Srs 必須包含 "VMTool"
             if (IsNumber(Trim(imgVal)) && InStr(srsText, "VMTool")) {
+                ; ★ 計算座標並顯示資訊
+                ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
+                pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
+                DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
+                sX := NumGet(pt, 0, "int"), sY := NumGet(pt, 4, "int")
+
+                if (DebugOCR) {
+                    ShowDebugRect(sX, sY, cW, cH)
+                }
+
                 msg .= "🎯 實際命中: " patternData.name "`n"
                 msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
                 msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合)`n"
+                msg .= "  - Srs 實際座標 (Screen): X:" sX " Y:" sY " W:" cW " H:" cH "`n"
                 matchFound := true
                 break ; 找到真正吻合的就跳出，確保最多只命中一個
             }
@@ -568,6 +593,30 @@ GetRelativePath(targetEl, rootEl) {
 }
 
 ; ==============================================================================
+; ★ 修改：畫面選取範圍視覺化 Helper (取消定時銷毀，直到下次觸發或手動清除)
+; ==============================================================================
+ShowDebugRect(x, y, w, h) {
+    global debugGui ; 改用全域變數，方便其他函數(如 ClearAll)也能存取並手動關閉它
+
+    ; 避免重複建立導致殘影，每次呼叫時先銷毀舊的
+    if (IsSet(debugGui) && debugGui) {
+        try {
+            debugGui.Destroy()
+        }
+    }
+
+    ; 建立一個穿透點擊 (E0x20)、無邊框、永遠在上的純色 GUI
+    debugGui := Gui("+AlwaysOnTop -Caption +ToolWindow -DPIScale +E0x20")
+    debugGui.BackColor := "Red"
+
+    ; 設定透明度 (0-255，100 為半透明)
+    debugGui.Opt("+LastFound")
+    WinSetTransparent(100)
+
+    debugGui.Show("x" x " y" y " w" w " h" h " NoActivate")
+}
+
+; ==============================================================================
 ; ★ UI 狀態列 Helper
 ; ==============================================================================
 SetGuiStatus(msg, color := "cRed") {
@@ -689,6 +738,14 @@ ClearAll(*) {
     }
     global GuiStatusMsg := "Ready" ; ★ 清空時重置狀態
     UpdateGUI()
+
+    ; ★ 關閉除錯紅框
+    global debugGui
+    if (IsSet(debugGui) && debugGui) {
+        try {
+            debugGui.Destroy()
+        }
+    }
 }
 
 CopyReport(*) {
