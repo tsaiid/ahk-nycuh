@@ -337,6 +337,8 @@ The epiglottis is normal.
 ::skok:: {
     MyForm := "
 (
+No definite bony lesion in the skull.
+The visible paranasal sinuses and mastoids are unremarkable.
 No obvious dislocation or fracture.
 The paranasal sinuses are clear.
 The mastoid air cells are well-aerated.

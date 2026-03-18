@@ -241,6 +241,7 @@
 ::fu0::follow-up
 ::ccfu::Clinical correlation and follow-up are suggested.
 ::fufe::Follow-up or further evaluation is suggested.
+::ccys::Correlation with cystoscopy is suggested.
 ::ccolon::Correlation with colonoscopy is suggested.
 ::cpes::Correlation with panendoscopy is suggested.
 ::csono::Correlation with sonography is suggested.

@@ -156,22 +156,6 @@ Right Colles fracture, with intra-articular involvement.
     Paste(MyForm)
 }
 
-;; CT Extremity - Lower Limbs
-::ectl::
-{
-    MyForm := "
-  (
-CT Lower Extremity:
-Non-contrast study.
-Pre- and post-contrast study.
-Scanning from thigh to foot, axial, coronal, sagittal, and 3D VRT views
-Scanning from thigh to foot, axial, coronal, sagittal views
-
-FINDINGS:
-  )"
-    Paste(MyForm)
-}
-
 ;; CTA - Lower limb
 ::ectal::
 {
@@ -199,11 +183,6 @@ No retroperitoneal or mesenteric lymphadenopathy.
 {
     MyForm := "
   (
-CT Lower Extremity:
-Pre and post contrast-enhanced study.
-Axial Scanning from lower abdomen to foot, with coronal reconstruction
-
-FINDINGS:
 Mild subcutaneous soft tissue edema over the left lower extremity.
 Presence of engorged vessel with intraluminal filling defects, consistent with deep venous thrombosis.
 Extent: left external iliac, common femoral, great saphenous vein (proximal part).
@@ -243,14 +222,6 @@ OA changes of bilateral knees.
 {
     MyForm := "
   (
-CTA of Lower Extremity:
-Pre and post contrast-enhanced axial scanning from kidney to foot
-Axial and coronal reconstruction with MIP technique
-3D VRT reconstruction
-
-COMPARISON: no
-
-FINDINGS:
 Atherosclerotic changes and calcification of the arterial wall, from abdominal aorta to the peripheral arteries of foot.
 Because too small diameter of arteries and the severe calcification, the patency below the popliteal level is difficult to evaluate.
 
@@ -266,84 +237,6 @@ No retroperitoneal or mesenteric lymphadenopathy.
 IMPRESSION:
 Severe arterial wall calcification from abdominal aorta to feet.
 Because too small diameter of arteries and the severe calcification, the patency below the popliteal level is difficult to evaluate.
-  )"
-    Paste(MyForm)
-}
-
-;; CT Extremity - Upper Limbs
-::ectu::
-{
-    MyForm := "
-  (
-CT Upper Extremity:
-Non-contrast enhanced study.
-Pre and post contrast-enhanced study.
-Scanning from arm to finger, axial, coronal, sagittal views
-Scanning from arm to finger, axial, coronal, sagittal, and 3D VRT views
-
-FINDINGS:
-  )"
-    Paste(MyForm)
-}
-
-::ectau::
-{
-    MyForm := "
-  (
-CTA of Upper Extremity:
-Pre and post contrast-enhanced axial scanning from aortic arch to hand
-Axial and coronal reconstruction with MIP technique
-
-COMPARISON: no
-
-FINDINGS:
-
-  )"
-    Paste(MyForm)
-}
-
-;; CT Shoulder
-::ects::
-{
-    MyForm := "
-  (
-CT Shoulder:
-Non-contrast study.
-Pre and post contrast-enhanced study.
-Scanning from neck to upper chest, centering at shoulder, axial, coronal, sagittal views
-Scanning from neck to upper chest, centering at shoulder, axial, coronal, sagittal, and 3D VRT views
-
-FINDINGS:
-  )"
-    Paste(MyForm)
-}
-
-;; CT Knee
-::ectk::
-{
-    MyForm := "
-  (
-CT Knee:
-Non-contrast study.
-Pre and post contrast-enhanced study.
-
-FINDINGS:
-  )"
-    Paste(MyForm)
-}
-
-;; CT Ankle
-::ecta::
-{
-    MyForm := "
-  (
-CT Ankle:
-Non-contrast study.
-Pre- and post-contrast study.
-Scanning from leg to foot, axial, coronal, sagittal, and 3D VRT views
-Scanning from leg to foot, axial, coronal, sagittal views
-
-FINDINGS:
   )"
     Paste(MyForm)
 }
