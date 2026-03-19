@@ -109,7 +109,6 @@
     MyForm := "
   (
 - No liver, spleen, or kidney traumatic injury.
-- The gallbladder, spleen, pancreas, adrenals, urinary bladder, and bowels are unremarkable.
 - No evidence of intraperitoneal free air.
 - No obvious ascites.
   )"

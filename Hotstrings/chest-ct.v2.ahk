@@ -39,7 +39,7 @@
 ::ncldmi::a small soft tissue density lesion in the bronchiole of _, in favor of mucoid impaction.
 ::ncldhc::a small hypodense nodular lesion in the liver, in favor of hepatic cyst.
 ::ncldhcs::small hypodense nodular lesions in the liver, in favor of hepatic cysts.
-::cctpulhtn::Engorged pulmonary trunk with A/P ratio <1. Pulmonary hypertension may be suspected.
+::cctphtn::Engorged pulmonary trunk with A/P ratio <1. Pulmonary hypertension may be suspected.
 ::aook::No evidence of aortic dissection or aneurysm.
 ::paok::No definite filling defect in the major pulmonary arteries.
 ::paok1::No evidence of pulmonary embolism.
