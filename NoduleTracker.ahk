@@ -359,7 +359,19 @@ SimpleDirectCopy() {
             ShowTip("⚠️ 抓取失敗", 2000)
             return
         }
-        reportStr := "(Srs/Img: " . info.srs . "/" . info.img . ")"
+
+        clipStr := A_Clipboard
+        newEntry := info.srs . "/" . info.img
+
+        ; 檢查剪貼簿是否已經是 (Srs/Img: ...) 的格式
+        if (RegExMatch(clipStr, "^\s*\(Srs/Img:\s*(.+)\)\s*$", &match)) {
+            ; 提取原本括號內的資料，並在後方加上分號與新資料
+            reportStr := "(Srs/Img: " . match[1] . "; " . newEntry . ")"
+        } else {
+            ; 如果格式不符或為空，則建立全新的字串
+            reportStr := "(Srs/Img: " . newEntry . ")"
+        }
+
         A_Clipboard := reportStr
         ShowTip("📋 Copied:`n" reportStr, 2000)
     } catch Error as e {
