@@ -479,9 +479,15 @@ class ShuttleProController {
     ; Debug GUI
     ; ==========================================================================
     InitGui() {
-        this.GuiObj := Gui("+LastFound -Resize -MaximizeBox -MinimizeBox", "ShuttlePro V2 Configurable")
+        ; 移除 -MinimizeBox 以允許視窗最小化
+        this.GuiObj := Gui("+LastFound -Resize -MaximizeBox", "ShuttlePro V2 Configurable")
         this.GuiObj.SetFont("w700 s8", "Courier New")
         this.LbxLog := this.GuiObj.Add("ListBox", "h300 w600")
+
+        ; 在右下方新增 Reload 按鈕 (X 座標設為 510 以對齊 ListBox 右邊界)
+        btnReload := this.GuiObj.Add("Button", "w100 x510", "Reload Script")
+        btnReload.OnEvent("Click", (*) => Reload())
+
         this.GuiObj.OnEvent("Close", (*) => ExitApp())
         this.GuiObj.Show()
     }
