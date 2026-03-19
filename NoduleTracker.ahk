@@ -32,6 +32,9 @@
 ; ==============================================================================
 ; ★ 系統初始化
 ; ==============================================================================
+; [新增] 設定工作列 (Tray) 上的 Icon
+TraySetIcon(A_ScriptDir "\assets\NoduleTracker_icon.png")
+
 DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")
 CoordMode("Mouse", "Screen")
 CoordMode("ToolTip", "Screen")
