@@ -16,6 +16,9 @@ CoordMode "Mouse", "Screen"
 SetMouseDelay -1
 SetKeyDelay -1
 
+; [新增] 設定工作列 (Tray) 上的 Icon
+TraySetIcon(A_ScriptDir "\assets\nycu_icon.png")
+
 global PRESERVE_CLIPBOARD := 0
 
 #Include <RisController.v2>
