@@ -190,19 +190,25 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ; 移除編號，改用 "*"
     ^+*:: {
         Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "*"})
+        RisController.ReorderSelection({keepEmpty: true, itemChar: "*"})
     }
 
     ; 移除編號，改用 "-"
     ^+-:: {
         Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "-"})
+        RisController.ReorderSelection({keepEmpty: true, itemChar: "-"})
+    }
+
+    ; 移除編號，自動偵測
+    ^!+-:: {
+        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
+        RisController.ReorderSelection({autoDetectItemChar: true, keepEmpty: true, itemChar: "-"})
     }
 
     ; 移除編號，改用 ">"
     ^+>:: {
         Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: ">"})
+        RisController.ReorderSelection({keepEmpty: true, itemChar: ">"})
     }
 
     ^d:: {
@@ -221,7 +227,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
     ;-----------------------------------------------------------
     ; Mouse Remapping
-    XButton1:: RisController.ReorderSelection({deOrder: false, keepEmpty: true, itemChar: "-"})
+    XButton1:: RisController.ReorderSelection({autoDetectItemChar: true, keepEmpty: true})
 
     XButton2:: RisController.ReorderSelection()
 

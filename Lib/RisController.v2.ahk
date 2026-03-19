@@ -910,6 +910,29 @@ class RisController {
             keepEmpty := options.HasOwnProp("keepEmpty") ? options.keepEmpty : false
             itemChar := options.HasOwnProp("itemChar") ? options.itemChar : ""
             discardSeIm := options.HasOwnProp("discardSeIm") ? options.discardSeIm : true
+
+            ; [新增] 自動偵測項目符號模式 (autoDetectItemChar)
+            if (options.HasOwnProp("autoDetectItemChar") && options.autoDetectItemChar) {
+                sel := this._EditGetSel(hEdit)
+                if (sel.End > sel.Start) {
+                    fullText := ControlGetText(hEdit)
+                    selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
+
+                    ; 逐行尋找第一行非空白文字
+                    for line in StrSplit(selectedText, "`n", "`r") {
+                        if (Trim(line, " `t") != "") {
+                            ; 檢查行首是否為指定的常見項目符號 (支援 > - = + *)
+                            if RegExMatch(line, "^\s*([>\-=\+\*])", &match) {
+                                itemChar := match[1]
+                            } else {
+                                itemChar := "-" ; 若無符合的符號，預設使用 '-'
+                            }
+                            break
+                        }
+                    }
+                }
+            }
+
             this._ReorderSelectedText(deOrder, keepEmpty, itemChar, discardSeIm, hEdit)
         }
     }
