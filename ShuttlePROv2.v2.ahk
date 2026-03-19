@@ -4,6 +4,9 @@ SetWorkingDir A_ScriptDir
 SetControlDelay -1
 CoordMode "Mouse", "Screen"
 
+; [新增] 設定工作列 (Tray) 上的 Icon
+TraySetIcon(A_ScriptDir "\assets\ShuttlePROv2icon.png")
+
 #Include <AHKHID.v2>
 
 global App := ShuttleProController()
