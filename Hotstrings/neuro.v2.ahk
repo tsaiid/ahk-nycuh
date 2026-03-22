@@ -538,9 +538,7 @@ GenerateBrainImpression(isMild := false)
     searchText := RisController.GetFindingContent()
     if (searchText == "") {
         try {
-            if (RisController.FindingEdit) {
-                searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
-            }
+            searchText := RisController.FindingText
         }
     }
 

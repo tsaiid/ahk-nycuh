@@ -192,8 +192,7 @@ class RisController {
     ; [新增] 取得過濾後的 Finding 內文 (去除標題與結尾)
     static GetFindingContent() {
         try {
-            hEdit := this.FindingEdit.NativeWindowHandle
-            fullText := ControlGetText(hEdit)
+            fullText := this.FindingText
 
             ; 依照您的需求，這裡使用 Advanced (CT/MR) 的邏輯來剖析
             range := this._FindContentRange(fullText, "Advanced")
@@ -409,8 +408,8 @@ class RisController {
         this._ShowWaitCursor()
         try {
             try {
-                pastImp := ControlGetText(this.PastImpressionText.NativeWindowHandle)
-                pastFind := ControlGetText(this.PastFindingText.NativeWindowHandle)
+                pastImp := this.GetText(this.PastImpressionText)
+                pastFind := this.GetText(this.PastFindingText)
                 hImpEdit := this.ImpressionEdit.NativeWindowHandle
                 hFindEdit := this.FindingEdit.NativeWindowHandle
             } catch {
@@ -523,7 +522,7 @@ class RisController {
             this._SelectLine(hFocus)
 
             newSel := this._EditGetSel(hFocus)
-            fullText := ControlGetText(hFocus)
+            fullText := this.FindingText
             if (newSel.End > newSel.Start) {
                 textToCopy := SubStr(fullText, newSel.Start + 1, newSel.End - newSel.Start)
             }
@@ -543,8 +542,7 @@ class RisController {
 
         ; 3. Append 到 Impression
         try {
-            hImp := this.ImpressionEdit.NativeWindowHandle
-            currentImpText := ControlGetText(hImp)
+            currentImpText := this.ImpressionText
 
             ; [修改重點] 判斷結尾是否已為換行
             ; SubStr(str, -1) 會取得最後一個字元
@@ -555,6 +553,7 @@ class RisController {
                 prefix := "`r`n"
             }
 
+            hImp := this.ImpressionEdit.NativeWindowHandle
             impLen := StrLen(currentImpText)
 
             ; 移到 Impression 最後並貼上
@@ -871,8 +870,8 @@ class RisController {
             return
         }
         try {
-            hEdit := this.FindingEdit.NativeWindowHandle
             examType := this._GetCurrExamType()
+            hEdit := this.FindingEdit.NativeWindowHandle
 
             switch examType {
                 case "CT", "MR": this._FormatFindingForAdvanced(hEdit)

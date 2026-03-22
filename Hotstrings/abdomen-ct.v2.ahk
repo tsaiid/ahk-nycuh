@@ -305,9 +305,9 @@ GetUnremarkableOrgans(searchText) {
 {
     ; 1. 取得文本
     searchText := RisController.GetFindingContent()
-    if (searchText == "" && RisController.FindingEdit) {
+    if (searchText == "") {
         try {
-            searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
+            searchText := RisController.FindingText
         }
     }
 
@@ -324,9 +324,9 @@ GetUnremarkableOrgans(searchText) {
 {
     ; 1. 取得文本
     searchText := RisController.GetFindingContent()
-    if (searchText == "" && RisController.FindingEdit) {
+    if (searchText == "") {
         try {
-            searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
+            searchText := RisController.FindingText
         }
     }
 
