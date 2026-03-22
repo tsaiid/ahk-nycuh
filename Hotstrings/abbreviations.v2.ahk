@@ -256,6 +256,7 @@
 ::vb::vertebral body
 ::vbs::vertebral bodies
 ::mcm::mega cisterna magna
+::cpa::cerebellopontine angle
 ::hie::hypoxic-ischemic encephalopathy
 ::iicp::increased intracranial pressure
 ::icra::intracranial `
