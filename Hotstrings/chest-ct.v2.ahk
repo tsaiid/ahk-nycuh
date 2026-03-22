@@ -101,10 +101,13 @@
 {
     MyForm := "
   (
-- No pulmonary nodule.
-- No mediastinal lymphadenopathy.
-- The heart and great vessels appear unremarkable.
-- The thoracic cage and bones appear intact.
+- No suspicious pulmonary nodule or consolidation.
+- The central airways are patent.
+- No significant mediastinal or axillary lymphadenopathy.
+- The heart size and great vessels are normal in caliber.
+- No pleural effusion or pneumothorax.
+- No suspicious bone lesion in the visualized skeleton.
+- Visualized upper abdominal organs are unremarkable.
   )"
     Paste(MyForm)
 }
