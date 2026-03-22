@@ -1108,11 +1108,22 @@ class RisController {
     }
 
     static SwitchHistoryFilter(modeName) {
+        ; [新增] 記住動作前的焦點
+        savedFocus := ""
+        try {
+            savedFocus := ControlGetFocus("A")
+        }
+
         try {
             switch modeName {
                 case "All":      this.PastAllRadio.ControlClick()
                 case "Modality": this.PastModalityRadio.ControlClick()
                 case "My":       this.PastOnlyMyRadio.ControlClick()
+            }
+
+            ; [新增] 執行後把 focus 還回去
+            if (savedFocus) {
+                ControlFocus(savedFocus, "A")
             }
         } catch as err {
             this.Notify("切換失敗: " err.Message) ; [修改] 取代 ToolTip
