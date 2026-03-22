@@ -22,7 +22,7 @@
 ;    - F12         : 開啟探針工具，查看當前視窗控制項 ClassNN (除錯用)。
 ; 5. GUI 功能：
 ;    - Copy Report : 整合所有記錄並按肺葉順序自動排序複製到剪貼簿。
-;    - Clear All   : 清空當前所有結節紀錄。
+;    - Copy Img No : 提取所有 Image Number，排序並以分號分隔複製到剪貼簿。
 ; ------------------------------------------------------------------------------
 
 #Requires AutoHotkey v2.0
@@ -931,8 +931,8 @@ UpdateGUI() {
     btnX := 50
     btnCopy := MyGui.Add("Button", "x" btnX " y+10 w100 h30", "Copy Report")
     btnCopy.OnEvent("Click", CopyReport)
-    btnClear := MyGui.Add("Button", "x+20 w100 h30", "Clear All")
-    btnClear.OnEvent("Click", ClearAll)
+    btnCopyImg := MyGui.Add("Button", "x+20 w100 h30", "Copy Img No")
+    btnCopyImg.OnEvent("Click", CopyImgNo)
 
     ; --- 上分隔線 ---
     MyGui.Add("Text", "x10 y+15 w300 h1 0x10")
@@ -1008,6 +1008,49 @@ RenderSection(label, xPos) {
 DeleteItem(location, index, *) {
     NoduleData[location].RemoveAt(index)
     UpdateGUI()
+}
+
+CopyImgNo(*) {
+    imgMap := Map()
+    for label, items in NoduleData {
+        for item in items {
+            if IsNumber(item.img) {
+                imgMap[Integer(item.img)] := true
+            }
+        }
+    }
+    
+    imgList := []
+    for val, _ in imgMap {
+        imgList.Push(val)
+    }
+
+    if (imgList.Length == 0) {
+        ShowTip("! 無資料可複製", 2000)
+        return
+    }
+
+    ; 數值排序 (Bubble Sort)
+    Loop imgList.Length {
+        i := A_Index
+        Loop imgList.Length - i {
+            j := A_Index
+            if (imgList[j] > imgList[j+1]) {
+                temp := imgList[j]
+                imgList[j] := imgList[j+1]
+                imgList[j+1] := temp
+            }
+        }
+    }
+
+    finalStr := ""
+    for val in imgList {
+        finalStr .= val . ";"
+    }
+    finalStr := Trim(finalStr, ";")
+    
+    A_Clipboard := finalStr
+    ShowTip("📋 Copied Img No:`n" finalStr, 3000)
 }
 
 ClearAll(*) {
