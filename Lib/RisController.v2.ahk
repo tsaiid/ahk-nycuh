@@ -148,6 +148,9 @@ class RisController {
     static _compContext := {MRN: "", Date: ""}
     static _hCustomFont := 0
     static _targetImpressionHeight := 95
+    static _preloadQueue := [] ; [新增] 預載隊列
+    static _preloadTask  := 0  ; [新增] 預載 Timer 參考
+    static _isAIPending  := false ; [新增] AI 請求中旗標
 
     ; [自動更新相關狀態]
     static _lastUpdateTick := 0           ; 上次更新的時間
@@ -983,32 +986,71 @@ class RisController {
         this._PreloadCache()
     }
 
-    ; [修改] 全面靜默快取主畫面元件 (取代原本的 _PreloadAICache)
+    ; [修改] 全面靜默快取主畫面元件 (改為非同步隊列模式，包含 AI 預載)
     static _PreloadCache() {
-        ; 若已經執行過預載，就不再重複執行，直到換病人 (cache 被清空)
+        ; 1. 若已經執行過預載，就不再重複執行
         if (this._cache.Has("_UI_Preloaded")) {
             return
         }
 
-        this._cache["_UI_Preloaded"] := true ; 標記為已預載
-
-        ; 遍歷所有定義在 Selectors 裡的元件名稱
+        ; 2. 標記為已啟動預載，並建立待抓取隊列
+        this._cache["_UI_Preloaded"] := true
+        this._preloadQueue := []
+        
         for key in this.Selectors {
-            ; 略過不在主畫面的病理報告元件，等實際切換過去時再取
-            if (key == "PathoDiagnosisText" || key == "PathoDateText") {
+            ; 略過不在主畫面的病理報告元件
+            if (key == "PathoDiagnosisText" || key == "PathoDateText")
                 continue
-            }
-
+            
+            ; 如果不在 cache 裡，就加入隊列
             if (!this._cache.Has(key)) {
-                try {
-                    ; 動態觸發 Getter 抓取元件並存入 cache
-                    _ := this.%key%
-                } catch {
-                    ; 負向快取 (Negative Cache)：
-                    ; 找不到就存成 false。避免下次觸發時重複進行 1000ms 的 UIA 深度搜尋
-                    this._cache[key] := false
-                }
+                this._preloadQueue.Push(key)
             }
+        }
+
+        ; [新增] 在隊列最後加入 AI 預載任務
+        if (!this._cache.Has("_AI_Indication")) {
+            this._preloadQueue.Push("_AI_TASK_")
+        }
+
+        ; 3. 啟動非同步 Timer (每 50ms 處理一個元件)
+        if (this._preloadQueue.Length > 0) {
+            this._preloadTask := ObjBindMethod(this, "_PreloadStep")
+            SetTimer(this._preloadTask, 50)
+        }
+    }
+
+    ; [新增] 非同步預載單步執行 (包含 UI 元件與 AI)
+    static _PreloadStep() {
+        if (this._preloadQueue.Length == 0) {
+            SetTimer(this._preloadTask, 0)
+            this._preloadTask := 0
+            return
+        }
+
+        key := this._preloadQueue.RemoveAt(1)
+
+        if (key == "_AI_TASK_") {
+            ; [核心優化] 在背景偷偷呼叫 AI，不插入文字，只存入快取
+            ; 注意：這裡會稍微阻塞 Timer 一次 (API 等待時間)，但因為已經在隊列最後，
+            ; 且不影響 AHK 熱鍵監聽，使用者幾乎無感。
+            try {
+                this.GenerateAndInsertIndication(false, true)
+            }
+        } else {
+            try {
+                ; 觸發 Getter
+                _ := this.%key%
+            } catch {
+                ; 負向快取
+                this._cache[key] := false
+            }
+        }
+
+        ; 如果抽完最後一個，主動停止
+        if (this._preloadQueue.Length == 0) {
+            SetTimer(this._preloadTask, 0)
+            this._preloadTask := 0
         }
     }
 
@@ -1542,6 +1584,13 @@ class RisController {
         if (!this._cache.Has("_Hwnd") || this._cache["_Hwnd"] != currentHwnd) {
             this._cache := Map()          ; 清空所有快取
             this._cache["_Hwnd"] := currentHwnd ; 更新為新的 HWND
+
+            ; [新增] 清空預載隊列並停止舊的 Timer
+            this._preloadQueue := []
+            if (this._preloadTask) {
+                SetTimer(this._preloadTask, 0)
+                this._preloadTask := 0
+            }
         }
 
         ; 3. 經過上面的檢查，如果 nodeName 還在 cache 裡，代表它屬於目前的視窗，可直接回傳
@@ -2232,16 +2281,48 @@ class RisController {
 
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
     ; [修改] 增加 Benchmark 效能測量
-    static GenerateAndInsertIndication(debugMode := false) {
+    static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
+        ; 1. 檢查快取
+        if (this._cache.Has("_AI_Indication") && !isPreloadOnly) {
+            result := this._cache["_AI_Indication"]
+            this._InsertAIResult(result)
+            this.Notify("已插入 Indication (來自快取)")
+            return
+        }
+
+        ; [新增] 處理併發請求 (Concurrency Control)
+        if (this._isAIPending) {
+            if (isPreloadOnly) {
+                return ; 如果是預載發現已在執行，直接退出
+            }
+            
+            ; 如果是手動觸發，則等待現有的請求完成
+            this.Notify("AI 正在背景產生中...")
+            while (this._isAIPending) {
+                Sleep(50)
+            }
+
+            ; 等待結束後，再次檢查快取是否已有結果
+            if (this._cache.Has("_AI_Indication")) {
+                this._InsertAIResult(this._cache["_AI_Indication"])
+                this.Notify("已從快取插入 Indication")
+                return
+            }
+            ; 如果沒快取，代表上一個可能失敗了，繼續往下走發起新請求
+        }
+
         this._ShowWaitCursor()
+        this._isAIPending := true ; [設定旗標]
+
         try {
             ; --- Benchmark: 記錄開始時間 ---
             t0 := A_TickCount
 
-            ; 1. 取得並組合病歷資料
+            ; 2. 取得並組合病歷資料
             clinicalData := this._GetAndFormatClinicalData()
             if (clinicalData == "") {
-                this.Notify("無法取得病歷資料，請確認是否在正確視窗內")
+                if (!isPreloadOnly)
+                    this.Notify("無法取得病歷資料，請確認是否在正確視窗內")
                 return
             }
 
@@ -2249,14 +2330,14 @@ class RisController {
             t1 := A_TickCount
             extractTime := t1 - t0
 
-            ; 2. 準備 Prompt
+            ; 3. 準備 Prompt
             systemPrompt := "[Role]`nYou are a professional Radiologist assistant specialized in clinical data extraction.`n`n[Background]`nThe following is a patient's medical record in SOAP format, including demographics and the planned imaging study.`n`n[Task]`nSummarize the core clinical reason (indication) for the requested imaging study into one or two concise English sentences.`n`n[Input Data]`n"
             constraint := "`n`n[Constraint]`n1. Start the response strictly with the prefix `"INDICATION:`".`n2. Focus on the mechanism of injury (e.g., collision), symptoms (e.g., thigh pain), and suspected diagnosis (e.g., femur fracture).`n3. Do not include unrelated physical exam findings (like heart/lung sounds) unless abnormal.`n4. Output in professional medical English.`n5. Note: Dates and specific identifiers in the text have been replaced with placeholders like [DATE] or [PATIENT_NAME] for privacy. Please ignore the placeholders and focus on the clinical findings.`n`n[Output]`nINDICATION:"
 
             fullPrompt := systemPrompt . clinicalData . constraint
 
-            ; 3. Debug 模式：顯示 Prompt 與取資料耗時並可中斷
-            if (debugMode) {
+            ; 4. Debug 模式：顯示 Prompt 與取資料耗時並可中斷
+            if (debugMode && !isPreloadOnly) {
                 A_Clipboard := fullPrompt
                 ans := MsgBox("Debug 模式開啟。`n【Benchmark】資料提取耗時: " . extractTime . " ms`n`nPrompt 已複製到剪貼簿。是否繼續呼叫 API？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
                 if (ans == "No") {
@@ -2264,7 +2345,7 @@ class RisController {
                 }
             }
 
-            ; 4. 從設定檔讀取模型名稱
+            ; 5. 從設定檔讀取模型名稱
             configFile := "config.private.ini"
             modelName := IniRead(configFile, "GoogleAI", "Model", "gemini-2.5-flash")
 
@@ -2283,45 +2364,59 @@ class RisController {
                 result := "INDICATION: " . result
             }
 
-            if (debugMode) {
+            ; 存入快取
+            this._cache["_AI_Indication"] := result
+
+            if (debugMode && !isPreloadOnly) {
                 MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . result, "AI Debug")
             }
 
-            ; 5. 插入結果至目標欄位
-            if !WinActive(this.WinTitle) {
-                WinActivate(this.WinTitle)
-                WinWaitActive(this.WinTitle, , 2)
+            ; 6. 插入結果至目標欄位 (如果是預載則跳過)
+            if (isPreloadOnly) {
+                OutputDebug("[RisController] AI Indication 已預載並快取`n")
+                return
             }
 
-            targetHwnd := 0
-
-            if this.IsTargetFocused() {
-                try {
-                    targetHwnd := ControlGetFocus("A")
-                }
-            }
-
-            if (!targetHwnd) {
-                this.FindingEdit.SetFocus()
-                targetHwnd := this.FindingEdit.NativeWindowHandle
-                Sleep(50)
-            }
-
-            this._EditReplaceSel(targetHwnd, result . "`r`n`r`n")
-            this._EditScrollCaret(targetHwnd)
+            this._InsertAIResult(result)
 
             ; 將 Benchmark 數據顯示在完成的 Notify 中
             this.Notify(Format("已插入 Indication (取資:{}ms, API:{}ms)", extractTime, apiTime))
         } catch as err {
-            if (debugMode) {
+            if (debugMode && !isPreloadOnly) {
                 fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
                 this._ShowDebugError(fullErrorMsg)
             } else {
-                this.Notify("AI 處理失敗: " . err.Message)
+                if (!isPreloadOnly)
+                    this.Notify("AI 處理失敗: " . err.Message)
             }
         } finally {
+            this._isAIPending := false ; [重置旗標]
             this._RestoreCursor()
         }
+    }
+
+    ; [內部 Helper] 執行 AI 結果插入 UI
+    static _InsertAIResult(result) {
+        if !WinActive(this.WinTitle) {
+            WinActivate(this.WinTitle)
+            WinWaitActive(this.WinTitle, , 2)
+        }
+
+        targetHwnd := 0
+        if this.IsTargetFocused() {
+            try {
+                targetHwnd := ControlGetFocus("A")
+            }
+        }
+
+        if (!targetHwnd) {
+            this.FindingEdit.SetFocus()
+            targetHwnd := this.FindingEdit.NativeWindowHandle
+            Sleep(50)
+        }
+
+        this._EditReplaceSel(targetHwnd, result . "`r`n`r`n")
+        this._EditScrollCaret(targetHwnd)
     }
 
     ; [新增] 極速讀取 Helper：繞過 UIA Fallback，直接調用 Win32 API
@@ -2412,9 +2507,18 @@ class RisController {
         payload := '{"contents": [{"parts": [{"text": "' . escapedPrompt . '"}]}]}'
 
         req := ComObject("WinHttp.WinHttpRequest.5.1")
-        req.Open("POST", url, False)
+        
+        ; [關鍵修改] 改為 True (非同步模式)
+        req.Open("POST", url, True)
         req.SetRequestHeader("Content-Type", "application/json")
         req.Send(payload)
+
+        ; [關鍵修改] 進入非阻塞等待迴圈
+        ; 使用 WaitForResponse(0) 檢查狀態，配合 Sleep(10) 釋放執行緒
+        ; 這可以確保在等待 API 的 1~3 秒內，AHK 依然能正常攔截快速鍵
+        while !req.WaitForResponse(0.01) {
+            Sleep(10) 
+        }
 
         if (req.Status != 200) {
             throw Error("HTTP " . req.Status . " - " . req.ResponseText)
