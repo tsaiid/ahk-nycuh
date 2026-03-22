@@ -1601,6 +1601,21 @@ class RisController {
         return ""
     }
 
+    static GetComparisonDate() {
+        currentMRN := this._GetCurrentMRN()
+        
+        ; 只有當曾經執行過 Copy Report (AppendPreviousReport) 導致 Date 有值時才進行
+        if (this._compContext.Date != "") {
+            ; 寬鬆比對：只有在「兩者都有抓到 MRN」且「兩者不同」的情況下，才視為換病人並拒絕插入
+            if (currentMRN != "" && this._compContext.MRN != "" && currentMRN != this._compContext.MRN) {
+                return ""
+            }
+            return this._compContext.Date
+        }
+
+        return ""
+    }
+
     static _GetCurrentMRN() {
         try {
             rawText := this.GetText(this._GetOrUpdateNode("MedRecNoLabel"))

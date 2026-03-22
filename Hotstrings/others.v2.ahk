@@ -174,7 +174,14 @@
 ;  Clipboard := tmpClip
 ;Return
 
-:c:CMP::COMPARISON: `
+:c:CMP::
+{
+    text := "COMPARISON: "
+    if (date := RisController.GetComparisonDate()) {
+        text .= date
+    }
+    SendText(text)
+}
 ;:c:CMP::
 ;  Send COMPARISON: ^!d
 ;Return
