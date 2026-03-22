@@ -283,6 +283,7 @@
 ::eac::external acoustic canal
 ::hfi::hyperostosis frontalis interna
 ::com::chronic otitis media
+::pvs::perivascular space
 
 ;; Spine
 ::aars::atlantoaxial rotary subluxation
