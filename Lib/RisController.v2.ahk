@@ -185,6 +185,10 @@ class RisController {
     static GenderText     => this._GetOrUpdateNode("GenderText")
     static AgeText        => this._GetOrUpdateNode("AgeText")
 
+    ; [新增] 快捷文字存取屬性 (使用快速路徑並自動標準化換行)
+    static FindingText => this.GetText(this.FindingEdit)
+    static ImpressionText => this.GetText(this.ImpressionEdit)
+
     ; [新增] 取得過濾後的 Finding 內文 (去除標題與結尾)
     static GetFindingContent() {
         try {
@@ -1210,8 +1214,25 @@ class RisController {
         }
     }
 
+    static EnsureImpressionNotEmpty() {
+        try {
+            ; 1. 取得文字 (使用快捷屬性，自動處理 UIA 與 Win32 路徑)
+            impText := this.ImpressionText
+            
+            ; 2. 檢查是否為空
+            if (impText == "" || !RegExMatch(impText, "\S")) {
+                this.PasteToImpression("As aforementioned.")
+                Sleep(50) ; 縮短延遲，僅確保貼上動作發出
+            }
+        } catch as err {
+            ; 靜默處理，不干擾存檔流程
+            OutputDebug("[RisController] EnsureImpressionNotEmpty Error: " . err.Message)
+        }
+    }
+
     static SaveReport() {
         try {
+            this.EnsureImpressionNotEmpty()
             this.ReportSaveButton.ControlClick()
         } catch as err {
             this.Notify("存檔失敗: " err.Message)
@@ -1554,28 +1575,32 @@ class RisController {
     }
 
     static GetText(el) {
+        if !IsObject(el) {
+            return ""
+        }
+        
         rawText := ""
+        ; 優先嘗試使用 NativeWindowHandle (Win32 API)，這對 WinForms 編輯器最穩定
         try {
             hwnd := el.NativeWindowHandle
-            if (hwnd && (el.FrameworkId = "Win32" || el.FrameworkId = "WinForm")) {
+            if (hwnd) {
                 rawText := ControlGetText(hwnd)
             }
+        } catch {
+            rawText := ""
         }
+
+        ; 如果 Win32 API 失敗，才嘗試 UIA 屬性
         if (rawText == "") {
             try {
                 rawText := el.Value
-            }
-            if (rawText == "" && el.IsPatternSupported("Text")) {
-                try {
-                    rawText := el.DocumentRange.GetText()
-                }
-            }
-            if (rawText == "") {
+            } catch {
                 try {
                     rawText := el.Name
                 }
             }
         }
+
         if (rawText != "") {
             temp := StrReplace(rawText, "`r`n", "`n")
             temp := StrReplace(temp, "`r", "`n")
