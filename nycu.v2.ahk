@@ -149,6 +149,10 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ; Insert Indication by AI
     !i:: RisController.GenerateAndInsertIndication()
 
+    ; Insert Impression by AI (Summary of Findings)
+    !s:: RisController.GenerateAndInsertImpression()
+    !+s:: RisController.GenerateAndInsertImpression(true)
+
     ; --- Emacs Word Movement ---
     ; Ctrl+A: Emacs 行首 (若不在目標框則為全選)
     ^a:: RisController.MoveCaret("Start")

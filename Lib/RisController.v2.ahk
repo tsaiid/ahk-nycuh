@@ -2395,6 +2395,130 @@ class RisController {
         }
     }
 
+    ; [新增] 產生並插入 Impression (總結 Findings)
+    static GenerateAndInsertImpression(debugMode := false) {
+        ; 檢查併發
+        if (this._isAIPending) {
+            this.Notify("AI 正在背景產生中...")
+            return
+        }
+
+        ; [重要修正] 確保全面預載邏輯已啟動，並預先抓取必要節點
+        this._PreloadCache()
+        
+        this._ShowWaitCursor()
+        this._isAIPending := true
+
+        try {
+            t0 := A_TickCount
+
+            ; 1. 取得必要控制項 (確保 ImpressionEdit 也能在第一時間被找到)
+            try {
+                hFind := this.FindingEdit.NativeWindowHandle
+                hImp  := this.ImpressionEdit.NativeWindowHandle
+            } catch as err {
+                this.Notify("找不到編輯欄位，請確認視窗是否正確")
+                return
+            }
+
+            ; 取得 Findings 文字
+            findingText := ControlGetText(hFind)
+
+            if (findingText == "") {
+                this.Notify("Findings 欄位為空，無法產生總結")
+                return
+            }
+
+            ; 去識別化
+            findingText := this._DeidentifyText(findingText)
+
+            t1 := A_TickCount
+            extractTime := t1 - t0
+
+            ; 2. 準備 Prompt (針對完整報告結構最佳化，包含重要陰性發現)
+            fullPrompt := "
+            (
+            # Role
+            You are an expert Radiologist specializing in clinical report synthesis and diagnostic interpretation.
+
+            # Context
+            You will be provided with the full content of a radiology report (including Title, Indication, Findings, and Remarks). The goal is to generate a high-yield `"Impression`" that prioritizes acute and clinically relevant findings.
+
+            # Task: Generate Clinical Impression
+            1. **Analyze Context**: Identify the clinical question from the Indication and the exam type from the Title.
+            2. **Filter & Prioritize**: 
+               - **Top Priority**: Acute, life-threatening, or new findings that directly address the Indication (e.g., acute hemorrhage, fracture, new mass).
+               - **Pertinent Negatives**: **CRITICAL.** Explicitly state the absence of key findings related to the Indication (e.g., in trauma, mention `"No acute intracranial hemorrhage`" or `"No fracture`"). 
+               - **Secondary Priority**: Clinically significant incidental findings or active secondary processes.
+               - **De-prioritize/Omit**: Chronic age-related changes, stable known conditions, or minor physiological variants unless relevant.
+            3. **Synthesize**: Condense the information into professional, concise medical terminology. Do not expand or add fluff.
+
+            # Constraints
+            - **Format**: Use a numbered list (1. 2. 3.). Ensure each point starts on a new line.
+            - **Conciseness**: Keep each point under 15 words if possible.
+            - **Language**: Use professional medical English.
+            - **Output**: Provide ONLY the Impression list. Do not include introductory or concluding remarks.
+
+            # Full Report Content
+            {1}
+
+            # Final Impression:
+            )"
+            
+            fullPrompt := Format(fullPrompt, findingText)
+
+            if (debugMode) {
+                A_Clipboard := fullPrompt
+                ans := MsgBox("Prompt 已複製。是否繼續？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
+                if (ans == "No")
+                    return
+            }
+
+            ; 3. 呼叫 API
+            configFile := "config.private.ini"
+            modelName := IniRead(configFile, "GoogleAI", "Model", "gemini-2.0-flash")
+
+            t2 := A_TickCount
+            result := this._CallGoogleAI(fullPrompt, modelName)
+            t3 := A_TickCount
+            apiTime := t3 - t2
+
+            ; [新增] 確保斷行格式正確 (轉為 \r\n)
+            result := StrReplace(result, "`r`n", "`n")
+            result := StrReplace(result, "`n", "`r`n")
+
+            ; 4. 插入結果 (固定插入到 ImpressionEdit)
+            this._InsertAIResultToImpression(result)
+
+            this.Notify(Format("已插入 Impression (取資:{}ms, API:{}ms)", extractTime, apiTime))
+
+        } catch as err {
+            this.Notify("AI 處理失敗: " . err.Message)
+        } finally {
+            this._isAIPending := false
+            this._RestoreCursor()
+        }
+    }
+
+    ; [內部 Helper] 專用於插入 Impression 欄位
+    static _InsertAIResultToImpression(result) {
+        if !WinActive(this.WinTitle) {
+            WinActivate(this.WinTitle)
+            WinWaitActive(this.WinTitle, , 2)
+        }
+
+        ; 強制聚焦到 ImpressionEdit
+        this.ImpressionEdit.SetFocus()
+        Sleep(50)
+        
+        targetHwnd := this.ImpressionEdit.NativeWindowHandle
+        
+        ; 插入文字 (清空原本內容還是附加？通常總結是全新的，這裡採附加但在最前面)
+        ; 使用者可能希望直接覆蓋，或者在游標處插入。這裡遵循 _InsertAIResult 邏輯：在游標處插入。
+        this._EditReplaceSel(targetHwnd, result)
+        this._EditScrollCaret(targetHwnd)
+    }
+
     ; [內部 Helper] 執行 AI 結果插入 UI
     static _InsertAIResult(result) {
         if !WinActive(this.WinTitle) {
