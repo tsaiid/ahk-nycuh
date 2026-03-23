@@ -153,6 +153,7 @@ class RisController {
     static _preloadQueue := [] ; [新增] 預載隊列
     static _preloadTask  := 0  ; [新增] 預載 Timer 參考
     static _isAIPending  := false ; [新增] AI 請求中旗標
+    static _isInsertRequested := false ; [新增] 插入請求旗標 (用於併發處理)
 
     ; [自動更新相關狀態]
     static _lastUpdateTick := 0           ; 上次更新的時間
@@ -2366,29 +2367,25 @@ class RisController {
             return
         }
 
-        ; [新增] 處理併發請求 (Concurrency Control)
+        ; [處理併發] 改為標記回調模式，避免 AHK 執行緒死結
         if (this._isAIPending) {
             if (isPreloadOnly) {
-                return ; 如果是預載發現已在執行，直接退出
+                return 
             }
             
-            ; 如果是手動觸發，則等待現有的請求完成
-            this.Notify("AI 正在背景產生中...")
-            while (this._isAIPending) {
-                Sleep(50)
-            }
-
-            ; 等待結束後，再次檢查快取是否已有結果
-            if (this._cache.Has("_AI_Indication")) {
-                this._InsertAIResult(this._cache["_AI_Indication"])
-                this.Notify("已從快取插入 Indication")
-                return
-            }
-            ; 如果沒快取，代表上一個可能失敗了，繼續往下走發起新請求
+            ; 手動觸發且正在產生中：設定請求標記並退出，讓背景執行緒完工後自動插入
+            this._isInsertRequested := true
+            this.Notify("AI 正在背景產生中，完成後將自動插入...")
+            return
         }
 
         this._ShowWaitCursor()
-        this._isAIPending := true ; [設定旗標]
+        this._isAIPending := true 
+        
+        ; 如果是手動觸發，預先設定為 true 以確保結束時會執行插入
+        if (!isPreloadOnly) {
+            this._isInsertRequested := true
+        }
 
         try {
             ; --- Benchmark: 記錄開始時間 ---
@@ -2451,16 +2448,13 @@ class RisController {
                 MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . result, "AI Debug")
             }
 
-            ; 6. 插入結果至目標欄位 (如果是預載則跳過)
-            if (isPreloadOnly) {
+            ; 6. 成功產生後，根據 Benchmark 顯示 Notify
+            if (!isPreloadOnly) {
+                this.Notify(Format("已產生 Indication (取資:{}ms, API:{}ms)", extractTime, apiTime))
+            } else {
                 OutputDebug("[RisController] AI Indication 已預載並快取`n")
-                return
             }
 
-            this._InsertAIResult(result)
-
-            ; 將 Benchmark 數據顯示在完成的 Notify 中
-            this.Notify(Format("已插入 Indication (取資:{}ms, API:{}ms)", extractTime, apiTime))
         } catch as err {
             if (!isPreloadOnly) {
                 fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
@@ -2469,6 +2463,16 @@ class RisController {
         } finally {
             this._isAIPending := false ; [重置旗標]
             this._RestoreCursor()
+
+            ; [自動插入邏輯]
+            ; 如果有標記需要插入，且快取中有結果，則執行插入
+            if (this._isInsertRequested && this._cache.Has("_AI_Indication")) {
+                this._InsertAIResult(this._cache["_AI_Indication"])
+                if (isPreloadOnly) {
+                    this.Notify("Indication 已預載完成並插入")
+                }
+            }
+            this._isInsertRequested := false ; 必定重置標記
         }
     }
 
