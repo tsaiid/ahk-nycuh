@@ -147,7 +147,7 @@ class RisController {
     ; =================================================================
     static _cache := Map()
     static _currentNotifyGui := ""
-    static _compContext := {MRN: "", Date: ""}
+    static _compContext := {ReqNo: "", Date: ""}
     static _hCustomFont := 0
     static _targetImpressionHeight := 95
     static _preloadQueue := [] ; [新增] 預載隊列
@@ -464,12 +464,10 @@ class RisController {
     }
 
     static InsertCopiedReportDate() {
-        currentMRN := this._GetCurrentMRN()
-        if (this._compContext.MRN != "" && this._compContext.MRN == currentMRN) {
+        currentReqNo := this._GetCurrentReqNo()
+        if (this._compContext.ReqNo != "" && this._compContext.ReqNo == currentReqNo) {
             SendText(this._compContext.Date)
-            return
         }
-        this.InsertSelectedHistoryDate()
     }
 
     static InsertSelectedHistoryDate() => this._InsertFromSelectedRow(1, true)
@@ -1715,27 +1713,27 @@ class RisController {
     ; --- 比較 Context 與 日期 ---
 
     static SetComparisonContext(targetDate) {
-        currentMRN := this._GetCurrentMRN()
+        currentReqNo := this._GetCurrentReqNo()
         formattedDate := this._ConvertRISDate(targetDate)
-        this._compContext.MRN := currentMRN
+        this._compContext.ReqNo := currentReqNo
         this._compContext.Date := formattedDate
     }
 
     static GetComparisonSuffix() {
-        currentMRN := this._GetCurrentMRN()
-        if (this._compContext.MRN != "" && this._compContext.MRN == currentMRN) {
+        currentReqNo := this._GetCurrentReqNo()
+        if (this._compContext.ReqNo != "" && this._compContext.ReqNo == currentReqNo) {
             return " dated " . this._compContext.Date
         }
         return ""
     }
 
     static GetComparisonDate() {
-        currentMRN := this._GetCurrentMRN()
+        currentReqNo := this._GetCurrentReqNo()
         
         ; 只有當曾經執行過 Copy Report (AppendPreviousReport) 導致 Date 有值時才進行
         if (this._compContext.Date != "") {
-            ; 寬鬆比對：只有在「兩者都有抓到 MRN」且「兩者不同」的情況下，才視為換病人並拒絕插入
-            if (currentMRN != "" && this._compContext.MRN != "" && currentMRN != this._compContext.MRN) {
+            ; 寬鬆比對：只有在「兩者都有抓到 ReqNo」且「兩者不同」的情況下，才視為換報告並拒絕插入
+            if (currentReqNo != "" && this._compContext.ReqNo != "" && currentReqNo != this._compContext.ReqNo) {
                 return ""
             }
             return this._compContext.Date
@@ -1751,6 +1749,13 @@ class RisController {
                 return match[0]
             }
             return rawText
+        }
+        return ""
+    }
+
+    static _GetCurrentReqNo() {
+        try {
+            return this.GetText(this.AccessionNoText)
         }
         return ""
     }
