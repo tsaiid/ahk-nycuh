@@ -105,7 +105,7 @@ class ShuttleProController {
             11, (*) => this.ToggleDiffExamSync(),
             12, "+z",
             13, (*) => this.ToggleSync(),
-            14, "o",
+            14, "{Home}",
             15, "0"
         ), pacsSpeeds)
 
