@@ -996,23 +996,57 @@ class RisController {
 
         ; 2. 標記為已啟動預載，並建立待抓取隊列
         this._cache["_UI_Preloaded"] := true
-        this._cache["_UI_Preloaded_Complete"] := false ; [新增]
+        this._cache["_UI_Preloaded_Complete"] := false
         this._preloadQueue := []
+
+        ; [優先順序優化] 嚴格依照使用者報告工作流順序
+        ; 1. InsertExamNameAtCaret
+        ; 2. AppendPreviousReport / InsertCopiedReportDate
+        ; 3. GenerateAndInsertIndication (所需的病歷欄位)
+        ; 4. _AI_TASK_ (啟動 AI 背景計算)
         
+        priorityKeys := [
+            ; 1.
+            "ExamnameText", 
+            ; 2.
+            "PastFindingText", "PastImpressionText", "PastReportTable", 
+            "FindingEdit", "ImpressionEdit",
+            ; 3.
+            "GenderText", "AgeText", "OrderDeptText", 
+            "SubjectiveText", "ObjectiveText", "AssessmentText", "PlanText"
+        ]
+
+        for key in priorityKeys {
+            if (this.Selectors.Has(key) && !this._cache.Has(key)) {
+                this._preloadQueue.Push(key)
+            }
+        }
+
+        ; [核心修改] 將 AI 預載任務插入在優先 UI 元件之後，而非最後
+        if (!this._cache.Has("_AI_Indication")) {
+            this._preloadQueue.Push("_AI_TASK_")
+        }
+        
+        ; 處理剩餘的其他元件
         for key in this.Selectors {
             ; 略過不在主畫面的病理報告元件
             if (key == "PathoDiagnosisText" || key == "PathoDateText")
                 continue
             
+            isPriority := false
+            for pKey in priorityKeys {
+                if (pKey == key) {
+                    isPriority := true
+                    break
+                }
+            }
+            if (isPriority)
+                continue
+
             ; 如果不在 cache 裡，就加入隊列
             if (!this._cache.Has(key)) {
                 this._preloadQueue.Push(key)
             }
-        }
-
-        ; [新增] 在隊列最後加入 AI 預載任務
-        if (!this._cache.Has("_AI_Indication")) {
-            this._preloadQueue.Push("_AI_TASK_")
         }
 
         ; 3. 啟動非同步 Timer (每 50ms 處理一個元件)
