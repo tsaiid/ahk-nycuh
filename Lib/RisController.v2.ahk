@@ -17,6 +17,7 @@ class RisController {
         REPLACESEL:    0x00C2,
         LINEFROMCHAR:  0x00C9,
         GETFIRSTVISIBLELINE: 0x00CE, ; [新增] 用於取得目前視窗最上方的行號
+        SETREADONLY:   0x00CF, ; [新增] 用於設定唯讀狀態 (可用來切換底色)
         CUT:           0x0300, ; [新增] 剪下
         COPY:          0x0301, ; [新增] 複製
         CLEAR:         0x0303
@@ -995,6 +996,7 @@ class RisController {
 
         ; 2. 標記為已啟動預載，並建立待抓取隊列
         this._cache["_UI_Preloaded"] := true
+        this._cache["_UI_Preloaded_Complete"] := false ; [新增]
         this._preloadQueue := []
         
         for key in this.Selectors {
@@ -1051,6 +1053,14 @@ class RisController {
         if (this._preloadQueue.Length == 0) {
             SetTimer(this._preloadTask, 0)
             this._preloadTask := 0
+            
+            ; [新增] 標記預載完成，並立即觸發底色更新
+            this._cache["_UI_Preloaded_Complete"] := true
+            try {
+                hFind := this.FindingEdit.NativeWindowHandle
+                hImp  := this.ImpressionEdit.NativeWindowHandle
+                this._ApplyLayout(hFind, hImp)
+            }
         }
     }
 
@@ -1058,6 +1068,14 @@ class RisController {
         ; 1. 安全檢查：如果 Handle 為 0 或空，直接離開
         if !hFind || !hImp
             return
+
+        ; [新增] 底色反饋與狀態鎖定：預載完成前將 Impression 設為唯讀 (觸發灰色背景)，完成後解除。
+        ; Finding 保持可寫，以免影響使用者操作體驗。
+        isReady := this._cache.Has("_UI_Preloaded_Complete") && this._cache["_UI_Preloaded_Complete"]
+        try {
+            SendMessage(this.MSG.SETREADONLY, 0, 0, , "ahk_id " hFind) ; 確保 Finding 永遠可寫
+            SendMessage(this.MSG.SETREADONLY, isReady ? 0 : 1, 0, , "ahk_id " hImp)
+        }
 
         dpiScale := A_ScreenDPI / 96
         targetImpH  := this._targetImpressionHeight * dpiScale
