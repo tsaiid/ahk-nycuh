@@ -368,8 +368,22 @@ SimpleDirectCopy() {
 
         ; 檢查剪貼簿是否已經是 (Srs/Img: ...) 的格式
         if (RegExMatch(clipStr, "^\s*\(Srs/Img:\s*(.+)\)\s*$", &match)) {
-            ; 提取原本括號內的資料，並在後方加上分號與新資料
-            reportStr := "(Srs/Img: " . match[1] . "; " . newEntry . ")"
+            existingEntries := match[1]
+            ; 檢查 newEntry 是否已存在於 existingEntries 中
+            isDuplicate := false
+            Loop Parse, existingEntries, ";", " " {
+                if (A_LoopField == newEntry) {
+                    isDuplicate := true
+                    break
+                }
+            }
+
+            if (isDuplicate) {
+                reportStr := "(Srs/Img: " . existingEntries . ")"
+            } else {
+                ; 提取原本括號內的資料，並在後方加上分號與新資料
+                reportStr := "(Srs/Img: " . existingEntries . "; " . newEntry . ")"
+            }
         } else {
             ; 如果格式不符或為空，則建立全新的字串
             reportStr := "(Srs/Img: " . newEntry . ")"
