@@ -56,6 +56,7 @@ class RisController {
         "PathoDateText",    { AutomationId: "mtxtRcpDTM" },
         "ImpressionLabel",  { AutomationId: "label2" },
         "MedRecNoLabel",    { AutomationId: "txtMRNo" },
+        "AccessionNoText",  { AutomationId: "txtReqNo" },
         "PhExamColumn",     { AutomationId: "goxExamine" },
         "PhExamDateText",   { AutomationId: "mtxtReportDTM" },
         "PhExamReportText", { AutomationId: "txtReport" },
@@ -181,6 +182,8 @@ class RisController {
     static PhExamReportText => this._GetOrUpdateNode("PhExamReportText")
 
     ; [新增] SOAP 與基本資料 Getters
+    static MedRecNoLabel  => this._GetOrUpdateNode("MedRecNoLabel")
+    static AccessionNoText => this._GetOrUpdateNode("AccessionNoText")
     static SubjectiveText => this._GetOrUpdateNode("SubjectiveText")
     static ObjectiveText  => this._GetOrUpdateNode("ObjectiveText")
     static AssessmentText => this._GetOrUpdateNode("AssessmentText")
@@ -1075,8 +1078,8 @@ class RisController {
             }
         } else {
             try {
-                ; 觸發 Getter
-                _ := this.%key%
+                ; [修改] 改用 _GetOrUpdateNode 確保即使沒有 Getter 也能抓到元件
+                _ := this._GetOrUpdateNode(key)
             } catch {
                 ; 負向快取
                 this._cache[key] := false
