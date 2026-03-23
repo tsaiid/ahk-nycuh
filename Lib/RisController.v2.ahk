@@ -219,7 +219,7 @@ class RisController {
     ; 4. 系統功能 (Notify & Focus)
     ; =================================================================
 
-    ; [MODIFIED] 現代化 Notify UI
+    ; [MODIFIED] 現代化 Notify UI (支援點擊關閉與持久化)
     static Notify(text, duration := 1500) {
         if (this._currentNotifyGui) {
             try {
@@ -231,45 +231,48 @@ class RisController {
         ; +AlwaysOnTop: 置頂
         ; -Caption: 無標題列
         ; +ToolWindow: 不顯示在工作列
-        ; +E0x20 (WS_EX_TRANSPARENT): 穿透滑鼠點擊
         ; +E0x08000000 (WS_EX_NOACTIVATE): 不搶奪焦點
-        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20 +E0x08000000")
+        ; 移除 +E0x20 (WS_EX_TRANSPARENT) 以便接收點擊事件
+        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000000")
 
         ; 現代深色風格背景 (Deep Dark Gray)
         g.BackColor := "202020"
 
-        ; 使用更現代的 UI 字體，微軟正黑體 UI 或 Segoe UI
+        ; 使用更現代的 UI 字體
         g.SetFont("s13 cWhite bold", "Microsoft JhengHei UI")
 
-        ; 增加邊距讓文字呼吸
+        ; 增加邊距
         g.MarginX := 25
         g.MarginY := 15
 
-        g.Add("Text", "Center", text)
+        ; 點擊文字即關閉視窗
+        txtObj := g.Add("Text", "Center", text)
+        txtObj.OnEvent("Click", (*) => (
+            IsObject(g) ? g.Destroy() : "",
+            (this._currentNotifyGui == g) ? this._currentNotifyGui := "" : ""
+        ))
 
-        ; 先顯示出來以計算尺寸 (NoActivate)
+        ; 先顯示出來以計算尺寸
         g.Show("NoActivate AutoSize Center")
 
         ; --- 視覺特效處理 ---
         try {
             hwnd := g.Hwnd
             WinGetPos(,, &w, &h, hwnd)
-
-            ; 1. 圓角效果 (WinSetRegion)
-            ; r12-12 代表圓角半徑
             WinSetRegion("0-0 w" w " h" h " r12-12", hwnd)
-
-            ; 2. 陰影效果 (CS_DROPSHADOW = 0x00020000)
-            ; 透過設定 Class Style 讓無邊框視窗擁有系統陰影
-            style := DllCall("GetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr") ; GCL_STYLE = -26
+            
+            style := DllCall("GetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr")
             DllCall("SetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr", style | 0x00020000)
 
-            ; 3. 輕微透明度 (提升質感)
             WinSetTransparent(235, hwnd)
         }
 
         this._currentNotifyGui := g
-        SetTimer () => (IsObject(g) ? g.Destroy() : ""), -duration
+        
+        ; 如果 duration > 0 則設定自動銷毀，否則持久化顯示
+        if (duration > 0) {
+            SetTimer () => (IsObject(g) && this._currentNotifyGui == g ? (g.Destroy(), this._currentNotifyGui := "") : ""), -duration
+        }
     }
 
     static IsTargetFocused() {
@@ -1982,22 +1985,35 @@ class RisController {
         ; 換行符號在 prevLineBreak，下一字元(行首)的位置剛好等於 prevLineBreak 的數值 (因為 0-based 轉換關係)
         lineStart := (prevLineBreak == 0) ? 0 : prevLineBreak
 
-        ; 2. 找結尾 (End): 往後找 `r
-        nextLineBreak := InStr(fullText, "`r", , lineStart + 1)
+        ; 2. 找結尾 (End): 往後找 `r 或 `n
+        ; 先找第一個出現的換行符號 (可能是 \r 或 \n)
+        rPos := InStr(fullText, "`r", , lineStart + 1)
+        nPos := InStr(fullText, "`n", , lineStart + 1)
+        
+        if (rPos == 0 && nPos == 0) {
+            nextLineBreak := 0
+        } else if (rPos == 0) {
+            nextLineBreak := nPos
+        } else if (nPos == 0) {
+            nextLineBreak := rPos
+        } else {
+            nextLineBreak := Min(rPos, nPos)
+        }
 
         if (nextLineBreak == 0) {
             ; 最後一行，無換行符號
             contentEnd := StrLen(fullText)
             fullEnd := contentEnd
         } else {
-            ; 找到 \r，ContentEnd 在 \r 之前 (index - 1)
+            ; 找到換行符號，ContentEnd 在其之前 (index - 1)
             contentEnd := nextLineBreak - 1
 
-            ; 判斷是否包含 \n (FullEnd)
-            if (SubStr(fullText, nextLineBreak + 1, 1) == "`n") {
+            ; 判斷換行符號類型並計算 FullEnd
+            char := SubStr(fullText, nextLineBreak, 1)
+            if (char == "`r" && SubStr(fullText, nextLineBreak + 1, 1) == "`n") {
                 fullEnd := nextLineBreak + 1 ; \r\n 之後
             } else {
-                fullEnd := nextLineBreak ; 只有 \r 之後
+                fullEnd := nextLineBreak ; \r 或 \n 之後
             }
         }
 
@@ -2419,6 +2435,10 @@ class RisController {
             t3 := A_TickCount
             apiTime := t3 - t2
 
+            ; [新增] 確保斷行格式正確 (轉為 \r\n)
+            result := StrReplace(result, "`r`n", "`n")
+            result := StrReplace(result, "`n", "`r`n")
+
             ; 由於 Prompt 要求嚴格以 "INDICATION:" 開頭，若 API 返回時缺少或格式異常，可做基本處理
             if (!InStr(result, "INDICATION:")) {
                 result := "INDICATION: " . result
@@ -2442,12 +2462,9 @@ class RisController {
             ; 將 Benchmark 數據顯示在完成的 Notify 中
             this.Notify(Format("已插入 Indication (取資:{}ms, API:{}ms)", extractTime, apiTime))
         } catch as err {
-            if (debugMode && !isPreloadOnly) {
+            if (!isPreloadOnly) {
                 fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
                 this._ShowDebugError(fullErrorMsg)
-            } else {
-                if (!isPreloadOnly)
-                    this.Notify("AI 處理失敗: " . err.Message)
             }
         } finally {
             this._isAIPending := false ; [重置旗標]
@@ -2553,7 +2570,8 @@ class RisController {
             this.Notify(Format("已插入 Impression (取資:{}ms, API:{}ms)", extractTime, apiTime))
 
         } catch as err {
-            this.Notify("AI 處理失敗: " . err.Message)
+            fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
+            this._ShowDebugError(fullErrorMsg)
         } finally {
             this._isAIPending := false
             this._RestoreCursor()
@@ -2711,11 +2729,28 @@ class RisController {
         ; 簡易解析 Gemini API 回傳的 JSON (提取 content 內的 text)
         if (RegExMatch(req.ResponseText, 's)"text":\s*"(.*?)(?<!\\)"', &match)) {
             val := match[1]
-            ; 還原 JSON 內的跳脫字元
+            
+            ; 1. 還原 JSON 內的跳脫字元
             val := StrReplace(val, "\n", "`n")
+            val := StrReplace(val, "\r", "`r")
+            val := StrReplace(val, "\t", "`t")
             val := StrReplace(val, '\"', '"')
             val := StrReplace(val, "\\", "\")
-            return val
+            
+            ; 2. 解碼 \uXXXX (Unicode)
+            while RegExMatch(val, "i)\\u([0-9a-f]{4})", &m) {
+                val := StrReplace(val, m[0], Chr(Integer("0x" . m[1])))
+            }
+            
+            ; 3. 清理 Markdown 標記 (若 AI 回傳了 ``` ... ``` 或 ` ... `)
+            val := Trim(val, " `t`r`n")
+            if (RegExMatch(val, "s)^``````(?:\w+)?\R?(.*?)\R?``````$", &m)) {
+                val := m[1]
+            } else if (SubStr(val, 1, 1) == "``" && SubStr(val, -1) == "``") {
+                val := SubStr(val, 2, StrLen(val) - 2)
+            }
+            
+            return Trim(val, " `t`r`n")
         }
 
         throw Error("無法解析回傳的資料結構")
