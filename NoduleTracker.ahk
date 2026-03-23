@@ -358,37 +358,78 @@ DirectCopy(location) {
 SimpleDirectCopy() {
     try {
         info := GetSmartInfo()
-        if (info.img == "" || info.srs == "") {
-            ShowTip("⚠️ 抓取失敗", 2000)
+        if (!info.valid) {
+            ShowTip("⚠️ 抓取失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2000)
             return
         }
 
         clipStr := A_Clipboard
-        newEntry := info.srs . "/" . info.img
+        entries := []
 
-        ; 檢查剪貼簿是否已經是 (Srs/Img: ...) 的格式
-        if (RegExMatch(clipStr, "^\s*\(Srs/Img:\s*(.+)\)\s*$", &match)) {
+        ; 解析現有內容 (支援 3/69; 3/77 或 3/69,77 格式)
+        if (RegExMatch(clipStr, "i)^\s*\(Srs/Img:\s*(.+)\)\s*$", &match)) {
             existingEntries := match[1]
-            ; 檢查 newEntry 是否已存在於 existingEntries 中
-            isDuplicate := false
             Loop Parse, existingEntries, ";", " " {
-                if (A_LoopField == newEntry) {
-                    isDuplicate := true
-                    break
+                if (RegExMatch(A_LoopField, "(\d+)/([\d,]+)", &m)) {
+                    srs := m[1]
+                    imgs := StrSplit(m[2], ",")
+                    for img in imgs {
+                        ; 檢查重複
+                        isDup := false
+                        for e in entries {
+                            if (e.srs == srs && e.img == img) {
+                                isDup := true
+                                break
+                            }
+                        }
+                        if (!isDup)
+                            entries.Push({srs: srs, img: img})
+                    }
                 }
             }
-
-            if (isDuplicate) {
-                reportStr := "(Srs/Img: " . existingEntries . ")"
-            } else {
-                ; 提取原本括號內的資料，並在後方加上分號與新資料
-                reportStr := "(Srs/Img: " . existingEntries . "; " . newEntry . ")"
-            }
-        } else {
-            ; 如果格式不符或為空，則建立全新的字串
-            reportStr := "(Srs/Img: " . newEntry . ")"
         }
 
+        ; 加入本次新抓取的資訊 (避免重複)
+        isNewDup := false
+        for e in entries {
+            if (e.srs == info.srs && e.img == info.img) {
+                isNewDup := true
+                break
+            }
+        }
+        if (!isNewDup)
+            entries.Push({srs: info.srs, img: info.img})
+
+        ; 排序 (先 Srs 後 Img)
+        if (entries.Length > 1) {
+            Loop entries.Length {
+                i := A_Index
+                Loop entries.Length - i {
+                    j := A_Index
+                    s1 := Integer(entries[j].srs), s2 := Integer(entries[j+1].srs)
+                    i1 := Integer(entries[j].img), i2 := Integer(entries[j+1].img)
+                    if (s1 > s2) || (s1 == s2 && i1 > i2) {
+                        t := entries[j], entries[j] := entries[j+1], entries[j+1] := t
+                    }
+                }
+            }
+        }
+
+        ; 分組重組字串
+        groupedStr := ""
+        currentSrs := ""
+        for e in entries {
+            if (e.srs != currentSrs) {
+                if (groupedStr != "")
+                    groupedStr .= "; "
+                groupedStr .= e.srs . "/" . e.img
+                currentSrs := e.srs
+            } else {
+                groupedStr .= "," . e.img
+            }
+        }
+
+        reportStr := "(Srs/Img: " . groupedStr . ")"
         A_Clipboard := reportStr
         ShowTip("📋 Copied:`n" reportStr, 2000)
     } catch Error as e {
