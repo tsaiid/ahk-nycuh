@@ -571,6 +571,15 @@ ProbeControl() {
                         loc := srsEl.Location
                         msg .= "   ✅ Srs 座標框: W" loc.w " H" loc.h "`n"
 
+                        ; ★ 新增：顯示 Series Description (descVal)
+                        try {
+                            descPath := srsPath . ",2,4"
+                            descEl := pacsRoot[descPath]
+                            rawDesc := descEl.Value ? descEl.Value : descEl.Name
+                            if (rawDesc != "")
+                                msg .= "   📝 Series Desc: [" rawDesc "]`n"
+                        }
+
                         ; ★ 新增：顯示底層到底是抓到什麼字！
                         rawText := ""
                         try {
@@ -735,6 +744,16 @@ GetNoduleInfoFromFocus() {
         }
         srsPath := basePath . pathParts[pathParts.Length]
         srsVal := ""
+        descVal := ""
+
+        ; 解析 Series Description (新增)
+        try {
+            descPath := srsPath . ",2,4"
+            descEl := pacsRoot[descPath]
+            descVal := Trim(descEl.Value)
+            if (descVal == "")
+                descVal := Trim(descEl.Name)
+        }
 
         try {
             srsEl := pacsRoot[srsPath]
@@ -766,7 +785,7 @@ GetNoduleInfoFromFocus() {
             }
         }
 
-        return {srs: srsVal, img: imgVal}
+        return {srs: srsVal, img: imgVal, desc: descVal}
     } catch Error as e {
         return {srs: "", img: "", error: "Acc Error: " . e.Message}
     }
