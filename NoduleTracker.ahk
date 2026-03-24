@@ -278,6 +278,13 @@ GetInfo_ByProbe() {
                         descVal := ControlGetText(candidate.desc, hwnd)
                     }
 
+                    ; ★ 新增：如果 desc 包含 cor 或 sag (不分大小寫)，則 img + 1
+                    if (descVal != "" && RegExMatch(descVal, "i)cor|sag")) {
+                        if (IsNumber(imgVal)) {
+                            imgVal := String(Integer(imgVal) + 1)
+                        }
+                    }
+
                     RecordPatternHit(patternData.name) ; ★ 新增：寫入命中統計
                     return {srs: srsVal, img: imgVal, desc: descVal, valid: true, method: candidate.type}
                 }
@@ -806,6 +813,13 @@ GetNoduleInfoFromFocus() {
                     ocrResult := CaptureOcrWithFilter(loc.x, loc.y, scanW, loc.h, 2)
                     srsVal := ParseSrs(ocrResult.Text)
                 }
+            }
+        }
+
+        ; ★ 新增：如果 desc 包含 cor 或 sag (不分大小寫)，則 img + 1
+        if (descVal != "" && RegExMatch(descVal, "i)cor|sag")) {
+            if (IsNumber(imgVal)) {
+                imgVal := String(Integer(imgVal) + 1)
             }
         }
 
