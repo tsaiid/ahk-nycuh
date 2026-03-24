@@ -67,35 +67,37 @@ GenerateMaps() {
     classPrefix := "Afx:00400000:b:00000000:00000013:00000000"
     global PatternList := []
 
-    ; ★ 極簡配置：只需依序填入 [Focus起始, Combo起始, Afx起始]
+    ; ★ 極簡配置：只需依序填入 [Focus起始, Combo起始, Afx起始, Desc起始]
     configs := [
-        [3, 10, 31],
-        [3, 10, 33],
-        [3, 10, 35],
-        [3, 10, 37],
-        [3, 10, 39],
-        [3, 10, 41],
-        [3, 10, 43],
-        [3, 10, 45],
-        [3, 10, 47],
-        [5, 57, 31],
-        [5, 57, 39],
-        [5, 57, 41],
-        [5, 57, 45],
-        [5, 57, 47],
+        [3, 10, 31, 101],
+        [3, 10, 33, 101],
+        [3, 10, 35, 101],
+        [3, 10, 37, 101],
+        [3, 10, 39, 101],
+        [3, 10, 41, 101],
+        [3, 10, 43, 101],
+        [3, 10, 45, 101],
+        [3, 10, 47, 101],
+        [5, 57, 29, 185],
+        [5, 57, 31, 101],
+        [5, 57, 39, 101],
+        [5, 57, 41, 101],
+        [5, 57, 45, 101],
+        [5, 57, 47, 101],
     ]
 
     for idx, cfg in configs {
         pMap := Map()
-        ; ★ 核心修正：使用配置參數組成唯一 ID (例如 Pattern_5_57_31)
-        pName := "Pattern_" . cfg[1] . "_" . cfg[2] . "_" . cfg[3]
+        ; ★ 核心修正：使用配置參數組成唯一 ID (例如 Pattern_5_57_31_101)
+        pName := "Pattern_" . cfg[1] . "_" . cfg[2] . "_" . cfg[3] . "_" . cfg[4]
 
         Loop 8 {
             i := A_Index - 1
             f := classPrefix . (cfg[1] + i)
             c := "ComboBox" . (cfg[2] + (i * 6))
             a := "AfxWnd140u" . (cfg[3] + (i * 3))
-            pMap[f] := {img: c, srs: a, type: pName}
+            d := "Button" . (cfg[4] + (i * 5))
+            pMap[f] := {img: c, srs: a, desc: d, type: pName}
         }
 
         ; 將生成好的 Map 及其自動生成的名稱推入全域列表
@@ -270,8 +272,14 @@ GetInfo_ByProbe() {
 
                 ; ★ 修改：只有當前兩重文字驗證與最終 OCR 都通過時，才視為命中並記錄數據
                 if (srsVal != "") {
+                    ; 嘗試抓取 Probe 模式下的 Series Description (新增)
+                    descVal := ""
+                    try {
+                        descVal := ControlGetText(candidate.desc, hwnd)
+                    }
+
                     RecordPatternHit(patternData.name) ; ★ 新增：寫入命中統計
-                    return {srs: srsVal, img: imgVal, valid: true, method: candidate.type}
+                    return {srs: srsVal, img: imgVal, desc: descVal, valid: true, method: candidate.type}
                 }
             }
         }
@@ -509,6 +517,15 @@ ProbeControl() {
                 msg .= "🎯 實際命中: " patternData.name "`n"
                 msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
                 msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合，且通過空間驗證)`n"
+
+                ; 顯示 Probe 抓到的 Desc (新增)
+                try {
+                    dText := ControlGetText(candidate.desc, hwnd)
+                    msg .= "  - Desc 控制項: " candidate.desc " (數值: " Trim(dText) ")`n"
+                } catch {
+                    msg .= "  - Desc 控制項: " candidate.desc " (無法讀取)`n"
+                }
+
                 matchFound := true
                 break
             }
@@ -549,15 +566,22 @@ ProbeControl() {
                 pathParts := StrSplit(fullPath, ",")
                 if (pathParts.Length >= 2) {
                     targetIdx := pathParts.Length - 1
+                    
+                    ; --- 計算 Img 路徑 (Index + 1) ---
                     pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
-
-                    basePath := ""
+                    basePathImg := ""
                     Loop targetIdx {
-                        basePath .= pathParts[A_Index] ","
+                        basePathImg .= pathParts[A_Index] ","
                     }
+                    imgPath := basePathImg . pathParts[pathParts.Length] . ",1,4,2,4"
 
-                    imgPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
-                    srsPath := basePath . pathParts[pathParts.Length]
+                    ; --- 計算 Srs 路徑 (Index 再 + 1) ---
+                    pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
+                    basePathSrs := ""
+                    Loop targetIdx {
+                        basePathSrs .= pathParts[A_Index] ","
+                    }
+                    srsPath := basePathSrs . pathParts[pathParts.Length]
 
                     try {
                         imgEl := pacsRoot[imgPath]
@@ -1098,7 +1122,7 @@ CopyImgNo(*) {
             }
         }
     }
-    
+
     imgList := []
     for val, _ in imgMap {
         imgList.Push(val)
@@ -1127,7 +1151,7 @@ CopyImgNo(*) {
         finalStr .= val . ";"
     }
     finalStr := Trim(finalStr, ";")
-    
+
     A_Clipboard := finalStr
     ShowTip("📋 Copied Img No:`n" finalStr, 3000)
 }
