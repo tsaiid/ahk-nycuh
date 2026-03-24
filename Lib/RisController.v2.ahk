@@ -261,7 +261,7 @@ class RisController {
             hwnd := g.Hwnd
             WinGetPos(,, &w, &h, hwnd)
             WinSetRegion("0-0 w" w " h" h " r12-12", hwnd)
-            
+
             style := DllCall("GetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr")
             DllCall("SetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr", style | 0x00020000)
 
@@ -269,7 +269,7 @@ class RisController {
         }
 
         this._currentNotifyGui := g
-        
+
         ; 如果 duration > 0 則設定自動銷毀，否則持久化顯示
         if (duration > 0) {
             SetTimer () => (IsObject(g) && this._currentNotifyGui == g ? (g.Destroy(), this._currentNotifyGui := "") : ""), -duration
@@ -1009,15 +1009,15 @@ class RisController {
         ; 2. AppendPreviousReport / InsertCopiedReportDate
         ; 3. GenerateAndInsertIndication (所需的病歷欄位)
         ; 4. _AI_TASK_ (啟動 AI 背景計算)
-        
+
         priorityKeys := [
             ; 1.
-            "ExamnameText", 
+            "ExamnameText",
             ; 2.
-            "PastFindingText", "PastImpressionText", "PastReportTable", 
+            "PastFindingText", "PastImpressionText", "PastReportTable",
             "FindingEdit", "ImpressionEdit",
             ; 3.
-            "GenderText", "AgeText", "OrderDeptText", 
+            "GenderText", "AgeText", "OrderDeptText",
             "SubjectiveText", "ObjectiveText", "AssessmentText", "PlanText"
         ]
 
@@ -1031,13 +1031,13 @@ class RisController {
         if (!this._cache.Has("_AI_Indication")) {
             this._preloadQueue.Push("_AI_TASK_")
         }
-        
+
         ; 處理剩餘的其他元件
         for key in this.Selectors {
             ; 略過不在主畫面的病理報告元件
             if (key == "PathoDiagnosisText" || key == "PathoDateText")
                 continue
-            
+
             isPriority := false
             for pKey in priorityKeys {
                 if (pKey == key) {
@@ -1092,7 +1092,7 @@ class RisController {
         if (this._preloadQueue.Length == 0) {
             SetTimer(this._preloadTask, 0)
             this._preloadTask := 0
-            
+
             ; [新增] 標記預載完成，並立即觸發底色更新
             this._cache["_UI_Preloaded_Complete"] := true
             try {
@@ -1316,7 +1316,7 @@ class RisController {
         try {
             ; 1. 取得文字 (使用快捷屬性，自動處理 UIA 與 Win32 路徑)
             impText := this.ImpressionText
-            
+
             ; 2. 檢查是否為空
             if (impText == "" || !RegExMatch(impText, "\S")) {
                 this.PasteToImpression("As aforementioned.")
@@ -1683,7 +1683,7 @@ class RisController {
         if !IsObject(el) {
             return ""
         }
-        
+
         rawText := ""
         ; 優先嘗試使用 NativeWindowHandle (Win32 API)，這對 WinForms 編輯器最穩定
         try {
@@ -1733,7 +1733,7 @@ class RisController {
 
     static GetComparisonDate() {
         currentReqNo := this._GetCurrentReqNo()
-        
+
         ; 只有當曾經執行過 Copy Report (AppendPreviousReport) 導致 Date 有值時才進行
         if (this._compContext.Date != "") {
             ; 寬鬆比對：只有在「兩者都有抓到 ReqNo」且「兩者不同」的情況下，才視為換報告並拒絕插入
@@ -1990,7 +1990,7 @@ class RisController {
         ; 先找第一個出現的換行符號 (可能是 \r 或 \n)
         rPos := InStr(fullText, "`r", , lineStart + 1)
         nPos := InStr(fullText, "`n", , lineStart + 1)
-        
+
         if (rPos == 0 && nPos == 0) {
             nextLineBreak := 0
         } else if (rPos == 0) {
@@ -2370,9 +2370,9 @@ class RisController {
         ; [處理併發] 改為標記回調模式，避免 AHK 執行緒死結
         if (this._isAIPending) {
             if (isPreloadOnly) {
-                return 
+                return
             }
-            
+
             ; 手動觸發且正在產生中：設定請求標記並退出，讓背景執行緒完工後自動插入
             this._isInsertRequested := true
             this.Notify("AI 正在背景產生中，完成後將自動插入...")
@@ -2380,8 +2380,8 @@ class RisController {
         }
 
         this._ShowWaitCursor()
-        this._isAIPending := true 
-        
+        this._isAIPending := true
+
         ; 如果是手動觸發，預先設定為 true 以確保結束時會執行插入
         if (!isPreloadOnly) {
             this._isInsertRequested := true
@@ -2486,7 +2486,7 @@ class RisController {
 
         ; [重要修正] 確保全面預載邏輯已啟動，並預先抓取必要節點
         this._PreloadCache()
-        
+
         this._ShowWaitCursor()
         this._isAIPending := true
 
@@ -2523,29 +2523,27 @@ class RisController {
             You are an expert Radiologist specializing in clinical report synthesis and diagnostic interpretation.
 
             # Context
-            You will be provided with the full content of a radiology report (including Title, Indication, Findings, and Remarks). The goal is to generate a high-yield `"Impression`" that prioritizes acute and clinically relevant findings.
+            Your task is to generate the "Impression" section based on provided "Indication" and "Findings". You must act as a clinical filter, separating acute or significant findings from incidental background noise.
 
             # Task: Generate Clinical Impression
-            1. **Analyze Context**: Identify the clinical question from the Indication and the exam type from the Title.
-            2. **Filter & Prioritize**: 
-               - **Top Priority**: Acute, life-threatening, or new findings that directly address the Indication (e.g., acute hemorrhage, fracture, new mass).
-               - **Pertinent Negatives**: **CRITICAL.** Explicitly state the absence of key findings related to the Indication (e.g., in trauma, mention `"No acute intracranial hemorrhage`" or `"No fracture`"). 
-               - **Secondary Priority**: Clinically significant incidental findings or active secondary processes.
-               - **De-prioritize/Omit**: Chronic age-related changes, stable known conditions, or minor physiological variants unless relevant.
-            3. **Synthesize**: Condense the information into professional, concise medical terminology. Do not expand or add fluff.
+            1. **Clinical Goal Alignment**: Analyze the "Indication" to identify the primary clinical question.
+            2. **Relevance Filtering (Strict)**:
+            - **Include**: Acute findings, major abnormalities directly related to the indication, and new clinically significant incidentalomas.
+            - **Exclude**: Chronic age-related changes (e.g., mild atrophy), stable historical findings (e.g., old infarcts), and findings unrelated to the primary anatomical focus of the exam (e.g., cervical spondylosis in a Brain CT) unless they directly impact the current clinical management.
+            3. **Synthesis**: Translate findings into concise, professional diagnostic statements. Do not paraphrase or expand for the sake of length; use brevity.
 
             # Constraints
-            - **Format**: Use a numbered list (1. 2. 3.). Ensure each point starts on a new line.
-            - **Conciseness**: Keep each point under 15 words if possible.
-            - **Language**: Use professional medical English.
-            - **Output**: Provide ONLY the Impression list. Do not include introductory or concluding remarks.
+            - **Format**: Use a numbered list (1. 2. 3.).
+            - **Strict Conciseness**: No fluff, no introductory phrases.
+            - **Anatomical Focus**: Ignore findings that are outside the primary diagnostic scope of the requested exam (e.g., incidental sinus or neck findings in a trauma brain scan) unless critically abnormal.
+            - **No Inferences**: Do not speculate beyond what is explicitly stated in the findings.
 
             # Full Report Content
             {1}
 
             # Final Impression:
             )"
-            
+
             fullPrompt := Format(fullPrompt, findingText)
 
             if (debugMode) {
@@ -2592,9 +2590,9 @@ class RisController {
         ; 強制聚焦到 ImpressionEdit
         this.ImpressionEdit.SetFocus()
         Sleep(50)
-        
+
         targetHwnd := this.ImpressionEdit.NativeWindowHandle
-        
+
         ; 插入文字 (清空原本內容還是附加？通常總結是全新的，這裡採附加但在最前面)
         ; 使用者可能希望直接覆蓋，或者在游標處插入。這裡遵循 _InsertAIResult 邏輯：在游標處插入。
         this._EditReplaceSel(targetHwnd, result)
@@ -2713,7 +2711,7 @@ class RisController {
         payload := '{"contents": [{"parts": [{"text": "' . escapedPrompt . '"}]}]}'
 
         req := ComObject("WinHttp.WinHttpRequest.5.1")
-        
+
         ; [關鍵修改] 改為 True (非同步模式)
         req.Open("POST", url, True)
         req.SetRequestHeader("Content-Type", "application/json")
@@ -2723,7 +2721,7 @@ class RisController {
         ; 使用 WaitForResponse(0) 檢查狀態，配合 Sleep(10) 釋放執行緒
         ; 這可以確保在等待 API 的 1~3 秒內，AHK 依然能正常攔截快速鍵
         while !req.WaitForResponse(0.01) {
-            Sleep(10) 
+            Sleep(10)
         }
 
         if (req.Status != 200) {
@@ -2733,19 +2731,19 @@ class RisController {
         ; 簡易解析 Gemini API 回傳的 JSON (提取 content 內的 text)
         if (RegExMatch(req.ResponseText, 's)"text":\s*"(.*?)(?<!\\)"', &match)) {
             val := match[1]
-            
+
             ; 1. 還原 JSON 內的跳脫字元
             val := StrReplace(val, "\n", "`n")
             val := StrReplace(val, "\r", "`r")
             val := StrReplace(val, "\t", "`t")
             val := StrReplace(val, '\"', '"')
             val := StrReplace(val, "\\", "\")
-            
+
             ; 2. 解碼 \uXXXX (Unicode)
             while RegExMatch(val, "i)\\u([0-9a-f]{4})", &m) {
                 val := StrReplace(val, m[0], Chr(Integer("0x" . m[1])))
             }
-            
+
             ; 3. 清理 Markdown 標記 (若 AI 回傳了 ``` ... ``` 或 ` ... `)
             val := Trim(val, " `t`r`n")
             if (RegExMatch(val, "s)^``````(?:\w+)?\R?(.*?)\R?``````$", &m)) {
@@ -2753,7 +2751,7 @@ class RisController {
             } else if (SubStr(val, 1, 1) == "``" && SubStr(val, -1) == "``") {
                 val := SubStr(val, 2, StrLen(val) - 2)
             }
-            
+
             return Trim(val, " `t`r`n")
         }
 
