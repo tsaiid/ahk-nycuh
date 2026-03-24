@@ -101,6 +101,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     !+d:: {
         Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
         RisController.InsertSelectedHistoryDate()
+        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
     }
 
     ; Alt+D: 插入以複製的歷史報告日期 (自動轉西元)
@@ -151,7 +152,11 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
     ; Insert Impression by AI (Summary of Findings)
     !s:: RisController.GenerateAndInsertImpression()
-    !+s:: RisController.GenerateAndInsertImpression(true)
+    !+s:: {
+        Send("{Blind}{vkE8}")
+        RisController.GenerateAndInsertImpression(true)
+        Send("{Blind}{vkE8}")
+    }
 
     ; --- Emacs Word Movement ---
     ; Ctrl+A: Emacs 行首 (若不在目標框則為全選)
@@ -189,7 +194,11 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^!o:: RisController.ReorderSelection()
 
     ; 重排選取文字 (保留 Series/Image 標記)
-    ^!+o:: RisController.ReorderSelection({discardSeIm: false})
+    ^!+o:: {
+        Send("{Blind}{vkE8}")
+        RisController.ReorderSelection({discardSeIm: false})
+        Send("{Blind}{vkE8}")
+    }
 
     ; 移除編號，改用 "*"
     ^+*:: {
@@ -207,6 +216,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^!+-:: {
         Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
         RisController.ReorderSelection({autoDetectItemChar: true, keepEmpty: true, itemChar: "-"})
+        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
     }
 
     ; 移除編號，改用 ">"

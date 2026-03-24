@@ -125,26 +125,31 @@ F12::ProbeControl()
 +!q:: {
     Send("{Blind}{vkE8}")
     DirectCopy("RUL")
+    Send("{Blind}{vkE8}")
 }
 
 +!a:: {
     Send("{Blind}{vkE8}")
     DirectCopy("RML")
+    Send("{Blind}{vkE8}")
 }
 
 +!z:: {
     Send("{Blind}{vkE8}")
     DirectCopy("RLL")
+    Send("{Blind}{vkE8}")
 }
 
 +!w:: {
     Send("{Blind}{vkE8}")
     DirectCopy("LUL")
+    Send("{Blind}{vkE8}")
 }
 
 +!s:: {
     Send("{Blind}{vkE8}")
     DirectCopy("LLL")
+    Send("{Blind}{vkE8}")
 }
 
 m:: {
