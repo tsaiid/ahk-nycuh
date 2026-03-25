@@ -278,8 +278,8 @@ GetInfo_ByProbe() {
                         descVal := ControlGetText(candidate.desc, hwnd)
                     }
 
-                    ; ★ 新增：如果 desc 包含 cor 或 sag (不分大小寫)，則 img + 1
-                    if (descVal != "" && RegExMatch(descVal, "i)cor|sag")) {
+                    ; ★ 新增：如果 desc 包含 cor 或 sag (不分大小寫)，且非 MRI 關鍵字 (t1, t2, dwi, adc)，則 img + 1
+                    if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                         if (IsNumber(imgVal)) {
                             imgVal := String(Integer(imgVal) + 1)
                         }
@@ -816,8 +816,8 @@ GetNoduleInfoFromFocus() {
             }
         }
 
-        ; ★ 新增：如果 desc 包含 cor 或 sag (不分大小寫)，則 img + 1
-        if (descVal != "" && RegExMatch(descVal, "i)cor|sag")) {
+        ; ★ 新增：如果 desc 包含 cor 或 sag (不分大小寫)，且非 MRI 關鍵字 (t1, t2, dwi, adc)，則 img + 1
+        if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
             if (IsNumber(imgVal)) {
                 imgVal := String(Integer(imgVal) + 1)
             }
