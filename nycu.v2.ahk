@@ -65,17 +65,23 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^9:: {
     }
 
-    ; --- History Filter Switching ---
-    ; 這裡不需要透傳，因為 Ctrl+數字鍵通常沒有其他重要功能
-    ^1:: RisController.SwitchHistoryFilter("All")
-    ^2:: RisController.SwitchHistoryFilter("Modality")
-    ^3:: RisController.SwitchHistoryFilter("My")
-
-    ; --- Right List Tab Switching (Tab: tbRightList) ---
-    !1:: RisController.SelectRightTab(1)
-    !2:: RisController.SelectRightTab(2)
-    !3:: RisController.SelectRightTab(3)
-    !4:: RisController.SelectRightTab(4)
+    ; --- History And Clinical Filter Switching ---
+    ^1:: {
+        RisController.SelectRightTab(2)
+        RisController.SwitchHistoryFilter("All")
+    }
+    ^2:: {
+        RisController.SelectRightTab(2)
+        RisController.SwitchHistoryFilter("Modality")
+    }
+    ^3:: {
+        RisController.SelectRightTab(3)
+        RisController.SelectClinicalTab(2)
+    }
+    ^4:: {
+        RisController.SelectRightTab(3)
+        RisController.SelectClinicalTab(5)
+    }
 
     ; --- Clinical Data Tab Switching (Tab: tbcClinicalData) ---
     ^!2:: RisController.SelectClinicalTab(2)
