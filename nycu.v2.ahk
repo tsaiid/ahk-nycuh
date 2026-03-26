@@ -83,10 +83,6 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
         RisController.SelectClinicalTab(5)
     }
 
-    !4:: {
-        RisController.SelectClinicalTab(5)
-    }
-
     ; --- Clinical Data Tab Switching (Tab: tbcClinicalData) ---
     ^!2:: RisController.SelectClinicalTab(2)
     ^!4:: RisController.SelectClinicalTab(4)
