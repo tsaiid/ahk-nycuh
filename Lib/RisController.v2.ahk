@@ -70,6 +70,8 @@ class RisController {
         "OrderDeptText",    { AutomationId: "txtAppSecName" },
         "GenderText",       { AutomationId: "txtGender" },
         "AgeText",          { AutomationId: "txtPtAge" },
+        "RightTabControl",  { AutomationId: "tbRightList" },
+        "ClinicalTabControl", { AutomationId: "tbcClinicalData" },
     )
 
     ; [修改] 資料結構優化：使用「群組列表」代替繁瑣的手動 Mapping
@@ -192,6 +194,8 @@ class RisController {
     static OrderDeptText  => this._GetOrUpdateNode("OrderDeptText")
     static GenderText     => this._GetOrUpdateNode("GenderText")
     static AgeText        => this._GetOrUpdateNode("AgeText")
+    static RightTabControl => this._GetOrUpdateNode("RightTabControl")
+    static ClinicalTabControl => this._GetOrUpdateNode("ClinicalTabControl")
 
     ; [新增] 快捷文字存取屬性 (使用快速路徑並自動標準化換行)
     static FindingText => this.GetText(this.FindingEdit)
@@ -1207,6 +1211,71 @@ class RisController {
         } catch as err {
             this.Notify("複製失敗: " err.Message)
         }
+    }
+
+    /**
+     * 切換右側 Tab (AutomationId: "tbRightList")
+     * @param index Tab 索引 (1-based, 1: 歷次報告, 2: 檢查清單, 3: 醫令/病理, 4: 會診)
+     * Note: 具體順序可能依實際 RIS 介面而定
+     */
+    static SelectRightTab(index) {
+        try {
+            tabEle := this.RightTabControl
+            hTab := tabEle.NativeWindowHandle
+
+            ; 1. 最優先推薦：使用 AHK 內建的 ControlChooseIndex
+            ; 這對 SysTabControl32 最有效，會正確發送 TCM_SETCURSEL 與 TCN_SELCHANGE 通知
+            if (hTab) {
+                ControlChooseIndex(index, hTab)
+                return true
+            }
+
+            ; 2. 備案：如果上述無效 (非標準 Win32)，則使用 UIA 強制點擊
+            tabs := tabEle.FindAll({ Type: "TabItem" })
+            if (index > 0 && index <= tabs.Length) {
+                targetTab := tabs[index]
+                ; 嘗試點擊 (這通常會觸發 Mouse 事件)
+                try {
+                    targetTab.Click() ; 如果 UIA 封裝支援 Click
+                } catch {
+                    this._ClickUIAElement(targetTab)
+                }
+                return true
+            }
+        } catch {
+            return false
+        }
+        return false
+    }
+
+    /**
+     * 切換臨床資料 Tab (AutomationId: "tbcClinicalData")
+     * @param index Tab 索引 (1-based)
+     */
+    static SelectClinicalTab(index) {
+        try {
+            tabEle := this.ClinicalTabControl
+            hTab := tabEle.NativeWindowHandle
+
+            if (hTab) {
+                ControlChooseIndex(index, hTab)
+                return true
+            }
+
+            tabs := tabEle.FindAll({ Type: "TabItem" })
+            if (index > 0 && index <= tabs.Length) {
+                targetTab := tabs[index]
+                try {
+                    targetTab.Click()
+                } catch {
+                    this._ClickUIAElement(targetTab)
+                }
+                return true
+            }
+        } catch {
+            return false
+        }
+        return false
     }
 
     static SwitchHistoryFilter(modeName) {

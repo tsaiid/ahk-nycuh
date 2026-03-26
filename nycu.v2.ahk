@@ -71,6 +71,16 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^2:: RisController.SwitchHistoryFilter("Modality")
     ^3:: RisController.SwitchHistoryFilter("My")
 
+    ; --- Right List Tab Switching (Tab: tbRightList) ---
+    !1:: RisController.SelectRightTab(1)
+    !2:: RisController.SelectRightTab(2)
+    !3:: RisController.SelectRightTab(3)
+    !4:: RisController.SelectRightTab(4)
+
+    ; --- Clinical Data Tab Switching (Tab: tbcClinicalData) ---
+    ^!2:: RisController.SelectClinicalTab(2)
+    ^!4:: RisController.SelectClinicalTab(4)
+
     ; --- Business Logic ---
     ^Esc:: RisController.AppendPreviousReport()
 
