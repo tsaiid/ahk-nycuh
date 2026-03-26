@@ -1,4 +1,4 @@
-; ==============================================================================
+﻿; ==============================================================================
 ; ★ Nodule Tracker (PACS Workflow Optimizer)
 ; ==============================================================================
 ; Description : 自動抓取 PACS 影像中的 Series 與 Image 編號並分類肺葉。
@@ -265,7 +265,7 @@ GetInfo_ByProbe() {
                         srsVal := ParseSrs(ocrResult.Text)
 
                         if (DebugOCR) {
-                            MsgBox("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " scanW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal "`n`n[幾何驗證]: 通過", "Debug OCR", "T5")
+                            ShowDebugWindow("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " scanW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal "`n`n[幾何驗證]: 通過", "Debug OCR", 5)
                         }
                     }
                 }
@@ -573,7 +573,7 @@ ProbeControl() {
                 pathParts := StrSplit(fullPath, ",")
                 if (pathParts.Length >= 2) {
                     targetIdx := pathParts.Length - 1
-                    
+
                     ; --- 計算 Img 路徑 (Index + 1) ---
                     pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
                     basePathImg := ""
@@ -649,7 +649,7 @@ ProbeControl() {
         msg .= "❌ Acc 發生執行期錯誤: " e.Message "`n"
     }
 
-    MsgBox(Trim(msg, "`n"))
+    ShowDebugWindow(Trim(msg, "`n"), "Pattern 探針資訊")
 }
 
 ; ==============================================================================
@@ -661,7 +661,7 @@ RunSmartBenchmark() {
     focusHwnd := ControlGetFocus("A")
 
     if (!focusHwnd) {
-        MsgBox("❌ 測試失敗：無法取得視窗焦點。")
+        ShowDebugWindow("❌ 測試失敗：無法取得視窗焦點。", "效能測試錯誤")
         return
     }
 
@@ -702,7 +702,7 @@ RunSmartBenchmark() {
         resultText .= "💡 建議：請檢查 F12 探針資訊以修正 Pattern 映射表。"
     }
 
-    MsgBox(resultText)
+    ShowDebugWindow(resultText, "智慧抓取效能測試")
 }
 
 ; ==============================================================================
@@ -1287,3 +1287,36 @@ WindowClosed(*) {
 ^c::CopyReport()
 Esc::ClearAll()
 #HotIf
+
+; ==============================================================================
+; ★ 新增：自定義除錯視窗 (附帶一鍵複製功能)
+; ==============================================================================
+ShowDebugWindow(content, title := "Debug Info", timeout := 0) {
+    debugGui := Gui("+AlwaysOnTop +Resize", title)
+    debugGui.SetFont("s10", "Maple Mono CN")
+    debugGui.BackColor := "F0F0F0"
+
+    ; 使用唯讀的 Edit 控制項來裝載內容，並啟用垂直捲軸
+    editCtrl := debugGui.Add("Edit", "w600 h400 ReadOnly Multi", content)
+
+    ; 一鍵複製按鈕
+    btnCopy := debugGui.Add("Button", "Default w120 h30", "📋 複製全部")
+    btnCopy.OnEvent("Click", (*) => (
+        A_Clipboard := content,
+        ToolTip("已複製到剪貼簿"),
+        SetTimer(() => ToolTip(), -2000)
+    ))
+
+    ; 關閉按鈕
+    btnClose := debugGui.Add("Button", "x+10 w100 h30", "關閉")
+    btnClose.OnEvent("Click", (*) => debugGui.Destroy())
+
+    debugGui.Show()
+    
+    ; [修正] 顯示後取消 Edit 文字選取，避免藍底影響閱讀
+    SendMessage(0x00B1, -1, 0, editCtrl.Hwnd) ; EM_SETSEL
+
+    if (timeout > 0) {
+        SetTimer(() => debugGui.Destroy(), -timeout * 1000)
+    }
+}
