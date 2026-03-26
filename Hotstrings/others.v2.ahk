@@ -251,6 +251,7 @@
 ::ccys::Correlation with cystoscopy is suggested.
 ::ccolon::Correlation with colonoscopy is suggested.
 ::cpes::Correlation with panendoscopy is suggested.
+::cegd::Correlation with esophagogastroduodenoscopy is suggested.
 ::csono::Correlation with sonography is suggested.
 ::ccsono::Clinical and sonographic correlation are suggested.
 ::ctrus::Correlate with transrectal ultrasonography is suggested.
