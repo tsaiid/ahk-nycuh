@@ -252,6 +252,17 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
     ^Up::RisController.SmartPageMove("Up")
     ^Down::RisController.SmartPageMove("Down")
 
+    ^+Up:: {
+        Send("{Blind}{vkE8}")
+        RisController.SmartPageMove("Up", true)
+        Send("{Blind}{vkE8}")
+    }
+    ^+Down:: {
+        Send("{Blind}{vkE8}")
+        RisController.SmartPageMove("Down", true)
+        Send("{Blind}{vkE8}")
+    }
+
     ^Enter::RisController.InsertNewLine("Below") ; Ctrl+Enter: 下方插入
     +Enter::RisController.InsertNewLine("Above") ; Shift+Enter: 上方插入
 
