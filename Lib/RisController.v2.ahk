@@ -1047,8 +1047,8 @@ class RisController {
 
         ; 處理剩餘的其他元件
         for key in this.Selectors {
-            ; 略過不在主畫面的病理報告元件
-            if (key == "PathoDiagnosisText" || key == "PathoDateText")
+            ; 略過不在主畫面的病理報告元件與臨床分頁
+            if (key == "PathoDiagnosisText" || key == "PathoDateText" || key == "ClinicalTabControl")
                 continue
 
             isPriority := false
@@ -1235,6 +1235,10 @@ class RisController {
             ; 1. 最優先推薦：使用 AHK 內建的 ControlChooseIndex
             ; 這對 SysTabControl32 最有效，會正確發送 TCM_SETCURSEL 與 TCN_SELCHANGE 通知
             if (hTab) {
+                try {
+                    if (ControlGetIndex(hTab) == index)
+                        return true
+                }
                 ControlChooseIndex(index, hTab)
                 return true
             }
@@ -1243,6 +1247,11 @@ class RisController {
             tabs := tabEle.FindAll({ Type: "TabItem" })
             if (index > 0 && index <= tabs.Length) {
                 targetTab := tabs[index]
+                ; 偵測是否已經選取
+                try {
+                    if (targetTab.IsSelected)
+                        return true
+                }
                 ; 嘗試點擊 (這通常會觸發 Mouse 事件)
                 try {
                     targetTab.Click() ; 如果 UIA 封裝支援 Click
@@ -1267,6 +1276,10 @@ class RisController {
             hTab := tabEle.NativeWindowHandle
 
             if (hTab) {
+                try {
+                    if (ControlGetIndex(hTab) == index)
+                        return true
+                }
                 ControlChooseIndex(index, hTab)
                 return true
             }
@@ -1274,6 +1287,11 @@ class RisController {
             tabs := tabEle.FindAll({ Type: "TabItem" })
             if (index > 0 && index <= tabs.Length) {
                 targetTab := tabs[index]
+                ; 偵測是否已經選取
+                try {
+                    if (targetTab.IsSelected)
+                        return true
+                }
                 try {
                     targetTab.Click()
                 } catch {
