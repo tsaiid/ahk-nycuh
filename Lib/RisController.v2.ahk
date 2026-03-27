@@ -91,6 +91,7 @@ class RisController {
         ],
 
         [
+            "CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONT",
             "CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONTRAST",
             "CT LUNG/ PLEURA/ CHEST WALL WITH+ WITHOUT CONTRAST"
         ],
@@ -288,7 +289,7 @@ class RisController {
     static EnableShellHookFocus() {
         if (this._isShellHookEnabled)
             return
-        
+
         DllCall("RegisterShellHookWindow", "Ptr", A_ScriptHwnd)
         OnMessage(DllCall("RegisterWindowMessage", "Str", "SHELLHOOK"), this._ShellMessage.Bind(this))
         this._isShellHookEnabled := true
