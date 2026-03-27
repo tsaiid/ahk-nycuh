@@ -158,6 +158,8 @@ class RisController {
     static _isAIPending  := false ; [新增] AI 請求中旗標
     static _isInsertRequested := false ; [新增] 插入請求旗標 (用於併發處理)
     static _isShellHookEnabled := false ; [新增] ShellHook 狀態旗標
+    static _shellTrack := Map()         ; [新增] 用於紀錄每個 HWND 的處理狀態 {time: TickCount, timer: Func}
+    static IsDebug := false            ; [新增] Debug 模式切換
 
     ; [自動更新相關狀態]
     static _lastUpdateTick := 0           ; 上次更新的時間
@@ -291,19 +293,46 @@ class RisController {
             return
 
         DllCall("RegisterShellHookWindow", "Ptr", A_ScriptHwnd)
-        OnMessage(DllCall("RegisterWindowMessage", "Str", "SHELLHOOK"), this._ShellMessage.Bind(this))
+        ; 使用閉包確保參數對齊：(wParam, lParam, msg, hwnd)
+        OnMessage(DllCall("RegisterWindowMessage", "Str", "SHELLHOOK"), (wp, lp, m, h) => this._ShellMessage(wp, lp, m, h))
         this._isShellHookEnabled := true
-        this.Notify("RIS 自動搶焦已啟動", 1000)
+        
+        msg := "RIS 自動搶焦已啟動"
+        if (this.IsDebug)
+            msg .= " (" . A_ScriptName . ")"
+        this.Notify(msg, 1500)
     }
 
     static _ShellMessage(wParam, lParam, msg, hwnd) {
         if (wParam = 1) { ; HSHELL_WINDOWCREATED
+            ; 這裡 lParam 是新視窗的 HWND
+            if (this.IsDebug)
+                OutputDebug("[RisShell] HSHELL_WINDOWCREATED received: HWND=" . lParam . " (Tick=" . A_TickCount . ")`n")
+
+            ; [Map 防震邏輯]
+            ; 如果 5 秒內已經處理過這個 HWND，且目前還有計時器正在跑，則跳過
+            if (this._shellTrack.Has(lParam)) {
+                track := this._shellTrack[lParam]
+                if (A_TickCount - track.time < 5000) {
+                    if (this.IsDebug)
+                        OutputDebug("[RisShell] >>> Debounced (Map): HWND=" . lParam . "`n")
+                    return
+                }
+            }
+
             try {
                 title := WinGetTitle(lParam)
                 ; 檢查是否為 RIS 報告視窗 (精確比對標題或包含關鍵字)
                 if WinExist(lParam) && (title == this.WinTitle || InStr(title, "報告作業")) {
-                    ; 延遲 800ms 搶回焦點，給 PACS 視窗足夠時間開啟
-                    SetTimer(() => this._FocusRisWindow(lParam), -800)
+                    if (this.IsDebug)
+                        OutputDebug("[RisShell] Target window detected. Title: " . title . "`n")
+
+                    ; 建立固定的 Func 物件並存入 Map，確保 SetTimer 會正確重置而非重複啟動
+                    timerFunc := ObjBindMethod(this, "_FocusRisWindow", lParam)
+                    this._shellTrack[lParam] := {time: A_TickCount, timer: timerFunc}
+
+                    ; 延遲 800ms 搶回焦點
+                    SetTimer(timerFunc, -800)
                 }
             }
         }
@@ -311,8 +340,17 @@ class RisController {
 
     static _FocusRisWindow(hwnd) {
         if WinExist(hwnd) {
+            ; [二次防震] 如果視窗已經是 Active 狀態且剛剛才處理過，就不再 Notify
+            if WinActive(hwnd) && (this._shellTrack.Has(hwnd) && A_TickCount - this._shellTrack[hwnd].time < 1500) {
+                return
+            }
+
             WinActivate(hwnd)
-            this.Notify("已自動回歸 RIS 焦點", 1000)
+            
+            msg := "已自動回歸 RIS 焦點"
+            if (this.IsDebug)
+                msg .= " (" . A_ScriptName . " | " . hwnd . " | " . A_TickCount . ")"
+            this.Notify(msg, 1500)
         }
     }
 
