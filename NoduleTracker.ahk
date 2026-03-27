@@ -40,6 +40,7 @@ CoordMode("Mouse", "Screen")
 CoordMode("ToolTip", "Screen")
 
 global NoduleData := Map("RUL", [], "RML", [], "RLL", [], "LUL", [], "LLL", [])
+global LobeOrder := ["RUL", "RML", "RLL", "LUL", "LLL"]
 global GuiX := 100, GuiY := 150, MyGui := ""
 global COL_LEFT_X := 10, COL_RIGHT_X := 170, COL_WIDTH := 140
 
@@ -1051,10 +1052,12 @@ UpdateGUI() {
 
     ; --- 按鈕區 ---
     MyGui.SetFont("s9 Norm", "Segoe UI")
-    btnX := 50
-    btnCopy := MyGui.Add("Button", "x" btnX " y+10 w100 h30", "Copy Report")
+    btnX := 15
+    btnCopy := MyGui.Add("Button", "x" btnX " y+10 w85 h30", "Full")
     btnCopy.OnEvent("Click", CopyReport)
-    btnCopyImg := MyGui.Add("Button", "x+20 w100 h30", "Copy Img No")
+    btnCopyLocImg := MyGui.Add("Button", "x+10 w90 h30", "Loc:Img")
+    btnCopyLocImg.OnEvent("Click", CopyLocImg)
+    btnCopyImg := MyGui.Add("Button", "x+10 w85 h30", "Img No")
     btnCopyImg.OnEvent("Click", CopyImgNo)
 
     ; --- 上分隔線 ---
@@ -1185,6 +1188,55 @@ CopyImgNo(*) {
     ShowTip("📋 Copied Img No:`n" finalStr, 3000)
 }
 
+CopyLocImg(*) {
+    lobeParts := []
+    global LobeOrder
+    For label in LobeOrder {
+        items := NoduleData[label]
+        if (items.Length > 0) {
+            imgMap := Map()
+            for item in items {
+                if IsNumber(item.img) {
+                    imgMap[Integer(item.img)] := true
+                }
+            }
+            imgList := []
+            for val, _ in imgMap {
+                imgList.Push(val)
+            }
+            ; 數值排序
+            if (imgList.Length > 1) {
+                Loop imgList.Length {
+                    i := A_Index
+                    Loop imgList.Length - i {
+                        j := A_Index
+                        if (imgList[j] > imgList[j+1]) {
+                            temp := imgList[j], imgList[j] := imgList[j+1], imgList[j+1] := temp
+                        }
+                    }
+                }
+            }
+            imgStr := ""
+            for val in imgList {
+                imgStr .= val . ";"
+            }
+            imgStr := Trim(imgStr, ";")
+            lobeParts.Push(label . ":" . imgStr)
+        }
+    }
+    if (lobeParts.Length == 0) {
+        ShowTip("! 無資料可複製", 2000)
+        return
+    }
+    finalStr := ""
+    for part in lobeParts {
+        finalStr .= part . " "
+    }
+    finalStr := Trim(finalStr)
+    A_Clipboard := finalStr
+    ShowTip("📋 Copied Loc:Img:`n" finalStr, 3000)
+}
+
 ClearAll(*) {
     For key, arr in NoduleData {
         NoduleData[key] := []
@@ -1206,7 +1258,7 @@ ClearAll(*) {
 
 CopyReport(*) {
     reportParts := []
-    global LobeOrder := ["RUL", "RML", "RLL", "LUL", "LLL"]
+    global LobeOrder
     For label in LobeOrder {
         items := NoduleData[label]
         if (items.Length > 0) {
