@@ -156,6 +156,7 @@ class RisController {
     static _preloadTask  := 0  ; [新增] 預載 Timer 參考
     static _isAIPending  := false ; [新增] AI 請求中旗標
     static _isInsertRequested := false ; [新增] 插入請求旗標 (用於併發處理)
+    static _isShellHookEnabled := false ; [新增] ShellHook 狀態旗標
 
     ; [自動更新相關狀態]
     static _lastUpdateTick := 0           ; 上次更新的時間
@@ -277,6 +278,40 @@ class RisController {
         ; 如果 duration > 0 則設定自動銷毀，否則持久化顯示
         if (duration > 0) {
             SetTimer () => (IsObject(g) && this._currentNotifyGui == g ? (g.Destroy(), this._currentNotifyGui := "") : ""), -duration
+        }
+    }
+
+    /**
+     * 自動搶回 RIS 報告視窗焦點 (封裝 ShellHook)
+     * 當偵測到新視窗建立時，如果是 RIS 報告視窗，則延遲一小段時間後將其 Activate
+     */
+    static EnableShellHookFocus() {
+        if (this._isShellHookEnabled)
+            return
+        
+        DllCall("RegisterShellHookWindow", "Ptr", A_ScriptHwnd)
+        OnMessage(DllCall("RegisterWindowMessage", "Str", "SHELLHOOK"), this._ShellMessage.Bind(this))
+        this._isShellHookEnabled := true
+        this.Notify("RIS 自動搶焦已啟動", 1000)
+    }
+
+    static _ShellMessage(wParam, lParam, msg, hwnd) {
+        if (wParam = 1) { ; HSHELL_WINDOWCREATED
+            try {
+                title := WinGetTitle(lParam)
+                ; 檢查是否為 RIS 報告視窗 (精確比對標題或包含關鍵字)
+                if WinExist(lParam) && (title == this.WinTitle || InStr(title, "報告作業")) {
+                    ; 延遲 800ms 搶回焦點，給 PACS 視窗足夠時間開啟
+                    SetTimer(() => this._FocusRisWindow(lParam), -800)
+                }
+            }
+        }
+    }
+
+    static _FocusRisWindow(hwnd) {
+        if WinExist(hwnd) {
+            WinActivate(hwnd)
+            this.Notify("已自動回歸 RIS 焦點", 1000)
         }
     }
 

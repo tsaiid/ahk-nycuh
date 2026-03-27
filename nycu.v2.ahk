@@ -38,6 +38,9 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 ; 啟動自動更新排程
 ;RisController.EnableAutoWorklistUpdate()
 
+; 啟動自動搶焦功能 (搶回 RIS 焦點以便自動化工具運作)
+RisController.EnableShellHookFocus()
+
 #HotIf WinActive(RisController.WinTitle)
 
     #Include Hotstrings\regex-hotstrings.v2.ahk
