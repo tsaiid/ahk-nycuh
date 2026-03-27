@@ -49,6 +49,9 @@ global EnableAccFallback := true
 ; ★ 新增：OCR 視覺化與文字除錯開關 (發布或實戰時請改為 false)
 global DebugOCR := false
 
+; ★ 新增：Ctrl+G 除錯視窗開關
+global ShowDebugQuickSet := false
+
 global GuiStatusMsg := "Ready"
 global txtStatus := ""
 
@@ -121,6 +124,9 @@ F12::ProbeControl()
 !z::CaptureNodule("RLL")
 !w::CaptureNodule("LUL")
 !s::CaptureNodule("LLL")
+
+; ★ 新增：Ctrl+G 快速跳至指定影像編號 (Image Number)
+^g::QuickSetImage()
 
 ; 使用大括號語法 (AHK v2)，並加入 vkE8 阻斷語言切換偵測
 
@@ -1099,6 +1105,15 @@ UpdateGUI() {
 
     global txtStatus := MyGui.Add("Text", "x10 y+5 w300 h30 Center " . statusColor, displayMsg)
 
+    ; --- 選項區 (修正語法錯誤) ---
+    MyGui.SetFont("s8 Norm", "Segoe UI")
+    chkDebug := MyGui.Add("Checkbox", "x10 y+2 Checked" (ShowDebugQuickSet ? "1" : "0"), "顯示 Ctrl+G 除錯資訊")
+    
+    ToggleDebug(ctrl, *) {
+        global ShowDebugQuickSet := ctrl.Value
+    }
+    chkDebug.OnEvent("Click", ToggleDebug)
+
     MyGui.Show("x" GuiX " y" GuiY " NoActivate AutoSize")
 }
 
@@ -1267,6 +1282,171 @@ SortNoduleData(arr) {
             }
         }
     }
+}
+
+; ==============================================================================
+; ★ 新增：Ctrl+G 實作 (快速跳至指定影像編號)
+; ==============================================================================
+QuickSetImage() {
+    ; 0. 在彈出 GUI 前，先抓取目標視窗與當前滑鼠位置/焦點
+    targetHwnd := WinActive("A")
+    MouseGetPos(&mX, &mY, &mHwnd, &mCtrlNN)
+    
+    ; 優先取得當前視窗的焦點控制項，若無則使用滑鼠下的控制項
+    targetFocusHwnd := ControlGetFocus("ahk_id " targetHwnd)
+    if (!targetFocusHwnd && mHwnd == targetHwnd) {
+        try targetFocusHwnd := ControlGetHwnd(mCtrlNN, "ahk_id " targetHwnd)
+    }
+    
+    if (!targetFocusHwnd) {
+        ShowTip("❌ 無法鎖定目標控制項", 1500)
+        return
+    }
+
+    ; 1. 建立一個極簡輸入框 GUI
+    inputGui := Gui("+AlwaysOnTop -Caption +Border", "Jump to Image")
+    inputGui.SetFont("s12 Bold", "Segoe UI")
+    inputGui.BackColor := "White"
+    
+    editNum := inputGui.Add("Edit", "w60 h30 Center Number Limit3")
+    
+    ; 設定 Enter 鍵觸發執行
+    btnOk := inputGui.Add("Button", "Default w0 h0", "OK")
+    btnOk.OnEvent("Click", (*) => ProcessJump(editNum.Value))
+    
+    ; 處理 Esc 鍵取消
+    inputGui.OnEvent("Escape", (*) => inputGui.Destroy())
+    
+    ; 顯示並激活，確保可以直接輸入
+    inputGui.Show("x" (mX - 30) " y" (mY - 15))
+    editNum.Focus()
+    
+    ; ★ 穩定方案：使用計時器偵測是否失去活動狀態 (預存 HWND 防止銷毀後報錯)
+    guiHwnd := inputGui.Hwnd
+    SetTimer(WatchFocus, 100)
+    
+    WatchFocus() {
+        try {
+            if (!WinExist("ahk_id " guiHwnd)) {
+                SetTimer(WatchFocus, 0)
+                return
+            }
+            if (!WinActive("ahk_id " guiHwnd)) {
+                SetTimer(WatchFocus, 0)
+                inputGui.Destroy()
+            }
+        } catch {
+            SetTimer(WatchFocus, 0)
+        }
+    }
+    
+    ProcessJump(val) {
+        if (val == "" || !IsNumber(val)) {
+            inputGui.Destroy()
+            return
+        }
+        
+        targetNum := Integer(val)
+        inputGui.Destroy()
+        
+        msg := "【Ctrl+G 執行除錯】`n目標影像編號: " targetNum "`n"
+        
+        try {
+            ; 使用預先鎖定的控制項
+            focusNN := ControlGetClassNN(targetFocusHwnd)
+            msg .= "- 目標焦點: " focusNN "`n"
+            
+            targetCombo := ""
+            method := ""
+            
+            ; --- 方法 A：探針模式 (Probe) ---
+            for patternData in PatternList {
+                if (patternData.map.Has(focusNN)) {
+                    targetCombo := patternData.map[focusNN].img
+                    method := "Probe (" patternData.name ")"
+                    break
+                }
+            }
+            
+            ; --- 方法 B：Acc 模式 (Fallback) ---
+            if (targetCombo == "" && EnableAccFallback) {
+                msg .= "- 探針未命中，嘗試 Acc 模式...`n"
+                pacsRoot := Acc.ElementFromHandle(targetHwnd)
+                
+                ; 取得座標中心
+                ControlGetPos(,, &cW, &cH, targetFocusHwnd, "ahk_id " targetHwnd)
+                pt := Buffer(8), NumPut("int", 0, pt, 0), NumPut("int", 0, pt, 4)
+                DllCall("ClientToScreen", "ptr", targetFocusHwnd, "ptr", pt)
+                tX := NumGet(pt, 0, "int") + (cW // 2)
+                tY := NumGet(pt, 4, "int") + (cH // 2)
+                
+                focusedEl := Acc.ElementFromPoint(tX, tY)
+                fullPath := GetRelativePath(focusedEl, pacsRoot)
+                
+                if (fullPath != "") {
+                    pathParts := StrSplit(fullPath, ",")
+                    if (pathParts.Length >= 2) {
+                        targetIdx := pathParts.Length - 1
+                        pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
+                        
+                        basePath := ""
+                        Loop targetIdx {
+                            basePath .= pathParts[A_Index] ","
+                        }
+                        comboPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
+                        
+                        try {
+                            comboEl := pacsRoot[comboPath]
+                            loc := comboEl.Location
+                            targetCombo := ControlGetClassNN(WindowFromPoint(loc.x + 10, loc.y + 10))
+                            method := "Acc Path Calculation"
+                        }
+                    }
+                }
+            }
+            
+            if (targetCombo == "") {
+                throw Error("無法定位目標 ComboBox")
+            }
+            
+            msg .= "- 定位成功: " targetCombo " (方法: " method ")`n"
+            
+            ; --- 執行設定數值 ---
+            success := false
+            
+            ; 優先嘗試 ControlChooseIndex (v2 標準方法)
+            try {
+                ControlChooseIndex(targetNum, targetCombo, "ahk_id " targetHwnd)
+                success := true
+                msg .= "- ControlChooseIndex: 成功`n"
+            } catch {
+                msg .= "- ControlChooseIndex: 失敗，嘗試 SendMessage...`n"
+                res := SendMessage(0x014E, targetNum - 1, 0, targetCombo, "ahk_id " targetHwnd)
+                if (res != -1) {
+                    success := true
+                    msg .= "- CB_SETCURSEL: 成功`n"
+                }
+            }
+            
+            if (success) {
+                ShowTip("✅ 跳至影像: " targetNum, 1000)
+            } else {
+                throw Error("所有寫入方法皆失敗")
+            }
+            
+        } catch Error as e {
+            msg .= "❌ 錯誤: " e.Message "`n"
+            ShowTip("❌ 設定失敗", 2000)
+        }
+        
+        if (ShowDebugQuickSet) {
+            ShowDebugWindow(msg, "Ctrl+G 除錯資訊", 5)
+        }
+    }
+}
+
+WindowFromPoint(x, y) {
+    return DllCall("WindowFromPoint", "int64", (x & 0xFFFFFFFF) | (y << 32), "ptr")
 }
 
 WindowClosed(*) {
