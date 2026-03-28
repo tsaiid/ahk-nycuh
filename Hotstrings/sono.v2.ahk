@@ -65,6 +65,8 @@
 ::lutl::upper portion of left thyroid lobe
 ::lltl::lower portion of left thyroid lobe
 ::btl::both thyroid lobes
+::ltn::left thyroid nodule
+::rtn::right thyroid nodule
 ::stwnl::The sizes of thyroid gland are within normal limits.
 ::stlok::The left thyroid lobe is unremarkable.
 ::strok::The right thyroid lobe is unremarkable.
