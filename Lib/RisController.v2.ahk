@@ -990,9 +990,9 @@ class RisController {
             lineCount := this._CountNonEmptyLines(hEdit)
 
             if (lineCount > 1) {
-                this._ReorderSelectedText(, , , , hEdit)
+                this._ReorderSelectedText(, , , , hEdit, true)
             } else {
-                this._ReorderSelectedText(true, , , , hEdit)
+                this._ReorderSelectedText(true, , , , hEdit, true)
             }
         } catch as err {
             this.Notify("Impression 格式化失敗: " err.Message)
@@ -1009,6 +1009,7 @@ class RisController {
             keepEmpty := options.HasOwnProp("keepEmpty") ? options.keepEmpty : false
             itemChar := options.HasOwnProp("itemChar") ? options.itemChar : ""
             discardSeIm := options.HasOwnProp("discardSeIm") ? options.discardSeIm : true
+            forceStartFromOne := options.HasOwnProp("forceStartFromOne") ? options.forceStartFromOne : false
 
             ; [新增] 自動偵測項目符號模式 (autoDetectItemChar)
             if (options.HasOwnProp("autoDetectItemChar") && options.autoDetectItemChar) {
@@ -1032,7 +1033,7 @@ class RisController {
                 }
             }
 
-            this._ReorderSelectedText(deOrder, keepEmpty, itemChar, discardSeIm, hEdit)
+            this._ReorderSelectedText(deOrder, keepEmpty, itemChar, discardSeIm, hEdit, forceStartFromOne)
         }
     }
 
@@ -1965,7 +1966,7 @@ class RisController {
         return ""
     }
 
-    static _ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true, targetHwnd := 0) {
+    static _ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true, targetHwnd := 0, forceStartFromOne := false) {
         sel := this._EditGetSel(targetHwnd)
         if (sel.End <= sel.Start) {
             return
@@ -1982,7 +1983,7 @@ class RisController {
         finalText := ""
         isSpine := false
         startLineNo := 1
-        if (RegExMatch(selectedText, "^(\d+)", &existLineNo)) {
+        if (!forceStartFromOne && RegExMatch(selectedText, "^(\d+)", &existLineNo)) {
             startLineNo := existLineNo[1]
         }
 
