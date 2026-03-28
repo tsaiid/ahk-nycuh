@@ -990,9 +990,9 @@ class RisController {
             lineCount := this._CountNonEmptyLines(hEdit)
 
             if (lineCount > 1) {
-                this._ReorderSelectedText(, , , , hEdit, true)
+                this._ReorderSelectedText(hEdit, , , , , true)
             } else {
-                this._ReorderSelectedText(true, , , , hEdit, true)
+                this._ReorderSelectedText(hEdit, true, , , , true)
             }
         } catch as err {
             this.Notify("Impression 格式化失敗: " err.Message)
@@ -1033,7 +1033,7 @@ class RisController {
                 }
             }
 
-            this._ReorderSelectedText(deOrder, keepEmpty, itemChar, discardSeIm, hEdit, forceStartFromOne)
+            this._ReorderSelectedText(hEdit, deOrder, keepEmpty, itemChar, discardSeIm, forceStartFromOne)
         }
     }
 
@@ -1966,7 +1966,7 @@ class RisController {
         return ""
     }
 
-    static _ReorderSelectedText(deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true, targetHwnd := 0, forceStartFromOne := false) {
+    static _ReorderSelectedText(targetHwnd := 0, deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true, forceStartFromOne := false) {
         sel := this._EditGetSel(targetHwnd)
         if (sel.End <= sel.Start) {
             return
@@ -2065,7 +2065,7 @@ class RisController {
 
         if (range) {
             this._EditSetSel(hEdit, range.Start, range.End)
-            this._ReorderSelectedText(false, true, "-", false, hEdit)
+            this._ReorderSelectedText(hEdit, false, true, "-", false)
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
         }
@@ -2077,7 +2077,7 @@ class RisController {
 
         if (range) {
             this._EditSetSel(hEdit, range.Start, range.End)
-            this._ReorderSelectedText(false, false, "-", true, hEdit)
+            this._ReorderSelectedText(hEdit, false, false, "-", true)
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
         }
