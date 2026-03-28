@@ -296,7 +296,7 @@ class RisController {
         ; 使用閉包確保參數對齊：(wParam, lParam, msg, hwnd)
         OnMessage(DllCall("RegisterWindowMessage", "Str", "SHELLHOOK"), (wp, lp, m, h) => this._ShellMessage(wp, lp, m, h))
         this._isShellHookEnabled := true
-        
+
         msg := "RIS 自動搶焦已啟動"
         if (this.IsDebug)
             msg .= " (" . A_ScriptName . ")"
@@ -346,7 +346,7 @@ class RisController {
             }
 
             WinActivate(hwnd)
-            
+
             msg := "已自動回歸 RIS 焦點"
             if (this.IsDebug)
                 msg .= " (" . A_ScriptName . " | " . hwnd . " | " . A_TickCount . ")"
