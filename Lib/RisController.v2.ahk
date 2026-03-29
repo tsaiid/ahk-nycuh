@@ -93,7 +93,8 @@ class RisController {
         [
             "CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONT",
             "CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONTRAST",
-            "CT LUNG/ PLEURA/ CHEST WALL WITH+ WITHOUT CONTRAST"
+            "CT LUNG/ PLEURA/ CHEST WALL WITH+ WITHOUT CONTRAST",
+            "HRCT LUNG PARENCHYMA WITHOUT CONTRAST",
         ],
 
         ; CT Brain (建立完整互聯：包含 Trauma, Non-con, With+Without)
@@ -332,7 +333,7 @@ class RisController {
                     this._shellTrack[lParam] := {time: A_TickCount, timer: timerFunc}
 
                     ; 延遲 800ms 搶回焦點
-                    SetTimer(timerFunc, -800)
+                    SetTimer(timerFunc, -1800)
                 }
             }
         }
