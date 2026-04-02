@@ -59,3 +59,4 @@
 - 在 Windows PowerShell 環境下，執行 Git 指令（如 git log, git status）時，不再需要額外添加 chcp 65001 或編碼前置指令，因為使用者已在 profile 中設定完成。
 - When the user requests to memorize something, add memories in this file rather than systemic GEMINI.md.
 - 在 AutoHotkey v2 中，箭頭函式 (Arrow Functions) `=>` 僅支援單一表達式 (Expression)，不支援大括號 `{}` 包裝的陳述句區塊 (Block-body)。
+- Use `rg` instead of `grep`.
