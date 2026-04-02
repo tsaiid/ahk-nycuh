@@ -604,6 +604,13 @@ ProbeControl() {
                     try {
                         imgEl := pacsRoot[imgPath]
                         msg .= "   ✅ 抓取 Img 值: [" Trim(imgEl.Value) "]`n"
+                        
+                        ; 反查 ClassNN 數字
+                        loc := imgEl.Location
+                        imgHwnd := WindowFromPoint(loc.x + 5, loc.y + 5)
+                        imgNN := ControlGetClassNN(imgHwnd)
+                        RegExMatch(imgNN, "(\d+)$", &nnMatch)
+                        msg .= "     (📍 Img ClassNN: " imgNN " -> 數字: " (nnMatch ? nnMatch[1] : "?") ")`n"
                     } catch {
                         msg .= "   ❌ 預測的 Img 路徑無效`n"
                     }
@@ -613,14 +620,28 @@ ProbeControl() {
                         loc := srsEl.Location
                         msg .= "   ✅ Srs 座標框: W" loc.w " H" loc.h "`n"
 
+                        ; 反查 ClassNN 數字
+                        srsHwnd := WindowFromPoint(loc.x + 5, loc.y + 5)
+                        srsNN := ControlGetClassNN(srsHwnd)
+                        RegExMatch(srsNN, "(\d+)$", &nnMatch)
+                        msg .= "     (📍 Srs ClassNN: " srsNN " -> 數字: " (nnMatch ? nnMatch[1] : "?") ")`n"
+
                         ; 顯示 Series Description
                         descVal := ""
                         try {
                             descPath := srsPath . ",2,4"
                             descEl := pacsRoot[descPath]
                             descVal := descEl.Value ? descEl.Value : descEl.Name
-                            if (descVal != "")
+                            if (descVal != "") {
                                 msg .= "   📝 Series Desc: [" descVal "]`n"
+                                
+                                ; 反查 ClassNN 數字
+                                dLoc := descEl.Location
+                                dHwnd := WindowFromPoint(dLoc.x + 5, dLoc.y + 5)
+                                dNN := ControlGetClassNN(dHwnd)
+                                RegExMatch(dNN, "(\d+)$", &dnnMatch)
+                                msg .= "     (📍 Desc ClassNN: " dNN " -> 數字: " (dnnMatch ? dnnMatch[1] : "?") ")`n"
+                            }
                         }
 
                         rawText := ""
