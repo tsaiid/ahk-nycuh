@@ -57,7 +57,7 @@ global EnableAccFallback := true
 global DebugOCR := false
 
 ; ★ 新增：Ctrl+G 除錯視窗開關
-global ShowDebugQuickSet := true
+global ShowDebugQuickSet := false
 
 global GuiStatusMsg := "Ready"
 global txtStatus := ""
@@ -204,6 +204,25 @@ GetSmartInfo() {
 }
 
 ; ==============================================================================
+; ★ 核心邏輯：探針匹配搜尋 (供多個功能共用)
+; ==============================================================================
+FindPatternMatch(focusNN, hwnd) {
+    for patternData in PatternList {
+        pMap := patternData.map
+        if (pMap.Has(focusNN)) {
+            candidate := pMap[focusNN]
+            ; 基本驗證：空間座標是否符合 (srs, img, desc 必須在 focus 附近)
+            if (VerifySpatialMatch(candidate.srs, focusNN, hwnd) &&
+                VerifySpatialMatch(candidate.img, focusNN, hwnd) &&
+                VerifySpatialMatch(candidate.desc, focusNN, hwnd)) {
+                return {candidate: candidate, name: patternData.name}
+            }
+        }
+    }
+    return ""
+}
+
+; ==============================================================================
 ; ★ 核心邏輯：精確 Pattern 判定 (三重驗證：ComboBox -> VMTool 標籤 -> OCR)
 ; ==============================================================================
 GetInfo_ByProbe() {
@@ -216,97 +235,88 @@ GetInfo_ByProbe() {
         focusNN := ControlGetClassNN(focusHwnd)
         hwnd := WinActive("A")
 
-        for patternData in PatternList {
-            pMap := patternData.map
+        match := FindPatternMatch(focusNN, hwnd)
+        if (match) {
+            candidate := match.candidate
 
-            if (pMap.Has(focusNN)) {
-                candidate := pMap[focusNN]
+            ; --- 第一重驗證：ComboBox 必須有數字 (Image No.) ---
+            imgVal := ""
+            try {
+                imgVal := ControlGetText(candidate.img, hwnd)
+            }
+            if (!IsNumber(Trim(imgVal))) {
+                return {srs: "", img: "", valid: false, error: "ComboBox 無有效數字"}
+            }
 
-                ; --- 第一重驗證：ComboBox 必須有數字 (Image No.) ---
-                imgVal := ""
-                try {
-                    imgVal := ControlGetText(candidate.img, hwnd)
-                }
-                if (!IsNumber(Trim(imgVal))) {
-                    continue
-                }
-
-                ; --- 第二重驗證：Series 控制項的 Text 必須包含 "VMTool" ---
-                try {
-                    ctrlText := ControlGetText(candidate.srs, hwnd)
-                    if (!InStr(ctrlText, "VMTool")) {
-                        continue
-                    }
-
-                    if (DebugOCR) {
-                        ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
-                        ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
-                        DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptC)
-                        srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
-
-                        ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
-                        ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
-                        DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
-                        focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
-
-                        ShowDebugRects([
-                            {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},
-                            {x: focX, y: focY, w: fW, h: fH, color: "Green"}
-                        ])
-                    }
-
-                    if (!VerifySpatialMatch(candidate.srs, focusNN, hwnd)) {
-                        continue
-                    }
-                } catch {
-                    continue
+            ; --- 第二重驗證：Series 控制項的 Text 必須包含 "VMTool" ---
+            try {
+                ctrlText := ControlGetText(candidate.srs, hwnd)
+                if (!InStr(ctrlText, "VMTool")) {
+                    return {srs: "", img: "", valid: false, error: "Series 標籤不符 (無 VMTool)"}
                 }
 
-                ; --- 第三重驗證：OCR 實際解析 Series 編號 ---
-                srsVal := ""
-                try {
+                if (DebugOCR) {
                     ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
-                    pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
-                    DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
-                    screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
+                    ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
+                    DllCall("ClientToScreen", "ptr", hwnd, "ptC", ptC)
+                    srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
 
-                    if (cW > 0 && cH > 0) {
-                        ; 限制掃描最大寬度為 150 px
-                        scanW := (cW > 150) ? 150 : cW
+                    ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
+                    ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
+                    DllCall("ClientToScreen", "ptr", hwnd, "ptF", ptF)
+                    focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
 
-                        ; ★ 改用帶有半透明紅框濾鏡的 OCR 函數
-                        ocrResult := CaptureOcrWithFilter(screenX, screenY, scanW, cH, 2)
-                        srsVal := ParseSrs(ocrResult.Text)
+                    ShowDebugRects([
+                        {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},
+                        {x: focX, y: focY, w: fW, h: fH, color: "Green"}
+                    ])
+                }
+            } catch {
+                return {srs: "", img: "", valid: false, error: "驗證過程發生異常"}
+            }
 
-                        if (DebugOCR) {
-                            ShowDebugWindow("【OCR 除錯資訊】`n`nScreen X: " screenX "`nScreen Y: " screenY "`nWidth: " scanW "`nHeight: " cH "`n`n[原始 OCR 抓取文字]:`n" ocrResult.Text "`n`n[ParseSrs 解析結果]: " srsVal "`n`n[幾何驗證]: 通過", "Debug OCR", 5)
-                        }
+            ; --- 第三重驗證：OCR 實際解析 Series 編號 ---
+            srsVal := ""
+            try {
+                ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
+                pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
+                DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
+                screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
+
+                if (cW > 0 && cH > 0) {
+                    scanW := (cW > 150) ? 150 : cW
+                    ocrResult := CaptureOcrWithFilter(screenX, screenY, scanW, cH, 2)
+                    srsVal := ParseSrs(ocrResult.Text)
+                }
+            }
+
+            ; --- 第四重驗證：檢查 Description 是否有效 (排除固定按鈕文字) ---
+            descVal := ""
+            try {
+                descVal := ControlGetText(candidate.desc, hwnd)
+            }
+
+            if (RegExMatch(descVal, "i)^(Related exam|Report|View|Print|Save|Delete|Cancel|OK)$")) {
+                return {srs: "", img: "", valid: false, error: "命中按鈕排除項 (" . descVal . ")"}
+            }
+
+            ; ★ 補強：如果 OCR 沒抓到，嘗試從 Description 抓取括號內的數字 (例如 (6))
+            if (srsVal == "" && descVal != "") {
+                if (RegExMatch(descVal, "\((\d+)\)", &dMatch)) {
+                    srsVal := dMatch[1]
+                }
+            }
+
+            if (srsVal != "") {
+                ; ★ 補償邏輯
+                if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+                    if (IsNumber(imgVal)) {
+                        imgVal := String(Integer(imgVal) + 1)
                     }
                 }
 
-                ; --- 第四重驗證：檢查 Description 是否有效 (排除固定按鈕文字) ---
-                descVal := ""
-                try {
-                    descVal := ControlGetText(candidate.desc, hwnd)
-                }
-
-                ; ★ 如果 descVal 包含明顯的按鈕文字 (如 Related exam)，則視為該 Pattern 誤中，繼續尋找下一個
-                if (RegExMatch(descVal, "i)^(Related exam|Report|View|Print|Save|Delete|Cancel|OK)$")) {
-                    continue
-                }
-
-                ; ★ 修改：只有當前三重驗證 (Text, Spatial, OCR) 與最終 Description 檢查都通過時，才視為命中
-                if (srsVal != "") {
-                    ; ★ 新增：如果 desc 包含 cor 或 sag (不分大小寫)，且非 MRI 關鍵字 (t1, t2, dwi, adc)，則 img + 1
-                    if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
-                        if (IsNumber(imgVal)) {
-                            imgVal := String(Integer(imgVal) + 1)
-                        }
-                    }
-
-                    RecordPatternHit(patternData.name) ; ★ 新增：寫入命中統計
-                    return {srs: srsVal, img: imgVal, desc: descVal, valid: true, method: candidate.type}
-                }
+                RecordPatternHit(match.name)
+                return {srs: srsVal, img: imgVal, desc: descVal, valid: true, method: candidate.type}
             }
         }
 
@@ -494,95 +504,58 @@ ProbeControl() {
     msg := "【Pattern 探針資訊】`n當前指向 ClassNN: " ctrlClassNN "`n`n"
     matchFound := false
 
-    ; ★ 動態驗證所有 Pattern
-    for patternData in PatternList {
-        pMap := patternData.map
+    ; 1. 嘗試使用統一探針邏輯
+    match := FindPatternMatch(ctrlClassNN, hwnd)
+    if (match) {
+        candidate := match.candidate
+        msg .= "🎯 探針命中: " match.name "`n"
 
-        if (pMap.Has(ctrlClassNN)) {
-            candidate := pMap[ctrlClassNN]
+        imgVal := ""
+        try imgVal := ControlGetText(candidate.img, hwnd)
 
-            imgVal := ""
-            try {
-                imgVal := ControlGetText(candidate.img, hwnd)
-            }
+        srsText := ""
+        try srsText := ControlGetText(candidate.srs, hwnd)
 
-            srsText := ""
-            try {
-                srsText := ControlGetText(candidate.srs, hwnd)
-            }
+        descText := ""
+        try descText := ControlGetText(candidate.desc, hwnd)
 
-            if (IsNumber(Trim(imgVal)) && InStr(srsText, "VMTool")) {
+        msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
+        msg .= "  - Srs 控制項: " candidate.srs " (文字: " Trim(srsText) ")`n"
+        msg .= "  - Desc 控制項: " candidate.desc " (數值: " Trim(descText) ")`n"
 
-                if (DebugOCR) {
-                    ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
-                    ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
-                    DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptC)
-                    srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
-
-                    ControlGetPos(&fX, &fY, &fW, &fH, ctrlClassNN, hwnd)
-                    ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
-                    DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
-                    focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
-
-                    ShowDebugRects([
-                        {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},
-                        {x: focX, y: focY, w: fW, h: fH, color: "Green"}
-                    ])
-                }
-
-                spatialPass := VerifySpatialMatch(candidate.srs, ctrlClassNN, hwnd)
-
-                if (DebugOCR) {
-                     msg .= "【幾何驗證結果】: " (spatialPass ? "✅ 通過" : "❌ 失敗") "`n------------------`n"
-                }
-
-                if (!spatialPass) {
-                    continue
-                }
-
-                ; --- 新增：同步 OCR 驗證與 Description 檢查 ---
-                srsVal := ""
-                try {
-                    ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
-                    pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
-                    DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
-                    srsX := NumGet(pt, 0, "int"), srsY := NumGet(pt, 4, "int")
-                    if (cW > 0 && cH > 0) {
-                        scanW := (cW > 150) ? 150 : cW
-                        ocrResult := CaptureOcrWithFilter(srsX, srsY, scanW, cH, 2)
-                        srsVal := ParseSrs(ocrResult.Text)
-                    }
-                }
-
-                dText := ""
-                try {
-                    dText := ControlGetText(candidate.desc, hwnd)
-                }
-
-                ; 判定是否真正命中 (需通過 OCR 且 Description 不是按鈕)
-                isRealHit := (srsVal != "" && !RegExMatch(dText, "i)^(Related exam|Report|View|Print|Save|Delete|Cancel|OK)$"))
-
-                if (!isRealHit) {
-                    continue
-                }
-
-                msg .= "🎯 實際命中: " patternData.name "`n"
-                msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
-                msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合，且通過空間與 OCR 驗證: " srsVal ")`n"
-                msg .= "  - Desc 控制項: " candidate.desc " (數值: " Trim(dText) ")`n"
-
-                matchFound := true
-                break
+        ; 進行更深層的驗證 (如 OCR)
+        srsVal := ""
+        try {
+            ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
+            pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
+            DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
+            srsX := NumGet(pt, 0, "int"), srsY := NumGet(pt, 4, "int")
+            if (cW > 0 && cH > 0) {
+                scanW := (cW > 150) ? 150 : cW
+                ocrResult := CaptureOcrWithFilter(srsX, srsY, scanW, cH, 2)
+                srsVal := ParseSrs(ocrResult.Text)
+                msg .= "  - OCR 解析 Series: [" (srsVal == "" ? "解析失敗" : srsVal) "]`n"
+                msg .= "    (原始文字: " StrReplace(ocrResult.Text, "`n", " ") ")`n"
             }
         }
+
+        ; 檢查 Description 備援
+        if (srsVal == "" && descText != "") {
+            if (RegExMatch(descText, "\((\d+)\)", &dMatch)) {
+                msg .= "  - 💡 發現備援：從 Description 取得 Series: " dMatch[1] "`n"
+            }
+        }
+
+        matchFound := true
     }
 
     if (!matchFound) {
         msg .= "❌ 狀態：未命中任何完整 Pattern 規則。`n"
+        msg .= "  (請確認該控制項是否已加入 GenerateMaps 的配置中)`n"
     }
 
     ; ==============================================================================
-    ; ★ Acc 備用方案深度除錯 (新增文字解析顯示)
+    ; ★ Acc 備用方案深度除錯
     ; ==============================================================================
     msg .= "`n====================`n【Acc 備用方案除錯】`n"
 
@@ -612,7 +585,7 @@ ProbeControl() {
                 if (pathParts.Length >= 2) {
                     targetIdx := pathParts.Length - 1
 
-                    ; --- 計算 Img 路徑 (Index + 1) ---
+                    ; --- 計算 Img 路徑 ---
                     pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
                     basePathImg := ""
                     Loop targetIdx {
@@ -620,7 +593,7 @@ ProbeControl() {
                     }
                     imgPath := basePathImg . pathParts[pathParts.Length] . ",1,4,2,4"
 
-                    ; --- 計算 Srs 路徑 (Index 再 + 1) ---
+                    ; --- 計算 Srs 路徑 ---
                     pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
                     basePathSrs := ""
                     Loop targetIdx {
@@ -640,39 +613,53 @@ ProbeControl() {
                         loc := srsEl.Location
                         msg .= "   ✅ Srs 座標框: W" loc.w " H" loc.h "`n"
 
-                        ; ★ 新增：顯示 Series Description (descVal)
+                        ; 顯示 Series Description
+                        descVal := ""
                         try {
                             descPath := srsPath . ",2,4"
                             descEl := pacsRoot[descPath]
-                            rawDesc := descEl.Value ? descEl.Value : descEl.Name
-                            if (rawDesc != "")
-                                msg .= "   📝 Series Desc: [" rawDesc "]`n"
+                            descVal := descEl.Value ? descEl.Value : descEl.Name
+                            if (descVal != "")
+                                msg .= "   📝 Series Desc: [" descVal "]`n"
                         }
 
-                        ; ★ 新增：顯示底層到底是抓到什麼字！
                         rawText := ""
-                        try {
-                            rawText := srsEl.Name
-                        }
+                        try rawText := srsEl.Name
                         if (rawText == "") {
-                            try {
-                                rawText := srsEl.Value
-                            }
+                            try rawText := srsEl.Value
                         }
 
+                        srsVal := ""
                         if (rawText != "") {
                             msg .= "   🔍 Acc 屬性文字: [" rawText "]`n"
-                            msg .= "   🎯 解析結果: [" ParseSrs(rawText) "]`n"
-                        } else {
-                            msg .= "   ⚠️ Acc 無內建文字，啟動 OCR...`n"
+                            srsVal := ParseSrs(rawText)
+                        }
+
+                        ; ★ 修正：如果屬性文字無法解析出數字，則嘗試 OCR
+                        if (srsVal == "") {
+                            msg .= "   ⚠️ 文字解析無結果，啟動 OCR...`n"
                             if (loc.w > 0 && loc.h > 0) {
                                 scanW := (loc.w > 150) ? 150 : loc.w
                                 ocrResult := OCR.FromRect(loc.x, loc.y, scanW, loc.h, {scale: 2})
-                                ; 避免文字太多換行破壞版面，替換為空格
                                 safeText := StrReplace(ocrResult.Text, "`n", " ")
                                 msg .= "   🔍 OCR 原始文字: [" safeText "]`n"
-                                msg .= "   🎯 解析結果: [" ParseSrs(ocrResult.Text) "]`n"
+                                srsVal := ParseSrs(ocrResult.Text)
                             }
+                        }
+
+                        ; ★ 修正：如果 OCR 也沒數字，嘗試從 Description 抓取
+                        if (srsVal == "" && descVal != "") {
+                            if (RegExMatch(descVal, "\((\d+)\)", &dMatch)) {
+                                srsVal := dMatch[1]
+                                msg .= "   🎯 解析結果 (備援自 Desc): [" srsVal "]`n"
+                            }
+                        }
+
+                        if (srsVal != "") {
+                            if (!InStr(msg, "備援自 Desc"))
+                                msg .= "   🎯 解析結果: [" srsVal "]`n"
+                        } else {
+                            msg .= "   🎯 解析結果: [無法識別序列號]`n"
                         }
 
                     } catch {
@@ -851,6 +838,13 @@ GetNoduleInfoFromFocus() {
                     ocrResult := CaptureOcrWithFilter(loc.x, loc.y, scanW, loc.h, 2)
                     srsVal := ParseSrs(ocrResult.Text)
                 }
+            }
+        }
+
+        ; ★ 補強：如果 srsVal 還是空的，嘗試從 Description 抓取括號內的數字 (例如 (6))
+        if (srsVal == "" && descVal != "") {
+            if (RegExMatch(descVal, "\((\d+)\)", &dMatch)) {
+                srsVal := dMatch[1]
             }
         }
 
@@ -1443,12 +1437,10 @@ QuickSetImage() {
             method := ""
 
             ; --- 方法 A：探針模式 (Probe) ---
-            for patternData in PatternList {
-                if (patternData.map.Has(focusNN)) {
-                    targetCombo := patternData.map[focusNN].img
-                    method := "Probe (" patternData.name ")"
-                    break
-                }
+            match := FindPatternMatch(focusNN, targetHwnd)
+            if (match) {
+                targetCombo := match.candidate.img
+                method := "Probe (" match.name ")"
             }
 
             ; --- 方法 B：Acc 模式 (Fallback) ---
@@ -1523,7 +1515,7 @@ QuickSetImage() {
         }
 
         if (ShowDebugQuickSet) {
-            ShowDebugWindow(msg, "Ctrl+G 除錯資訊", 5)
+            ShowDebugWindow(msg, "Ctrl+G 除錯資訊")
         }
     }
 }
