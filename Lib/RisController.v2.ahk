@@ -2262,11 +2262,14 @@ class RisController {
 
     static _ClickUIAElement(el) {
         try {
-            r := el.BoundingRectangle
-            MouseClick("Left", r.l + (el.Location.w / 2), r.t + (el.Location.h / 2))
+            el.ControlClick()
         } catch {
             try {
-                el.Invoke()
+                el.Click("left")
+            } catch {
+                try {
+                    el.Invoke()
+                }
             }
         }
     }
