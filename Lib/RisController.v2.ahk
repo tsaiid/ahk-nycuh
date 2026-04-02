@@ -91,6 +91,7 @@ class RisController {
         ],
 
         [
+            "CT LUNG/ PLEURA/ CHEST WALL WITH CONTRAST",
             "CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONT",
             "CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONTRAST",
             "CT LUNG/ PLEURA/ CHEST WALL WITH+ WITHOUT CONTRAST",
