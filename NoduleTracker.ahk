@@ -47,7 +47,7 @@ CoordMode("ToolTip", "Screen")
 
 global NoduleData := Map("RUL", [], "RML", [], "RLL", [], "LUL", [], "LLL", [])
 global LobeOrder := ["RUL", "RML", "RLL", "LUL", "LLL"]
-global GuiX := 100, GuiY := 150, MyGui := ""
+global GuiX := A_ScreenWidth - 350, GuiY := 50, MyGui := ""
 global COL_LEFT_X := 10, COL_RIGHT_X := 170, COL_WIDTH := 140
 
 ; ★ 新增：Acc 慢速模式的總開關 (強烈建議設為 false，徹底杜絕卡死)
@@ -95,6 +95,7 @@ GenerateMaps() {
         [5, 57, 41, 101],
         [5, 57, 45, 101],
         [5, 57, 47, 101],
+        [5, 57, 49, 185],
     ]
 
     for idx, cfg in configs {
@@ -604,7 +605,7 @@ ProbeControl() {
                     try {
                         imgEl := pacsRoot[imgPath]
                         msg .= "   ✅ 抓取 Img 值: [" Trim(imgEl.Value) "]`n"
-                        
+
                         ; 反查 ClassNN 數字
                         loc := imgEl.Location
                         imgHwnd := WindowFromPoint(loc.x + 5, loc.y + 5)
@@ -634,7 +635,7 @@ ProbeControl() {
                             descVal := descEl.Value ? descEl.Value : descEl.Name
                             if (descVal != "") {
                                 msg .= "   📝 Series Desc: [" descVal "]`n"
-                                
+
                                 ; 反查 ClassNN 數字
                                 dLoc := descEl.Location
                                 dHwnd := WindowFromPoint(dLoc.x + 5, dLoc.y + 5)
