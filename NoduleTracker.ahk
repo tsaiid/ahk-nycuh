@@ -1136,11 +1136,16 @@ UpdateGUI() {
     ; --- 選項區 (修正語法錯誤) ---
     MyGui.SetFont("s8 Norm", "Segoe UI")
     chkDebug := MyGui.Add("Checkbox", "x10 y+2 Checked" (ShowDebugQuickSet ? "1" : "0"), "顯示 Ctrl+G 除錯資訊")
-
     ToggleDebug(ctrl, *) {
         global ShowDebugQuickSet := ctrl.Value
     }
     chkDebug.OnEvent("Click", ToggleDebug)
+
+    chkOCR := MyGui.Add("Checkbox", "x10 y+2 Checked" (DebugOCR ? "1" : "0"), "顯示 OCR 除錯資訊")
+    ToggleOCR(ctrl, *) {
+        global DebugOCR := ctrl.Value
+    }
+    chkOCR.OnEvent("Click", ToggleOCR)
 
     MyGui.Show("x" GuiX " y" GuiY " NoActivate AutoSize")
 }
