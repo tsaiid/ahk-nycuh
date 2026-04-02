@@ -284,14 +284,19 @@ GetInfo_ByProbe() {
                     }
                 }
 
-                ; ★ 修改：只有當前兩重文字驗證與最終 OCR 都通過時，才視為命中並記錄數據
-                if (srsVal != "") {
-                    ; 嘗試抓取 Probe 模式下的 Series Description (新增)
-                    descVal := ""
-                    try {
-                        descVal := ControlGetText(candidate.desc, hwnd)
-                    }
+                ; --- 第四重驗證：檢查 Description 是否有效 (排除固定按鈕文字) ---
+                descVal := ""
+                try {
+                    descVal := ControlGetText(candidate.desc, hwnd)
+                }
 
+                ; ★ 如果 descVal 包含明顯的按鈕文字 (如 Related exam)，則視為該 Pattern 誤中，繼續尋找下一個
+                if (RegExMatch(descVal, "i)^(Related exam|Report|View|Print|Save|Delete|Cancel|OK)$")) {
+                    continue
+                }
+
+                ; ★ 修改：只有當前三重驗證 (Text, Spatial, OCR) 與最終 Description 檢查都通過時，才視為命中
+                if (srsVal != "") {
                     ; ★ 新增：如果 desc 包含 cor 或 sag (不分大小寫)，且非 MRI 關鍵字 (t1, t2, dwi, adc)，則 img + 1
                     if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                         if (IsNumber(imgVal)) {
@@ -535,17 +540,36 @@ ProbeControl() {
                     continue
                 }
 
-                msg .= "🎯 實際命中: " patternData.name "`n"
-                msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
-                msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合，且通過空間驗證)`n"
+                ; --- 新增：同步 OCR 驗證與 Description 檢查 ---
+                srsVal := ""
+                try {
+                    ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
+                    pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
+                    DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
+                    srsX := NumGet(pt, 0, "int"), srsY := NumGet(pt, 4, "int")
+                    if (cW > 0 && cH > 0) {
+                        scanW := (cW > 150) ? 150 : cW
+                        ocrResult := CaptureOcrWithFilter(srsX, srsY, scanW, cH, 2)
+                        srsVal := ParseSrs(ocrResult.Text)
+                    }
+                }
 
-                ; 顯示 Probe 抓到的 Desc (新增)
+                dText := ""
                 try {
                     dText := ControlGetText(candidate.desc, hwnd)
-                    msg .= "  - Desc 控制項: " candidate.desc " (數值: " Trim(dText) ")`n"
-                } catch {
-                    msg .= "  - Desc 控制項: " candidate.desc " (無法讀取)`n"
                 }
+
+                ; 判定是否真正命中 (需通過 OCR 且 Description 不是按鈕)
+                isRealHit := (srsVal != "" && !RegExMatch(dText, "i)^(Related exam|Report|View|Print|Save|Delete|Cancel|OK)$"))
+
+                if (!isRealHit) {
+                    continue
+                }
+
+                msg .= "🎯 實際命中: " patternData.name "`n"
+                msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
+                msg .= "  - Srs 控制項: " candidate.srs " (標籤吻合，且通過空間與 OCR 驗證: " srsVal ")`n"
+                msg .= "  - Desc 控制項: " candidate.desc " (數值: " Trim(dText) ")`n"
 
                 matchFound := true
                 break
