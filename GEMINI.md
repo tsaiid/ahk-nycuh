@@ -27,7 +27,7 @@
   - 函數：`PascalCase` (e.g., `ActivateWindow`)
   - 常數：`UPPER_SNAKE_CASE` (e.g., `DEFAULT_TIMEOUT`)
 - **縮排**：使用 4 個空格 (Spaces)。
-- **區塊**：即使只有一行程式碼，也建議使用 `{ ... }` 包覆，以避免邏輯錯誤。
+- **區塊**：即使只有一行程式碼，也必須使用 `{ ... }` 包覆，且換行，以避免邏輯錯誤。
 
 ## 3. 最佳實踐 (Best Practices)
 - **函數優先**：盡量不要使用 `GoTo` 或 `GoSub`。邏輯應封裝在 Functions 中。
@@ -50,3 +50,11 @@
 - 產出程式碼時，請預設加入適當的註解 (Traditional Chinese)。
 - 修改既有程式碼時，請保留原程式碼的註解。
 - 請使用中文與我溝通。
+
+## Gemini Added Memories
+- The user is using a Windows 10 computer and does not have administrator privileges.
+- The user's Windows PowerShell environment has version limitations where chaining commands with '&&' may fail; commands should be executed separately using ';' or as individual tool calls.
+- 在 Git commit 時，禁止使用 AHK 的 `n 語法。若需要換行/分段，應使用多個 -m 參數：git commit -m \"Subject\" -m \"Body\"。
+- When the user requests a debug window in AutoHotkey, it must include a feature or button to copy all of its content with a single click.
+- 在 Windows PowerShell 環境下，執行 Git 指令（如 git log, git status）時，不再需要額外添加 chcp 65001 或編碼前置指令，因為使用者已在 profile 中設定完成。
+- When the user requests to memorize something, add memories in this file rather than systemic GEMINI.md.

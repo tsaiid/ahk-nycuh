@@ -150,7 +150,8 @@ class RisController {
     ; 2. 內部狀態 (State)
     ; =================================================================
     static _cache := Map()
-    static _currentNotifyGui := ""
+    static _activeNotifies := Map()
+    static _notifyOffset := 0
     static _compContext := {ReqNo: "", Date: ""}
     static _hCustomFont := 0
     static _targetImpressionHeight := 95
@@ -229,21 +230,14 @@ class RisController {
     ; 4. 系統功能 (Notify & Focus)
     ; =================================================================
 
-    ; [MODIFIED] 現代化 Notify UI (支援點擊關閉與持久化)
+    ; [MODIFIED] 現代化 Notify UI (支援點擊關閉與層疊顯示)
     static Notify(text, duration := 1500) {
-        if (this._currentNotifyGui) {
-            try {
-                this._currentNotifyGui.Destroy()
-            }
-            this._currentNotifyGui := ""
-        }
-
         ; +AlwaysOnTop: 置頂
         ; -Caption: 無標題列
         ; +ToolWindow: 不顯示在工作列
         ; +E0x08000000 (WS_EX_NOACTIVATE): 不搶奪焦點
-        ; 移除 +E0x20 (WS_EX_TRANSPARENT) 以便接收點擊事件
         g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000000")
+        hwnd := g.Hwnd ; 預先取得 HWND 供閉包使用
 
         ; 現代深色風格背景 (Deep Dark Gray)
         g.BackColor := "202020"
@@ -255,20 +249,35 @@ class RisController {
         g.MarginX := 25
         g.MarginY := 15
 
+        ; 建立清理函式 (當視窗關閉或時間到時執行)
+        cleanup(*) {
+            if this._activeNotifies.Has(hwnd) {
+                this._activeNotifies.Delete(hwnd)
+                if (this._activeNotifies.Count == 0)
+                    this._notifyOffset := 0
+            }
+            try g.Destroy()
+        }
+
         ; 點擊文字即關閉視窗
         txtObj := g.Add("Text", "Center", text)
-        txtObj.OnEvent("Click", (*) => (
-            IsObject(g) ? g.Destroy() : "",
-            (this._currentNotifyGui == g) ? this._currentNotifyGui := "" : ""
-        ))
+        txtObj.OnEvent("Click", cleanup)
 
-        ; 先顯示出來以計算尺寸
+        ; 先以 Center 顯示以取得初始中央座標
         g.Show("NoActivate AutoSize Center")
+
+        ; 取得目前位置
+        WinGetPos(&x, &y, &w, &h, hwnd)
+
+        ; 如果不是第一個 Notify，則根據 Offset 進行層疊位移
+        if (this._notifyOffset > 0) {
+            ; 每次位移 35 像素，最多層疊 10 次後循環 (避免跑出螢幕太遠)
+            offsetIdx := Mod(this._notifyOffset, 10)
+            g.Move(x + offsetIdx * 35, y + offsetIdx * 35)
+        }
 
         ; --- 視覺特效處理 ---
         try {
-            hwnd := g.Hwnd
-            WinGetPos(,, &w, &h, hwnd)
             WinSetRegion("0-0 w" w " h" h " r12-12", hwnd)
 
             style := DllCall("GetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr")
@@ -277,11 +286,13 @@ class RisController {
             WinSetTransparent(235, hwnd)
         }
 
-        this._currentNotifyGui := g
+        ; 紀錄至追蹤清單與更新 Offset
+        this._activeNotifies[hwnd] := g
+        this._notifyOffset++
 
         ; 如果 duration > 0 則設定自動銷毀，否則持久化顯示
         if (duration > 0) {
-            SetTimer () => (IsObject(g) && this._currentNotifyGui == g ? (g.Destroy(), this._currentNotifyGui := "") : ""), -duration
+            SetTimer(cleanup, -duration)
         }
     }
 

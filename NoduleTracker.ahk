@@ -57,7 +57,7 @@ global EnableAccFallback := true
 global DebugOCR := false
 
 ; ★ 新增：Ctrl+G 除錯視窗開關
-global ShowDebugQuickSet := false
+global ShowDebugQuickSet := true
 
 global GuiStatusMsg := "Ready"
 global txtStatus := ""
