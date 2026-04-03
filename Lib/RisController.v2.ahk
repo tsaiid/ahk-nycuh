@@ -104,7 +104,12 @@ class RisController {
             "CT BRAIN (急診TRAUMA 專用)WITHOUT CONTRAST",
             "CT BRAIN WITHOUT CONTRAST",
             "CT BRAIN WITH+ WITHOUT CONTRAST"
-        ]
+        ],
+
+        [
+            "MRI BRAIN WITH CONTRAST",
+            "MRI BRAIN MRA WITH CONTRAST",
+        ],
     ]
 
     ; [新增] 執行期使用的快速查詢表 (由 __New 自動生成，無需手動維護)
