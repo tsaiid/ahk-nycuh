@@ -185,17 +185,58 @@ Old lacunar infarcts in the bilateral basal ganglia.
     Paste(MyForm)
 }
 
+GetUnremarkableNeckFindings(searchText) {
+    findings := []
+
+    ; 1. Pharynx/Larynx
+    if (!HasPositiveFinding(searchText, ["nasopharynx", "oropharynx", "hypopharynx", "larynx", "epiglottis", "vocal cord", "pharyngeal"])) {
+        findings.Push("The nasopharynx, oropharynx, hypopharynx, and larynx are unremarkable.")
+    }
+
+    ; 2. Lymph Nodes
+    if (!HasPositiveFinding(searchText, ["lymph node", "LN", "LAP", "lymphadenopathy", "submandibular", "submental", "carotid space", "posterior cervical", "supraclavicular"])) {
+        findings.Push("No bulky lymph nodes in the bilateral submandibular and submental, carotid, posterior cervical spaces, and supraclavicular fossae noted.")
+    }
+
+    ; 3. Glands
+    if (!HasPositiveFinding(searchText, ["parotid", "submandibular gland", "thyroid"])) {
+        findings.Push("No particular findings of parotid gland, submandibular gland, and thyroid gland.")
+    }
+
+    ; 4. Sinuses/Mastoid
+    if (!HasPositiveFinding(searchText, ["sinus", "maxillary", "frontal", "ethmoid", "sphenoid", "mastoid"])) {
+        findings.Push("The paranasal sinuses and mastoid air cells are clear.")
+    }
+
+    ; 5. Brain/Lungs
+    if (!HasPositiveFinding(searchText, ["brain", "lung"])) {
+        findings.Push("The visible brain and lungs show no remarkable findings.")
+    }
+
+    return findings
+}
+
 ::necok::
 {
-    MyForm := "
-  (
-The nasopharynx, oropharynx, hypopharynx, and larynx are unremarkable.
-No bulky lymph nodes in the bilateral submandibular and submental, carotid, posterior cervical spaces, and supraclavicular fossae noted.
-No particular findings of parotid gland, submandibular gland, and thyroid gland.
-The paranasal sinuses and mastoid air cells are clear.
-The visible brain and lungs show no remarkable findings.
-  )"
-    Paste(MyForm)
+    ; 1. 取得文本
+    searchText := RisController.GetFindingContent()
+    if (searchText == "") {
+        try {
+            searchText := RisController.FindingText
+        }
+    }
+
+    ; 2. 呼叫 Helper 取得未提及之檢查項
+    findings := GetUnremarkableNeckFindings(searchText)
+
+    ; 3. 輸出
+    if (findings.Length > 0) {
+        output := ""
+        loop findings.Length {
+            output .= findings[A_Index] . (A_Index == findings.Length ? "" : "`n")
+        }
+        Paste(output)
+    }
 }
 
 ::neclapok::
