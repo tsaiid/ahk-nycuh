@@ -233,7 +233,17 @@ class NoduleTracker {
                 if (NoduleTracker.VerifySpatialMatch(candidate.srs, focusNN, hwnd) &&
                     NoduleTracker.VerifySpatialMatch(candidate.img, focusNN, hwnd) &&
                     NoduleTracker.VerifySpatialMatch(candidate.desc, focusNN, hwnd)) {
-                    return {candidate: candidate, name: patternData.name}
+                    
+                    ; [新增] 驗證 Description 控制項文字格式 (必須符合 "(從1開始的數字) 文字")
+                    try {
+                        descText := ControlGetText(candidate.desc, hwnd)
+                        if (!RegExMatch(descText, "^\(\d+\)\s"))
+                            continue
+                    } catch {
+                        continue
+                    }
+
+                    return {candidate: candidate, name: patternData.name, desc: descText}
                 }
             }
         }
@@ -296,12 +306,8 @@ class NoduleTracker {
                 } catch {
                     ; OCR 失敗仍可嘗試備援方案
                 }
-                descVal := ""
-                try descVal := ControlGetText(candidate.desc, hwnd)
+                descVal := match.desc
 
-                if (RegExMatch(descVal, "i)^(Related exam|Report|View|Print|Save|Delete|Cancel|OK)$")) {
-                    return {srs: "", img: "", valid: false, error: "命中按鈕排除項 (" . descVal . ")"}
-                }
                 if (srsVal == "" && descVal != "") {
                     if (RegExMatch(descVal, "\((\d+)\)", &dMatch)) {
                         srsVal := dMatch[1]
