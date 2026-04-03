@@ -4,7 +4,7 @@
  * RIS AI 助手設定檔
  *
  * 在此管理所有 AI 產生的 Prompts 與模型參數。
- * 注意：API Key 仍保留在 config.private.ini 中以確保安全性。
+ * 注意：API Key 仍保留在 config\private.ini 中以確保安全性。
  */
 class RisConfig {
     static AI := {

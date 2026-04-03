@@ -2514,7 +2514,7 @@ class RisController {
         ; 定義內部 Log
         Log := (msg) => (isSilent ? OutputDebug("[RisPost] " . msg . "`n") : this.Notify(msg))
 
-        configFile := "config.private.ini"
+        configFile := "config\private.ini"
         url  := IniRead(configFile, "n8n", "WebhookURL", "")
         user := IniRead(configFile, "n8n", "Username", "")
         pass := IniRead(configFile, "n8n", "Password", "")
@@ -2872,7 +2872,7 @@ class RisController {
     }
 
     static _CallGoogleAI(promptText, modelName := "", temperature := "", topP := "") {
-        configFile := "config.private.ini"
+        configFile := "config\private.ini"
 
         ; 1. 取得模型名稱 (優先使用參數，若無則從設定檔讀取)
         if (modelName == "") {
