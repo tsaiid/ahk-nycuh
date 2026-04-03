@@ -97,19 +97,68 @@
     Fleischner2017Form()
 }
 
+GetUnremarkableChestFindings(searchText) {
+    findings := []
+
+    ; - Lungs
+    if (!HasPositiveFinding(searchText, ["nodule", "consolidation", "mass", "opacity", "infiltration", "patchy", "atelectasis", "ground-glass", "lesion", "emphysema", "fibrosis"])) {
+        findings.Push("- No suspicious pulmonary nodule or consolidation.")
+    }
+
+    ; - Airways
+    if (!HasPositiveFinding(searchText, ["airway", "bronchial", "trachea", "bronchiecta"])) {
+        findings.Push("- The central airways are patent.")
+    }
+
+    ; - Lymph nodes
+    if (!HasPositiveFinding(searchText, ["lymphadenopathy", "lymph node", "LAP", "LN", "hilar", "mediastinal"])) {
+        findings.Push("- No significant mediastinal or axillary lymphadenopathy.")
+    }
+
+    ; - Heart/Vessels
+    if (!HasPositiveFinding(searchText, ["heart", "cardiomegaly", "vessel", "aorta", "pulmonary artery", "pericardial", "valvular"])) {
+        findings.Push("- The heart size and great vessels are normal in caliber.")
+    }
+
+    ; - Pleura
+    if (!HasPositiveFinding(searchText, ["effusion", "pneumothorax", "pleural", "pleura"])) {
+        findings.Push("- No pleural effusion or pneumothorax.")
+    }
+
+    ; - Bones
+    if (!HasPositiveFinding(searchText, ["bone", "skeleton", "rib", "vertebra", "fracture", "metastasis", "osteolytic", "osteoblastic", "sclerotic", "lesion", "degenerative", "spondylosis", "scoliosis"])) {
+        findings.Push("- No suspicious bone lesion in the visualized skeleton.")
+    }
+
+    ; - Abdomen
+    if (!HasPositiveFinding(searchText, ["liver", "hepatic", "gallbladder", "chole", "spleen", "splenic", "pancreas", "pancreatic", "adrenal", "kidney", "renal", "upper abdomen", "upper abdominal"])) {
+        findings.Push("- Visualized upper abdominal organs are unremarkable.")
+    }
+
+    return findings
+}
+
 ::cctok::
 {
-    MyForm := "
-  (
-- No suspicious pulmonary nodule or consolidation.
-- The central airways are patent.
-- No significant mediastinal or axillary lymphadenopathy.
-- The heart size and great vessels are normal in caliber.
-- No pleural effusion or pneumothorax.
-- No suspicious bone lesion in the visualized skeleton.
-- Visualized upper abdominal organs are unremarkable.
-  )"
-    Paste(MyForm)
+    ; 1. 取得文本
+    searchText := RisController.GetFindingContent()
+    if (searchText == "") {
+        try {
+            searchText := RisController.FindingText
+        }
+    }
+
+    ; 2. 呼叫 Helper 取得未提及之檢查項
+    findings := GetUnremarkableChestFindings(searchText)
+
+    ; 3. 輸出
+    if (findings.Length > 0) {
+        output := ""
+        loop findings.Length {
+            output .= findings[A_Index] . (A_Index == findings.Length ? "" : "`n")
+        }
+        Paste(output)
+    }
 }
 
 ;; Lung Routine
