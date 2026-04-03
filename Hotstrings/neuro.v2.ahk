@@ -157,6 +157,8 @@ The visible paranasal sinuses and mastoids are unremarkable.
 ::liol::Status post left intraocular lens (IOL) implantation.
 ::biol::Status post bilateral intraocular lens (IOL) implantations.
 ::sba::Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
+::lioso::Hyperdense material in the left vitreous chamber, highly suggestive of status post vitrectomy with silicone oil injection.
+::rioso::Hyperdense material in the right vitreous chamber, highly suggestive of status post vitrectomy with silicone oil injection.
 
 ::li1::
 {
