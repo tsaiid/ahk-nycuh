@@ -308,11 +308,6 @@ class NoduleTracker {
                 }
                 descVal := match.desc
 
-                if (srsVal == "" && descVal != "") {
-                    if (RegExMatch(descVal, "\((\d+)\)", &dMatch)) {
-                        srsVal := dMatch[1]
-                    }
-                }
                 if (srsVal != "") {
                     if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                         if (IsNumber(imgVal)) {
@@ -408,11 +403,6 @@ class NoduleTracker {
                         ocrResult := NoduleTracker.CaptureOcrWithFilter(loc.x, loc.y, scanW, loc.h, 2)
                         srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                     }
-                }
-            }
-            if (srsVal == "" && descVal != "") {
-                if (RegExMatch(descVal, "\((\d+)\)", &dMatch)) {
-                    srsVal := dMatch[1]
                 }
             }
             if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
@@ -568,11 +558,6 @@ class NoduleTracker {
                     msg .= "    (原始文字: " StrReplace(ocrResult.Text, "`n", " ") ")`n"
                 }
             }
-            if (srsVal == "" && descText != "") {
-                if (RegExMatch(descText, "\((\d+)\)", &dMatch)) {
-                    msg .= "  - 💡 發現備援：從 Description 取得 Series: " dMatch[1] "`n"
-                }
-            }
             matchFound := true
         }
         if (!matchFound) {
@@ -665,15 +650,8 @@ class NoduleTracker {
                                     srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                                 }
                             }
-                            if (srsVal == "" && descVal != "") {
-                                if (RegExMatch(descVal, "\((\d+)\)", &dMatch)) {
-                                    srsVal := dMatch[1]
-                                    msg .= "   🎯 解析結果 (備援自 Desc): [" srsVal "]`n"
-                                }
-                            }
                             if (srsVal != "") {
-                                if (!InStr(msg, "備援自 Desc"))
-                                    msg .= "   🎯 解析結果: [" srsVal "]`n"
+                                msg .= "   🎯 解析結果: [" srsVal "]`n"
                             } else {
                                 msg .= "   🎯 解析結果: [無法識別序列號]`n"
                             }
