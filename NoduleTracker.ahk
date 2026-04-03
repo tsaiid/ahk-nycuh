@@ -3,11 +3,11 @@
 ; ==============================================================================
 ; Description : 自動抓取 PACS 影像中的 Series 與 Image 編號並分類肺葉。
 ;               支援智慧探針 (ClassNN) 與 UI 自動化 (Acc) 雙模切換。
-;               具備 OCR 驗證、命中率動態排序及 Cor/Sag 影像自動補償。
+;               具備 OCR 驗證、命中率動態排序及 MPR 影像自動補償。
 ; Author      : Tsai, I-Ta (放射科醫師)
 ; GitHub      : tsaiid
 ; License     : MIT License
-; Version     : 2026.04.02 (Refactored to Class)
+; Version     : 2026.04.03 (Updated compensation logic)
 ;
 ; ------------------------------------------------------------------------------
 ; 【使用說明】
@@ -27,7 +27,7 @@
 ;    - Loc:Img     : 依肺葉分類複製影像編號 (e.g., RUL:15;22 LUL:10)。
 ;    - Img No      : 提取所有 Image Number，排序並以分號分隔複製。
 ; 6. 特殊邏輯：
-;    - 自動補償：偵測到 Coronal 或 Sagittal 序列時，影像編號自動 +1 (適配 PACS)。
+;    - 自動補償：偵測到 MPR 序列時，影像編號自動 +1 (適配 PACS)。
 ;    - 動態排序：依據歷史命中率自動調整探針順序，提升抓取速度。
 ; ------------------------------------------------------------------------------
 
@@ -309,7 +309,7 @@ class NoduleTracker {
                 descVal := match.desc
 
                 if (srsVal != "") {
-                    if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+                    if (descVal != "" && RegExMatch(descVal, "i)MPR") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                         if (IsNumber(imgVal)) {
                             imgVal := String(Integer(imgVal) + 1)
                         }
@@ -405,7 +405,7 @@ class NoduleTracker {
                     }
                 }
             }
-            if (descVal != "" && RegExMatch(descVal, "i)cor|sag") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+            if (descVal != "" && RegExMatch(descVal, "i)MPR") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                 if (IsNumber(imgVal)) {
                     imgVal := String(Integer(imgVal) + 1)
                 }
