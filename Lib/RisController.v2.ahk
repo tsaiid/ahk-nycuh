@@ -1346,7 +1346,6 @@ class RisController {
             hTab := tabEle.NativeWindowHandle
 
             ; 1. 最優先推薦：使用 AHK 內建的 ControlChooseIndex
-            ; 這對 SysTabControl32 最有效，會正確發送 TCM_SETCURSEL 與 TCN_SELCHANGE 通知
             if (hTab) {
                 try {
                     if (ControlGetIndex(hTab) == index)
@@ -1356,21 +1355,15 @@ class RisController {
                 return true
             }
 
-            ; 2. 備案：如果上述無效 (非標準 Win32)，則使用 UIA 強制點擊
+            ; 2. 備案：使用 UIA 的 Click()
             tabs := tabEle.FindAll({ Type: "TabItem" })
             if (index > 0 && index <= tabs.Length) {
                 targetTab := tabs[index]
-                ; 偵測是否已經選取
                 try {
                     if (targetTab.IsSelected)
                         return true
                 }
-                ; 嘗試點擊 (這通常會觸發 Mouse 事件)
-                try {
-                    targetTab.Click() ; 如果 UIA 封裝支援 Click
-                } catch {
-                    this._ClickUIAElement(targetTab)
-                }
+                targetTab.Click()
                 return true
             }
         } catch {
@@ -1379,10 +1372,6 @@ class RisController {
         return false
     }
 
-    /**
-     * 切換臨床資料 Tab (AutomationId: "tbcClinicalData")
-     * @param index Tab 索引 (1-based)
-     */
     static SelectClinicalTab(index) {
         try {
             tabEle := this.ClinicalTabControl
@@ -1400,16 +1389,11 @@ class RisController {
             tabs := tabEle.FindAll({ Type: "TabItem" })
             if (index > 0 && index <= tabs.Length) {
                 targetTab := tabs[index]
-                ; 偵測是否已經選取
                 try {
                     if (targetTab.IsSelected)
                         return true
                 }
-                try {
-                    targetTab.Click()
-                } catch {
-                    this._ClickUIAElement(targetTab)
-                }
+                targetTab.Click()
                 return true
             }
         } catch {
@@ -1463,9 +1447,11 @@ class RisController {
                     }
 
                     if (cellElements.Length >= 3) {
-                        historyExamName := cellElements[3].Value
+                        targetCell := cellElements[3]
+                        historyExamName := targetCell.Value
                         if (this._IsRelatedReport(historyExamName, currExamName)) {
-                            this._ClickUIAElement(cellElements[3])
+                            targetCell.LegacyIAccessiblePattern.DoDefaultAction()
+                            targetCell.ControlClick()
                             this.Notify("已選取: " historyExamName)
                             return
                         }
@@ -2296,20 +2282,6 @@ class RisController {
     }
 
     static _IsSpace(char) => (char == " " || char == "`t" || char == "`r" || char == "`n")
-
-    static _ClickUIAElement(el) {
-        try {
-            el.ControlClick()
-        } catch {
-            try {
-                el.Click("left")
-            } catch {
-                try {
-                    el.Invoke()
-                }
-            }
-        }
-    }
 
     ; =================================================================
     ; [精簡版] 既然檔案內含多重解析度，直接讀取並指定大小即可
