@@ -1,0 +1,40 @@
+# =================================================================
+# RIS 相似檢查名稱對應表 (Sim-Groups Configuration)
+# =================================================================
+# [使用說明]
+# 1. 群組定義：將具有「相似報告內容」的檢查名稱放在同一個區塊。
+# 2. 區塊分隔：不同群組之間請以「至少一個空白行」分隔。
+# 3. 註解標記：以「#」或「;」開頭的行將被忽略，可用於標註群組名稱。
+# 4. 格式：每行一個精確的檢查名稱。
+# 5. 生效方式：修改儲存後，在 AHK 中觸發更新指令即可，不需重啟腳本。
+# =================================================================
+
+# --- Chest PA 系列 ---
+CHEST PA/AP
+CHEST PA/AP+LAT
+
+# --- KUB 與腰椎系列 ---
+KUB
+KUB+ABD LAT
+L-SPINE(AP+LAT)Standing
+KUB+L-SPINE LAT(supine)
+
+# --- CT Abdomen ---
+WHOLE  ABDOMEN CT WITH+ WITHOUT CONTRAST
+WHOLE  ABDOMEN CT WITHOUT CONTRAST
+
+# --- CT Lung (包含 HRCT) ---
+CT LUNG/ PLEURA/ CHEST WALL WITH CONTRAST
+CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONT
+CT LUNG/ PLEURA/ CHEST WALL WITHOUT CONTRAST
+CT LUNG/ PLEURA/ CHEST WALL WITH+ WITHOUT CONTRAST
+HRCT LUNG PARENCHYMA WITHOUT CONTRAST
+
+# --- CT Brain ---
+CT BRAIN (急診TRAUMA 專用)WITHOUT CONTRAST
+CT BRAIN WITHOUT CONTRAST
+CT BRAIN WITH+ WITHOUT CONTRAST
+
+# --- MRI Brain ---
+MRI BRAIN WITH CONTRAST
+MRI BRAIN MRA WITH CONTRAST

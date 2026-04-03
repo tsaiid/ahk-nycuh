@@ -377,6 +377,12 @@ Benchmark(funcObj, times := 1) {
 ;
 ^!r:: Reload
 
+; [新增] 全域快速鍵：Win+Ctrl+R 重新載入相似檢查分組設定
+#^r:: {
+    RisController.LoadSimGroups()
+    RisController.Notify("相似分組對應表已更新！")
+}
+
 #^p:: {
     ProcessClose("G3PACS.exe")
 }
