@@ -242,39 +242,45 @@ class NoduleTracker {
 
     GetInfo_ByProbe() {
         try {
-            focusHwnd := ControlGetFocus("A")
-            if (!focusHwnd) {
-                return {srs: "", img: "", valid: false, error: "無法取得焦點控制項"}
-            }
-            focusNN := ControlGetClassNN(focusHwnd)
-            hwnd := WinActive("A")
+            ; 優先從滑鼠位置獲取控制項與視窗 (與 ProbeControl 同步，解決焦點不一致問題)
+            MouseGetPos(,, &hwnd, &focusNN)
             match := this.FindPatternMatch(focusNN, hwnd)
+
+            ; 如果滑鼠位置未命中，再嘗試當前視窗焦點
+            if (!match) {
+                hwnd := WinActive("A")
+                if (focusHwnd := ControlGetFocus(hwnd)) {
+                    focusNN := ControlGetClassNN(focusHwnd)
+                    match := this.FindPatternMatch(focusNN, hwnd)
+                }
+            }
+
             if (match) {
                 candidate := match.candidate
                 imgVal := ""
-                try {
-                    imgVal := ControlGetText(candidate.img, hwnd)
-                }
+                try imgVal := ControlGetText(candidate.img, hwnd)
+
                 if (!IsNumber(Trim(imgVal))) {
                     return {srs: "", img: "", valid: false, error: "ComboBox 無有效數字"}
                 }
-                try {
-                    if (this.DebugOCR) {
+
+                if (this.DebugOCR) {
+                    try {
                         ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
                         ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
-                        DllCall("ClientToScreen", "ptr", hwnd, "ptC", ptC)
+                        DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptC)
                         srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
                         ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
                         ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
-                        DllCall("ClientToScreen", "ptr", hwnd, "ptF", ptF)
+                        DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
                         focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
                         this.ShowDebugRects([
                             {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},
                             {x: focX, y: focY, w: fW, h: fH, color: "Green"}
                         ])
+                    } catch {
+                        ; 偵錯資訊失敗不影響主流程
                     }
-                } catch {
-                    return {srs: "", img: "", valid: false, error: "驗證過程發生異常"}
                 }
                 srsVal := ""
                 try {
@@ -287,11 +293,12 @@ class NoduleTracker {
                         ocrResult := NoduleTracker.CaptureOcrWithFilter(screenX, screenY, scanW, cH, 2)
                         srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                     }
+                } catch {
+                    ; OCR 失敗仍可嘗試備援方案
                 }
                 descVal := ""
-                try {
-                    descVal := ControlGetText(candidate.desc, hwnd)
-                }
+                try descVal := ControlGetText(candidate.desc, hwnd)
+
                 if (RegExMatch(descVal, "i)^(Related exam|Report|View|Print|Save|Delete|Cancel|OK)$")) {
                     return {srs: "", img: "", valid: false, error: "命中按鈕排除項 (" . descVal . ")"}
                 }
