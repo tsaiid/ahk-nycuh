@@ -2548,9 +2548,9 @@ class RisController {
     static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
         ; 1. 檢查快取
         if (this._cache.Has("_AI_Indication") && !isPreloadOnly) {
-            result := this._cache["_AI_Indication"]
-            this._InsertAIResult(result)
-            this.Notify("已插入 Indication (來自快取)")
+            cached := this._cache["_AI_Indication"]
+            this._InsertAIResult(cached.text)
+            this.Notify(Format("已插入 Indication (來自快取, API:{}ms)", cached.apiTime))
             return
         }
 
@@ -2629,7 +2629,7 @@ class RisController {
             }
 
             ; 存入快取
-            this._cache["_AI_Indication"] := result
+            this._cache["_AI_Indication"] := {text: result, apiTime: apiTime, extractTime: extractTime}
 
             if (debugMode && !isPreloadOnly) {
                 MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . result, "AI Debug")
@@ -2654,7 +2654,7 @@ class RisController {
             ; [自動插入邏輯]
             ; 如果有標記需要插入，且快取中有結果，則執行插入
             if (this._isInsertRequested && this._cache.Has("_AI_Indication")) {
-                this._InsertAIResult(this._cache["_AI_Indication"])
+                this._InsertAIResult(this._cache["_AI_Indication"].text)
                 if (isPreloadOnly) {
                     this.Notify("Indication 已預載完成並插入")
                 }
