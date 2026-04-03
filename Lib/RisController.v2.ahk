@@ -1,5 +1,6 @@
 #Requires AutoHotkey v2.0
 #Include .\UIA.v2.ahk
+#Include .\RisConfig.v2.ahk
 
 class RisController {
     ; =================================================================
@@ -2590,9 +2591,10 @@ class RisController {
             t1 := A_TickCount
             extractTime := t1 - t0
 
-            ; 3. 準備 Prompt
-            systemPrompt := "[Role]`nYou are a professional Radiologist assistant specialized in clinical data extraction.`n`n[Background]`nThe following is a patient's medical record in SOAP format, including demographics and the planned imaging study.`n`n[Task]`nSummarize the core clinical reason (indication) for the requested imaging study into one or two concise English sentences.`n`n[Input Data]`n"
-            constraint := "`n`n[Constraint]`n1. Start the response strictly with the prefix `"INDICATION:`".`n2. Focus on the mechanism of injury (e.g., collision), symptoms (e.g., thigh pain), and suspected diagnosis (e.g., femur fracture).`n3. Do not include unrelated physical exam findings (like heart/lung sounds) unless abnormal.`n4. Output in professional medical English.`n5. Note: Dates and specific identifiers in the text have been replaced with placeholders like [DATE] or [PATIENT_NAME] for privacy. Please ignore the placeholders and focus on the clinical findings.`n`n[Output]`nINDICATION:"
+            ; 3. 準備 Prompt (從 RisConfig 讀取)
+            conf := RisConfig.AI.Indication
+            systemPrompt := conf.SystemPrompt
+            constraint   := conf.Constraint
 
             fullPrompt := systemPrompt . clinicalData . constraint
 
@@ -2605,15 +2607,11 @@ class RisController {
                 }
             }
 
-            ; 5. 從設定檔讀取模型名稱
-            configFile := "config.private.ini"
-            modelName := IniRead(configFile, "GoogleAI", "Model", "gemini-2.5-flash")
-
             ; --- Benchmark: 記錄 API 呼叫前時間 ---
             t2 := A_TickCount
 
-            ; 呼叫 Google AI
-            result := this._CallGoogleAI(fullPrompt, modelName)
+            ; 呼叫 Google AI (使用 RisConfig 中的設定)
+            result := this._CallGoogleAI(fullPrompt, conf.Model, conf.Temperature, conf.TopP)
 
             ; --- Benchmark: 計算 API 耗時 ---
             t3 := A_TickCount
@@ -2703,35 +2701,9 @@ class RisController {
             t1 := A_TickCount
             extractTime := t1 - t0
 
-            ; 2. 準備 Prompt (針對完整報告結構最佳化，包含重要陰性發現)
-            fullPrompt := "
-            (
-            # Role
-            You are an expert Radiologist specializing in clinical report synthesis and diagnostic interpretation.
-
-            # Context
-            Your task is to generate the "Impression" section based on provided "Indication" and "Findings". You must act as a clinical filter, separating acute or significant findings from incidental background noise.
-
-            # Task: Generate Clinical Impression
-            1. **Clinical Goal Alignment**: Analyze the "Indication" to identify the primary clinical question.
-            2. **Relevance Filtering (Strict)**:
-            - **Include**: Acute findings, major abnormalities directly related to the indication, and new clinically significant incidentalomas.
-            - **Exclude**: Chronic age-related changes (e.g., mild atrophy), stable historical findings (e.g., old infarcts), and findings unrelated to the primary anatomical focus of the exam (e.g., cervical spondylosis in a Brain CT) unless they directly impact the current clinical management.
-            3. **Synthesis**: Translate findings into concise, professional diagnostic statements. Do not paraphrase or expand for the sake of length; use brevity.
-
-            # Constraints
-            - **Format**: Use a numbered list (1. 2. 3.).
-            - **Strict Conciseness**: No fluff, no introductory phrases.
-            - **Anatomical Focus**: Ignore findings that are outside the primary diagnostic scope of the requested exam (e.g., incidental sinus or neck findings in a trauma brain scan) unless critically abnormal.
-            - **No Inferences**: Do not speculate beyond what is explicitly stated in the findings.
-
-            # Full Report Content
-            {1}
-
-            # Final Impression:
-            )"
-
-            fullPrompt := Format(fullPrompt, findingText)
+            ; 2. 準備 Prompt (從 RisConfig 讀取)
+            conf := RisConfig.AI.Impression
+            fullPrompt := Format(conf.Prompt, findingText)
 
             if (debugMode) {
                 A_Clipboard := fullPrompt
@@ -2741,11 +2713,8 @@ class RisController {
             }
 
             ; 3. 呼叫 API
-            configFile := "config.private.ini"
-            modelName := IniRead(configFile, "GoogleAI", "Model", "gemini-2.0-flash")
-
             t2 := A_TickCount
-            result := this._CallGoogleAI(fullPrompt, modelName)
+            result := this._CallGoogleAI(fullPrompt, conf.Model, conf.Temperature, conf.TopP)
             t3 := A_TickCount
             apiTime := t3 - t2
 
@@ -2878,7 +2847,7 @@ class RisController {
         return text
     }
 
-    static _CallGoogleAI(promptText, modelName := "") {
+    static _CallGoogleAI(promptText, modelName := "", temperature := "", topP := "") {
         configFile := "config.private.ini"
 
         ; 1. 取得模型名稱 (優先使用參數，若無則從設定檔讀取)
@@ -2892,9 +2861,13 @@ class RisController {
             throw Error("請在 " . configFile . " 中設定 [GoogleAI] APIKey")
         }
 
-        ; 3. 讀取新參數 (提供預設值)
-        temperature := IniRead(configFile, "GoogleAI", "Temperature", "0.2")
-        topP := IniRead(configFile, "GoogleAI", "TopP", "0.95")
+        ; 3. 取得參數 (優先使用傳入參數，否則從 ini 讀取，最後使用預設值)
+        if (temperature == "") {
+            temperature := IniRead(configFile, "GoogleAI", "Temperature", "0.2")
+        }
+        if (topP == "") {
+            topP := IniRead(configFile, "GoogleAI", "TopP", "0.95")
+        }
 
         ; 組合 Google AI API 網址 (確保使用 generateContent)
         url := "https://generativelanguage.googleapis.com/v1beta/models/" . modelName . ":generateContent?key=" . apiKey
