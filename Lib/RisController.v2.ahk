@@ -2878,14 +2878,25 @@ class RisController {
         return text
     }
 
-    static _CallGoogleAI(promptText, modelName) {
+    static _CallGoogleAI(promptText, modelName := "") {
         configFile := "config.private.ini"
+
+        ; 1. 取得模型名稱 (優先使用參數，若無則從設定檔讀取)
+        if (modelName == "") {
+            modelName := IniRead(configFile, "GoogleAI", "Model", "gemma-3-27b-it")
+        }
+
+        ; 2. 取得 API Key
         apiKey := IniRead(configFile, "GoogleAI", "APIKey", "")
         if (apiKey == "") {
             throw Error("請在 " . configFile . " 中設定 [GoogleAI] APIKey")
         }
 
-        ; 組合 Google AI API 網址
+        ; 3. 讀取新參數 (提供預設值)
+        temperature := IniRead(configFile, "GoogleAI", "Temperature", "0.2")
+        topP := IniRead(configFile, "GoogleAI", "TopP", "0.95")
+
+        ; 組合 Google AI API 網址 (確保使用 generateContent)
         url := "https://generativelanguage.googleapis.com/v1beta/models/" . modelName . ":generateContent?key=" . apiKey
 
         ; JSON 逃脫處理 (針對雙引號與換行)
@@ -2895,7 +2906,19 @@ class RisController {
         escapedPrompt := StrReplace(escapedPrompt, "`r", "\r")
         escapedPrompt := StrReplace(escapedPrompt, "`t", "\t")
 
-        payload := '{"contents": [{"parts": [{"text": "' . escapedPrompt . '"}]}]}'
+        ; 依照使用者提供的範例構建 Payload
+        payload := '{'
+            . '"contents": [{'
+                . '"role": "user",'
+                . '"parts": [{"text": "' . escapedPrompt . '"}]'
+            . '}],'
+            . '"generationConfig": {'
+                . '"temperature": ' . temperature . ','
+                . '"thinkingConfig": {"thinkingLevel": "MINIMAL"},'
+                . '"topP": ' . topP
+            . '},'
+            . '"tools": [{"googleSearch": {}}]'
+        . '}'
 
         req := ComObject("WinHttp.WinHttpRequest.5.1")
 
@@ -2904,20 +2927,44 @@ class RisController {
         req.SetRequestHeader("Content-Type", "application/json")
         req.Send(payload)
 
-        ; [關鍵修改] 進入非阻塞等待迴圈
-        ; 使用 WaitForResponse(0) 檢查狀態，配合 Sleep(10) 釋放執行緒
-        ; 這可以確保在等待 API 的 1~3 秒內，AHK 依然能正常攔截快速鍵
+        ; 進入非阻塞等待迴圈
         while !req.WaitForResponse(0.01) {
             Sleep(10)
+        }
+
+        ; --- Debug 模式：顯示原始回應 ---
+        if (this.IsDebug) {
+            A_Clipboard := "URL: " . url . "`n`nPayload: " . payload . "`n`nResponse: " . req.ResponseText
+            MsgBox("【API Debug】原始回應已複製到剪貼簿：`n`nStatus: " . req.Status . "`n`n" . SubStr(req.ResponseText, 1, 1000), "Google AI Debug")
         }
 
         if (req.Status != 200) {
             throw Error("HTTP " . req.Status . " - " . req.ResponseText)
         }
 
-        ; 簡易解析 Gemini API 回傳的 JSON (提取 content 內的 text)
-        if (RegExMatch(req.ResponseText, 's)"text":\s*"(.*?)(?<!\\)"', &match)) {
+        ; --- 改良版解析：遍歷所有 parts 並過濾掉 thought 區塊 ---
+        combinedText := ""
+        searchPos := 1
+
+        ; 遍歷所有 "text": "..." 區段
+        while (searchPos := RegExMatch(req.ResponseText, 's)"text":\s*"(.*?)(?<!\\)"', &match, searchPos)) {
             val := match[1]
+
+            ; 檢查此段 text 後方是否緊跟著 "thought": true (在同一個物件括號內)
+            ; 我們往後看 100 字元通常足以包含該物件的其他屬性
+            context := SubStr(req.ResponseText, searchPos + match.Len, 100)
+
+            ; 如果這段文字不是思考過程，才加入最終結果
+            if !RegExMatch(context, '^\s*,\s*"thought":\s*true') {
+                combinedText .= val
+            }
+
+            ; 移動搜尋起始位置
+            searchPos += match.Len
+        }
+
+        if (combinedText != "") {
+            val := combinedText
 
             ; 1. 還原 JSON 內的跳脫字元
             val := StrReplace(val, "\n", "`n")
@@ -2931,7 +2978,7 @@ class RisController {
                 val := StrReplace(val, m[0], Chr(Integer("0x" . m[1])))
             }
 
-            ; 3. 清理 Markdown 標記 (若 AI 回傳了 ``` ... ``` 或 ` ... `)
+            ; 3. 清理 Markdown 標記
             val := Trim(val, " `t`r`n")
             if (RegExMatch(val, "s)^``````(?:\w+)?\R?(.*?)\R?``````$", &m)) {
                 val := m[1]
@@ -2942,7 +2989,7 @@ class RisController {
             return Trim(val, " `t`r`n")
         }
 
-        throw Error("無法解析回傳的資料結構")
+        throw Error("無法從 API 回應中提取有效文字。")
     }
 
     ; [新增] 專用於 Debug 的持久化錯誤視窗
