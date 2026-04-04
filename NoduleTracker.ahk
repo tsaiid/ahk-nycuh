@@ -27,7 +27,7 @@
 ;    - Loc:Img     : 依肺葉分類複製影像編號 (e.g., RUL:15;22 LUL:10)。
 ;    - Img No      : 提取所有 Image Number，排序並以分號分隔複製。
 ; 6. 特殊邏輯：
-;    - 自動補償：偵測到 MPR 序列時，影像編號自動 +1 (適配 PACS)。
+;    - 自動補償：偵測到 MPR/MIP 序列時，影像編號自動 +1 (適配 PACS)。
 ;    - 動態排序：依據歷史命中率自動調整探針順序，提升抓取速度。
 ; ------------------------------------------------------------------------------
 
@@ -309,7 +309,7 @@ class NoduleTracker {
                 descVal := match.desc
 
                 if (srsVal != "") {
-                    if (descVal != "" && RegExMatch(descVal, "i)MPR") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+                    if (descVal != "" && RegExMatch(descVal, "i)MPR|MIP") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                         if (IsNumber(imgVal)) {
                             imgVal := String(Integer(imgVal) + 1)
                         }
@@ -405,7 +405,7 @@ class NoduleTracker {
                     }
                 }
             }
-            if (descVal != "" && RegExMatch(descVal, "i)MPR") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+            if (descVal != "" && RegExMatch(descVal, "i)MPR|MIP") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                 if (IsNumber(imgVal)) {
                     imgVal := String(Integer(imgVal) + 1)
                 }
