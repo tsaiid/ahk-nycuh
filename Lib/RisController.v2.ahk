@@ -1845,8 +1845,9 @@ class RisController {
             }
         }
 
-        ; 3. 經過上面的檢查，如果 nodeName 還在 cache 裡，代表它屬於目前的視窗，可直接回傳
-        if this._cache.Has(nodeName) {
+        ; 3. 經過上面的檢查，如果 nodeName 還在 cache 裡且有效，代表它屬於目前的視窗，可直接回傳
+        ; [修改] 增加 IsObject 檢查，如果快取值是 false (預載失敗)，則強制重新抓取
+        if this._cache.Has(nodeName) && IsObject(this._cache[nodeName]) {
             return this._cache[nodeName]
         }
 
