@@ -274,34 +274,30 @@ class NoduleTracker {
                     return {srs: "", img: "", valid: false, error: "ComboBox 無有效數字"}
                 }
 
-                if (this.DebugOCR) {
-                    try {
-                        ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
-                        ptC := Buffer(8), NumPut("int", cX, ptC, 0), NumPut("int", cY, ptC, 4)
-                        DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptC)
-                        srsX := NumGet(ptC, 0, "int"), srsY := NumGet(ptC, 4, "int")
-                        ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
-                        ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
-                        DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
-                        focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
-                        this.ShowDebugRects([
-                            {x: srsX, y: srsY, w: cW, h: cH, color: "Red"},
-                            {x: focX, y: focY, w: fW, h: fH, color: "Green"}
-                        ])
-                    } catch {
-                        ; 偵錯資訊失敗不影響主流程
-                    }
-                }
                 srsVal := ""
                 try {
                     ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
                     pt := Buffer(8), NumPut("int", cX, pt, 0), NumPut("int", cY, pt, 4)
                     DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
                     screenX := NumGet(pt, 0, "int"), screenY := NumGet(pt, 4, "int")
+
                     if (cW > 0 && cH > 0) {
                         scanW := (cW > 150) ? 150 : cW
-                        ocrResult := NoduleTracker.CaptureOcrWithFilter(screenX, screenY, scanW, cH, 2)
+                        ocrResult := NoduleTracker.CaptureOcr(screenX, screenY, scanW, cH, 2)
                         srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
+                    }
+
+                    if (this.DebugOCR) {
+                        try {
+                            ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
+                            ptF := Buffer(8), NumPut("int", fX, ptF, 0), NumPut("int", fY, ptF, 4)
+                            DllCall("ClientToScreen", "ptr", hwnd, "ptr", ptF)
+                            focX := NumGet(ptF, 0, "int"), focY := NumGet(ptF, 4, "int")
+                            this.ShowDebugRects([
+                                {x: screenX, y: screenY, w: cW, h: cH, color: "Red"},
+                                {x: focX, y: focY, w: fW, h: fH, color: "Green"}
+                            ])
+                        }
                     }
                 } catch {
                     ; OCR 失敗仍可嘗試備援方案
@@ -400,7 +396,7 @@ class NoduleTracker {
                     loc := srsEl.Location
                     if (loc.w > 0 && loc.h > 0) {
                         scanW := (loc.w > 150) ? 150 : loc.w
-                        ocrResult := NoduleTracker.CaptureOcrWithFilter(loc.x, loc.y, scanW, loc.h, 2)
+                        ocrResult := NoduleTracker.CaptureOcr(loc.x, loc.y, scanW, loc.h, 2)
                         srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                     }
                 }
@@ -552,7 +548,7 @@ class NoduleTracker {
                 srsX := NumGet(pt, 0, "int"), srsY := NumGet(pt, 4, "int")
                 if (cW > 0 && cH > 0) {
                     scanW := (cW > 150) ? 150 : cW
-                    ocrResult := NoduleTracker.CaptureOcrWithFilter(srsX, srsY, scanW, cH, 2)
+                    ocrResult := NoduleTracker.CaptureOcr(srsX, srsY, scanW, cH, 2)
                     srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                     msg .= "  - OCR 解析 Series: [" (srsVal == "" ? "解析失敗" : srsVal) "]`n"
                     msg .= "    (原始文字: " StrReplace(ocrResult.Text, "`n", " ") ")`n"
@@ -644,7 +640,7 @@ class NoduleTracker {
                                 msg .= "   ⚠️ 文字解析無結果，啟動 OCR...`n"
                                 if (loc.w > 0 && loc.h > 0) {
                                     scanW := (loc.w > 150) ? 150 : loc.w
-                                    ocrResult := OCR.FromRect(loc.x, loc.y, scanW, loc.h, {scale: 2})
+                                    ocrResult := NoduleTracker.CaptureOcr(loc.x, loc.y, scanW, loc.h, 2)
                                     safeText := StrReplace(ocrResult.Text, "`n", " ")
                                     msg .= "   🔍 OCR 原始文字: [" safeText "]`n"
                                     srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
@@ -1151,20 +1147,12 @@ class NoduleTracker {
         return ""
     }
 
-    static CaptureOcrWithFilter(x, y, w, h, scale := 2) {
-        filterGui := Gui("+AlwaysOnTop -Caption +ToolWindow -DPIScale +E0x20")
-        filterGui.BackColor := "Red"
-        filterGui.Opt("+LastFound")
-        WinSetTransparent(100)
-        filterGui.Show("x" x " y" y " w" w " h" h " NoActivate")
-        Sleep(50)
+    static CaptureOcr(x, y, w, h, scale := 2) {
         try {
-            ocrResult := OCR.FromRect(x, y, w, h, {scale: scale})
+            return OCR.FromRect(x, y, w, h, {scale: scale})
         } catch {
-            ocrResult := {Text: ""}
+            return {Text: ""}
         }
-        filterGui.Destroy()
-        return ocrResult
     }
 
     static ProbeComboBox(controlName, hwnd) {
