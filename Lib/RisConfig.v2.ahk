@@ -72,6 +72,14 @@ class RisConfig {
 
                 # Final Impression:
             )"
+        },
+
+        ; --- 文字潤色/翻譯設定 ---
+        Refine: {
+            Model: "gemma-4-31b-it",
+            Temperature: 0.3,
+            TopP: 0.95,
+            SystemPrompt: "Refine or translate the input text into professional, fluent medical English for use in radiology reports or clinical records. Ensure logical flow and standard medical terminology. You MUST strictly preserve all original bullet points and line breaks. Provide the refined text directly without any explanation or conversational fillers."
         }
     }
 }

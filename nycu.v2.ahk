@@ -177,6 +177,9 @@ RisController.EnableShellHookFocus()
         Send("{Blind}{vkE8}")
     }
 
+    ; Polish selection by AI
+    !r:: RisController.PolishSelectionWithAI()
+
     ; --- Emacs Word Movement ---
     ; Ctrl+A: Emacs 行首 (若不在目標框則為全選)
     ^a:: RisController.MoveCaret("Start")

@@ -2732,6 +2732,100 @@ class RisController {
         }
     }
 
+    ; [新增] 文字潤色與翻譯 (Polishing)
+    ; 使用 LLM 優化所選取的文字，並提供對照視窗供使用者確認是否採用
+    static PolishSelectionWithAI() {
+        if !this.IsTargetFocused() {
+            this.Notify("請先點擊要處理的文字欄位")
+            return
+        }
+
+        try {
+            hEdit := ControlGetFocus("A")
+            sel := this._EditGetSel(hEdit)
+
+            ; 檢查是否有選取文字
+            if (sel.Start == sel.End) {
+                this.Notify("請先選取要潤色的文字")
+                return
+            }
+
+            fullText := ControlGetText(hEdit)
+            selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
+
+            if (Trim(selectedText) == "") {
+                this.Notify("選取的文字為空")
+                return
+            }
+
+            this._ShowWaitCursor()
+            this.Notify("AI 潤色中...", 3000)
+
+            ; 準備 Prompt
+            conf := RisConfig.AI.Refine
+            prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
+
+            ; 呼叫 API
+            result := this._CallGoogleAI(prompt, conf.Model, conf.Temperature, conf.TopP)
+
+            ; 格式化換行
+            result := StrReplace(result, "`r`n", "`n")
+            result := StrReplace(result, "`n", "`r`n")
+
+            this._RestoreCursor()
+
+            ; 顯示比對視窗
+            this._ShowPolishComparisonGui(hEdit, selectedText, result, sel)
+
+        } catch as err {
+            this._RestoreCursor()
+            this.Notify("AI 潤色失敗: " . err.Message)
+        }
+    }
+
+    static _ShowPolishComparisonGui(hEdit, original, refined, sel) {
+        ; 建立比對 GUI
+        myGui := Gui("+AlwaysOnTop", "AI 潤色結果比對")
+        myGui.SetFont("s11", "Microsoft JhengHei UI")
+
+        ; --- 第一列：標題對齊 ---
+        myGui.Add("Text", "w400", "原始文字 (Original):")
+        myGui.Add("Text", "x+20 yp w400", "潤色結果 (Refined):")
+
+        ; --- 第二列：內容對齊 ---
+        ; 兩者皆設為 ReadOnly，並加入 -WantReturn 讓 Enter 鍵能觸發 Default 按鈕
+        myGui.Add("Edit", "xm w400 r15 ReadOnly Multi -WantReturn", original)
+        refinedEdit := myGui.Add("Edit", "x+20 yp w400 r15 ReadOnly Multi -WantReturn", refined)
+
+        ; --- 第三列：按鈕區 ---
+        btnAccept := myGui.Add("Button", "Default w180 x220 y+20", "✅ Accept (Enter)")
+        btnReject := myGui.Add("Button", "w180 x+20", "❌ Reject (Esc)")
+
+        ; 事件處理函式
+        handleAccept(*) {
+            finalText := refinedEdit.Value
+            finalText := StrReplace(finalText, "`r`n", "`n")
+            finalText := StrReplace(finalText, "`n", "`r`n")
+            
+            this._EditSetSel(hEdit, sel.Start, sel.End)
+            this._EditReplaceSel(hEdit, finalText)
+            myGui.Destroy()
+            this.Notify("已更新文字")
+        }
+
+        btnAccept.OnEvent("Click", handleAccept)
+        btnReject.OnEvent("Click", (*) => myGui.Destroy())
+
+        ; 快捷鍵：Esc 關閉
+        myGui.OnEvent("Escape", (*) => myGui.Destroy())
+
+        myGui.Show("Center")
+        
+        ; 自動聚焦到結果框（方便按 Enter），並將游標移至開頭（防止自動全選）
+        refinedEdit.Focus()
+        SendMessage(0x00B1, 0, 0, refinedEdit.Hwnd) ; EM_SETSEL: Start=0, End=0
+    }
+
     ; [內部 Helper] 專用於插入 Impression 欄位
     static _InsertAIResultToImpression(result) {
         if !WinActive(this.WinTitle) {
