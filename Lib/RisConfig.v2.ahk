@@ -62,7 +62,9 @@ class RisConfig {
                 3. **Synthesis**: Translate findings into concise, professional diagnostic statements. Do not paraphrase or expand for the sake of length; use brevity.
 
                 # Constraints
-                - **Format**: Use a numbered list (1. 2. 3.).
+                - **Format**:
+                    - If there are multiple findings, use a numbered list (1., 2., 3.).
+                    - If there is only one finding, provide it as a single plain-text sentence without any numbering or bullet points.
                 - **Strict Conciseness**: No fluff, no introductory phrases.
                 - **Anatomical Focus**: Ignore findings that are outside the primary diagnostic scope of the requested exam (e.g., incidental sinus or neck findings in a trauma brain scan) unless critically abnormal.
                 - **No Inferences**: Do not speculate beyond what is explicitly stated in the findings.
