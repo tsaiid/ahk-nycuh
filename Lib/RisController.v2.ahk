@@ -175,7 +175,9 @@ class RisController {
     ; =================================================================
     ; 2. 內部狀態 (State)
     ; =================================================================
-    static _cache := Map()
+    static _uiCache := Map()
+    static _stateCache := Map()
+    static _aiCache := Map()
     static _activeNotifies := Map()
     static _notifyOffset := 0
     static _compContext := {ReqNo: "", Date: ""}
@@ -1121,13 +1123,13 @@ class RisController {
     ; [修改] 全面靜默快取主畫面元件 (改為非同步隊列模式，包含 AI 預載)
     static _PreloadCache() {
         ; 1. 若已經執行過預載，就不再重複執行
-        if (this._cache.Has("_UI_Preloaded")) {
+        if (this._stateCache.Has("_UI_Preloaded")) {
             return
         }
 
         ; 2. 標記為已啟動預載，並建立待抓取隊列
-        this._cache["_UI_Preloaded"] := true
-        this._cache["_UI_Preloaded_Complete"] := false
+        this._stateCache["_UI_Preloaded"] := true
+        this._stateCache["_UI_Preloaded_Complete"] := false
         this._preloadQueue := []
 
         ; [優先順序優化] 嚴格依照使用者報告工作流順序
@@ -1148,13 +1150,13 @@ class RisController {
         ]
 
         for key in priorityKeys {
-            if (this.Selectors.Has(key) && !this._cache.Has(key)) {
+            if (this.Selectors.Has(key) && !this._uiCache.Has(key)) {
                 this._preloadQueue.Push(key)
             }
         }
 
         ; [核心修改] 將 AI 預載任務插入在優先 UI 元件之後，而非最後
-        if (!this._cache.Has("_AI_Indication")) {
+        if (!this._aiCache.Has("_AI_Indication")) {
             this._preloadQueue.Push("_AI_TASK_")
         }
 
@@ -1175,7 +1177,7 @@ class RisController {
                 continue
 
             ; 如果不在 cache 裡，就加入隊列
-            if (!this._cache.Has(key)) {
+            if (!this._uiCache.Has(key)) {
                 this._preloadQueue.Push(key)
             }
         }
@@ -1210,7 +1212,7 @@ class RisController {
                 _ := this._GetOrUpdateNode(key)
             } catch {
                 ; 負向快取
-                this._cache[key] := false
+                this._uiCache[key] := false
             }
         }
 
@@ -1220,7 +1222,7 @@ class RisController {
             this._preloadTask := 0
 
             ; [新增] 標記預載完成，並立即觸發底色更新
-            this._cache["_UI_Preloaded_Complete"] := true
+            this._stateCache["_UI_Preloaded_Complete"] := true
             try {
                 hFind := this.FindingEdit.NativeWindowHandle
                 hImp  := this.ImpressionEdit.NativeWindowHandle
@@ -1236,7 +1238,7 @@ class RisController {
 
         ; [新增] 底色反饋與狀態鎖定：預載完成前將 Impression 設為唯讀 (觸發灰色背景)，完成後解除。
         ; Finding 保持可寫，以免影響使用者操作體驗。
-        isReady := this._cache.Has("_UI_Preloaded_Complete") && this._cache["_UI_Preloaded_Complete"]
+        isReady := this._stateCache.Has("_UI_Preloaded_Complete") && this._stateCache["_UI_Preloaded_Complete"]
         try {
             SendMessage(this.MSG.SETREADONLY, 0, 0, , "ahk_id " hFind) ; 確保 Finding 永遠可寫
             SendMessage(this.MSG.SETREADONLY, isReady ? 0 : 1, 0, , "ahk_id " hImp)
@@ -1831,11 +1833,13 @@ class RisController {
         ; =================================================================
         ; 2. [關鍵修改] 視窗身分驗證 (Window Identity Check)
         ; 如果 Cache 裡記錄的 HWND 與目前的 HWND 不同，代表視窗重開過。
-        ; 此時必須「清空所有快取」，避免拿到上一個視窗的殭屍物件。
+        ; 此時必須清空所有「視窗生命週期」相關快取，避免拿到上一個視窗的殭屍物件。
         ; =================================================================
-        if (!this._cache.Has("_Hwnd") || this._cache["_Hwnd"] != currentHwnd) {
-            this._cache := Map()          ; 清空所有快取
-            this._cache["_Hwnd"] := currentHwnd ; 更新為新的 HWND
+        if (!this._stateCache.Has("_Hwnd") || this._stateCache["_Hwnd"] != currentHwnd) {
+            this._uiCache := Map()
+            this._stateCache := Map()
+            this._aiCache := Map()
+            this._stateCache["_Hwnd"] := currentHwnd ; 更新為新的 HWND
 
             ; [新增] 清空預載隊列並停止舊的 Timer
             this._preloadQueue := []
@@ -1847,15 +1851,15 @@ class RisController {
 
         ; 3. 經過上面的檢查，如果 nodeName 還在 cache 裡且有效，代表它屬於目前的視窗，可直接回傳
         ; [修改] 增加 IsObject 檢查，如果快取值是 false (預載失敗)，則強制重新抓取
-        if this._cache.Has(nodeName) && IsObject(this._cache[nodeName]) {
-            return this._cache[nodeName]
+        if this._uiCache.Has(nodeName) && IsObject(this._uiCache[nodeName]) {
+            return this._uiCache[nodeName]
         }
 
         ; 4. 如果不在 cache 裡，則重新抓取 (Fetch Logic)
         if (nodeName = "Ris") {
             try {
-                this._cache["Ris"] := UIA.ElementFromHandle(currentHwnd)
-                return this._cache["Ris"]
+                this._uiCache["Ris"] := UIA.ElementFromHandle(currentHwnd)
+                return this._uiCache["Ris"]
             } catch as err {
                 throw Error("Root Error: " err.Message)
             }
@@ -1867,8 +1871,8 @@ class RisController {
                 throw Error("Undefined Selector: " nodeName)
             }
             try {
-                this._cache[nodeName] := parent.FindElement(this.Selectors[nodeName])
-                return this._cache[nodeName]
+                this._uiCache[nodeName] := parent.FindElement(this.Selectors[nodeName])
+                return this._uiCache[nodeName]
             } catch {
                 throw TargetError("Node Not Found: " nodeName)
             }
@@ -2545,8 +2549,8 @@ class RisController {
     ; [修改] 增加 Benchmark 效能測量
     static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
         ; 1. 檢查快取
-        if (this._cache.Has("_AI_Indication") && !isPreloadOnly) {
-            cached := this._cache["_AI_Indication"]
+        if (this._aiCache.Has("_AI_Indication") && !isPreloadOnly) {
+            cached := this._aiCache["_AI_Indication"]
             this._InsertAIResult(cached.text)
             this.Notify(Format("已插入 Indication (來自快取, API:{}ms)", cached.apiTime))
             return
@@ -2624,7 +2628,7 @@ class RisController {
             }
 
             ; 存入快取
-            this._cache["_AI_Indication"] := {text: result, apiTime: apiTime, extractTime: extractTime}
+            this._aiCache["_AI_Indication"] := {text: result, apiTime: apiTime, extractTime: extractTime}
 
             if (debugMode && !isPreloadOnly) {
                 MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . result, "AI Debug")
@@ -2648,8 +2652,8 @@ class RisController {
 
             ; [自動插入邏輯]
             ; 如果有標記需要插入，且快取中有結果，則執行插入
-            if (this._isInsertRequested && this._cache.Has("_AI_Indication")) {
-                this._InsertAIResult(this._cache["_AI_Indication"].text)
+            if (this._isInsertRequested && this._aiCache.Has("_AI_Indication")) {
+                this._InsertAIResult(this._aiCache["_AI_Indication"].text)
                 if (isPreloadOnly) {
                     this.Notify("Indication 已預載完成並插入")
                 }
