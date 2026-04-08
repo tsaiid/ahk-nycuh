@@ -2824,26 +2824,6 @@ class RisController {
         return true
     }
 
-    static _PrepareIndicationPrompt() {
-        t0 := A_TickCount
-        this._EnsureIndicationNodesReady()
-        clinicalData := this._GetAndFormatClinicalData()
-        if (clinicalData == "") {
-            return false
-        }
-
-        extractTime := A_TickCount - t0
-        conf := RisConfig.AI.Indication
-        fullPrompt := conf.SystemPrompt . clinicalData . conf.Constraint
-
-        return {
-            Prompt: fullPrompt,
-            Config: conf,
-            ClinicalData: clinicalData,
-            ExtractTime: extractTime
-        }
-    }
-
     static _NormalizeIndicationResult(result) {
         result := this._NormalizeAIResult(result)
 
@@ -2906,8 +2886,66 @@ class RisController {
         this._pendingIndicationInsert := false
     }
 
-    ; 10.0.2 Impression
-    static _PrepareImpressionPrompt() {
+    static _HandleImpressionDebugPrompt(debugMode, fullPrompt) {
+        if (!debugMode) {
+            return true
+        }
+
+        A_Clipboard := fullPrompt
+        ans := MsgBox("Prompt 已複製。是否繼續？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
+        return ans != "No"
+    }
+
+    static _HandleImpressionSuccess(result, extractTime, apiTime) {
+        result := this._NormalizeAIResult(result)
+        this._InsertAIResultToImpression(result)
+        this.Notify(Format("已插入 Impression (取資:{}ms, API:{}ms)", extractTime, apiTime))
+    }
+
+    static _CreateAIRequest(promptText, aiConfig, extraFields := 0) {
+        request := {
+            Prompt: promptText,
+            Config: aiConfig
+        }
+
+        if IsObject(extraFields) {
+            for key, value in extraFields.OwnProps() {
+                request.%key% := value
+            }
+        }
+
+        return request
+    }
+
+    static _BuildAIRequestResult(promptText, aiConfig) {
+        t0 := A_TickCount
+        result := this._CallGoogleAI(promptText, aiConfig.Model, aiConfig.Temperature, aiConfig.TopP)
+
+        return {
+            Result: result,
+            ApiTime: A_TickCount - t0
+        }
+    }
+
+    static _BuildIndicationRequest() {
+        t0 := A_TickCount
+        this._EnsureIndicationNodesReady()
+        clinicalData := this._GetAndFormatClinicalData()
+        if (clinicalData == "") {
+            return false
+        }
+
+        extractTime := A_TickCount - t0
+        conf := RisConfig.AI.Indication
+        fullPrompt := conf.SystemPrompt . clinicalData . conf.Constraint
+
+        return this._CreateAIRequest(fullPrompt, conf, {
+            ClinicalData: clinicalData,
+            ExtractTime: extractTime
+        })
+    }
+
+    static _BuildImpressionRequest() {
         this._PreloadCache()
 
         t0 := A_TickCount
@@ -2927,65 +2965,35 @@ class RisController {
         extractTime := A_TickCount - t0
         conf := RisConfig.AI.Impression
 
-        return {
-            Prompt: Format(conf.Prompt, findingText),
-            Config: conf,
+        return this._CreateAIRequest(Format(conf.Prompt, findingText), conf, {
             ExtractTime: extractTime,
             ImpressionHwnd: hImp
-        }
+        })
     }
 
-    static _HandleImpressionDebugPrompt(debugMode, fullPrompt) {
-        if (!debugMode) {
-            return true
-        }
+    static _BuildRefineRequest(selectedText) {
+        conf := RisConfig.AI.Refine
+        prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
 
-        A_Clipboard := fullPrompt
-        ans := MsgBox("Prompt 已複製。是否繼續？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
-        return ans != "No"
+        return this._CreateAIRequest(prompt, conf)
     }
 
-    static _HandleImpressionSuccess(result, extractTime, apiTime) {
-        result := this._NormalizeAIResult(result)
-        this._InsertAIResultToImpression(result)
-        this.Notify(Format("已插入 Impression (取資:{}ms, API:{}ms)", extractTime, apiTime))
-    }
-
-    static _RequestAIResult(promptText, aiConfig) {
-        return this._CallGoogleAI(promptText, aiConfig.Model, aiConfig.Temperature, aiConfig.TopP)
-    }
-
-    static _ExecuteTimedAIRequest(promptText, aiConfig) {
-        t0 := A_TickCount
-        result := this._RequestAIResult(promptText, aiConfig)
-
-        return {
-            Result: result,
-            ApiTime: A_TickCount - t0
-        }
+    static _RunAIRequest(request) {
+        return this._BuildAIRequestResult(request.Prompt, request.Config)
     }
 
     static _RunIndicationRequest(request, debugMode, isPreloadOnly) {
-        response := this._ExecuteTimedAIRequest(request.Prompt, request.Config)
+        response := this._RunAIRequest(request)
         this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, debugMode)
     }
 
     static _RunImpressionRequest(request) {
-        response := this._ExecuteTimedAIRequest(request.Prompt, request.Config)
+        response := this._RunAIRequest(request)
         this._HandleImpressionSuccess(response.Result, request.ExtractTime, response.ApiTime)
     }
 
-    static _PrepareRefineRequest(selectedText) {
-        conf := RisConfig.AI.Refine
-
-        return {
-            Prompt: conf.SystemPrompt . "`n`nInput Text:`n" . selectedText,
-            Config: conf
-        }
-    }
-
     static _RunRefineRequest(request) {
-        response := this._ExecuteTimedAIRequest(request.Prompt, request.Config)
+        response := this._RunAIRequest(request)
         return response.Result
     }
 
@@ -3007,7 +3015,7 @@ class RisController {
         }
 
         try {
-            request := this._PrepareIndicationPrompt()
+            request := this._BuildIndicationRequest()
             if (!request) {
                 if (!isPreloadOnly)
                     this.Notify("無法取得病歷資料，請確認是否在正確視窗內")
@@ -3037,7 +3045,7 @@ class RisController {
         }
 
         try {
-            request := this._PrepareImpressionPrompt()
+            request := this._BuildImpressionRequest()
             if (!request) {
                 this.Notify("找不到編輯欄位，請確認視窗是否正確")
                 return
@@ -3090,7 +3098,7 @@ class RisController {
             this._ShowWaitCursor()
             this.Notify("AI 潤色中...", 3000)
 
-            request := this._PrepareRefineRequest(selectedText)
+            request := this._BuildRefineRequest(selectedText)
             result := this._RunRefineRequest(request)
 
             ; 格式化換行
