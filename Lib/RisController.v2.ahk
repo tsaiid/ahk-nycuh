@@ -2585,6 +2585,30 @@ class RisController {
     ; 10. AI 應用功能 (AI & NLP Integration)
     ; =================================================================
 
+    ; 10.0 AI Orchestration Helpers
+    static _BeginForegroundAIRequest() {
+        if (this._isAIPending) {
+            this.Notify("AI 正在背景產生中...")
+            return false
+        }
+
+        this._ShowWaitCursor()
+        this._isAIPending := true
+        return true
+    }
+
+    static _FinishForegroundAIRequest() {
+        this._isAIPending := false
+        this._RestoreCursor()
+    }
+
+    static _NormalizeAIResult(result) {
+        result := StrReplace(result, "`r`n", "`n")
+        result := StrReplace(result, "`n", "`r`n")
+        return result
+    }
+
+    ; 10.0.1 Indication
     static _TryInsertCachedIndication(isPreloadOnly) {
         if (!this._aiCache.Has("_AI_Indication") || isPreloadOnly) {
             return false
@@ -2649,8 +2673,7 @@ class RisController {
     }
 
     static _NormalizeIndicationResult(result) {
-        result := StrReplace(result, "`r`n", "`n")
-        result := StrReplace(result, "`n", "`r`n")
+        result := this._NormalizeAIResult(result)
 
         if (!InStr(result, "INDICATION:")) {
             result := "INDICATION: " . result
@@ -2711,6 +2734,51 @@ class RisController {
         this._pendingIndicationInsert := false
     }
 
+    ; 10.0.2 Impression
+    static _PrepareImpressionPrompt() {
+        this._PreloadCache()
+
+        t0 := A_TickCount
+        try {
+            hFind := this.FindingEdit.NativeWindowHandle
+            hImp  := this.ImpressionEdit.NativeWindowHandle
+        } catch {
+            return false
+        }
+
+        findingText := ControlGetText(hFind)
+        if (findingText == "") {
+            return {Error: "Findings 欄位為空，無法產生總結"}
+        }
+
+        findingText := this._DeidentifyText(findingText)
+        extractTime := A_TickCount - t0
+        conf := RisConfig.AI.Impression
+
+        return {
+            Prompt: Format(conf.Prompt, findingText),
+            Config: conf,
+            ExtractTime: extractTime,
+            ImpressionHwnd: hImp
+        }
+    }
+
+    static _HandleImpressionDebugPrompt(debugMode, fullPrompt) {
+        if (!debugMode) {
+            return true
+        }
+
+        A_Clipboard := fullPrompt
+        ans := MsgBox("Prompt 已複製。是否繼續？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
+        return ans != "No"
+    }
+
+    static _HandleImpressionSuccess(result, extractTime, apiTime) {
+        result := this._NormalizeAIResult(result)
+        this._InsertAIResultToImpression(result)
+        this.Notify(Format("已插入 Impression (取資:{}ms, API:{}ms)", extractTime, apiTime))
+    }
+
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
     ; [修改] 增加 Benchmark 效能測量
     static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
@@ -2757,76 +2825,35 @@ class RisController {
 
     ; [新增] 產生並插入 Impression (總結 Findings)
     static GenerateAndInsertImpression(debugMode := false) {
-        ; 檢查併發
-        if (this._isAIPending) {
-            this.Notify("AI 正在背景產生中...")
+        if (!this._BeginForegroundAIRequest()) {
             return
         }
 
-        ; [重要修正] 確保全面預載邏輯已啟動，並預先抓取必要節點
-        this._PreloadCache()
-
-        this._ShowWaitCursor()
-        this._isAIPending := true
-
         try {
-            t0 := A_TickCount
-
-            ; 1. 取得必要控制項 (確保 ImpressionEdit 也能在第一時間被找到)
-            try {
-                hFind := this.FindingEdit.NativeWindowHandle
-                hImp  := this.ImpressionEdit.NativeWindowHandle
-            } catch as err {
+            request := this._PrepareImpressionPrompt()
+            if (!request) {
                 this.Notify("找不到編輯欄位，請確認視窗是否正確")
                 return
             }
-
-            ; 取得 Findings 文字
-            findingText := ControlGetText(hFind)
-
-            if (findingText == "") {
-                this.Notify("Findings 欄位為空，無法產生總結")
+            if (request.HasOwnProp("Error")) {
+                this.Notify(request.Error)
                 return
             }
 
-            ; 去識別化
-            findingText := this._DeidentifyText(findingText)
-
-            t1 := A_TickCount
-            extractTime := t1 - t0
-
-            ; 2. 準備 Prompt (從 RisConfig 讀取)
-            conf := RisConfig.AI.Impression
-            fullPrompt := Format(conf.Prompt, findingText)
-
-            if (debugMode) {
-                A_Clipboard := fullPrompt
-                ans := MsgBox("Prompt 已複製。是否繼續？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
-                if (ans == "No")
-                    return
+            if (!this._HandleImpressionDebugPrompt(debugMode, request.Prompt)) {
+                return
             }
 
-            ; 3. 呼叫 API
             t2 := A_TickCount
-            result := this._CallGoogleAI(fullPrompt, conf.Model, conf.Temperature, conf.TopP)
-            t3 := A_TickCount
-            apiTime := t3 - t2
-
-            ; [新增] 確保斷行格式正確 (轉為 \r\n)
-            result := StrReplace(result, "`r`n", "`n")
-            result := StrReplace(result, "`n", "`r`n")
-
-            ; 4. 插入結果 (固定插入到 ImpressionEdit)
-            this._InsertAIResultToImpression(result)
-
-            this.Notify(Format("已插入 Impression (取資:{}ms, API:{}ms)", extractTime, apiTime))
+            result := this._CallGoogleAI(request.Prompt, request.Config.Model, request.Config.Temperature, request.Config.TopP)
+            apiTime := A_TickCount - t2
+            this._HandleImpressionSuccess(result, request.ExtractTime, apiTime)
 
         } catch as err {
             fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
             this._ShowDebugError(fullErrorMsg)
         } finally {
-            this._isAIPending := false
-            this._RestoreCursor()
+            this._FinishForegroundAIRequest()
         }
     }
 
