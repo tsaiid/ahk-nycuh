@@ -6,3 +6,17 @@
 ## Install
 
 各項不同功能的 script 儘量以模組化的方式來配置，可將 script 下載後放入 AutoHotKey 的資料夾中，然後在設定檔 `AutoHotkey.ahk` 中使用 `#Include` 來載入
+
+## Validation
+
+可用 PowerShell 執行固定的 compile check：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps1
+```
+
+若要額外驗證實際編譯流程：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps1 -Compile
+```
