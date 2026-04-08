@@ -1141,6 +1141,9 @@ class RisController {
         }
     }
 
+    ; =================================================================
+    ; 5. UI Preload Orchestration
+    ; =================================================================
     ; [修改] 全面靜默快取主畫面元件 (改為非同步隊列模式)
     static _PreloadCache() {
         ; 1. 若已經執行過預載，就不再重複執行
@@ -1202,11 +1205,34 @@ class RisController {
         }
     }
 
+    static _StopPreloadTasks() {
+        if (this._preloadTask) {
+            SetTimer(this._preloadTask, 0)
+            this._preloadTask := 0
+        }
+        if (this._indicationPreloadTask) {
+            SetTimer(this._indicationPreloadTask, 0)
+            this._indicationPreloadTask := 0
+        }
+    }
+
+    static _FinalizeUIPreload() {
+        this._StopPreloadTasks()
+        this._stateCache["_UI_Preloaded_Complete"] := true
+
+        try {
+            hFind := this.FindingEdit.NativeWindowHandle
+            hImp  := this.ImpressionEdit.NativeWindowHandle
+            this._ApplyLayout(hFind, hImp)
+        }
+
+        this._MaybeStartIndicationPreload()
+    }
+
     ; [新增] 非同步預載單步執行 (僅處理 UI 元件)
     static _PreloadStep() {
         if (this._preloadQueue.Length == 0) {
-            SetTimer(this._preloadTask, 0)
-            this._preloadTask := 0
+            this._StopPreloadTasks()
             return
         }
 
@@ -1222,17 +1248,8 @@ class RisController {
 
         ; 如果抽完最後一個，主動停止
         if (this._preloadQueue.Length == 0) {
-            SetTimer(this._preloadTask, 0)
-            this._preloadTask := 0
-
             ; [新增] 標記預載完成，並立即觸發底色更新
-            this._stateCache["_UI_Preloaded_Complete"] := true
-            try {
-                hFind := this.FindingEdit.NativeWindowHandle
-                hImp  := this.ImpressionEdit.NativeWindowHandle
-                this._ApplyLayout(hFind, hImp)
-            }
-            this._MaybeStartIndicationPreload()
+            this._FinalizeUIPreload()
         }
     }
 
@@ -1857,7 +1874,17 @@ class RisController {
         return count
     }
 
-    ; --- UIA 與 元件快取 ---
+    ; =================================================================
+    ; 6. UI Cache / Node Resolve
+    ; =================================================================
+    static _ResetWindowScopedCaches(currentHwnd) {
+        this._uiCache := Map()
+        this._stateCache := Map()
+        this._aiCache := Map()
+        this._stateCache["_Hwnd"] := currentHwnd
+        this._preloadQueue := []
+        this._StopPreloadTasks()
+    }
 
     static _GetOrUpdateNode(nodeName) {
         ; 1. 取得目前實際視窗的 HWND (WinExist 速度極快，即使頻繁呼叫也無所謂)
@@ -1872,21 +1899,7 @@ class RisController {
         ; 此時必須清空所有「視窗生命週期」相關快取，避免拿到上一個視窗的殭屍物件。
         ; =================================================================
         if (!this._stateCache.Has("_Hwnd") || this._stateCache["_Hwnd"] != currentHwnd) {
-            this._uiCache := Map()
-            this._stateCache := Map()
-            this._aiCache := Map()
-            this._stateCache["_Hwnd"] := currentHwnd ; 更新為新的 HWND
-
-            ; [新增] 清空預載隊列並停止舊的 Timer
-            this._preloadQueue := []
-            if (this._preloadTask) {
-                SetTimer(this._preloadTask, 0)
-                this._preloadTask := 0
-            }
-            if (this._indicationPreloadTask) {
-                SetTimer(this._indicationPreloadTask, 0)
-                this._indicationPreloadTask := 0
-            }
+            this._ResetWindowScopedCaches(currentHwnd)
         }
 
         ; 3. 經過上面的檢查，如果 nodeName 還在 cache 裡且有效，代表它屬於目前的視窗，可直接回傳
