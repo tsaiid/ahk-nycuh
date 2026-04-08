@@ -41,7 +41,7 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 ; 啟動自動搶焦功能 (搶回 RIS 焦點以便自動化工具運作)
 RisController.EnableShellHookFocus()
 
-#HotIf WinActive(RisController.WinTitle)
+#HotIf IsRisReportWindow()
 
     #Include Hotstrings\regex-hotstrings.v2.ahk
     #Include Hotstrings\chest-ct.v2.ahk
@@ -159,10 +159,10 @@ RisController.EnableShellHookFocus()
     ; 讓滑鼠左鍵通過，同時觸發連點檢查
     ~LButton:: RisController.HandleTripleClick()
 
-#HotIf ; WinActive(RisController.WinTitle)
+#HotIf ; IsRisReportWindow()
 
 ; 只有在「RIS 視窗作用中」且「焦點在輸入框內」時，這個熱鍵才存在
-#HotIf WinActive(RisController.WinTitle) && RisController.IsTargetFocused()
+#HotIf IsRisEditContext()
     ; Insert Indication by AI
     !i:: RisController.GenerateAndInsertIndication()
 
@@ -262,7 +262,7 @@ RisController.EnableShellHookFocus()
 
     XButton2:: RisController.ReorderSelection()
 
-#HotIf  ; WinActive(RisController.WinTitle) && RisController.IsTargetFocused()
+#HotIf  ; IsRisEditContext()
 
 #w:: {
     RisController.GetWorklistJson()
@@ -293,19 +293,19 @@ F2:: {
 
 ; 【情境 A：US 鍵盤】ID 通常為 0x04090409
 ; 當偵測到是 US 鍵盤時，將 Right Alt (RAlt) 設為觸發鍵
-#HotIf (GetKeyboardHKL() == 0x04090409)
+#HotIf IsUsKeyboardLayout()
     RAlt::RisController.ActivateOrToggleFocus()
 #HotIf
 
 ; 【情境 B：日文鍵盤】ID 為你查到的 0x04110409
 ; 當偵測到是日文鍵盤時，將 SC029 (全形半形鍵) 設為觸發鍵
-#HotIf (GetKeyboardHKL() == 0x04110409)
+#HotIf IsJapaneseKeyboardLayout()
     SC029::RisController.ActivateOrToggleFocus()
 #HotIf
 
 
 ; 危急值視窗熱鍵區
-#HotIf WinActive(RisController.AbnormalWinTitle)
+#HotIf IsAbnormalWindow()
 
     !1:: RisController.ClickAbnormalButton(1)
     !2:: RisController.ClickAbnormalButton(2)
@@ -316,7 +316,7 @@ F2:: {
     !s:: RisController.ClickAbnormalButton("Save")
     ESC:: RisController.ClickAbnormalButton("Cancel")
 
-#HotIf ; WinActive(RisController.AbnormalWinTitle)
+#HotIf ; IsAbnormalWindow()
 
 ; ==============================================================================
 ; 3. Benchmark 工具函數 (高精確度)
@@ -348,7 +348,7 @@ Benchmark(funcObj, times := 1) {
 ; =================================================================
 ; 會診視窗專屬熱鍵
 ; =================================================================
-#HotIf WinActive(RisController.ConsultationWinTitle)
+#HotIf IsConsultationWindow()
 
     #Include Hotstrings\consultation.v2.ahk
 
@@ -380,4 +380,28 @@ WithImeGuard(action) {
     Send("{Blind}{vkE8}")
     try action.Call()
     finally Send("{Blind}{vkE8}")
+}
+
+IsRisReportWindow() {
+    return WinActive(RisController.WinTitle)
+}
+
+IsRisEditContext() {
+    return IsRisReportWindow() && RisController.IsTargetFocused()
+}
+
+IsAbnormalWindow() {
+    return WinActive(RisController.AbnormalWinTitle)
+}
+
+IsConsultationWindow() {
+    return WinActive(RisController.ConsultationWinTitle)
+}
+
+IsUsKeyboardLayout() {
+    return GetKeyboardHKL() == 0x04090409
+}
+
+IsJapaneseKeyboardLayout() {
+    return GetKeyboardHKL() == 0x04110409
 }
