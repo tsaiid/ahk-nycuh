@@ -187,7 +187,8 @@ class RisController {
     static _preloadTask  := 0  ; [新增] 預載 Timer 參考
     static _indicationPreloadTask := 0 ; [新增] AI indication 預載排程
     static _isAIPending  := false ; [新增] AI 請求中旗標
-    static _isInsertRequested := false ; [新增] 插入請求旗標 (用於併發處理)
+    static _isIndicationPending := false ; [新增] indication 產生中旗標
+    static _pendingIndicationInsert := false ; [新增] indication 完成後插入請求
     static _isShellHookEnabled := false ; [新增] ShellHook 狀態旗標
     static _shellTrack := Map()         ; [新增] 用於紀錄每個 HWND 的處理狀態 {time: TickCount, timer: Func}
     static IsDebug := false            ; [新增] Debug 模式切換
@@ -1224,7 +1225,7 @@ class RisController {
             return
         }
 
-        if (this._aiCache.Has("_AI_Indication") || this._isAIPending || this._indicationPreloadTask) {
+        if (this._aiCache.Has("_AI_Indication") || this._isIndicationPending || this._indicationPreloadTask) {
             return
         }
 
@@ -1240,7 +1241,7 @@ class RisController {
             SetTimer(currentTask, 0)
         }
 
-        if (this._aiCache.Has("_AI_Indication") || this._isAIPending) {
+        if (this._aiCache.Has("_AI_Indication") || this._isIndicationPending) {
             return
         }
 
@@ -2570,6 +2571,8 @@ class RisController {
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
     ; [修改] 增加 Benchmark 效能測量
     static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
+        requestMode := isPreloadOnly ? "preload" : "manual"
+
         ; 1. 檢查快取
         if (this._aiCache.Has("_AI_Indication") && !isPreloadOnly) {
             cached := this._aiCache["_AI_Indication"]
@@ -2578,27 +2581,31 @@ class RisController {
             return
         }
 
-        ; [處理併發] 改為標記回調模式，避免 AHK 執行緒死結
-        if (this._isAIPending) {
+        ; indication 已在背景產生中：手動請求只需登記插入，預載請求則直接略過
+        if (this._isIndicationPending) {
             if (isPreloadOnly) {
                 return
             }
 
-            ; 手動觸發且正在產生中：設定請求標記並退出，讓背景執行緒完工後自動插入
-            this._isInsertRequested := true
+            this._pendingIndicationInsert := true
             this.Notify("AI 正在背景產生中，完成後將自動插入...")
+            return
+        }
+
+        ; 其他 AI 任務仍在執行中時，不啟動新的 indication 工作
+        if (this._isAIPending) {
+            if (!isPreloadOnly) {
+                this.Notify("AI 正在背景產生中...")
+            }
             return
         }
 
         if (!isPreloadOnly) {
             this._ShowWaitCursor()
+            this._pendingIndicationInsert := true
         }
         this._isAIPending := true
-
-        ; 如果是手動觸發，預先設定為 true 以確保結束時會執行插入
-        if (!isPreloadOnly) {
-            this._isInsertRequested := true
-        }
+        this._isIndicationPending := true
 
         try {
             ; --- Benchmark: 記錄開始時間 ---
@@ -2672,19 +2679,22 @@ class RisController {
             }
         } finally {
             this._isAIPending := false ; [重置旗標]
+            this._isIndicationPending := false
             if (!isPreloadOnly) {
                 this._RestoreCursor()
             }
 
             ; [自動插入邏輯]
-            ; 如果有標記需要插入，且快取中有結果，則執行插入
-            if (this._isInsertRequested && this._aiCache.Has("_AI_Indication")) {
+            ; 僅在有手動插入請求且快取已有結果時執行插入。
+            ; 背景預載本身不會主動插入；只有預載期間收到手動請求時才會在完成後補插入。
+            shouldInsert := this._pendingIndicationInsert && this._aiCache.Has("_AI_Indication")
+            if (shouldInsert) {
                 this._InsertAIResult(this._aiCache["_AI_Indication"].text)
-                if (isPreloadOnly) {
-                    this.Notify("Indication 已預載完成並插入")
+                if (requestMode == "preload") {
+                    this.Notify("Indication 已完成並插入")
                 }
             }
-            this._isInsertRequested := false ; 必定重置標記
+            this._pendingIndicationInsert := false
         }
     }
 
