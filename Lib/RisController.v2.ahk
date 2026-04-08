@@ -213,6 +213,30 @@ class RisController {
     static _isUpdating     := false       ; 防卡死旗標
 
     ; =================================================================
+    ; 2.1 責任邊界總覽 (Current Ownership)
+    ; - UI cache / node resolve
+    ; - 視窗焦點與 shell hook
+    ; - 編輯器操作與文字插入
+    ; - AI orchestration
+    ; - AI transport / config
+    ; - 工作清單與 webhook
+    ; - Notify GUI
+    ;
+    ; 2.2 共享狀態歸屬 (Shared State)
+    ; - Controller lifetime: _uiCache / _stateCache / _aiCache
+    ; - UI preload / shell hook: _preloadQueue / _preloadTask / _indicationPreloadTask / _shellTrack
+    ; - AI request gating: _isAIPending / _isIndicationPending / _pendingIndicationInsert
+    ; - Notify runtime: _notifyGui / _notifyQueue / _notifySlots / _notifySweepTimer
+    ; - Presentation state: _hCustomFont / _targetImpressionHeight / _compContext
+    ;
+    ; 2.3 後續可拆模組草案
+    ; - RisUiCache: UI cache / node resolve / preload queue
+    ; - RisEditorActions: editor actions, formatting, selection mutations
+    ; - RisAiService: AI orchestration + transport facade
+    ; - RisNotify: Notify GUI, queue, slot management
+    ; =================================================================
+
+    ; =================================================================
     ; 3. 公開屬性 (Getters)
     ; =================================================================
     static Ris => this._GetOrUpdateNode("Ris")
@@ -2039,7 +2063,7 @@ class RisController {
     }
 
     ; =================================================================
-    ; 6. UI Cache / Node Resolve
+    ; 9.1 UI Cache / Node Resolve
     ; =================================================================
     static _ResetWindowScopedCaches(currentHwnd) {
         this._uiCache := Map()
@@ -2131,7 +2155,9 @@ class RisController {
         return ""
     }
 
-    ; --- 比較 Context 與 日期 ---
+    ; =================================================================
+    ; 9.2 比較 Context 與 日期
+    ; =================================================================
 
     static SetComparisonContext(targetDate) {
         currentReqNo := this._GetCurrentReqNo()
@@ -2760,6 +2786,7 @@ class RisController {
 
     ; =================================================================
     ; 10. AI 應用功能 (AI & NLP Integration)
+    ; controller 保留 orchestration；transport 已整理為單一 facade
     ; =================================================================
 
     ; 10.0 AI Orchestration Helpers
@@ -3273,6 +3300,7 @@ class RisController {
     ; =================================================================
     ; 10.1 AI Transport
     ; request prepare / transport wait / response parse
+    ; 目前僅保留 Google AI 單一供應商 facade，不在此層擴充 provider switch
     ; =================================================================
     static _GetGoogleAIConfig() {
         if (this._googleAIConfig) {
