@@ -179,8 +179,19 @@ class RisController {
     static _stateCache := Map()
     static _aiCache := Map()
     static _googleAIConfig := 0
-    static _activeNotifies := Map()
-    static _notifyOffset := 0
+    static _notifyGui := 0
+    static _notifyQueue := []
+    static _notifySlots := []
+    static _notifySlotItemIds := []
+    static _notifySweepTimer := 0
+    static _nextNotifyId := 0
+    static _notifyMaxVisible := 5
+    static _notifyDedupeWindow := 800
+    static _notifyWidth := 420
+    static _notifyPaddingX := 24
+    static _notifyPaddingY := 14
+    static _notifySlotGap := 8
+    static _notifySlotHeight := 36
     static _compContext := {ReqNo: "", Date: ""}
     static _hCustomFont := 0
     static _targetImpressionHeight := 95
@@ -192,6 +203,7 @@ class RisController {
     static _pendingIndicationInsert := false ; [新增] indication 完成後插入請求
     static _isShellHookEnabled := false ; [新增] ShellHook 狀態旗標
     static _shellTrack := Map()         ; [新增] 用於紀錄每個 HWND 的處理狀態 {time: TickCount, timer: Func}
+    static _shellTrackTTL := 15000
     static IsDebug := false            ; [新增] Debug 模式切換
 
     ; [自動更新相關狀態]
@@ -261,53 +273,101 @@ class RisController {
     ; 4. 系統功能 (Notify & Focus)
     ; =================================================================
 
-    ; [MODIFIED] 現代化 Notify UI (支援點擊關閉與層疊顯示)
     static Notify(text, duration := 1500) {
-        ; +AlwaysOnTop: 置頂
-        ; -Caption: 無標題列
-        ; +ToolWindow: 不顯示在工作列
-        ; +E0x08000000 (WS_EX_NOACTIVATE): 不搶奪焦點
-        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000000")
-        hwnd := g.Hwnd ; 預先取得 HWND 供閉包使用
+        text := Trim(text)
+        if (text == "")
+            return
 
-        ; 現代深色風格背景 (Deep Dark Gray)
-        g.BackColor := "202020"
+        this._PruneExpiredNotifications()
 
-        ; 使用更現代的 UI 字體
-        g.SetFont("s13 cWhite bold", "Microsoft JhengHei UI")
-
-        ; 增加邊距
-        g.MarginX := 25
-        g.MarginY := 15
-
-        ; 建立清理函式 (當視窗關閉或時間到時執行)
-        cleanup(*) {
-            if this._activeNotifies.Has(hwnd) {
-                this._activeNotifies.Delete(hwnd)
-                if (this._activeNotifies.Count == 0)
-                    this._notifyOffset := 0
-            }
-            try g.Destroy()
+        existingId := this._FindRecentNotifyId(text)
+        if (existingId) {
+            this._RefreshNotifyDuration(existingId, duration)
+            return
         }
 
-        ; 點擊文字即關閉視窗
-        txtObj := g.Add("Text", "Center", text)
-        txtObj.OnEvent("Click", cleanup)
+        this._nextNotifyId += 1
+        expiresAt := (duration > 0) ? (A_TickCount + duration) : 0
+        this._notifyQueue.Push({
+            id: this._nextNotifyId,
+            text: text,
+            createdAt: A_TickCount,
+            duration: duration,
+            expiresAt: expiresAt
+        })
 
-        ; 先以 Center 顯示以取得初始中央座標
-        g.Show("NoActivate AutoSize Center")
+        if (this._notifyQueue.Length > this._notifyMaxVisible)
+            this._notifyQueue.RemoveAt(1, this._notifyQueue.Length - this._notifyMaxVisible)
 
-        ; 取得目前位置
+        this._EnsureNotifyGui()
+        this._RenderNotifyQueue()
+        this._UpdateNotifySweepTimer()
+    }
+
+    static _EnsureNotifyGui() {
+        if this._notifyGui
+            return this._notifyGui
+
+        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000000")
+        g.BackColor := "202020"
+        g.SetFont("s12 cWhite bold", "Microsoft JhengHei UI")
+        g.MarginX := this._notifyPaddingX
+        g.MarginY := this._notifyPaddingY
+
+        this._notifyGui := g
+        this._notifySlots := []
+        this._notifySlotItemIds := []
+
+        loop this._notifyMaxVisible {
+            slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} +0x200 Center Hidden", this._notifyPaddingX, this._notifyPaddingY, this._notifyWidth, this._notifySlotHeight), "")
+            slot.OnEvent("Click", ObjBindMethod(this, "_HandleNotifySlotClick", A_Index))
+            this._notifySlots.Push(slot)
+            this._notifySlotItemIds.Push(0)
+        }
+
+        this._notifySweepTimer := ObjBindMethod(this, "_SweepNotifications")
+        return g
+    }
+
+    static _RenderNotifyQueue() {
+        g := this._EnsureNotifyGui()
+        visibleCount := this._notifyQueue.Length
+        innerWidth := this._notifyWidth
+        height := this._notifyPaddingY * 2
+
+        for index, slot in this._notifySlots {
+            if (index <= visibleCount) {
+                item := this._notifyQueue[index]
+                y := this._notifyPaddingY + (index - 1) * (this._notifySlotHeight + this._notifySlotGap)
+                slot.Text := item.text
+                slot.Move(this._notifyPaddingX, y, innerWidth, this._notifySlotHeight)
+                slot.Opt("-Hidden")
+                this._notifySlotItemIds[index] := item.id
+                height := y + this._notifySlotHeight + this._notifyPaddingY
+            } else {
+                slot.Text := ""
+                slot.Opt("Hidden")
+                this._notifySlotItemIds[index] := 0
+            }
+        }
+
+        if (visibleCount = 0) {
+            try g.Hide()
+            return
+        }
+
+        totalWidth := innerWidth + this._notifyPaddingX * 2
+        g.Show(Format("NoActivate AutoSize Center w{1} h{2}", totalWidth, height))
+        this._ApplyNotifyVisualStyle()
+    }
+
+    static _ApplyNotifyVisualStyle() {
+        if !this._notifyGui
+            return
+
+        hwnd := this._notifyGui.Hwnd
         WinGetPos(&x, &y, &w, &h, hwnd)
 
-        ; 如果不是第一個 Notify，則根據 Offset 進行層疊位移
-        if (this._notifyOffset > 0) {
-            ; 每次位移 35 像素，最多層疊 10 次後循環 (避免跑出螢幕太遠)
-            offsetIdx := Mod(this._notifyOffset, 10)
-            g.Move(x + offsetIdx * 35, y + offsetIdx * 35)
-        }
-
-        ; --- 視覺特效處理 ---
         try {
             WinSetRegion("0-0 w" w " h" h " r12-12", hwnd)
 
@@ -316,14 +376,83 @@ class RisController {
 
             WinSetTransparent(235, hwnd)
         }
+    }
 
-        ; 紀錄至追蹤清單與更新 Offset
-        this._activeNotifies[hwnd] := g
-        this._notifyOffset++
+    static _HandleNotifySlotClick(slotIndex, ctrl, *) {
+        if (slotIndex < 1 || slotIndex > this._notifySlotItemIds.Length)
+            return
 
-        ; 如果 duration > 0 則設定自動銷毀，否則持久化顯示
-        if (duration > 0) {
-            SetTimer(cleanup, -duration)
+        itemId := this._notifySlotItemIds[slotIndex]
+        if !itemId
+            return
+
+        this._RemoveNotifyById(itemId)
+    }
+
+    static _RemoveNotifyById(itemId) {
+        for index, item in this._notifyQueue {
+            if (item.id = itemId) {
+                this._notifyQueue.RemoveAt(index)
+                this._RenderNotifyQueue()
+                this._UpdateNotifySweepTimer()
+                return
+            }
+        }
+    }
+
+    static _FindRecentNotifyId(text) {
+        for index, item in this._notifyQueue {
+            if (item.text == text && A_TickCount - item.createdAt <= this._notifyDedupeWindow)
+                return item.id
+        }
+        return 0
+    }
+
+    static _RefreshNotifyDuration(itemId, duration) {
+        for index, item in this._notifyQueue {
+            if (item.id != itemId)
+                continue
+
+            item.createdAt := A_TickCount
+            item.duration := duration
+            item.expiresAt := (duration > 0) ? (A_TickCount + duration) : 0
+            this._notifyQueue[index] := item
+            this._RenderNotifyQueue()
+            this._UpdateNotifySweepTimer()
+            return
+        }
+    }
+
+    static _PruneExpiredNotifications() {
+        loop {
+            removed := false
+            for index, item in this._notifyQueue {
+                if (item.expiresAt > 0 && A_TickCount >= item.expiresAt) {
+                    this._notifyQueue.RemoveAt(index)
+                    removed := true
+                    break
+                }
+            }
+        } until !removed
+    }
+
+    static _SweepNotifications() {
+        this._PruneExpiredNotifications()
+        this._RenderNotifyQueue()
+        this._UpdateNotifySweepTimer()
+    }
+
+    static _UpdateNotifySweepTimer() {
+        if !this._notifySweepTimer
+            return
+
+        SetTimer(this._notifySweepTimer, 0)
+
+        for item in this._notifyQueue {
+            if (item.expiresAt > 0) {
+                SetTimer(this._notifySweepTimer, -150)
+                return
+            }
         }
     }
 
@@ -348,6 +477,8 @@ class RisController {
 
     static _ShellMessage(wParam, lParam, msg, hwnd) {
         if (wParam = 1) { ; HSHELL_WINDOWCREATED
+            this._PruneShellTrack()
+
             ; 這裡 lParam 是新視窗的 HWND
             if (this.IsDebug)
                 OutputDebug("[RisShell] HSHELL_WINDOWCREATED received: HWND=" . lParam . " (Tick=" . A_TickCount . ")`n")
@@ -382,7 +513,10 @@ class RisController {
     }
 
     static _FocusRisWindow(hwnd) {
-        if WinExist(hwnd) {
+        try {
+            if !WinExist(hwnd)
+                return
+
             ; [二次防震] 如果視窗已經是 Active 狀態且剛剛才處理過，就不再 Notify
             if WinActive(hwnd) && (this._shellTrack.Has(hwnd) && A_TickCount - this._shellTrack[hwnd].time < 1500) {
                 return
@@ -394,7 +528,32 @@ class RisController {
             if (this.IsDebug)
                 msg .= " (" . A_ScriptName . " | " . hwnd . " | " . A_TickCount . ")"
             this.Notify(msg, 1500)
+        } finally {
+            this._ClearShellTrack(hwnd)
         }
+    }
+
+    static _ClearShellTrack(hwnd) {
+        if !this._shellTrack.Has(hwnd)
+            return
+
+        track := this._shellTrack[hwnd]
+        try SetTimer(track.timer, 0)
+        this._shellTrack.Delete(hwnd)
+    }
+
+    static _PruneShellTrack() {
+        staleHwnds := []
+        for trackedHwnd, track in this._shellTrack {
+            if (!WinExist(trackedHwnd) || A_TickCount - track.time > this._shellTrackTTL)
+                staleHwnds.Push(trackedHwnd)
+        }
+
+        for hwnd in staleHwnds
+            this._ClearShellTrack(hwnd)
+
+        if (this.IsDebug && staleHwnds.Length > 0)
+            OutputDebug("[RisShell] Cleared stale shell track entries: " . staleHwnds.Length . "`n")
     }
 
     static IsTargetFocused() {
