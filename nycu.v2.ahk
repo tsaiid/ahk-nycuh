@@ -118,9 +118,7 @@ RisController.EnableShellHookFocus()
 
     ; Alt+Shift+D: 插入目前選取的歷史報告日期 (自動轉西元)
     !+d:: {
-        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.InsertSelectedHistoryDate()
-        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
+        WithImeGuard(() => RisController.InsertSelectedHistoryDate())
     }
 
     ; Alt+D: 插入以複製的歷史報告日期 (自動轉西元)
@@ -131,8 +129,7 @@ RisController.EnableShellHookFocus()
 
     ; --- Ph Exam or Pathology Copy ---
     ^+c:: {
-        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.CopyOtherReport()
+        WithImeGuard(() => RisController.CopyOtherReport())
     }
 
     ; Alt+Esc: 根據目前的檢查名稱，自動搜尋並選取歷史報告中的相似項目
@@ -172,9 +169,7 @@ RisController.EnableShellHookFocus()
     ; Insert Impression by AI (Summary of Findings)
     !s:: RisController.GenerateAndInsertImpression()
     !+s:: {
-        Send("{Blind}{vkE8}")
-        RisController.GenerateAndInsertImpression(true)
-        Send("{Blind}{vkE8}")
+        WithImeGuard(() => RisController.GenerateAndInsertImpression(true))
     }
 
     ; Polish selection by AI
@@ -217,34 +212,27 @@ RisController.EnableShellHookFocus()
 
     ; 重排選取文字 (保留 Series/Image 標記)
     ^!+o:: {
-        Send("{Blind}{vkE8}")
-        RisController.ReorderSelection({discardSeIm: false})
-        Send("{Blind}{vkE8}")
+        WithImeGuard(() => RisController.ReorderSelection({discardSeIm: false}))
     }
 
     ; 移除編號，改用 "*"
     ^+*:: {
-        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.ReorderSelection({keepEmpty: true, itemChar: "*"})
+        WithImeGuard(() => RisController.ReorderSelection({keepEmpty: true, itemChar: "*"}))
     }
 
     ; 移除編號，改用 "-"
     ^+-:: {
-        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.ReorderSelection({keepEmpty: true, itemChar: "-"})
+        WithImeGuard(() => RisController.ReorderSelection({keepEmpty: true, itemChar: "-"}))
     }
 
     ; 移除編號，自動偵測
     ^!+-:: {
-        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.ReorderSelection({autoDetectItemChar: true, keepEmpty: true, itemChar: "-"})
-        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
+        WithImeGuard(() => RisController.ReorderSelection({autoDetectItemChar: true, keepEmpty: true, itemChar: "-"}))
     }
 
     ; 移除編號，改用 ">"
     ^+>:: {
-        Send("{Blind}{vkE8}") ; 發送一個無效按鍵，阻斷 Windows 的語言切換偵測
-        RisController.ReorderSelection({keepEmpty: true, itemChar: ">"})
+        WithImeGuard(() => RisController.ReorderSelection({keepEmpty: true, itemChar: ">"}))
     }
 
     ^d:: {
@@ -259,14 +247,10 @@ RisController.EnableShellHookFocus()
     ^Down::RisController.SmartPageMove("Down")
 
     ^+Up:: {
-        Send("{Blind}{vkE8}")
-        RisController.SmartPageMove("Up", true)
-        Send("{Blind}{vkE8}")
+        WithImeGuard(() => RisController.SmartPageMove("Up", true))
     }
     ^+Down:: {
-        Send("{Blind}{vkE8}")
-        RisController.SmartPageMove("Down", true)
-        Send("{Blind}{vkE8}")
+        WithImeGuard(() => RisController.SmartPageMove("Down", true))
     }
 
     ^Enter::RisController.InsertNewLine("Below") ; Ctrl+Enter: 下方插入
@@ -391,3 +375,9 @@ Benchmark(funcObj, times := 1) {
 }
 
 SC07B::LButton
+
+WithImeGuard(action) {
+    Send("{Blind}{vkE8}")
+    try action.Call()
+    finally Send("{Blind}{vkE8}")
+}

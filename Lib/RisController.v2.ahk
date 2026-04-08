@@ -2955,6 +2955,40 @@ class RisController {
         return this._CallGoogleAI(promptText, aiConfig.Model, aiConfig.Temperature, aiConfig.TopP)
     }
 
+    static _ExecuteTimedAIRequest(promptText, aiConfig) {
+        t0 := A_TickCount
+        result := this._RequestAIResult(promptText, aiConfig)
+
+        return {
+            Result: result,
+            ApiTime: A_TickCount - t0
+        }
+    }
+
+    static _RunIndicationRequest(request, debugMode, isPreloadOnly) {
+        response := this._ExecuteTimedAIRequest(request.Prompt, request.Config)
+        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, debugMode)
+    }
+
+    static _RunImpressionRequest(request) {
+        response := this._ExecuteTimedAIRequest(request.Prompt, request.Config)
+        this._HandleImpressionSuccess(response.Result, request.ExtractTime, response.ApiTime)
+    }
+
+    static _PrepareRefineRequest(selectedText) {
+        conf := RisConfig.AI.Refine
+
+        return {
+            Prompt: conf.SystemPrompt . "`n`nInput Text:`n" . selectedText,
+            Config: conf
+        }
+    }
+
+    static _RunRefineRequest(request) {
+        response := this._ExecuteTimedAIRequest(request.Prompt, request.Config)
+        return response.Result
+    }
+
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
     ; [修改] 增加 Benchmark 效能測量
     static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
@@ -2984,10 +3018,7 @@ class RisController {
                 return
             }
 
-            t2 := A_TickCount
-            result := this._RequestAIResult(request.Prompt, request.Config)
-            apiTime := A_TickCount - t2
-            this._HandleIndicationSuccess(isPreloadOnly, result, apiTime, request.ExtractTime, debugMode)
+            this._RunIndicationRequest(request, debugMode, isPreloadOnly)
 
         } catch as err {
             if (!isPreloadOnly) {
@@ -3020,10 +3051,7 @@ class RisController {
                 return
             }
 
-            t2 := A_TickCount
-            result := this._RequestAIResult(request.Prompt, request.Config)
-            apiTime := A_TickCount - t2
-            this._HandleImpressionSuccess(result, request.ExtractTime, apiTime)
+            this._RunImpressionRequest(request)
 
         } catch as err {
             fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
@@ -3062,12 +3090,8 @@ class RisController {
             this._ShowWaitCursor()
             this.Notify("AI 潤色中...", 3000)
 
-            ; 準備 Prompt
-            conf := RisConfig.AI.Refine
-            prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
-
-            ; 呼叫 API
-            result := this._RequestAIResult(prompt, conf)
+            request := this._PrepareRefineRequest(selectedText)
+            result := this._RunRefineRequest(request)
 
             ; 格式化換行
             result := StrReplace(result, "`r`n", "`n")
