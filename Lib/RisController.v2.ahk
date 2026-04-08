@@ -3127,11 +3127,19 @@ class RisController {
     }
 
     static _BuildGoogleAIRequest(promptText, modelName := "", temperature := "", topP := "") {
+        configStart := A_TickCount
         options := this._ResolveGoogleAIOptions(modelName, temperature, topP)
+        configTime := A_TickCount - configStart
+
+        payloadStart := A_TickCount
 
         return {
             Url: this._BuildGoogleAIUrl(options),
-            Payload: this._BuildGoogleAIPayload(promptText, options)
+            Payload: this._BuildGoogleAIPayload(promptText, options),
+            Metrics: {
+                ConfigReadTime: configTime,
+                PayloadBuildTime: A_TickCount - payloadStart
+            }
         }
     }
 
@@ -3227,16 +3235,36 @@ class RisController {
         MsgBox("【API Debug】原始回應已複製到剪貼簿：`n`nStatus: " . response.Status . "`n`n" . SubStr(response.ResponseText, 1, 1000), "Google AI Debug")
     }
 
+    static _LogGoogleAIBlockingMetrics(metrics, status := "") {
+        statusText := (status != "") ? ", status=" . status : ""
+        OutputDebug(Format(
+            "[RisController] GoogleAI blocking metrics: config={}ms, payload={}ms, wait={}ms, parse={}ms{}`n",
+            metrics.ConfigReadTime,
+            metrics.PayloadBuildTime,
+            metrics.WaitForResponseTime,
+            metrics.ResponseParseTime,
+            statusText
+        ))
+    }
+
     static _CallGoogleAI(promptText, modelName := "", temperature := "", topP := "") {
         request := this._BuildGoogleAIRequest(promptText, modelName, temperature, topP)
+        waitStart := A_TickCount
         response := this._SendGoogleAIRequest(request.Url, request.Payload)
+        request.Metrics.WaitForResponseTime := A_TickCount - waitStart
         this._DebugGoogleAIResponse(request.Url, request.Payload, response)
 
         if (response.Status != 200) {
+            request.Metrics.ResponseParseTime := 0
+            this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
             throw Error("HTTP " . response.Status . " - " . response.ResponseText)
         }
 
-        return this._ParseGoogleAIResponse(response.ResponseText)
+        parseStart := A_TickCount
+        parsed := this._ParseGoogleAIResponse(response.ResponseText)
+        request.Metrics.ResponseParseTime := A_TickCount - parseStart
+        this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+        return parsed
     }
 
     ; [新增] 專用於 Debug 的持久化錯誤視窗
