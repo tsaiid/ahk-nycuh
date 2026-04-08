@@ -178,6 +178,7 @@ class RisController {
     static _uiCache := Map()
     static _stateCache := Map()
     static _aiCache := Map()
+    static _googleAIConfig := 0
     static _activeNotifies := Map()
     static _notifyOffset := 0
     static _compContext := {ReqNo: "", Date: ""}
@@ -2978,122 +2979,153 @@ class RisController {
         return text
     }
 
-    static _CallGoogleAI(promptText, modelName := "", temperature := "", topP := "") {
-        configFile := "config\private.ini"
-
-        ; 1. 取得模型名稱 (優先使用參數，若無則從設定檔讀取)
-        if (modelName == "") {
-            modelName := IniRead(configFile, "GoogleAI", "Model", "gemma-3-27b-it")
+    ; =================================================================
+    ; 10.1 AI Transport Helpers
+    ; =================================================================
+    static _GetGoogleAIConfig() {
+        if (this._googleAIConfig) {
+            return this._googleAIConfig
         }
 
-        ; 2. 取得 API Key
+        configFile := "config\private.ini"
         apiKey := IniRead(configFile, "GoogleAI", "APIKey", "")
         if (apiKey == "") {
             throw Error("請在 " . configFile . " 中設定 [GoogleAI] APIKey")
         }
 
-        ; 3. 取得參數 (優先使用傳入參數，否則從 ini 讀取，最後使用預設值)
-        if (temperature == "") {
-            temperature := IniRead(configFile, "GoogleAI", "Temperature", "0.2")
+        this._googleAIConfig := {
+            ConfigFile: configFile,
+            APIKey: apiKey,
+            Model: IniRead(configFile, "GoogleAI", "Model", "gemma-3-27b-it"),
+            Temperature: IniRead(configFile, "GoogleAI", "Temperature", "0.2"),
+            TopP: IniRead(configFile, "GoogleAI", "TopP", "0.95")
         }
-        if (topP == "") {
-            topP := IniRead(configFile, "GoogleAI", "TopP", "0.95")
+
+        return this._googleAIConfig
+    }
+
+    static _ResolveGoogleAIOptions(modelName, temperature, topP) {
+        cfg := this._GetGoogleAIConfig()
+
+        return {
+            APIKey: cfg.APIKey,
+            Model: (modelName != "") ? modelName : cfg.Model,
+            Temperature: (temperature != "") ? temperature : cfg.Temperature,
+            TopP: (topP != "") ? topP : cfg.TopP
         }
+    }
 
-        ; 組合 Google AI API 網址 (確保使用 generateContent)
-        url := "https://generativelanguage.googleapis.com/v1beta/models/" . modelName . ":generateContent?key=" . apiKey
+    static _BuildGoogleAIUrl(options) {
+        return "https://generativelanguage.googleapis.com/v1beta/models/" . options.Model . ":generateContent?key=" . options.APIKey
+    }
 
-        ; JSON 逃脫處理 (針對雙引號與換行)
-        escapedPrompt := StrReplace(promptText, "\", "\\")
-        escapedPrompt := StrReplace(escapedPrompt, "`"", "\`"")
-        escapedPrompt := StrReplace(escapedPrompt, "`n", "\n")
-        escapedPrompt := StrReplace(escapedPrompt, "`r", "\r")
-        escapedPrompt := StrReplace(escapedPrompt, "`t", "\t")
+    static _BuildGoogleAIPayload(promptText, options) {
+        escapedPrompt := this._EscapeJsonString(promptText)
 
-        ; 依照使用者提供的範例構建 Payload
-        payload := '{'
+        return '{'
             . '"contents": [{'
                 . '"role": "user",'
                 . '"parts": [{"text": "' . escapedPrompt . '"}]'
             . '}],'
             . '"generationConfig": {'
-                . '"temperature": ' . temperature . ','
+                . '"temperature": ' . options.Temperature . ','
                 . '"thinkingConfig": {"thinkingLevel": "MINIMAL"},'
-                . '"topP": ' . topP
+                . '"topP": ' . options.TopP
             . '},'
             . '"tools": [{"googleSearch": {}}]'
         . '}'
+    }
 
+    static _EscapeJsonString(text) {
+        escaped := StrReplace(text, "\", "\\")
+        escaped := StrReplace(escaped, "`"", "\`"")
+        escaped := StrReplace(escaped, "`n", "\n")
+        escaped := StrReplace(escaped, "`r", "\r")
+        escaped := StrReplace(escaped, "`t", "\t")
+        return escaped
+    }
+
+    static _SendGoogleAIRequest(url, payload) {
         req := ComObject("WinHttp.WinHttpRequest.5.1")
 
-        ; [關鍵修改] 改為 True (非同步模式)
+        ; 目前先保留既有非同步 request + wait 介面，後續可獨立抽成 transport/service。
         req.Open("POST", url, True)
         req.SetRequestHeader("Content-Type", "application/json")
         req.Send(payload)
 
-        ; 進入非阻塞等待迴圈
         while !req.WaitForResponse(0.01) {
             Sleep(10)
         }
 
-        ; --- Debug 模式：顯示原始回應 ---
-        if (this.IsDebug) {
-            A_Clipboard := "URL: " . url . "`n`nPayload: " . payload . "`n`nResponse: " . req.ResponseText
-            MsgBox("【API Debug】原始回應已複製到剪貼簿：`n`nStatus: " . req.Status . "`n`n" . SubStr(req.ResponseText, 1, 1000), "Google AI Debug")
+        return {
+            Status: req.Status,
+            ResponseText: req.ResponseText
         }
+    }
 
-        if (req.Status != 200) {
-            throw Error("HTTP " . req.Status . " - " . req.ResponseText)
-        }
-
-        ; --- 改良版解析：遍歷所有 parts 並過濾掉 thought 區塊 ---
+    static _ParseGoogleAIResponse(responseText) {
         combinedText := ""
         searchPos := 1
 
         ; 遍歷所有 "text": "..." 區段
-        while (searchPos := RegExMatch(req.ResponseText, 's)"text":\s*"(.*?)(?<!\\)"', &match, searchPos)) {
+        while (searchPos := RegExMatch(responseText, 's)"text":\s*"(.*?)(?<!\\)"', &match, searchPos)) {
             val := match[1]
 
-            ; 檢查此段 text 後方是否緊跟著 "thought": true (在同一個物件括號內)
-            ; 我們往後看 100 字元通常足以包含該物件的其他屬性
-            context := SubStr(req.ResponseText, searchPos + match.Len, 100)
-
-            ; 如果這段文字不是思考過程，才加入最終結果
+            ; 如果這段文字不是 thought 區塊，才加入最終結果
+            context := SubStr(responseText, searchPos + match.Len, 100)
             if !RegExMatch(context, '^\s*,\s*"thought":\s*true') {
                 combinedText .= val
             }
 
-            ; 移動搜尋起始位置
             searchPos += match.Len
         }
 
-        if (combinedText != "") {
-            val := combinedText
-
-            ; 1. 還原 JSON 內的跳脫字元
-            val := StrReplace(val, "\n", "`n")
-            val := StrReplace(val, "\r", "`r")
-            val := StrReplace(val, "\t", "`t")
-            val := StrReplace(val, '\"', '"')
-            val := StrReplace(val, "\\", "\")
-
-            ; 2. 解碼 \uXXXX (Unicode)
-            while RegExMatch(val, "i)\\u([0-9a-f]{4})", &m) {
-                val := StrReplace(val, m[0], Chr(Integer("0x" . m[1])))
-            }
-
-            ; 3. 清理 Markdown 標記
-            val := Trim(val, " `t`r`n")
-            if (RegExMatch(val, "s)^``````(?:\w+)?\R?(.*?)\R?``````$", &m)) {
-                val := m[1]
-            } else if (SubStr(val, 1, 1) == "``" && SubStr(val, -1) == "``") {
-                val := SubStr(val, 2, StrLen(val) - 2)
-            }
-
-            return Trim(val, " `t`r`n")
+        if (combinedText == "") {
+            throw Error("無法從 API 回應中提取有效文字。")
         }
 
-        throw Error("無法從 API 回應中提取有效文字。")
+        val := combinedText
+
+        ; 1. 還原 JSON 內的跳脫字元
+        val := StrReplace(val, "\n", "`n")
+        val := StrReplace(val, "\r", "`r")
+        val := StrReplace(val, "\t", "`t")
+        val := StrReplace(val, '\"', '"')
+        val := StrReplace(val, "\\", "\")
+
+        ; 2. 解碼 \uXXXX (Unicode)
+        while RegExMatch(val, "i)\\u([0-9a-f]{4})", &m) {
+            val := StrReplace(val, m[0], Chr(Integer("0x" . m[1])))
+        }
+
+        ; 3. 清理 Markdown 標記
+        val := Trim(val, " `t`r`n")
+        if (RegExMatch(val, "s)^``````(?:\w+)?\R?(.*?)\R?``````$", &m)) {
+            val := m[1]
+        } else if (SubStr(val, 1, 1) == "``" && SubStr(val, -1) == "``") {
+            val := SubStr(val, 2, StrLen(val) - 2)
+        }
+
+        return Trim(val, " `t`r`n")
+    }
+
+    static _CallGoogleAI(promptText, modelName := "", temperature := "", topP := "") {
+        options := this._ResolveGoogleAIOptions(modelName, temperature, topP)
+        url := this._BuildGoogleAIUrl(options)
+        payload := this._BuildGoogleAIPayload(promptText, options)
+        response := this._SendGoogleAIRequest(url, payload)
+
+        ; --- Debug 模式：顯示原始回應 ---
+        if (this.IsDebug) {
+            A_Clipboard := "URL: " . url . "`n`nPayload: " . payload . "`n`nResponse: " . response.ResponseText
+            MsgBox("【API Debug】原始回應已複製到剪貼簿：`n`nStatus: " . response.Status . "`n`n" . SubStr(response.ResponseText, 1, 1000), "Google AI Debug")
+        }
+
+        if (response.Status != 200) {
+            throw Error("HTTP " . response.Status . " - " . response.ResponseText)
+        }
+
+        return this._ParseGoogleAIResponse(response.ResponseText)
     }
 
     ; [新增] 專用於 Debug 的持久化錯誤視窗
