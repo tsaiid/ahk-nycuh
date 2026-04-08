@@ -3060,7 +3060,8 @@ class RisController {
     }
 
     ; =================================================================
-    ; 10.1 AI Transport Helpers
+    ; 10.1 AI Transport
+    ; request prepare / transport wait / response parse
     ; =================================================================
     static _GetGoogleAIConfig() {
         if (this._googleAIConfig) {
@@ -3125,6 +3126,22 @@ class RisController {
         return escaped
     }
 
+    static _BuildGoogleAIRequest(promptText, modelName := "", temperature := "", topP := "") {
+        options := this._ResolveGoogleAIOptions(modelName, temperature, topP)
+
+        return {
+            Url: this._BuildGoogleAIUrl(options),
+            Payload: this._BuildGoogleAIPayload(promptText, options)
+        }
+    }
+
+    static _WaitForGoogleAIResponse(req) {
+        ; 保留既有短輪詢行為，先集中在 transport helper 內，方便後續替換。
+        while !req.WaitForResponse(0.01) {
+            Sleep(10)
+        }
+    }
+
     static _SendGoogleAIRequest(url, payload) {
         req := ComObject("WinHttp.WinHttpRequest.5.1")
 
@@ -3132,10 +3149,7 @@ class RisController {
         req.Open("POST", url, True)
         req.SetRequestHeader("Content-Type", "application/json")
         req.Send(payload)
-
-        while !req.WaitForResponse(0.01) {
-            Sleep(10)
-        }
+        this._WaitForGoogleAIResponse(req)
 
         return {
             Status: req.Status,
@@ -3143,7 +3157,7 @@ class RisController {
         }
     }
 
-    static _ParseGoogleAIResponse(responseText) {
+    static _ExtractGoogleAIResponseText(responseText) {
         combinedText := ""
         searchPos := 1
 
@@ -3164,7 +3178,11 @@ class RisController {
             throw Error("無法從 API 回應中提取有效文字。")
         }
 
-        val := combinedText
+        return combinedText
+    }
+
+    static _DecodeGoogleAIResponseText(text) {
+        val := text
 
         ; 1. 還原 JSON 內的跳脫字元
         val := StrReplace(val, "\n", "`n")
@@ -3178,28 +3196,41 @@ class RisController {
             val := StrReplace(val, m[0], Chr(Integer("0x" . m[1])))
         }
 
+        return val
+    }
+
+    static _StripMarkdownCodeFence(text) {
+        text := Trim(text, " `t`r`n")
+
         ; 3. 清理 Markdown 標記
-        val := Trim(val, " `t`r`n")
-        if (RegExMatch(val, "s)^``````(?:\w+)?\R?(.*?)\R?``````$", &m)) {
-            val := m[1]
-        } else if (SubStr(val, 1, 1) == "``" && SubStr(val, -1) == "``") {
-            val := SubStr(val, 2, StrLen(val) - 2)
+        if (RegExMatch(text, "s)^``````(?:\w+)?\R?(.*?)\R?``````$", &m)) {
+            text := m[1]
+        } else if (SubStr(text, 1, 1) == "``" && SubStr(text, -1) == "``") {
+            text := SubStr(text, 2, StrLen(text) - 2)
         }
 
-        return Trim(val, " `t`r`n")
+        return Trim(text, " `t`r`n")
+    }
+
+    static _ParseGoogleAIResponse(responseText) {
+        text := this._ExtractGoogleAIResponseText(responseText)
+        text := this._DecodeGoogleAIResponseText(text)
+        return this._StripMarkdownCodeFence(text)
+    }
+
+    static _DebugGoogleAIResponse(url, payload, response) {
+        if (!this.IsDebug) {
+            return
+        }
+
+        A_Clipboard := "URL: " . url . "`n`nPayload: " . payload . "`n`nResponse: " . response.ResponseText
+        MsgBox("【API Debug】原始回應已複製到剪貼簿：`n`nStatus: " . response.Status . "`n`n" . SubStr(response.ResponseText, 1, 1000), "Google AI Debug")
     }
 
     static _CallGoogleAI(promptText, modelName := "", temperature := "", topP := "") {
-        options := this._ResolveGoogleAIOptions(modelName, temperature, topP)
-        url := this._BuildGoogleAIUrl(options)
-        payload := this._BuildGoogleAIPayload(promptText, options)
-        response := this._SendGoogleAIRequest(url, payload)
-
-        ; --- Debug 模式：顯示原始回應 ---
-        if (this.IsDebug) {
-            A_Clipboard := "URL: " . url . "`n`nPayload: " . payload . "`n`nResponse: " . response.ResponseText
-            MsgBox("【API Debug】原始回應已複製到剪貼簿：`n`nStatus: " . response.Status . "`n`n" . SubStr(response.ResponseText, 1, 1000), "Google AI Debug")
-        }
+        request := this._BuildGoogleAIRequest(promptText, modelName, temperature, topP)
+        response := this._SendGoogleAIRequest(request.Url, request.Payload)
+        this._DebugGoogleAIResponse(request.Url, request.Payload, response)
 
         if (response.Status != 200) {
             throw Error("HTTP " . response.Status . " - " . response.ResponseText)
