@@ -2569,109 +2569,164 @@ class RisController {
     ; 10. AI 應用功能 (AI & NLP Integration)
     ; =================================================================
 
-    ; [新增] 外部呼叫的主函式：產生並插入 Indication
-    ; [修改] 增加 Benchmark 效能測量
-    static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
-        requestMode := isPreloadOnly ? "preload" : "manual"
-
-        ; 1. 檢查快取
-        if (this._aiCache.Has("_AI_Indication") && !isPreloadOnly) {
-            cached := this._aiCache["_AI_Indication"]
-            this._InsertAIResult(cached.text)
-            this.Notify(Format("已插入 Indication (來自快取, API:{}ms)", cached.apiTime))
-            return
+    static _TryInsertCachedIndication(isPreloadOnly) {
+        if (!this._aiCache.Has("_AI_Indication") || isPreloadOnly) {
+            return false
         }
 
-        ; indication 已在背景產生中：手動請求只需登記插入，預載請求則直接略過
-        if (this._isIndicationPending) {
-            if (isPreloadOnly) {
-                return
-            }
+        cached := this._aiCache["_AI_Indication"]
+        this._InsertAIResult(cached.text)
+        this.Notify(Format("已插入 Indication (來自快取, API:{}ms)", cached.apiTime))
+        return true
+    }
 
-            this._pendingIndicationInsert := true
-            this.Notify("AI 正在背景產生中，完成後將自動插入...")
-            return
+    static _TryHandlePendingIndication(isPreloadOnly) {
+        if (!this._isIndicationPending) {
+            return false
         }
 
-        ; 其他 AI 任務仍在執行中時，不啟動新的 indication 工作
+        if (isPreloadOnly) {
+            return true
+        }
+
+        this._pendingIndicationInsert := true
+        this.Notify("AI 正在背景產生中，完成後將自動插入...")
+        return true
+    }
+
+    static _BeginIndicationRequest(isPreloadOnly) {
         if (this._isAIPending) {
             if (!isPreloadOnly) {
                 this.Notify("AI 正在背景產生中...")
             }
-            return
+            return false
         }
 
         if (!isPreloadOnly) {
             this._ShowWaitCursor()
             this._pendingIndicationInsert := true
         }
+
         this._isAIPending := true
         this._isIndicationPending := true
+        return true
+    }
+
+    static _PrepareIndicationPrompt() {
+        t0 := A_TickCount
+        clinicalData := this._GetAndFormatClinicalData()
+        if (clinicalData == "") {
+            return false
+        }
+
+        extractTime := A_TickCount - t0
+        conf := RisConfig.AI.Indication
+        fullPrompt := conf.SystemPrompt . clinicalData . conf.Constraint
+
+        return {
+            Prompt: fullPrompt,
+            Config: conf,
+            ClinicalData: clinicalData,
+            ExtractTime: extractTime
+        }
+    }
+
+    static _NormalizeIndicationResult(result) {
+        result := StrReplace(result, "`r`n", "`n")
+        result := StrReplace(result, "`n", "`r`n")
+
+        if (!InStr(result, "INDICATION:")) {
+            result := "INDICATION: " . result
+        }
+
+        return result
+    }
+
+    static _CacheIndicationResult(result, apiTime, extractTime) {
+        this._aiCache["_AI_Indication"] := {
+            text: result,
+            apiTime: apiTime,
+            extractTime: extractTime
+        }
+    }
+
+    static _HandleIndicationDebugPrompt(debugMode, isPreloadOnly, fullPrompt, extractTime) {
+        if (!(debugMode && !isPreloadOnly)) {
+            return true
+        }
+
+        A_Clipboard := fullPrompt
+        ans := MsgBox("Debug 模式開啟。`n【Benchmark】資料提取耗時: " . extractTime . " ms`n`nPrompt 已複製到剪貼簿。是否繼續呼叫 API？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
+        return ans != "No"
+    }
+
+    static _HandleIndicationSuccess(isPreloadOnly, result, apiTime, extractTime, debugMode := false) {
+        normalized := this._NormalizeIndicationResult(result)
+        this._CacheIndicationResult(normalized, apiTime, extractTime)
+
+        if (debugMode && !isPreloadOnly) {
+            MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . normalized, "AI Debug")
+        }
+
+        if (!isPreloadOnly) {
+            this.Notify(Format("已產生 Indication (取資:{}ms, API:{}ms)", extractTime, apiTime))
+        } else {
+            OutputDebug("[RisController] AI Indication 已預載並快取`n")
+        }
+    }
+
+    static _FinishIndicationRequest(requestMode, isPreloadOnly) {
+        this._isAIPending := false
+        this._isIndicationPending := false
+
+        if (!isPreloadOnly) {
+            this._RestoreCursor()
+        }
+
+        shouldInsert := this._pendingIndicationInsert && this._aiCache.Has("_AI_Indication")
+        if (shouldInsert) {
+            this._InsertAIResult(this._aiCache["_AI_Indication"].text)
+            if (requestMode == "preload") {
+                this.Notify("Indication 已完成並插入")
+            }
+        }
+
+        this._pendingIndicationInsert := false
+    }
+
+    ; [新增] 外部呼叫的主函式：產生並插入 Indication
+    ; [修改] 增加 Benchmark 效能測量
+    static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
+        requestMode := isPreloadOnly ? "preload" : "manual"
+
+        if (this._TryInsertCachedIndication(isPreloadOnly)) {
+            return
+        }
+
+        if (this._TryHandlePendingIndication(isPreloadOnly)) {
+            return
+        }
+
+        if (!this._BeginIndicationRequest(isPreloadOnly)) {
+            return
+        }
 
         try {
-            ; --- Benchmark: 記錄開始時間 ---
-            t0 := A_TickCount
-
-            ; 2. 取得並組合病歷資料
-            clinicalData := this._GetAndFormatClinicalData()
-            if (clinicalData == "") {
+            request := this._PrepareIndicationPrompt()
+            if (!request) {
                 if (!isPreloadOnly)
                     this.Notify("無法取得病歷資料，請確認是否在正確視窗內")
                 return
             }
 
-            ; --- Benchmark: 計算取資料耗時 ---
-            t1 := A_TickCount
-            extractTime := t1 - t0
-
-            ; 3. 準備 Prompt (從 RisConfig 讀取)
-            conf := RisConfig.AI.Indication
-            systemPrompt := conf.SystemPrompt
-            constraint   := conf.Constraint
-
-            fullPrompt := systemPrompt . clinicalData . constraint
-
-            ; 4. Debug 模式：顯示 Prompt 與取資料耗時並可中斷
-            if (debugMode && !isPreloadOnly) {
-                A_Clipboard := fullPrompt
-                ans := MsgBox("Debug 模式開啟。`n【Benchmark】資料提取耗時: " . extractTime . " ms`n`nPrompt 已複製到剪貼簿。是否繼續呼叫 API？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
-                if (ans == "No") {
-                    return
-                }
+            if (!this._HandleIndicationDebugPrompt(debugMode, isPreloadOnly, request.Prompt, request.ExtractTime)) {
+                return
             }
 
-            ; --- Benchmark: 記錄 API 呼叫前時間 ---
             t2 := A_TickCount
-
-            ; 呼叫 Google AI (使用 RisConfig 中的設定)
-            result := this._CallGoogleAI(fullPrompt, conf.Model, conf.Temperature, conf.TopP)
-
-            ; --- Benchmark: 計算 API 耗時 ---
-            t3 := A_TickCount
-            apiTime := t3 - t2
-
-            ; [新增] 確保斷行格式正確 (轉為 \r\n)
-            result := StrReplace(result, "`r`n", "`n")
-            result := StrReplace(result, "`n", "`r`n")
-
-            ; 由於 Prompt 要求嚴格以 "INDICATION:" 開頭，若 API 返回時缺少或格式異常，可做基本處理
-            if (!InStr(result, "INDICATION:")) {
-                result := "INDICATION: " . result
-            }
-
-            ; 存入快取
-            this._aiCache["_AI_Indication"] := {text: result, apiTime: apiTime, extractTime: extractTime}
-
-            if (debugMode && !isPreloadOnly) {
-                MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . result, "AI Debug")
-            }
-
-            ; 6. 成功產生後，根據 Benchmark 顯示 Notify
-            if (!isPreloadOnly) {
-                this.Notify(Format("已產生 Indication (取資:{}ms, API:{}ms)", extractTime, apiTime))
-            } else {
-                OutputDebug("[RisController] AI Indication 已預載並快取`n")
-            }
+            result := this._CallGoogleAI(request.Prompt, request.Config.Model, request.Config.Temperature, request.Config.TopP)
+            apiTime := A_TickCount - t2
+            this._HandleIndicationSuccess(isPreloadOnly, result, apiTime, request.ExtractTime, debugMode)
 
         } catch as err {
             if (!isPreloadOnly) {
@@ -2679,23 +2734,7 @@ class RisController {
                 this._ShowDebugError(fullErrorMsg)
             }
         } finally {
-            this._isAIPending := false ; [重置旗標]
-            this._isIndicationPending := false
-            if (!isPreloadOnly) {
-                this._RestoreCursor()
-            }
-
-            ; [自動插入邏輯]
-            ; 僅在有手動插入請求且快取已有結果時執行插入。
-            ; 背景預載本身不會主動插入；只有預載期間收到手動請求時才會在完成後補插入。
-            shouldInsert := this._pendingIndicationInsert && this._aiCache.Has("_AI_Indication")
-            if (shouldInsert) {
-                this._InsertAIResult(this._aiCache["_AI_Indication"].text)
-                if (requestMode == "preload") {
-                    this.Notify("Indication 已完成並插入")
-                }
-            }
-            this._pendingIndicationInsert := false
+            this._FinishIndicationRequest(requestMode, isPreloadOnly)
         }
     }
 
