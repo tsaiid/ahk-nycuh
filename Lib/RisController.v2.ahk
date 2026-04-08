@@ -2951,6 +2951,10 @@ class RisController {
         this.Notify(Format("已插入 Impression (取資:{}ms, API:{}ms)", extractTime, apiTime))
     }
 
+    static _RequestAIResult(promptText, aiConfig) {
+        return this._CallGoogleAI(promptText, aiConfig.Model, aiConfig.Temperature, aiConfig.TopP)
+    }
+
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
     ; [修改] 增加 Benchmark 效能測量
     static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
@@ -2981,7 +2985,7 @@ class RisController {
             }
 
             t2 := A_TickCount
-            result := this._CallGoogleAI(request.Prompt, request.Config.Model, request.Config.Temperature, request.Config.TopP)
+            result := this._RequestAIResult(request.Prompt, request.Config)
             apiTime := A_TickCount - t2
             this._HandleIndicationSuccess(isPreloadOnly, result, apiTime, request.ExtractTime, debugMode)
 
@@ -3017,7 +3021,7 @@ class RisController {
             }
 
             t2 := A_TickCount
-            result := this._CallGoogleAI(request.Prompt, request.Config.Model, request.Config.Temperature, request.Config.TopP)
+            result := this._RequestAIResult(request.Prompt, request.Config)
             apiTime := A_TickCount - t2
             this._HandleImpressionSuccess(result, request.ExtractTime, apiTime)
 
@@ -3063,7 +3067,7 @@ class RisController {
             prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
 
             ; 呼叫 API
-            result := this._CallGoogleAI(prompt, conf.Model, conf.Temperature, conf.TopP)
+            result := this._RequestAIResult(prompt, conf)
 
             ; 格式化換行
             result := StrReplace(result, "`r`n", "`n")
