@@ -1123,6 +1123,24 @@ class RisController {
         this._PreloadCache()
     }
 
+    static _GetIndicationNodeKeys() {
+        return [
+            "ExamnameText",
+            "GenderText", "AgeText", "OrderDeptText",
+            "SubjectiveText", "ObjectiveText", "AssessmentText", "PlanText"
+        ]
+    }
+
+    static _EnsureIndicationNodesReady() {
+        for key in this._GetIndicationNodeKeys() {
+            try {
+                _ := this._GetOrUpdateNode(key)
+            } catch {
+                this._uiCache[key] := false
+            }
+        }
+    }
+
     ; [修改] 全面靜默快取主畫面元件 (改為非同步隊列模式)
     static _PreloadCache() {
         ; 1. 若已經執行過預載，就不再重複執行
@@ -1142,14 +1160,12 @@ class RisController {
 
         priorityKeys := [
             ; 1.
-            "ExamnameText",
-            ; 2.
             "PastFindingText", "PastImpressionText", "PastReportTable",
             "FindingEdit", "ImpressionEdit",
-            ; 3.
-            "GenderText", "AgeText", "OrderDeptText",
-            "SubjectiveText", "ObjectiveText", "AssessmentText", "PlanText"
         ]
+        for key in this._GetIndicationNodeKeys() {
+            priorityKeys.Push(key)
+        }
 
         for key in priorityKeys {
             if (this.Selectors.Has(key) && !this._uiCache.Has(key)) {
@@ -2614,6 +2630,7 @@ class RisController {
 
     static _PrepareIndicationPrompt() {
         t0 := A_TickCount
+        this._EnsureIndicationNodesReady()
         clinicalData := this._GetAndFormatClinicalData()
         if (clinicalData == "") {
             return false
@@ -2963,9 +2980,6 @@ class RisController {
 
     ; [修改] 使用 _FastGetCtrlText 取代原本的 this.GetText()
     static _GetAndFormatClinicalData() {
-        ; [修改] 防呆：確保全面預載邏輯一定有跑過
-        this._PreloadCache()
-
         ; 逐一嘗試抓取，即使某個欄位找不到也不會中斷整個字串的組合
         gender := this._FastGetCtrlText("GenderText")
         age    := this._FastGetCtrlText("AgeText")
