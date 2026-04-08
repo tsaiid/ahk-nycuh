@@ -786,7 +786,7 @@ class RisController {
         }
 
         cleanName := StrReplace(rawName, "檢查項目: ", "")
-        this._EditReplaceSel(hEdit, cleanName . ":`r`n`r`n")
+        this._ReplaceSelectionAndScroll(hEdit, cleanName . ":`r`n`r`n")
         return true
     }
 
@@ -2005,6 +2005,11 @@ class RisController {
         SendMessage(this.MSG.SCROLLCARET, 0, 0, hCtrl)
     }
 
+    static _ReplaceSelectionAndScroll(hCtrl, text) {
+        this._EditReplaceSel(hCtrl, text)
+        this._EditScrollCaret(hCtrl)
+    }
+
     static _EditGetSel(hCtrl) {
         StartBuf := Buffer(4, 0), EndBuf := Buffer(4, 0)
         SendMessage(this.MSG.GETSEL, StartBuf.Ptr, EndBuf.Ptr, hCtrl)
@@ -3141,7 +3146,7 @@ class RisController {
             finalText := StrReplace(finalText, "`n", "`r`n")
             
             this._EditSetSel(hEdit, sel.Start, sel.End)
-            this._EditReplaceSel(hEdit, finalText)
+            this._ReplaceSelectionAndScroll(hEdit, finalText)
             myGui.Destroy()
             this.Notify("已更新文字")
         }
@@ -3174,8 +3179,7 @@ class RisController {
 
         ; 插入文字 (清空原本內容還是附加？通常總結是全新的，這裡採附加但在最前面)
         ; 使用者可能希望直接覆蓋，或者在游標處插入。這裡遵循 _InsertAIResult 邏輯：在游標處插入。
-        this._EditReplaceSel(targetHwnd, result)
-        this._EditScrollCaret(targetHwnd)
+        this._ReplaceSelectionAndScroll(targetHwnd, result)
     }
 
     ; [內部 Helper] 執行 AI 結果插入 UI
@@ -3198,8 +3202,7 @@ class RisController {
             Sleep(50)
         }
 
-        this._EditReplaceSel(targetHwnd, result . "`r`n`r`n")
-        this._EditScrollCaret(targetHwnd)
+        this._ReplaceSelectionAndScroll(targetHwnd, result . "`r`n`r`n")
     }
 
     ; [新增] 極速讀取 Helper：繞過 UIA Fallback，直接調用 Win32 API
