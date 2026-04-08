@@ -185,6 +185,7 @@ class RisController {
     static _targetImpressionHeight := 95
     static _preloadQueue := [] ; [新增] 預載隊列
     static _preloadTask  := 0  ; [新增] 預載 Timer 參考
+    static _indicationPreloadTask := 0 ; [新增] AI indication 預載排程
     static _isAIPending  := false ; [新增] AI 請求中旗標
     static _isInsertRequested := false ; [新增] 插入請求旗標 (用於併發處理)
     static _isShellHookEnabled := false ; [新增] ShellHook 狀態旗標
@@ -1120,7 +1121,7 @@ class RisController {
         this._PreloadCache()
     }
 
-    ; [修改] 全面靜默快取主畫面元件 (改為非同步隊列模式，包含 AI 預載)
+    ; [修改] 全面靜默快取主畫面元件 (改為非同步隊列模式)
     static _PreloadCache() {
         ; 1. 若已經執行過預載，就不再重複執行
         if (this._stateCache.Has("_UI_Preloaded")) {
@@ -1136,7 +1137,6 @@ class RisController {
         ; 1. InsertExamNameAtCaret
         ; 2. AppendPreviousReport / InsertCopiedReportDate
         ; 3. GenerateAndInsertIndication (所需的病歷欄位)
-        ; 4. _AI_TASK_ (啟動 AI 背景計算)
 
         priorityKeys := [
             ; 1.
@@ -1153,11 +1153,6 @@ class RisController {
             if (this.Selectors.Has(key) && !this._uiCache.Has(key)) {
                 this._preloadQueue.Push(key)
             }
-        }
-
-        ; [核心修改] 將 AI 預載任務插入在優先 UI 元件之後，而非最後
-        if (!this._aiCache.Has("_AI_Indication")) {
-            this._preloadQueue.Push("_AI_TASK_")
         }
 
         ; 處理剩餘的其他元件
@@ -1189,7 +1184,7 @@ class RisController {
         }
     }
 
-    ; [新增] 非同步預載單步執行 (包含 UI 元件與 AI)
+    ; [新增] 非同步預載單步執行 (僅處理 UI 元件)
     static _PreloadStep() {
         if (this._preloadQueue.Length == 0) {
             SetTimer(this._preloadTask, 0)
@@ -1199,21 +1194,12 @@ class RisController {
 
         key := this._preloadQueue.RemoveAt(1)
 
-        if (key == "_AI_TASK_") {
-            ; [核心優化] 在背景偷偷呼叫 AI，不插入文字，只存入快取
-            ; 注意：這裡會稍微阻塞 Timer 一次 (API 等待時間)，但因為已經在隊列最後，
-            ; 且不影響 AHK 熱鍵監聽，使用者幾乎無感。
-            try {
-                this.GenerateAndInsertIndication(false, true)
-            }
-        } else {
-            try {
-                ; [修改] 改用 _GetOrUpdateNode 確保即使沒有 Getter 也能抓到元件
-                _ := this._GetOrUpdateNode(key)
-            } catch {
-                ; 負向快取
-                this._uiCache[key] := false
-            }
+        try {
+            ; [修改] 改用 _GetOrUpdateNode 確保即使沒有 Getter 也能抓到元件
+            _ := this._GetOrUpdateNode(key)
+        } catch {
+            ; 負向快取
+            this._uiCache[key] := false
         }
 
         ; 如果抽完最後一個，主動停止
@@ -1228,6 +1214,38 @@ class RisController {
                 hImp  := this.ImpressionEdit.NativeWindowHandle
                 this._ApplyLayout(hFind, hImp)
             }
+            this._MaybeStartIndicationPreload()
+        }
+    }
+
+    ; [新增] UI 預載完成後，改由獨立排程啟動 AI indication 預載
+    static _MaybeStartIndicationPreload() {
+        if (!this._stateCache.Has("_UI_Preloaded_Complete") || !this._stateCache["_UI_Preloaded_Complete"]) {
+            return
+        }
+
+        if (this._aiCache.Has("_AI_Indication") || this._isAIPending || this._indicationPreloadTask) {
+            return
+        }
+
+        this._indicationPreloadTask := ObjBindMethod(this, "_StartIndicationPreload")
+        SetTimer(this._indicationPreloadTask, -10)
+    }
+
+    static _StartIndicationPreload() {
+        currentTask := this._indicationPreloadTask
+        this._indicationPreloadTask := 0
+
+        if (currentTask) {
+            SetTimer(currentTask, 0)
+        }
+
+        if (this._aiCache.Has("_AI_Indication") || this._isAIPending) {
+            return
+        }
+
+        try {
+            this.GenerateAndInsertIndication(false, true)
         }
     }
 
@@ -1846,6 +1864,10 @@ class RisController {
             if (this._preloadTask) {
                 SetTimer(this._preloadTask, 0)
                 this._preloadTask := 0
+            }
+            if (this._indicationPreloadTask) {
+                SetTimer(this._indicationPreloadTask, 0)
+                this._indicationPreloadTask := 0
             }
         }
 
@@ -2568,7 +2590,9 @@ class RisController {
             return
         }
 
-        this._ShowWaitCursor()
+        if (!isPreloadOnly) {
+            this._ShowWaitCursor()
+        }
         this._isAIPending := true
 
         ; 如果是手動觸發，預先設定為 true 以確保結束時會執行插入
@@ -2648,7 +2672,9 @@ class RisController {
             }
         } finally {
             this._isAIPending := false ; [重置旗標]
-            this._RestoreCursor()
+            if (!isPreloadOnly) {
+                this._RestoreCursor()
+            }
 
             ; [自動插入邏輯]
             ; 如果有標記需要插入，且快取中有結果，則執行插入
