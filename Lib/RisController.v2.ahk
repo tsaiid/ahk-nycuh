@@ -667,10 +667,10 @@ class RisController {
         OnMessage(DllCall("RegisterWindowMessage", "Str", "SHELLHOOK"), (wp, lp, m, h) => this._ShellMessage(wp, lp, m, h))
         this._isShellHookEnabled := true
 
-        msg := "RIS 自動搶焦已啟動"
-        if (this.IsDebug)
-            msg .= " (" . A_ScriptName . ")"
-        this.Notify(msg, 1500)
+        if (this.IsDebug) {
+            msg := "RIS 自動搶焦已啟動 (" . A_ScriptName . ")"
+            this.Notify(msg, 1500)
+        }
     }
 
     static _ShellMessage(wParam, lParam, msg, hwnd) {
@@ -739,13 +739,70 @@ class RisController {
             }
 
             try this.FindingEdit.SetFocus()
+            this._ScheduleWindowWarmup(hwnd)
 
-            msg := "已自動回歸 RIS 焦點"
-            if (this.IsDebug)
-                msg .= " (" . A_ScriptName . " | " . hwnd . " | " . A_TickCount . ")"
-            this.Notify(msg, 1500)
+            if (this.IsDebug) {
+                msg := "已自動回歸 RIS 焦點 (" . A_ScriptName . " | " . hwnd . " | " . A_TickCount . ")"
+                this.Notify(msg, 1500)
+            }
         } finally {
             this._ClearShellTrack(hwnd)
+        }
+    }
+
+    static _ScheduleWindowWarmup(hwnd, attempt := 1) {
+        if !WinExist(hwnd)
+            return
+
+        currentHwnd := 0
+        try currentHwnd := WinExist(this.WinTitle)
+        if (currentHwnd != hwnd)
+            return
+
+        if !WinActive(hwnd) {
+            if (attempt >= 4)
+                return
+
+            retryFunc := ObjBindMethod(this, "_ScheduleWindowWarmup", hwnd, attempt + 1)
+            SetTimer(retryFunc, -250)
+            return
+        }
+
+        this._StartWindowInitialization(hwnd)
+    }
+
+    static _StartWindowInitialization(hwnd) {
+        if !WinExist(hwnd)
+            return
+
+        currentHwnd := 0
+        try currentHwnd := WinExist(this.WinTitle)
+        if (currentHwnd != hwnd)
+            return
+
+        if (this._stateCache.Has("_WindowInitialized") && this._stateCache["_WindowInitialized"] = hwnd)
+            return
+
+        try {
+            hFind := this.FindingEdit.NativeWindowHandle
+            hImp  := this.ImpressionEdit.NativeWindowHandle
+        } catch {
+            return
+        }
+
+        this._stateCache["_WindowInitialized"] := hwnd
+        this._ApplyEditorFont(hFind, hImp)
+        this._ApplyLayout(hFind, hImp)
+        this._PreloadCache()
+    }
+
+    static _ApplyEditorFont(hFind, hImp) {
+        if !hFind || !hImp || !this._hCustomFont
+            return
+
+        try {
+            SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hFind)
+            SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hImp)
         }
     }
 
@@ -1479,6 +1536,17 @@ class RisController {
         if !WinActive(this.WinTitle) {
             return
         }
+
+        currentHwnd := 0
+        try currentHwnd := WinExist(this.WinTitle)
+        if (!currentHwnd)
+            return
+
+        if !(this._stateCache.Has("_WindowInitialized") && this._stateCache["_WindowInitialized"] = currentHwnd) {
+            this._StartWindowInitialization(currentHwnd)
+            return
+        }
+
         try {
             hFind := this.FindingEdit.NativeWindowHandle
             hImp  := this.ImpressionEdit.NativeWindowHandle
@@ -1486,16 +1554,8 @@ class RisController {
             return
         }
 
-        if (this._hCustomFont) {
-            try {
-                SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hFind)
-                SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hImp)
-            }
-        }
+        this._ApplyEditorFont(hFind, hImp)
         this._ApplyLayout(hFind, hImp)
-
-        ; [修改] 改為呼叫全面預載機制
-        this._PreloadCache()
     }
 
     static _GetIndicationNodeKeys() {
