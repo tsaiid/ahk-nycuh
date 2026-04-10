@@ -119,6 +119,7 @@ class NoduleTracker {
             [3, 10, 47, 101],
             [5, 57, 29, 185],
             [5, 57, 31, 185],
+            [5, 57, 37, 185],
             [5, 57, 39, 185],
             [5, 57, 41, 185],
             [5, 57, 45, 185],
@@ -233,7 +234,7 @@ class NoduleTracker {
                 if (NoduleTracker.VerifySpatialMatch(candidate.srs, focusNN, hwnd) &&
                     NoduleTracker.VerifySpatialMatch(candidate.img, focusNN, hwnd) &&
                     NoduleTracker.VerifySpatialMatch(candidate.desc, focusNN, hwnd)) {
-                    
+
                     ; [新增] 驗證 Description 控制項文字格式 (必須符合 "(從1開始的數字) 文字")
                     try {
                         descText := ControlGetText(candidate.desc, hwnd)
