@@ -24,7 +24,7 @@
 ;    - F12         : 開啟探針工具，深度除錯當前控制項 ClassNN 與 Acc 路徑。
 ; 5. GUI 功能：
 ;    - Full        : 整合所有記錄並按肺葉順序自動排序複製 (標準報告格式)。
-;    - Loc:Img     : 依肺葉分類複製影像編號 (e.g., RUL:15;22 LUL:10)。
+;    - Lobe:Img    : 依肺葉分類複製影像編號 (e.g., RUL:15;22;LUL:10)。
 ;    - Img No      : 提取所有 Image Number，排序並以分號分隔複製。
 ; 6. 特殊邏輯：
 ;    - 自動補償：偵測到 MPR/MIP 序列時，影像編號自動 +1 (適配 PACS)。
@@ -92,7 +92,7 @@ class NoduleTracker {
         btnX := 15
         btnCopy := this.MyGui.Add("Button", "x" btnX " y+10 w85 h30", "Full")
         btnCopy.OnEvent("Click", this.CopyReport.Bind(this))
-        btnCopyLocImg := this.MyGui.Add("Button", "x+10 w90 h30", "Loc:Img")
+        btnCopyLocImg := this.MyGui.Add("Button", "x+10 w90 h30", "Lobe:Img")
         btnCopyLocImg.OnEvent("Click", this.CopyLocImg.Bind(this))
         btnCopyImg := this.MyGui.Add("Button", "x+10 w85 h30", "Img No")
         btnCopyImg.OnEvent("Click", this.CopyImgNo.Bind(this))
@@ -1017,11 +1017,11 @@ class NoduleTracker {
         }
         finalStr := ""
         for part in lobeParts {
-            finalStr .= part . " "
+            finalStr .= part . ";"
         }
-        finalStr := Trim(finalStr)
+        finalStr := Trim(finalStr, ";")
         A_Clipboard := finalStr
-        NoduleTracker.ShowTip("📋 Copied Loc:Img:`n" finalStr, 3000)
+        NoduleTracker.ShowTip("📋 Copied Lobe:Img:`n" finalStr, 3000)
     }
 
     ClearAll(*) {
