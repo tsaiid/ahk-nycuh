@@ -26,7 +26,7 @@
 ::actncok::The liver, spleen, pancreas, adrenals, kidneys, and bowels are normal. Due to non-contrast study, the evaluation of solid organs is limited.
 ::bpleat::Bilateral pleural effusion with atelectasis of lower lungs.
 ::actaps::A small wedge-shaped subcapsular arterial hyperenhancement at S_ of liver with isoenhancement in the portal venous and delay phases, in favor of AP shunting.
-::acthh::A -cm nodule in the S of liver, shows discontinuous, nodular, peripheral enhancement in arterial phase, and progressive peripheral enhancement with centripetal fill in in portal venous phase. Hepatic hemangioma is considered.
+::acthh::A _ cm nodule in S of the liver demonstrates discontinuous, nodular, peripheral enhancement during the arterial phase, with progressive peripheral enhancement and centripetal fill-in during the portal venous phase. Findings are suggestive of a hepatic hemangioma.
 ::actrn::A -cm nodule in the S of liver, shows enhancement in arterial phase, and isodense in portal venous phase, in favor of regenerative nodule.
 ::acthcc::A -cm nodule in the S of liver, shows arterial phase hyperenhancement, washout and enhancing capsule in portal venous phase, suggestive of hepatocellular carcinoma.
 ::actraa::A  cm fat-containing enhanced nodular lesion in the right adrenal gland, in favor of adenoma.
