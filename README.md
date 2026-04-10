@@ -15,6 +15,8 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps1
 ```
 
+預設會依目前 git 變更檔自動選出受影響的 entry；若變更無法可靠映射到既有 entry，則會保守地驗證全部 entry。
+
 若要額外驗證實際編譯流程：
 
 ```powershell
