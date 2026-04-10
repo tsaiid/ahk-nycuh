@@ -195,6 +195,7 @@ class RisController {
     static _notifySlotGap := 8
     static _notifySlotHeight := 36
     static _compContext := {ReqNo: "", Date: ""}
+    static _workingCursorCache := {AppStarting: "", CursorBaseSize: "", Path: ""}
     static _hCustomFont := 0
     static _targetImpressionHeight := 95
     static _preloadQueue := [] ; [新增] 預載隊列
@@ -2784,45 +2785,77 @@ class RisController {
     static _IsSpace(char) => (char == " " || char == "`t" || char == "`r" || char == "`n")
 
     ; =================================================================
-    ; [精簡版] 既然檔案內含多重解析度，直接讀取並指定大小即可
+    ; 優先依照使用者目前的 cursor scheme 與 CursorBaseSize 選擇 working 游標檔。
+    ; 注意：SetSystemCursor 只會套用靜態游標內容，無法保留 .ani 動畫。
     ; =================================================================
     static _ShowWaitCursor() {
         try {
             OCR_NORMAL := 32512
             OCR_IBEAM := 32513
-            IMAGE_CURSOR := 2
-            LR_LOADFROMFILE := 0x0010
+            cursorPath := this._ResolveWorkingCursorPath()
 
-            ; 1. 取得目前系統游標大小 (這是清晰的關鍵)
-            cx := DllCall("GetSystemMetrics", "Int", 13)
-            cy := DllCall("GetSystemMetrics", "Int", 14)
-
-            ; 2. 指定游標檔案
-            ;    由於現代 Windows 的 .ani 檔通常已內含所有尺寸，
-            ;    直接讀取標準檔名，讓 LoadImage 去挑選最適合的圖層即可。
-            cursorPath := A_WinDir . "\Cursors\aero_working.ani"
-
-            ; 防呆：萬一檔案不存在
-            if !FileExist(cursorPath) {
-                cursorPath := A_WinDir . "\Cursors\wait.cur"
-            }
-
-            ; 3. 載入並指定大小 (LoadImage 會自動從檔案中抓出符合 cx/cy 的高清圖層)
-            hCursorRaw := DllCall("LoadImage", "Ptr", 0, "Str", cursorPath, "UInt", IMAGE_CURSOR, "Int", cx, "Int", cy, "UInt", LR_LOADFROMFILE, "Ptr")
-
-            if (!hCursorRaw)
+            if (cursorPath = "")
                 return
 
-            ; 4. 複製與替換
-            hCopyNormal := DllCall("CopyImage", "Ptr", hCursorRaw, "UInt", IMAGE_CURSOR, "Int", cx, "Int", cy, "UInt", 0, "Ptr")
-            hCopyIBeam  := DllCall("CopyImage", "Ptr", hCursorRaw, "UInt", IMAGE_CURSOR, "Int", cx, "Int", cy, "UInt", 0, "Ptr")
+            ; SetSystemCursor 會接手並銷毀 handle，因此需各自載入一份複本。
+            hCopyNormal := DllCall("LoadCursorFromFile", "Str", cursorPath, "Ptr")
+            hCopyIBeam  := DllCall("LoadCursorFromFile", "Str", cursorPath, "Ptr")
+
+            if (!hCopyNormal || !hCopyIBeam)
+                return
 
             DllCall("SetSystemCursor", "Ptr", hCopyNormal, "Int", OCR_NORMAL)
             DllCall("SetSystemCursor", "Ptr", hCopyIBeam, "Int", OCR_IBEAM)
-
-            ; 5. 清理
-            DllCall("DestroyCursor", "Ptr", hCursorRaw)
         }
+    }
+
+    static _ResolveWorkingCursorPath() {
+        try {
+            appStarting := RegRead("HKCU\Control Panel\Cursors", "AppStarting", "")
+        } catch {
+            appStarting := ""
+        }
+
+        try {
+            cursorBaseSizeRaw := RegRead("HKCU\Control Panel\Cursors", "CursorBaseSize", "32")
+        } catch {
+            cursorBaseSizeRaw := "32"
+        }
+
+        cache := this._workingCursorCache
+        if (cache.AppStarting = appStarting
+            && cache.CursorBaseSize = cursorBaseSizeRaw
+            && cache.Path != ""
+            && FileExist(cache.Path)) {
+            return cache.Path
+        }
+
+        cursorBaseSize := Integer(cursorBaseSizeRaw)
+        cursorPath := appStarting
+
+        if (cursorPath = "" || !FileExist(cursorPath)) {
+            cursorPath := A_WinDir . "\Cursors\aero_working.ani"
+        }
+
+        if (cursorBaseSize >= 64) {
+            sizedPath := RegExReplace(cursorPath, "i)(\.[^\\.]*)$", "_xl$1")
+            if (sizedPath != cursorPath && FileExist(sizedPath)) {
+                this._workingCursorCache := {AppStarting: appStarting, CursorBaseSize: cursorBaseSizeRaw, Path: sizedPath}
+                return sizedPath
+            }
+        }
+
+        if (cursorBaseSize >= 48) {
+            sizedPath := RegExReplace(cursorPath, "i)(\.[^\\.]*)$", "_l$1")
+            if (sizedPath != cursorPath && FileExist(sizedPath)) {
+                this._workingCursorCache := {AppStarting: appStarting, CursorBaseSize: cursorBaseSizeRaw, Path: sizedPath}
+                return sizedPath
+            }
+        }
+
+        resolvedPath := FileExist(cursorPath) ? cursorPath : ""
+        this._workingCursorCache := {AppStarting: appStarting, CursorBaseSize: cursorBaseSizeRaw, Path: resolvedPath}
+        return resolvedPath
     }
 
     static _RestoreCursor() {
