@@ -278,6 +278,7 @@
 ::e-s::ethmoid sinus
 ::f-s::frontal sinus
 ::nsd::nasal septum deviation
+::tmj::temporomandibular joint
 ::sov::superior ophthalmic vein
 ::npc::nasopharyngeal cancer
 ::iac::internal acoustic canal
