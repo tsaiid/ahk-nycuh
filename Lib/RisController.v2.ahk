@@ -187,7 +187,9 @@ class RisController {
     static _nextNotifyId := 0
     static _notifyMaxVisible := 5
     static _notifyDedupeWindow := 800
+    static _notifyMinWidth := 320
     static _notifyWidth := 420
+    static _notifyMaxWidth := 720
     static _notifyPaddingX := 24
     static _notifyPaddingY := 14
     static _notifySlotGap := 8
@@ -356,18 +358,21 @@ class RisController {
     static _RenderNotifyQueue() {
         g := this._EnsureNotifyGui()
         visibleCount := this._notifyQueue.Length
-        innerWidth := this._notifyWidth
+        innerWidth := this._GetNotifyContentWidth()
         height := this._notifyPaddingY * 2
+        y := this._notifyPaddingY
 
         for index, slot in this._notifySlots {
             if (index <= visibleCount) {
                 item := this._notifyQueue[index]
-                y := this._notifyPaddingY + (index - 1) * (this._notifySlotHeight + this._notifySlotGap)
-                slot.Text := item.text
-                slot.Move(this._notifyPaddingX, y, innerWidth, this._notifySlotHeight)
+                displayText := this._WrapNotifyText(item.text, innerWidth)
+                slotHeight := this._MeasureNotifyTextHeight(displayText)
+                slot.Text := displayText
+                slot.Move(this._notifyPaddingX, y, innerWidth, slotHeight)
                 slot.Opt("-Hidden")
                 this._notifySlotItemIds[index] := item.id
-                height := y + this._notifySlotHeight + this._notifyPaddingY
+                height := y + slotHeight + this._notifyPaddingY
+                y += slotHeight + this._notifySlotGap
             } else {
                 slot.Text := ""
                 slot.Opt("Hidden")
@@ -381,8 +386,177 @@ class RisController {
         }
 
         totalWidth := innerWidth + this._notifyPaddingX * 2
-        g.Show(Format("NoActivate AutoSize Center w{1} h{2}", totalWidth, height))
+        g.Show(Format("NoActivate Center w{1} h{2}", totalWidth, height))
         this._ApplyNotifyVisualStyle()
+    }
+
+    static _GetNotifyContentWidth() {
+        width := this._notifyMinWidth
+
+        for item in this._notifyQueue
+            width := Max(width, this._MeasureNotifyNaturalWidth(item.text))
+
+        return Min(this._notifyMaxWidth, width)
+    }
+
+    static _MeasureNotifyNaturalWidth(text) {
+        hdcState := this._BeginNotifyTextMeasure()
+        if !hdcState.hdc
+            return this._notifyWidth
+
+        width := 0
+        sizeBuffer := Buffer(8, 0)
+
+        for line in StrSplit(text, "`n", "`r") {
+            lineText := (line = "") ? " " : line
+            if DllCall("GetTextExtentPoint32", "Ptr", hdcState.hdc, "Str", lineText, "Int", StrLen(lineText), "Ptr", sizeBuffer.Ptr, "Int")
+                width := Max(width, NumGet(sizeBuffer, 0, "Int"))
+        }
+
+        this._EndNotifyTextMeasure(hdcState)
+        return Max(this._notifyMinWidth, width + 20)
+    }
+
+    static _MeasureNotifyTextHeight(text) {
+        hdcState := this._BeginNotifyTextMeasure()
+        if !hdcState.hdc
+            return this._notifySlotHeight
+
+        textHeight := 0
+        sizeBuffer := Buffer(8, 0)
+        for line in StrSplit(text, "`n", "`r") {
+            lineText := (line = "") ? " " : line
+            if DllCall("GetTextExtentPoint32", "Ptr", hdcState.hdc, "Str", lineText, "Int", StrLen(lineText), "Ptr", sizeBuffer.Ptr, "Int")
+                textHeight += NumGet(sizeBuffer, 4, "Int")
+        }
+        this._EndNotifyTextMeasure(hdcState)
+        return Max(this._notifySlotHeight, textHeight + 10)
+    }
+
+    static _WrapNotifyText(text, maxWidth) {
+        wrappedLines := []
+        for rawLine in StrSplit(text, "`n", "`r")
+            this._AppendWrappedNotifyLine(wrappedLines, rawLine, maxWidth)
+
+        return wrappedLines.Length ? this._JoinNotifyLines(wrappedLines) : text
+    }
+
+    static _AppendWrappedNotifyLine(lines, text, maxWidth) {
+        if (text = "") {
+            lines.Push("")
+            return
+        }
+
+        current := ""
+        tokenPattern := "(\s+|[^\s]+)"
+        startPos := 1
+        tokenFound := false
+
+        while RegExMatch(text, tokenPattern, &match, startPos) {
+            tokenFound := true
+            token := match[1]
+            candidate := current . token
+
+            if (current = "" || this._MeasureNotifyLineWidth(candidate) <= maxWidth) {
+                current := candidate
+            } else {
+                trimmed := Trim(current, " ")
+                if (trimmed != "")
+                    lines.Push(trimmed)
+                this._AppendWrappedNotifyLongToken(lines, token, maxWidth, &current)
+            }
+
+            startPos := match.Pos + match.Len
+        }
+
+        if !tokenFound {
+            this._AppendWrappedNotifyLongToken(lines, text, maxWidth, &current)
+            tokenFound := true
+        }
+
+        finalLine := Trim(current, " ")
+        if (tokenFound && finalLine != "")
+            lines.Push(finalLine)
+    }
+
+    static _AppendWrappedNotifyLongToken(lines, token, maxWidth, &current) {
+        token := Trim(token, " ")
+        if (token = "") {
+            current := ""
+            return
+        }
+
+        if (this._MeasureNotifyLineWidth(token) <= maxWidth) {
+            current := token
+            return
+        }
+
+        current := ""
+        chunk := ""
+        loop parse token {
+            char := A_LoopField
+            candidate := chunk . char
+            if (chunk = "" || this._MeasureNotifyLineWidth(candidate) <= maxWidth) {
+                chunk := candidate
+            } else {
+                lines.Push(chunk)
+                chunk := char
+            }
+        }
+        current := chunk
+    }
+
+    static _MeasureNotifyLineWidth(text) {
+        if (text = "")
+            return 0
+
+        hdcState := this._BeginNotifyTextMeasure()
+        if !hdcState.hdc
+            return this._notifyWidth
+
+        sizeBuffer := Buffer(8, 0)
+        width := 0
+        if DllCall("GetTextExtentPoint32", "Ptr", hdcState.hdc, "Str", text, "Int", StrLen(text), "Ptr", sizeBuffer.Ptr, "Int")
+            width := NumGet(sizeBuffer, 0, "Int")
+
+        this._EndNotifyTextMeasure(hdcState)
+        return width
+    }
+
+    static _JoinNotifyLines(lines) {
+        result := ""
+        for index, line in lines {
+            if (index > 1)
+                result .= "`n"
+            result .= line
+        }
+        return result
+    }
+
+    static _BeginNotifyTextMeasure() {
+        this._EnsureNotifyGui()
+
+        if !this._notifySlots.Length
+            return {hdc: 0, hwnd: 0, oldFont: 0}
+
+        hwnd := this._notifySlots[1].Hwnd
+        hdc := DllCall("GetDC", "Ptr", hwnd, "Ptr")
+        if !hdc
+            return {hdc: 0, hwnd: hwnd, oldFont: 0}
+
+        hFont := SendMessage(0x0031, 0, 0, hwnd)
+        oldFont := hFont ? DllCall("SelectObject", "Ptr", hdc, "Ptr", hFont, "Ptr") : 0
+        return {hdc: hdc, hwnd: hwnd, oldFont: oldFont}
+    }
+
+    static _EndNotifyTextMeasure(hdcState) {
+        if !hdcState.hdc
+            return
+
+        if hdcState.oldFont
+            DllCall("SelectObject", "Ptr", hdcState.hdc, "Ptr", hdcState.oldFont, "Ptr")
+
+        DllCall("ReleaseDC", "Ptr", hdcState.hwnd, "Ptr", hdcState.hdc)
     }
 
     static _ApplyNotifyVisualStyle() {
