@@ -546,7 +546,25 @@ class RisController {
                 return
             }
 
-            WinActivate(hwnd)
+            ; 先確保視窗可見，再多次嘗試搶回前景焦點
+            try WinShow(hwnd)
+
+            activated := false
+            Loop 3 {
+                try WinActivate(hwnd)
+                if WinWaitActive(hwnd, , 0.6) {
+                    activated := true
+                    break
+                }
+                Sleep 150
+            }
+
+            if !activated {
+                try DllCall("SetForegroundWindow", "ptr", hwnd)
+                try WinWaitActive(hwnd, , 0.5)
+            }
+
+            try this.FindingEdit.SetFocus()
 
             msg := "已自動回歸 RIS 焦點"
             if (this.IsDebug)
@@ -3171,7 +3189,7 @@ class RisController {
             finalText := refinedEdit.Value
             finalText := StrReplace(finalText, "`r`n", "`n")
             finalText := StrReplace(finalText, "`n", "`r`n")
-            
+
             this._EditSetSel(hEdit, sel.Start, sel.End)
             this._ReplaceSelectionAndScroll(hEdit, finalText)
             myGui.Destroy()
@@ -3185,7 +3203,7 @@ class RisController {
         myGui.OnEvent("Escape", (*) => myGui.Destroy())
 
         myGui.Show("Center")
-        
+
         ; 自動聚焦到結果框（方便按 Enter），並將游標移至開頭（防止自動全選）
         refinedEdit.Focus()
         SendMessage(0x00B1, 0, 0, refinedEdit.Hwnd) ; EM_SETSEL: Start=0, End=0
