@@ -1,4 +1,4 @@
-﻿SetFormat, Integer, Hex
+SetFormat, Integer, Hex
 Gui +ToolWindow -SysMenu +AlwaysOnTop
 Gui, Font, s14 Bold, Arial
 Gui, Add, Text, w100 h33 vSC 0x201 +Border, {SC000}

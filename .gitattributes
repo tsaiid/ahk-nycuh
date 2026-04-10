@@ -1,7 +1,21 @@
-*.ahk   eol=crlf
+*.ahk   text eol=crlf
+*.ps1   text eol=crlf
 
-# Auto detect text files and perform LF normalization
+*.md    text eol=lf
+*.json  text eol=lf
+*.txt   text eol=lf
+*.html  text eol=lf
+*.js    text eol=lf
+*.styl  text eol=lf
+*.dic   text eol=lf
+
+.gitattributes text eol=lf
+.gitignore     text eol=lf
+
+# Fallback for other text files
 * text=auto
+
+*.png -text
 
 # Custom for Visual Studio
 *.cs     diff=csharp

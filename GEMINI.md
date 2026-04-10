@@ -1,4 +1,4 @@
-﻿# Project Context
+# Project Context
 這是一個 AutoHotkey (AHK) 為主的自動化腳本專案。
 目標是提升 Windows 環境下的工作流效率，可能包含視窗管理、熱鍵重映射 (Hotkeys)、文字替換 (Hotstrings)、控制放射科報告系統的文字輸入、快速鍵、自動化以及 GUI 工具製作。
 

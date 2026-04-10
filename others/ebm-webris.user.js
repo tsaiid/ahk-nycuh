@@ -1,4 +1,4 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name         Enhanced WebRIS
 // @namespace    http://tsai.it/
 // @version      20250925.1

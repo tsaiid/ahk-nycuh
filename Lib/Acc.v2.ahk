@@ -1,4 +1,4 @@
-﻿/*
+/*
     Accessibility library for AHK v2
 
     Authors: Sean, jethrow, Sancarn (v1 code), Descolada

@@ -1,4 +1,4 @@
-﻿#Persistent
+#Persistent
 #InstallMouseHook
 while !(getKeyState("F1", "T"))
       KeyHistory

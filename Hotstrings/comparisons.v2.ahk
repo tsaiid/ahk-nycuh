@@ -1,4 +1,4 @@
-﻿; Comparisons
+; Comparisons
 ; need other string and date lib
 #Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk

@@ -1,4 +1,4 @@
-﻿; Helios Extension
+; Helios Extension
 ; Confirm (Alt-C), Next (Alt-X), Start edit (Ctrl-T) after ready
 
 ; Group Control

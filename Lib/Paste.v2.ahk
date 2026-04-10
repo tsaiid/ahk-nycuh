@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 Paste(text, convertCRLF := true) {
     ; --- 0. 內容前處理 ---

@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2
+#Requires AutoHotkey v2
 
 /**
  * OCR library: a wrapper for the the UWP Windows.Media.Ocr library.

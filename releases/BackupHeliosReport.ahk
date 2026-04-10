@@ -1,4 +1,4 @@
-﻿; Helios Extension
+; Helios Extension
 ; Backup Report, Keybinding to Alt+C
 
 ; Group Control

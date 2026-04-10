@@ -156,6 +156,11 @@ function Get-ChangedRepoFiles {
             $pathText = ($pathText -split ' -> ')[-1]
         }
 
+        if ($pathText.Length -ge 2 -and $pathText.StartsWith('"') -and $pathText.EndsWith('"')) {
+            $pathText = $pathText.Substring(1, $pathText.Length - 2)
+            $pathText = $pathText.Replace('\"', '"').Replace('\\', '\')
+        }
+
         if ([string]::IsNullOrWhiteSpace($pathText)) {
             continue
         }

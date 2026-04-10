@@ -1,4 +1,4 @@
-﻿; Open Study UID in OHIF viewer
+; Open Study UID in OHIF viewer
 #NoEnv
 SendMode Input
 SetWorkingDir %A_ScriptDir%
