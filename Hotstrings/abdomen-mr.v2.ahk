@@ -946,7 +946,7 @@ No pelvic, retroperitoneal or mesenteric lymphadenopathy.
 ;; Prostate size calculation form
 ProstateSizeCalForm() {
     ; 先取得當前活動視窗的 ID，以便稍後切換回來
-    hParentWnd := WinExist("A")
+    parentWnd := WinExist("A")
 
     PSC := Gui(, "Prostate Size Helper")
     PSC.SetFont("s12", "Verdana")
@@ -1015,8 +1015,8 @@ Prostatic size: {1} x {2} x {3} cm; Volume: {4} ml (length x width x height x 0.
 
         PSC.Destroy()
 
-        if WinExist("ahk_id " hParentWnd) {
-            WinActivate "ahk_id " hParentWnd
+        if WinExist("ahk_id " parentWnd) {
+            WinActivate "ahk_id " parentWnd
         }
 
         Paste(MyForm)

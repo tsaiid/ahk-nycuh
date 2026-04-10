@@ -458,9 +458,9 @@ Triple film of lower extremities in standing AP projection :
       Lt knee: ----- degrees varus/valgus
 )"
     ;Paste(MyForm)
-    hParentWnd := WinExist("A")
+    parentWnd := WinExist("A")
     Sleep(100)  ; let AHK to clear hotstring before showing GUI
-    LLDForm()
+    LLDForm(parentWnd)
 }
 
 ::lstv:: {
@@ -493,20 +493,20 @@ Lumbosacral Transitional Vertebrae, type IV.
     ;sex := GetGenderFromRIS()
     ;age := GetAgeFromRIS()
     sex := "F"
-    age := "10y5"
+    ageText := "10y5"
     sex := (sex == "M" ? "male" : "female")
-    if (RegExMatch(age, "(\d+)((\D)+(\d+))?", &SubPat)) {
-        age := SubPat[1] . " year"
+    if (RegExMatch(ageText, "(\d+)((\D)+(\d+))?", &SubPat)) {
+        ageText := SubPat[1] . " year"
         if (SubPat[1] > 1) {
-            age .= "s"
+            ageText .= "s"
         }
         if (SubPat.Count >= 4 && SubPat[4]) {
-            if (StrLen(age)) {
-                age .= " "
+            if (StrLen(ageText)) {
+                ageText .= " "
             }
-            age .= SubPat[4] . " month"
+            ageText .= SubPat[4] . " month"
             if (SubPat[4] > 1) {
-                age .= "s"
+                ageText .= "s"
             }
         }
     }
@@ -526,7 +526,7 @@ Estimated Bone Age:
 REMARKES:
 The estimation of bone age is by the method of Greulich and Pyle.
 )",
-        sex, age)
+        sex, ageText)
     Paste(MyForm)
     ; Move to estimated bone age for input
     Send("{Up 3}{End}{Space}")
@@ -553,9 +553,7 @@ The estimation of bone age is by the method of Greulich and Pyle.
 ::/nl::Lat view of Neck:{Enter 2}
 
 ;; for LLD form
-LLDForm() {
-    global hParentWnd ; 引用外部的全域變數 (記錄呼叫視窗的 ID)
-
+LLDForm(parentWnd) {
     LLDGui := Gui(, "LLD Helper")
     LLDGui.SetFont("s12", "Verdana")
     LLDGui.Add("Text", "x12 y22 w160 h20", "Right Leg Length")
@@ -597,8 +595,8 @@ IMPRESSION:
 
         LLDGui.Destroy()
 
-        if IsSet(hParentWnd) && WinExist("ahk_id " hParentWnd)
-            WinActivate("ahk_id " hParentWnd)
+        if parentWnd && WinExist("ahk_id " parentWnd)
+            WinActivate("ahk_id " parentWnd)
 
         Paste(MyForm)
     }

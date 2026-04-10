@@ -1278,13 +1278,13 @@ class RisController {
         }
         try {
             hEdit := ControlGetFocus("A")
-            mod := extend ? "+" : ""
+            modifierKey := extend ? "+" : ""
 
             ; 取得目前 Scroll 位置 (最上方的行號)
             prevFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
 
             if (direction == "Up") {
-                SendInput(mod "{PgUp}")
+                SendInput(modifierKey "{PgUp}")
                 Sleep 10 ; 等待 UI 更新
                 currFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
 
@@ -1298,7 +1298,7 @@ class RisController {
                     this._EditScrollCaret(hEdit)
                 }
             } else { ; Down
-                SendInput(mod "{PgDn}")
+                SendInput(modifierKey "{PgDn}")
                 Sleep 10 ; 等待 UI 更新
                 currFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
 
@@ -2195,7 +2195,7 @@ class RisController {
 
     ; 3. 讀取與上傳主程式 (回復為 UIA 版本)
     static GetWorklistJson(isAuto := false) {
-        Log := (msg) => (isAuto ? OutputDebug("[RisAuto] " . msg . "`n") : this.Notify(msg))
+        logFn := (msg) => (isAuto ? OutputDebug("[RisAuto] " . msg . "`n") : this.Notify(msg))
 
         if !WinExist(this.WorklistWinTitle) {
             return
@@ -2216,7 +2216,7 @@ class RisController {
                     elBtn.Click()
                 }
             } catch {
-                Log("⚠️ 無法點擊更新按鈕")
+                logFn("⚠️ 無法點擊更新按鈕")
                 return
             }
 
@@ -2249,7 +2249,7 @@ class RisController {
             jsonStr .= "}"
 
             if (validDataCount == 0) {
-                Log("⚠️ 統計資料為空，略過上傳")
+                logFn("⚠️ 統計資料為空，略過上傳")
                 return
             }
 
@@ -2257,7 +2257,7 @@ class RisController {
             this.PostDataToWebhook(jsonStr, isAuto)
 
         } catch as err {
-            Log("操作失敗: " . err.Message)
+            logFn("操作失敗: " . err.Message)
         } finally {
             this._RestoreCursor()
         }
@@ -2984,7 +2984,7 @@ class RisController {
     ; [修改] 新增 isSilent 參數
     static PostDataToWebhook(jsonStr, isSilent := false) {
         ; 定義內部 Log
-        Log := (msg) => (isSilent ? OutputDebug("[RisPost] " . msg . "`n") : this.Notify(msg))
+        logFn := (msg) => (isSilent ? OutputDebug("[RisPost] " . msg . "`n") : this.Notify(msg))
 
         configFile := "config\private.ini"
         url  := IniRead(configFile, "n8n", "WebhookURL", "")
@@ -2992,7 +2992,7 @@ class RisController {
         pass := IniRead(configFile, "n8n", "Password", "")
 
         if (url == "") {
-            Log("❌ 錯誤：找不到 WebhookURL 設定")
+            logFn("❌ 錯誤：找不到 WebhookURL 設定")
             return
         }
 
@@ -3009,12 +3009,12 @@ class RisController {
             req.Send(jsonStr)
 
             if (req.Status == 200) {
-                Log("✅ 資料已上傳至 n8n")
+                logFn("✅ 資料已上傳至 n8n")
             } else {
-                Log("❌ 上傳失敗 (Status: " . req.Status . ")")
+                logFn("❌ 上傳失敗 (Status: " . req.Status . ")")
             }
         } catch as err {
-            Log("❌ 網路錯誤: " . err.Message)
+            logFn("❌ 網路錯誤: " . err.Message)
         }
     }
 
@@ -3499,7 +3499,7 @@ class RisController {
     static _GetAndFormatClinicalData() {
         ; 逐一嘗試抓取，即使某個欄位找不到也不會中斷整個字串的組合
         gender := this._FastGetCtrlText("GenderText")
-        age    := this._FastGetCtrlText("AgeText")
+        ageText := this._FastGetCtrlText("AgeText")
         exam   := this._FastGetCtrlText("ExamnameText")
         dept   := this._FastGetCtrlText("OrderDeptText")
 
@@ -3513,7 +3513,7 @@ class RisController {
             return ""
         }
 
-        rawText := Format("{1}`n{2}`n{3}`n{4}`n`nS: {5}`n`nO: {6}`n`nA: {7}`n`nP: {8}", gender, age, exam, dept, sText, oText, aText, pText)
+        rawText := Format("{1}`n{2}`n{3}`n{4}`n`nS: {5}`n`nO: {6}`n`nA: {7}`n`nP: {8}", gender, ageText, exam, dept, sText, oText, aText, pText)
 
         return this._DeidentifyText(rawText)
     }
@@ -3532,8 +3532,8 @@ class RisController {
         ; 3. 處理年齡：將 "29 歲 9 月" 轉換為 "20s-yo"
         ; 保留大致年齡段對放射科診斷有臨床價值，但移除精確月分
         if (RegExMatch(text, "(\d{1,2})\s*(歲|y|years?)", &m)) {
-            age := Number(m[1])
-            decade := Floor(age / 10) * 10
+            matchedAge := Number(m[1])
+            decade := Floor(matchedAge / 10) * 10
             text := RegExReplace(text, "\d{1,2}\s*(歲|y|years?)\s*(\d{1,2}\s*(月|m|months?))?", decade . "s-yo")
         }
 

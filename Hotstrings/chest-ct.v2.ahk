@@ -93,7 +93,7 @@
 ;; Show helper to insert Fleischner guideline
 ::fsg::
 {
-    hParentWnd := WinExist("A")
+    parentWnd := WinExist("A")
     Fleischner2017Form()
 }
 
@@ -961,7 +961,7 @@ Lung-RADS v2022 Category Descriptor
 ;; for Fleischner Society 2017 guidelines
 Fleischner2017Form() {
     ; 取得當前活動視窗的 ID，以便稍後貼上文字時切換回來
-    hParentWnd := WinExist("A")
+    parentWnd := WinExist("A")
 
     FsgGui := Gui(, "Fleischner 2017 Guidelines Helper")
     FsgGui.SetFont("s10", "Verdana")
@@ -1044,8 +1044,8 @@ Fleischner2017Form() {
 
         FsgGui.Destroy()
 
-        if WinExist("ahk_id " hParentWnd) {
-            WinActivate "ahk_id " hParentWnd
+        if WinExist("ahk_id " parentWnd) {
+            WinActivate "ahk_id " parentWnd
         }
 
         Paste(MyForm)

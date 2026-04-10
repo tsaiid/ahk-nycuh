@@ -149,9 +149,9 @@ class ShuttleProController {
     }
 
     GetActiveContext() {
-        for app in this.AppList {
-            if WinActive(app.WinTitle)
-                return app
+        for appConfig in this.AppList {
+            if WinActive(appConfig.WinTitle)
+                return appConfig
         }
         return ""
     }
