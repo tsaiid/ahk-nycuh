@@ -1,0 +1,55 @@
+name: AHK Syntax Check
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.ahk'
+      - '.github/workflows/ahk-syntax-check.yml'
+
+env:
+  AHK_VERSION: '2.0.23'
+  AHK_ZIP_URL: 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v2.0.23/AutoHotkey_2.0.23.zip'
+
+jobs:
+  syntax-check:
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        script:
+          - AiPolish.ahk
+          - NoduleTracker.ahk
+          - ShuttlePROv2.v2.ahk
+          - nycu.v2.ahk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download AutoHotkey v${{ env.AHK_VERSION }}
+        shell: pwsh
+        run: |
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri "${{ env.AHK_ZIP_URL }}" -OutFile "ahk.zip"
+          Expand-Archive -Path "ahk.zip" -DestinationPath "ahk" -Force
+
+          $exe = Get-ChildItem -Path ".\ahk" -Recurse -File |
+            Where-Object { $_.Name -eq 'AutoHotkey64.exe' } |
+            Select-Object -First 1
+
+          if (-not $exe) {
+            throw "AutoHotkey64.exe not found in downloaded zip."
+          }
+
+          "AHK_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Syntax check ${{ matrix.script }}
+        shell: pwsh
+        run: |
+          & "$env:AHK_EXE" /ErrorStdOut ".\${{ matrix.script }}"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Syntax check failed: ${{ matrix.script }}"
+          }
