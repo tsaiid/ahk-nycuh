@@ -50,7 +50,18 @@ jobs:
       - name: Syntax check ${{ matrix.script }}
         shell: pwsh
         run: |
-          & "$env:AHK_EXE" /ErrorStdOut ".\${{ matrix.script }}"
-          if ($LASTEXITCODE -ne 0) {
-            throw "Syntax check failed: ${{ matrix.script }}"
+          Write-Host "Checking ${{ matrix.script }}"
+          & "$env:AHK_EXE" /ErrorStdOut ".\${{ matrix.script }}" 2>&1 | Tee-Object -Variable ahkOutput
+          $exitCode = $LASTEXITCODE
+      
+          Write-Host "ExitCode=$exitCode"
+      
+          if ($ahkOutput) {
+            Write-Host "---- AHK output begin ----"
+            $ahkOutput | ForEach-Object { Write-Host $_ }
+            Write-Host "---- AHK output end ----"
+          }
+      
+          if ($exitCode -ne 0) {
+            throw "AHK launch/load failed: ${{ matrix.script }}"
           }
