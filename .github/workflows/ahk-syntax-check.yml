@@ -51,7 +51,7 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Checking ${{ matrix.script }}"
-          & "$env:AHK_EXE" /ErrorStdOut ".\${{ matrix.script }}" 2>&1 | Tee-Object -Variable ahkOutput
+          & "$env:AHK_EXE" /Validate ".\${{ matrix.script }}" 2>&1 | Tee-Object -Variable ahkOutput
           $exitCode = $LASTEXITCODE
       
           Write-Host "ExitCode=$exitCode"
