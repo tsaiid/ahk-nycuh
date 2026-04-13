@@ -316,11 +316,12 @@ DecodeGoogleResponseText(text) {
 }
 
 StripMarkdownCodeFence(text) {
+    codeFence := Chr(96) . Chr(96) . Chr(96)
     text := Trim(text, " `t`r`n")
 
-    if (RegExMatch(text, "s)^```(?:\w+)?\R?(.*?)\R?```$", &m)) {
+    if (RegExMatch(text, "s)^\Q" . codeFence . "\E(?:\w+)?\R?(.*?)\R?\Q" . codeFence . "\E$", &m)) {
         text := m[1]
-    } else if (SubStr(text, 1, 3) = "```" && SubStr(text, -2) = "```") {
+    } else if (SubStr(text, 1, 3) = codeFence && SubStr(text, -2) = codeFence) {
         text := SubStr(text, 4, StrLen(text) - 6)
     }
 
