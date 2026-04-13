@@ -9,6 +9,7 @@ on:
       - '.github/workflows/ahk-syntax-check.yml'
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   AHK_VERSION: '2.0.23'
   AHK_ZIP_URL: 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v2.0.23/AutoHotkey_2.0.23.zip'
 
