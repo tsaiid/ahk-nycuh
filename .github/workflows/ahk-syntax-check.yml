@@ -17,15 +17,6 @@ jobs:
   syntax-check:
     runs-on: windows-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        script:
-          - AiPolish.ahk
-          - NoduleTracker.ahk
-          - ShuttlePROv2.v2.ahk
-          - nycu.v2.ahk
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,21 +38,7 @@ jobs:
 
           "AHK_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Syntax check ${{ matrix.script }}
+      - name: Run compile-check
         shell: pwsh
         run: |
-          Write-Host "Checking ${{ matrix.script }}"
-          & "$env:AHK_EXE" /Validate ".\${{ matrix.script }}" 2>&1 | Tee-Object -Variable ahkOutput
-          $exitCode = $LASTEXITCODE
-      
-          Write-Host "ExitCode=$exitCode"
-      
-          if ($ahkOutput) {
-            Write-Host "---- AHK output begin ----"
-            $ahkOutput | ForEach-Object { Write-Host $_ }
-            Write-Host "---- AHK output end ----"
-          }
-      
-          if ($exitCode -ne 0) {
-            throw "AHK launch/load failed: ${{ matrix.script }}"
-          }
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps1 -AhkExe "$env:AHK_EXE"
