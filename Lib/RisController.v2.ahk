@@ -55,6 +55,7 @@ class RisController {
         "PastReportTable",  { AutomationId: "dgvPastReport" },
         "PathoDiagnosisText", { AutomationId: "txtDiagnosist" },
         "PathoDateText",    { AutomationId: "mtxtRcpDTM" },
+        "PathologyOnlineDataRadio", { AutomationId: "rdoPathologyOnlineData" },
         "ImpressionLabel",  { AutomationId: "label2" },
         "MedRecNoLabel",    { AutomationId: "txtMRNo" },
         "AccessionNoText",  { AutomationId: "txtReqNo" },
@@ -256,6 +257,7 @@ class RisController {
     static PastReportTable => this._GetOrUpdateNode("PastReportTable")
     static PathoDiagnosisText => this._GetOrUpdateNode("PathoDiagnosisText")
     static PathoDateText => this._GetOrUpdateNode("PathoDateText")
+    static PathologyOnlineDataRadio => this._GetOrUpdateNode("PathologyOnlineDataRadio")
     static PhExamColumn => this._GetOrUpdateNode("PhExamColumn")
     static PhExamDateText => this._GetOrUpdateNode("PhExamDateText")
     static PhExamReportText => this._GetOrUpdateNode("PhExamReportText")
@@ -1891,6 +1893,16 @@ class RisController {
             return false
         }
         return false
+    }
+
+    static SelectPathologyOnlineData() {
+        try {
+            this.PathologyOnlineDataRadio.ControlClick()
+            return true
+        } catch as err {
+            this.Notify("切換病理線上資料失敗: " err.Message)
+            return false
+        }
     }
 
     static SwitchHistoryFilter(modeName) {

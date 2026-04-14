@@ -84,6 +84,7 @@ RisController.EnableShellHookFocus()
     ^4:: {
         RisController.SelectRightTab(3)
         RisController.SelectClinicalTab(5)
+        RisController.SelectPathologyOnlineData()
     }
 
     ; --- Clinical Data Tab Switching (Tab: tbcClinicalData) ---
