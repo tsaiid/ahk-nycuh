@@ -14,7 +14,7 @@
 ::ncm::No cardiomegaly.
 ::bcm::Borderline cardiomegaly.
 ::bcms::Borderline enlarged cardiac shadow, possibly supine position related.
-::cm::cardiomegaly.
+::cm::cardiomegaly
 ::cm1::enlarged cardiac shadow.
 ::cm2::Enlarged cardiac shadow. However, it could be due to supine.
 ;::np::No abnormal patch opacity in lung fields.
