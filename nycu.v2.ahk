@@ -308,10 +308,10 @@ F2:: {
 ; 危急值視窗熱鍵區
 #HotIf IsAbnormalWindow()
 
-    !1:: RisController.ClickAbnormalButton(1)
-    !2:: RisController.ClickAbnormalButton(2)
-    !3:: RisController.ClickAbnormalButton(3)
-    !4:: RisController.ClickAbnormalButton(4)
+    !1:: RisController.ClickAbnormalButton("Pos0")
+    !2:: RisController.ClickAbnormalButton("Pos1")
+    !3:: RisController.ClickAbnormalButton("Pos2")
+    !4:: RisController.ClickAbnormalButton("Pos3")
 
     ; 如果想加存檔熱鍵也很容易：
     !s:: RisController.ClickAbnormalButton("Save")
