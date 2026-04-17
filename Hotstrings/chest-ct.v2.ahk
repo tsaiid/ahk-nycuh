@@ -101,7 +101,7 @@ GetUnremarkableChestFindings(searchText) {
     findings := []
 
     ; - Lungs
-    if (!HasPositiveFinding(searchText, ["nodule", "consolidation", "mass", "opacity", "infiltration", "patchy", "atelectasis", "ground-glass", "lesion", "emphysema", "fibrosis"])) {
+    if (!HasPositiveFinding(searchText, ["nodule", "nodules", "consolidation", "consolidations", "mass", "masses", "opacity", "opacities", "infiltration", "patchy", "atelectasis", "ground-glass", "lesion", "emphysema", "fibrosis"])) {
         findings.Push("- No suspicious pulmonary nodule or consolidation.")
     }
 
