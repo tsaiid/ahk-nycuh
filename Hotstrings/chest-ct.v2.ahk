@@ -111,7 +111,7 @@ GetUnremarkableChestFindings(searchText) {
     }
 
     ; - Lymph nodes
-    if (!HasPositiveFinding(searchText, ["lymphadenopathy", "lymph node", "LAP", "LN", "hilar", "mediastinal"])) {
+    if (!HasPositiveFinding(searchText, ["lymphadenopathy", "lymph node", "lymph nodes", "LAP", "LN", "hilar", "mediastinal"])) {
         findings.Push("- No significant mediastinal or axillary lymphadenopathy.")
     }
 
