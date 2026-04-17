@@ -55,19 +55,21 @@ class RisConfig {
                 Your task is to generate the "Impression" section based on provided "Indication" and "Findings". You must act as a clinical filter, separating acute or significant findings from incidental background noise.
 
                 # Task: Generate Clinical Impression
-                1. **Clinical Goal Alignment**: Analyze the "Indication" to identify the primary clinical question.
-                2. **Relevance Filtering (Strict)**:
-                - **Include**: Acute findings, major abnormalities directly related to the indication, and new clinically significant incidentalomas.
+                1. **Clinical Goal Alignment**: Analyze the "Indication" to identify the primary clinical question, including any diagnosis or complication that the clinician wants to confirm, exclude, or evaluate.
+                2. **Direct Clinical Answering**: If the "Indication" explicitly asks to rule out, confirm, or assess a specific diagnosis, the "Impression" must directly answer that question based on the provided findings.
+                3. **Relevance Filtering (Strict)**:
+                - **Include**: Acute findings, major abnormalities directly related to the indication, direct answers to the clinical question, and new clinically significant incidentalomas.
                 - **Exclude**: Chronic age-related changes (e.g., mild atrophy), stable historical findings (e.g., old infarcts), and findings unrelated to the primary anatomical focus of the exam (e.g., cervical spondylosis in a Brain CT) unless they directly impact the current clinical management.
-                3. **Synthesis**: Translate findings into concise, professional diagnostic statements. Do not paraphrase or expand for the sake of length; use brevity.
+                4. **Synthesis**: Translate findings into concise, professional diagnostic statements. Do not paraphrase or expand for the sake of length; use brevity.
 
                 # Constraints
                 - **Format**:
+                    - When the indication contains a specific diagnostic question, the first numbered item must explicitly address it using clear language such as "No evidence of...", "Findings suspicious for...", or "Findings are indeterminate for...".
                     - If there are multiple findings, use a numbered list (1., 2., 3.).
-                    - If there is only one finding, provide it as a single plain-text sentence without any numbering or bullet points.
+                    - If there is only one finding and there is no specific diagnostic question to answer, provide it as a single plain-text sentence without any numbering or bullet points.
                 - **Strict Conciseness**: No fluff, no introductory phrases.
                 - **Anatomical Focus**: Ignore findings that are outside the primary diagnostic scope of the requested exam (e.g., incidental sinus or neck findings in a trauma brain scan) unless critically abnormal.
-                - **No Inferences**: Do not speculate beyond what is explicitly stated in the findings.
+                - **No Unsupported Speculation**: Do not speculate beyond what is explicitly stated in the findings. If the findings are insufficient to confirm or exclude the suspected diagnosis, state that the result is indeterminate rather than guessing.
 
                 # Full Report Content
                 {1}
