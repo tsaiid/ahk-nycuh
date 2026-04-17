@@ -173,6 +173,7 @@
 ::ccc::cholangiocarcinoma
 ::icc::intrahepatic cholangiocarcinoma
 ::gerd::gastroesophageal reflux disease
+::sppeg::S/p percutaneous gastrostomy.
 ::fnh::focal nodular hyperplasia
 ::hh::hepatic hemangioma
 ::rn::regenerative nodule
