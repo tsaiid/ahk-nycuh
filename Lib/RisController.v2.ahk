@@ -3410,10 +3410,17 @@ class RisController {
 
             fullText := ControlGetText(hEdit)
             selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
+            trailingNewlines := ""
 
             if (Trim(selectedText) == "") {
                 this.Notify("選取的文字為空")
                 return
+            }
+
+            if RegExMatch(selectedText, "(\R+)$", &match) {
+                trailingNewlines := StrReplace(match[1], "`r`n", "`n")
+                trailingNewlines := StrReplace(trailingNewlines, "`r", "`n")
+                trailingNewlines := StrReplace(trailingNewlines, "`n", "`r`n")
             }
 
             this._ShowWaitCursor()
@@ -3425,6 +3432,9 @@ class RisController {
             ; 格式化換行
             result := StrReplace(result, "`r`n", "`n")
             result := StrReplace(result, "`n", "`r`n")
+            if (trailingNewlines != "") {
+                result .= trailingNewlines
+            }
 
             this._RestoreCursor()
 
