@@ -3877,7 +3877,7 @@ class RisController {
         errGui.Add("Text", "w500", "API 呼叫或處理過程中發生例外錯誤：")
 
         ; 使用唯讀的 Edit 控制項來裝載可能很長的錯誤訊息，並啟用垂直捲軸
-        errGui.Add("Edit", "w500 h250 ReadOnly Multi vErrText", errMsg)
+        errEdit := errGui.Add("Edit", "w500 h250 ReadOnly Multi vErrText", errMsg)
 
         ; 一鍵複製按鈕
         btnCopy := errGui.Add("Button", "w120 x10 y+15", "📋 複製完整訊息")
@@ -3892,5 +3892,7 @@ class RisController {
 
         ; 顯示在畫面中央
         errGui.Show("AutoSize Center")
+        btnClose.Focus()
+        SendMessage(0x00B1, 0, 0, errEdit.Hwnd) ; 避免唯讀 Edit 在顯示時自動全選
     }
 }
