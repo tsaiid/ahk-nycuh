@@ -31,6 +31,8 @@ class RisController {
     static AbnormalWinTitle := "檢查結果(frmPos)"
     static ConsultationWinTitle := "會診資訊(frmReqCon)"
     static WorklistWinTitle := "工作清單(frmRIS)"
+    static _layoutShiftProp := "RisLayoutShiftApplied"
+    static _bottomCtrlShiftProp := "RisBottomCtrlShiftApplied"
 
     static _AbnormalBtnMap := Map(
         "Pos0",     {AutomationId: "rdoPos0"},
@@ -56,13 +58,14 @@ class RisController {
         "PathoDiagnosisText", { AutomationId: "txtDiagnosist" },
         "PathoDateText",    { AutomationId: "mtxtRcpDTM" },
         "PathologyOnlineDataRadio", { AutomationId: "rdoPathologyOnlineData" },
+        "CurrentCountLabel", { AutomationId: "lblCurrentCount" },
+        "BottomInfoLabel",  { AutomationId: "label5" },
         "ImpressionLabel",  { AutomationId: "label2" },
         "MedRecNoLabel",    { AutomationId: "txtMRNo" },
         "AccessionNoText",  { AutomationId: "txtReqNo" },
         "PhExamColumn",     { AutomationId: "goxExamine" },
         "PhExamDateText",   { AutomationId: "mtxtReportDTM" },
         "PhExamReportText", { AutomationId: "txtReport" },
-        "PhExamImpChkBox",  { AutomationId: "chBoxImpression" },
 
         ; [新增] SOAP 與基本資料欄位
         "SubjectiveText",   { AutomationId: "rtxtSubjective" },
@@ -1661,7 +1664,14 @@ class RisController {
         try {
             hFind := this.FindingEdit.NativeWindowHandle
             hImp  := this.ImpressionEdit.NativeWindowHandle
+            if (this.IsDebug) {
+                OutputDebug(Format("[RisLayout] _FinalizeUIPreload hFind={} hImp={}`n", hFind, hImp))
+            }
             this._ApplyLayout(hFind, hImp)
+        } catch as err {
+            if (this.IsDebug) {
+                OutputDebug(Format("[RisLayout] _FinalizeUIPreload failed: {}`n", err.Message))
+            }
         }
 
         this._MaybeStartIndicationPreload()
@@ -1724,8 +1734,12 @@ class RisController {
 
     static _ApplyLayout(hFind, hImp) {
         ; 1. 安全檢查：如果 Handle 為 0 或空，直接離開
-        if !hFind || !hImp
+        if !hFind || !hImp {
+            if (this.IsDebug) {
+                OutputDebug("[RisLayout] _ApplyLayout skipped: missing edit hwnd`n")
+            }
             return
+        }
 
         ; [新增] 底色反饋與狀態鎖定：預載完成前將 Impression 設為唯讀 (觸發灰色背景)，完成後解除。
         ; Finding 保持可寫，以免影響使用者操作體驗。
@@ -1739,28 +1753,45 @@ class RisController {
         targetImpH  := this._targetImpressionHeight * dpiScale
         gap         := 30 * dpiScale
         labelOffset := 25 * dpiScale
+        layoutShift := 10 * dpiScale
 
         ; 2. 加上 Try-Catch 保護：避免視窗切換瞬間抓不到位置而報錯
         try {
             ControlGetPos(&fX, &fY, &fW, &fH, hFind)
             ControlGetPos(&iX, &iY, &iW, &iH, hImp)
-        } catch {
+        } catch as err {
+            if (this.IsDebug) {
+                OutputDebug(Format("[RisLayout] ControlGetPos failed: {}`n", err.Message))
+            }
             return ; 如果抓不到位置，這次就不調整
         }
 
+        winHwnd := WinExist(this.WinTitle)
+        layoutApplied := !!DllCall("GetProp", "ptr", winHwnd, "str", this._layoutShiftProp, "ptr")
         currentBottom := iY + iH
-        targetImpY := currentBottom - targetImpH
+        if (layoutApplied) {
+            currentBottom -= layoutShift
+        }
+
+        targetImpY := currentBottom - targetImpH + layoutShift
         targetFindH := (targetImpY - gap) - fY
 
         tolerance := 5 * dpiScale
-        if (Abs(iH - targetImpH) < tolerance && Abs(iY - targetImpY) < tolerance && Abs(fH - targetFindH) < tolerance) {
-            return
-        }
+        mainLayoutReady := layoutApplied && Abs(iH - targetImpH) < tolerance && Abs(iY - targetImpY) < tolerance && Abs(fH - targetFindH) < tolerance
 
-        try {
-            ControlMove(,,, targetFindH, hFind) ; 先調整上面高度，避免重疊
-            ControlMove(,, iW, targetImpH, hImp)
-            ControlMove(, targetImpY,,, hImp)
+        if (!mainLayoutReady) {
+            try {
+                ControlMove(,,, targetFindH, hFind) ; 先調整上面高度，避免重疊
+                ControlMove(,, iW, targetImpH, hImp)
+                ControlMove(, targetImpY,,, hImp)
+                if (winHwnd) {
+                    DllCall("SetProp", "ptr", winHwnd, "str", this._layoutShiftProp, "ptr", 1)
+                }
+            } catch as err {
+                if (this.IsDebug) {
+                    OutputDebug(Format("[RisLayout] main layout move failed: {}`n", err.Message))
+                }
+            }
         }
 
         try {
@@ -1768,9 +1799,39 @@ class RisController {
             if (hLabel := elLabel.NativeWindowHandle) {
                 ControlMove(, targetImpY - labelOffset,,, hLabel)
             }
-            elLabel := this._GetOrUpdateNode("PhExamImpChkBox")
-            if (hLabel := elLabel.NativeWindowHandle) {
-                ControlMove(, targetImpY - labelOffset,,, hLabel)
+        } catch as err {
+            if (this.IsDebug) {
+                OutputDebug(Format("[RisLayout] ImpressionLabel failed: {}`n", err.Message))
+            }
+        }
+
+        try {
+            for ctrlName in ["BottomInfoLabel", "CurrentCountLabel", "AutoNextCheckbox"] {
+                hLabel := 0
+                try {
+                    elLabel := this._GetOrUpdateNode(ctrlName)
+                    hLabel := elLabel.NativeWindowHandle
+                } catch as err {
+                    if (this.IsDebug) {
+                        OutputDebug(Format("[RisLayout] {} resolve failed: {}`n", ctrlName, err.Message))
+                    }
+                }
+                if (this.IsDebug) {
+                    OutputDebug(Format("[RisLayout] {} hwnd={}`n", ctrlName, hLabel))
+                }
+                if (hLabel) {
+                    ControlGetPos(, &ctrlY,,, hLabel)
+                    ctrlLayoutApplied := !!DllCall("GetProp", "ptr", hLabel, "str", this._bottomCtrlShiftProp, "ptr")
+                    targetCtrlY := ctrlLayoutApplied ? ctrlY : ctrlY + layoutShift
+                    ControlMove(, targetCtrlY,,, hLabel)
+                    if (!ctrlLayoutApplied) {
+                        DllCall("SetProp", "ptr", hLabel, "str", this._bottomCtrlShiftProp, "ptr", 1)
+                    }
+                }
+            }
+        } catch as err {
+            if (this.IsDebug) {
+                OutputDebug(Format("[RisLayout] bottom controls failed: {}`n", err.Message))
             }
         }
     }
