@@ -284,7 +284,7 @@ class NoduleTracker {
 
                     if (cW > 0 && cH > 0) {
                         scanW := (cW > 150) ? 150 : cW
-                        ocrResult := NoduleTracker.CaptureOcr(screenX, screenY, scanW, cH, 2)
+                        ocrResult := NoduleTracker.CaptureOcr(screenX, screenY, scanW, cH, 3)
                         srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                     }
 
@@ -397,7 +397,7 @@ class NoduleTracker {
                     loc := srsEl.Location
                     if (loc.w > 0 && loc.h > 0) {
                         scanW := (loc.w > 150) ? 150 : loc.w
-                        ocrResult := NoduleTracker.CaptureOcr(loc.x, loc.y, scanW, loc.h, 2)
+                        ocrResult := NoduleTracker.CaptureOcr(loc.x, loc.y, scanW, loc.h, 3)
                         srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                     }
                 }
@@ -549,10 +549,11 @@ class NoduleTracker {
                 srsX := NumGet(pt, 0, "int"), srsY := NumGet(pt, 4, "int")
                 if (cW > 0 && cH > 0) {
                     scanW := (cW > 150) ? 150 : cW
-                    ocrResult := NoduleTracker.CaptureOcr(srsX, srsY, scanW, cH, 2)
+                    ocrResult := NoduleTracker.CaptureOcr(srsX, srsY, scanW, cH, 3)
                     srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                     msg .= "  - OCR 解析 Series: [" (srsVal == "" ? "解析失敗" : srsVal) "]`n"
                     msg .= "    (原始文字: " StrReplace(ocrResult.Text, "`n", " ") ")`n"
+                    msg .= NoduleTracker.BuildOcrDebugReport(srsX, srsY, scanW, cH, "  - Series OCR 多選項結果")
                 }
             }
             matchFound := true
@@ -641,9 +642,10 @@ class NoduleTracker {
                                 msg .= "   ⚠️ 文字解析無結果，啟動 OCR...`n"
                                 if (loc.w > 0 && loc.h > 0) {
                                     scanW := (loc.w > 150) ? 150 : loc.w
-                                    ocrResult := NoduleTracker.CaptureOcr(loc.x, loc.y, scanW, loc.h, 2)
+                                    ocrResult := NoduleTracker.CaptureOcr(loc.x, loc.y, scanW, loc.h, 3)
                                     safeText := StrReplace(ocrResult.Text, "`n", " ")
                                     msg .= "   🔍 OCR 原始文字: [" safeText "]`n"
+                                    msg .= NoduleTracker.BuildOcrDebugReport(loc.x, loc.y, scanW, loc.h, "   - Srs OCR 多選項結果")
                                     srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
                                 }
                             }
@@ -1148,12 +1150,47 @@ class NoduleTracker {
         return ""
     }
 
-    static CaptureOcr(x, y, w, h, scale := 2) {
+    static CaptureOcr(x, y, w, h, scale := 3) {
         try {
             return OCR.FromRect(x, y, w, h, {scale: scale})
         } catch {
             return {Text: ""}
         }
+    }
+
+    static CaptureOcrWithOptions(x, y, w, h, options) {
+        try {
+            return OCR.FromRect(x, y, w, h, options)
+        } catch {
+            return {Text: ""}
+        }
+    }
+
+    static BuildOcrDebugReport(x, y, w, h, label := "") {
+        variants := [
+            {name: "scale=2", opts: {scale: 2}},
+            {name: "scale=3", opts: {scale: 3}},
+            {name: "scale=4", opts: {scale: 4}},
+            {name: "scale=3 grayscale", opts: {scale: 3, grayscale: true}},
+            {name: "scale=4 grayscale", opts: {scale: 4, grayscale: true}},
+            {name: "scale=3 invert", opts: {scale: 3, invertcolors: true}},
+            {name: "scale=4 invert", opts: {scale: 4, invertcolors: true}},
+            {name: "scale=4 gray+invert", opts: {scale: 4, grayscale: true, invertcolors: true}}
+        ]
+        msg := ""
+        if (label != "") {
+            msg .= label "`n"
+        }
+        msg .= "    區域: X" x " Y" y " W" w " H" h "`n"
+        for variant in variants {
+            result := NoduleTracker.CaptureOcrWithOptions(x, y, w, h, variant.opts)
+            text := Trim(StrReplace(result.Text, "`n", " "))
+            if (text == "") {
+                text := "<empty>"
+            }
+            msg .= "    - " variant.name ": [" text "]`n"
+        }
+        return msg
     }
 
     static ProbeComboBox(controlName, hwnd) {
