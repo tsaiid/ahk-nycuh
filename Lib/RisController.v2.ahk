@@ -1950,11 +1950,13 @@ class RisController {
                     }
 
                     if (cellElements.Length >= 3) {
+                        anchorCell := cellElements[1]
                         targetCell := cellElements[3]
                         historyExamName := targetCell.Value
                         if (this._IsRelatedReport(historyExamName, currExamName)) {
-                            targetCell.LegacyIAccessiblePattern.DoDefaultAction()
-                            targetCell.ControlClick()
+                            clickTarget := IsObject(anchorCell) ? anchorCell : targetCell
+                            clickTarget.LegacyIAccessiblePattern.DoDefaultAction()
+                            clickTarget.ControlClick()
                             this.Notify("已選取: " historyExamName)
                             return
                         }
