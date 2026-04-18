@@ -64,9 +64,9 @@ class RisConfig {
 
                 # Constraints
                 - **Format**:
-                    - If there is only one impression and there is no specific diagnostic question to answer, provide it as a single plain-text sentence without any numbering or bullet points.
-                    - When the indication contains a specific diagnostic question, the first numbered item must explicitly address it using clear language such as "No evidence of...", "Findings suspicious for...", or "Findings are indeterminate for...".
-                    - If there are multiple findings, use a numbered list (1., 2., 3.).
+                    - If there is only one impression, always provide it as a single plain-text sentence without any numbering or bullet points, even when answering a specific diagnostic question.
+                    - When the indication contains a specific diagnostic question, the impression must explicitly answer it using clear language such as "No evidence of...", "Findings suspicious for...", or "Findings are indeterminate for...".
+                    - Use a numbered list (1., 2., 3.) only when there are two or more distinct impressions.
                 - **Strict Conciseness**: No fluff, no introductory phrases.
                 - **Anatomical Focus**: Ignore findings that are outside the primary diagnostic scope of the requested exam (e.g., incidental sinus or neck findings in a trauma brain scan) unless critically abnormal.
                 - **No Unsupported Speculation**: Do not speculate beyond what is explicitly stated in the findings. If the findings are insufficient to confirm or exclude the suspected diagnosis, state that the result is indeterminate rather than guessing.
