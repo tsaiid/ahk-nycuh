@@ -347,12 +347,6 @@ C/W chronic paranasal sinusitis.
 {
     MyForm := "
   (
-Noncontrast CT of the paranasal sinuses was performed with a multi-slice CT scanner:
-SCAN RANGE: axial plane of the paranasal sinuses with 2 mm continuous scan, with coronal and sagittal reconstruction
-
-PREVIOUS CT SCAN of the paranasal sinuses: no
-
-FINDINGS:
 - The bilateral frontal, bilateral ethmoid, bilateral maxillary, and bilateral sphenoid sinuses are clear.
 - Mild nasal septum deviation to right side.
 - Bilateral nasal turbinate hypertrophy.
