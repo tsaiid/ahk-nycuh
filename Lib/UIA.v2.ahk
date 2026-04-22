@@ -1,4 +1,4 @@
-/*
+﻿/*
     Introduction & credits
     This library implements Microsoft's UI Automation framework.
     Microsoft's official documentation:: https://docs.microsoft.com/en-us/windows/win32/winauto/entry-uiauto-win32
@@ -50,7 +50,7 @@ if !A_IsCompiled && A_LineFile = A_ScriptFullPath
 
 class UIA {
 ; Semantic version of the UIA library
-static Version => "1.1.2"
+static Version => "1.1.3"
 /**
  * First use of UIA variable initiates UIA, UIA.IUIAutomationVersion, UIA.TrueCondition and
  * UIA.TreeWalkerTrue. Also enables screen reader with SPI_SETSCREENREADER.
@@ -1849,9 +1849,9 @@ class TypeValidation {
 ; The base class for IUIAutomation objects that return releasable pointers
 class IUIAutomationBase {
     __New(ptr) {
+        this.DefineProp("ptr", {Value:ptr})
         if !ptr
             throw ValueError('Invalid IUnknown interface pointer', -2, this.__Class)
-        this.DefineProp("ptr", {Value:ptr})
     }
     __Delete() => this.Release()
     __Item => (ObjAddRef(this.ptr), ComValue(0xd, this.ptr))
