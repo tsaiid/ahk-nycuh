@@ -107,6 +107,7 @@
 ::ndlg::Nearly dislodgement is considered.
 ::eva::evaluation
 ::fb::foreign body
+::ifb::ingested foreign body
 ::hd::high density
 ::ld::low density
 ::pbi::previous brain insults
