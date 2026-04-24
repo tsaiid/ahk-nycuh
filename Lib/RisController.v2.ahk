@@ -1753,7 +1753,7 @@ class RisController {
         targetImpH  := this._targetImpressionHeight * dpiScale
         gap         := 30 * dpiScale
         labelOffset := 25 * dpiScale
-        layoutShift := 10 * dpiScale
+        layoutShift := 15 * dpiScale
 
         ; 2. 加上 Try-Catch 保護：避免視窗切換瞬間抓不到位置而報錯
         try {
