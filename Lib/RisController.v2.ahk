@@ -3730,16 +3730,30 @@ class RisController {
         cfg := this._GetGoogleAIConfig()
         modelName := (IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) ? aiConfig.Model : ""
         temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : ""
+        thinkingLevel := (IsObject(aiConfig) && aiConfig.HasOwnProp("ThinkingLevel")) ? aiConfig.ThinkingLevel : ""
         topP := (IsObject(aiConfig) && aiConfig.HasOwnProp("TopP")) ? aiConfig.TopP : ""
         apiKey := this._ResolveGoogleAIAPIKey(cfg, aiConfig)
+        resolvedModel := (modelName != "") ? modelName : cfg.Model
+        if (thinkingLevel != "" && !this._GoogleAIModelSupportsThinkingLevel(resolvedModel)) {
+            thinkingLevel := ""
+        }
 
         return {
             APIKey: apiKey.Value,
             APIKeyName: apiKey.Name,
-            Model: (modelName != "") ? modelName : cfg.Model,
+            Model: resolvedModel,
             Temperature: (temperature != "") ? temperature : cfg.Temperature,
+            ThinkingLevel: thinkingLevel,
             TopP: (topP != "") ? topP : cfg.TopP
         }
+    }
+
+    static _GoogleAIModelSupportsThinkingLevel(modelName) {
+        unsupportedModels := Map(
+            "gemini-2.5-flash-lite", false
+        )
+
+        return !unsupportedModels.Has(StrLower(Trim(modelName)))
     }
 
     static _BuildGoogleAIUrl(options) {
@@ -3748,17 +3762,18 @@ class RisController {
 
     static _BuildGoogleAIPayload(promptText, options) {
         escapedPrompt := this._EscapeJsonString(promptText)
+        generationConfig := '"temperature": ' . options.Temperature . ','
+        if (options.ThinkingLevel != "") {
+            generationConfig .= '"thinkingConfig": {"thinkingLevel": "' . this._EscapeJsonString(options.ThinkingLevel) . '"},'
+        }
+        generationConfig .= '"topP": ' . options.TopP
 
         return '{'
             . '"contents": [{'
                 . '"role": "user",'
                 . '"parts": [{"text": "' . escapedPrompt . '"}]'
             . '}],'
-            . '"generationConfig": {'
-                . '"temperature": ' . options.Temperature . ','
-                . '"thinkingConfig": {"thinkingLevel": "MINIMAL"},'
-                . '"topP": ' . options.TopP
-            . '},'
+            . '"generationConfig": {' . generationConfig . '},'
             . '"tools": [{"googleSearch": {}}]'
         . '}'
     }

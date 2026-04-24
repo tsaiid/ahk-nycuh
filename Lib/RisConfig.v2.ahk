@@ -11,9 +11,11 @@ class RisConfig {
         ; --- Indication 產生設定 ---
         Indication: {
             APIKeyName: "IndicationAPIKey",
+            Model: "gemma-4-26b-a4b-it",
             ;Model: "gemma-4-31b-it",
-            Model: "gemini-3.1-flash-lite-preview",
+            ;Model: "gemini-3.1-flash-lite-preview",
             Temperature: 0.2,
+            ThinkingLevel: "MINIMAL",
             TopP: 0.95,
             SystemPrompt: "
             (
@@ -46,9 +48,12 @@ class RisConfig {
         ; --- Impression 產生設定 ---
         Impression: {
             APIKeyName: "ImpressionAPIKey",
+            Model: "gemma-4-26b-a4b-it",
             ;Model: "gemma-4-31b-it",
-            Model: "gemini-3.1-flash-lite-preview",
+            ;Model: "gemini-3.1-flash-lite-preview",
+            ;Model: "gemini-2.5-flash-lite",
             Temperature: 0.2,
+            ThinkingLevel: "MINIMAL",
             TopP: 0.95,
             Prompt: "
             (
@@ -85,9 +90,11 @@ class RisConfig {
         ; --- 文字潤色/翻譯設定 ---
         Refine: {
             APIKeyName: "RefineAPIKey",
+            Model: "gemma-4-26b-a4b-it",
             ;Model: "gemma-4-31b-it",
-            Model: "gemini-3.1-flash-lite-preview",
+            ;Model: "gemini-3.1-flash-lite-preview",
             Temperature: 0.3,
+            ThinkingLevel: "MINIMAL",
             TopP: 0.95,
             SystemPrompt: "
             (
