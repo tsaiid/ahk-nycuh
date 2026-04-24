@@ -198,6 +198,7 @@ class RisController {
     static _notifyPaddingY := 14
     static _notifySlotGap := 8
     static _notifySlotHeight := 36
+    static _notifyTextPaddingY := 5
     static _compContext := {ReqNo: "", Date: ""}
     static _workingCursorCache := {AppStarting: "", CursorBaseSize: "", Path: ""}
     static _hCustomFont := 0
@@ -351,7 +352,7 @@ class RisController {
         this._notifySlotItemIds := []
 
         loop this._notifyMaxVisible {
-            slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} +0x200 Center Hidden", this._notifyPaddingX, this._notifyPaddingY, this._notifyWidth, this._notifySlotHeight), "")
+            slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", this._notifyPaddingX, this._notifyPaddingY, this._notifyWidth, this._notifySlotHeight), "")
             slot.OnEvent("Click", ObjBindMethod(this, "_HandleNotifySlotClick", A_Index))
             this._notifySlots.Push(slot)
             this._notifySlotItemIds.Push(0)
@@ -374,7 +375,7 @@ class RisController {
                 displayText := this._WrapNotifyText(item.text, innerWidth)
                 slotHeight := this._MeasureNotifyTextHeight(displayText)
                 slot.Text := displayText
-                slot.Move(this._notifyPaddingX, y, innerWidth, slotHeight)
+                slot.Move(this._notifyPaddingX, y + this._notifyTextPaddingY, innerWidth, slotHeight - this._notifyTextPaddingY * 2)
                 slot.Opt("-Hidden")
                 this._notifySlotItemIds[index] := item.id
                 height := y + slotHeight + this._notifyPaddingY
@@ -533,7 +534,7 @@ class RisController {
         result := ""
         for index, line in lines {
             if (index > 1)
-                result .= "`n"
+                result .= "`r`n"
             result .= line
         }
         return result
@@ -3164,6 +3165,14 @@ class RisController {
         return result
     }
 
+    static _FormatAICompleteNotify(title, apiKeyName, modelName, detail := "") {
+        text := title . "`r`nAPI Key: " . apiKeyName . "`r`nModel: " . modelName
+        if (detail != "") {
+            text .= "`r`n" . detail
+        }
+        return text
+    }
+
     ; 10.0.1 Indication
     static _TryInsertCachedIndication(isPreloadOnly) {
         if (!this._aiCache.Has("_AI_Indication") || isPreloadOnly) {
@@ -3172,8 +3181,9 @@ class RisController {
 
         cached := this._aiCache["_AI_Indication"]
         apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
+        modelName := cached.HasOwnProp("modelName") ? cached.modelName : "Model"
         this._InsertAIResult(cached.text)
-        this.Notify(Format("已插入 Indication (來自快取, Key:{}, API:{}ms)", apiKeyName, cached.apiTime), 2500)
+        this.Notify(this._FormatAICompleteNotify("已插入 Indication (來自快取)", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
         return true
     }
 
@@ -3219,12 +3229,13 @@ class RisController {
         return result
     }
 
-    static _CacheIndicationResult(result, apiTime, extractTime, apiKeyName) {
+    static _CacheIndicationResult(result, apiTime, extractTime, apiKeyName, modelName) {
         this._aiCache["_AI_Indication"] := {
             text: result,
             apiTime: apiTime,
             extractTime: extractTime,
-            apiKeyName: apiKeyName
+            apiKeyName: apiKeyName,
+            modelName: modelName
         }
     }
 
@@ -3238,16 +3249,16 @@ class RisController {
         return ans != "No"
     }
 
-    static _HandleIndicationSuccess(isPreloadOnly, result, apiTime, extractTime, apiKeyName, debugMode := false) {
+    static _HandleIndicationSuccess(isPreloadOnly, result, apiTime, extractTime, apiKeyName, modelName, debugMode := false) {
         normalized := this._NormalizeIndicationResult(result)
-        this._CacheIndicationResult(normalized, apiTime, extractTime, apiKeyName)
+        this._CacheIndicationResult(normalized, apiTime, extractTime, apiKeyName, modelName)
 
         if (debugMode && !isPreloadOnly) {
             MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . normalized, "AI Debug")
         }
 
         if (!isPreloadOnly) {
-            this.Notify(Format("已產生 Indication (Key:{}, 取資:{}ms, API:{}ms)", apiKeyName, extractTime, apiTime), 2500)
+            this.Notify(this._FormatAICompleteNotify("已產生 Indication", apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
         } else {
             OutputDebug("[RisController] AI Indication 已預載並快取`n")
         }
@@ -3267,7 +3278,8 @@ class RisController {
             if (requestMode == "preload") {
                 cached := this._aiCache["_AI_Indication"]
                 apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
-                this.Notify(Format("Indication 已完成並插入 (Key:{}, API:{}ms)", apiKeyName, cached.apiTime), 2500)
+                modelName := cached.HasOwnProp("modelName") ? cached.modelName : "Model"
+                this.Notify(this._FormatAICompleteNotify("Indication 已完成並插入", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
             }
         }
 
@@ -3284,10 +3296,10 @@ class RisController {
         return ans != "No"
     }
 
-    static _HandleImpressionSuccess(result, extractTime, apiTime, apiKeyName) {
+    static _HandleImpressionSuccess(result, extractTime, apiTime, apiKeyName, modelName) {
         result := this._NormalizeAIResult(result)
         this._InsertAIResultToImpression(result)
-        this.Notify(Format("已插入 Impression (Key:{}, 取資:{}ms, API:{}ms)", apiKeyName, extractTime, apiTime), 2500)
+        this.Notify(this._FormatAICompleteNotify("已插入 Impression", apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
     }
 
     static _CreateAIRequest(promptText, aiConfig, extraFields := 0) {
@@ -3312,7 +3324,8 @@ class RisController {
         return {
             Result: response.Result,
             ApiTime: A_TickCount - t0,
-            APIKeyName: response.APIKeyName
+            APIKeyName: response.APIKeyName,
+            Model: response.Model
         }
     }
 
@@ -3373,17 +3386,17 @@ class RisController {
 
     static _RunIndicationRequest(request, debugMode, isPreloadOnly) {
         response := this._RunAIRequest(request)
-        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, response.APIKeyName, debugMode)
+        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, response.APIKeyName, response.Model, debugMode)
     }
 
     static _RunImpressionRequest(request) {
         response := this._RunAIRequest(request)
-        this._HandleImpressionSuccess(response.Result, request.ExtractTime, response.ApiTime, response.APIKeyName)
+        this._HandleImpressionSuccess(response.Result, request.ExtractTime, response.ApiTime, response.APIKeyName, response.Model)
     }
 
     static _RunRefineRequest(request) {
         response := this._RunAIRequest(request)
-        this.Notify(Format("AI 潤色完成 (Key:{})", response.APIKeyName), 2500)
+        this.Notify(this._FormatAICompleteNotify("AI 潤色完成", response.APIKeyName, response.Model), 2500)
         return response.Result
     }
 
@@ -3770,6 +3783,7 @@ class RisController {
             Url: this._BuildGoogleAIUrl(options),
             Payload: this._BuildGoogleAIPayload(promptText, options),
             APIKeyName: options.APIKeyName,
+            Model: options.Model,
             Metrics: {
                 ConfigReadTime: configTime,
                 PayloadBuildTime: A_TickCount - payloadStart
@@ -3900,7 +3914,8 @@ class RisController {
         this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
         return {
             Result: parsed,
-            APIKeyName: request.APIKeyName
+            APIKeyName: request.APIKeyName,
+            Model: request.Model
         }
     }
 
