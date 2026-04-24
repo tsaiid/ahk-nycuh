@@ -3171,8 +3171,9 @@ class RisController {
         }
 
         cached := this._aiCache["_AI_Indication"]
+        apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
         this._InsertAIResult(cached.text)
-        this.Notify(Format("已插入 Indication (來自快取, API:{}ms)", cached.apiTime))
+        this.Notify(Format("已插入 Indication (來自快取, Key:{}, API:{}ms)", apiKeyName, cached.apiTime), 2500)
         return true
     }
 
@@ -3218,11 +3219,12 @@ class RisController {
         return result
     }
 
-    static _CacheIndicationResult(result, apiTime, extractTime) {
+    static _CacheIndicationResult(result, apiTime, extractTime, apiKeyName) {
         this._aiCache["_AI_Indication"] := {
             text: result,
             apiTime: apiTime,
-            extractTime: extractTime
+            extractTime: extractTime,
+            apiKeyName: apiKeyName
         }
     }
 
@@ -3236,16 +3238,16 @@ class RisController {
         return ans != "No"
     }
 
-    static _HandleIndicationSuccess(isPreloadOnly, result, apiTime, extractTime, debugMode := false) {
+    static _HandleIndicationSuccess(isPreloadOnly, result, apiTime, extractTime, apiKeyName, debugMode := false) {
         normalized := this._NormalizeIndicationResult(result)
-        this._CacheIndicationResult(normalized, apiTime, extractTime)
+        this._CacheIndicationResult(normalized, apiTime, extractTime, apiKeyName)
 
         if (debugMode && !isPreloadOnly) {
             MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . normalized, "AI Debug")
         }
 
         if (!isPreloadOnly) {
-            this.Notify(Format("已產生 Indication (取資:{}ms, API:{}ms)", extractTime, apiTime))
+            this.Notify(Format("已產生 Indication (Key:{}, 取資:{}ms, API:{}ms)", apiKeyName, extractTime, apiTime), 2500)
         } else {
             OutputDebug("[RisController] AI Indication 已預載並快取`n")
         }
@@ -3263,7 +3265,9 @@ class RisController {
         if (shouldInsert) {
             this._InsertAIResult(this._aiCache["_AI_Indication"].text)
             if (requestMode == "preload") {
-                this.Notify("Indication 已完成並插入")
+                cached := this._aiCache["_AI_Indication"]
+                apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
+                this.Notify(Format("Indication 已完成並插入 (Key:{}, API:{}ms)", apiKeyName, cached.apiTime), 2500)
             }
         }
 
@@ -3280,10 +3284,10 @@ class RisController {
         return ans != "No"
     }
 
-    static _HandleImpressionSuccess(result, extractTime, apiTime) {
+    static _HandleImpressionSuccess(result, extractTime, apiTime, apiKeyName) {
         result := this._NormalizeAIResult(result)
         this._InsertAIResultToImpression(result)
-        this.Notify(Format("已插入 Impression (取資:{}ms, API:{}ms)", extractTime, apiTime))
+        this.Notify(Format("已插入 Impression (Key:{}, 取資:{}ms, API:{}ms)", apiKeyName, extractTime, apiTime), 2500)
     }
 
     static _CreateAIRequest(promptText, aiConfig, extraFields := 0) {
@@ -3303,11 +3307,12 @@ class RisController {
 
     static _BuildAIRequestResult(promptText, aiConfig) {
         t0 := A_TickCount
-        result := this._CallGoogleAI(promptText, aiConfig.Model, aiConfig.Temperature, aiConfig.TopP)
+        response := this._CallGoogleAI(promptText, aiConfig)
 
         return {
-            Result: result,
-            ApiTime: A_TickCount - t0
+            Result: response.Result,
+            ApiTime: A_TickCount - t0,
+            APIKeyName: response.APIKeyName
         }
     }
 
@@ -3368,16 +3373,17 @@ class RisController {
 
     static _RunIndicationRequest(request, debugMode, isPreloadOnly) {
         response := this._RunAIRequest(request)
-        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, debugMode)
+        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, response.APIKeyName, debugMode)
     }
 
     static _RunImpressionRequest(request) {
         response := this._RunAIRequest(request)
-        this._HandleImpressionSuccess(response.Result, request.ExtractTime, response.ApiTime)
+        this._HandleImpressionSuccess(response.Result, request.ExtractTime, response.ApiTime, response.APIKeyName)
     }
 
     static _RunRefineRequest(request) {
         response := this._RunAIRequest(request)
+        this.Notify(Format("AI 潤色完成 (Key:{})", response.APIKeyName), 2500)
         return response.Result
     }
 
@@ -3671,9 +3677,6 @@ class RisController {
 
         configFile := "config\private.ini"
         apiKey := IniRead(configFile, "GoogleAI", "APIKey", "")
-        if (apiKey == "") {
-            throw Error("請在 " . configFile . " 中設定 [GoogleAI] APIKey")
-        }
 
         this._googleAIConfig := {
             ConfigFile: configFile,
@@ -3686,11 +3689,40 @@ class RisController {
         return this._googleAIConfig
     }
 
-    static _ResolveGoogleAIOptions(modelName, temperature, topP) {
+    static _ResolveGoogleAIAPIKey(cfg, aiConfig) {
+        keyName := "APIKey"
+        if (IsObject(aiConfig) && aiConfig.HasOwnProp("APIKeyName") && aiConfig.APIKeyName != "") {
+            keyName := aiConfig.APIKeyName
+        }
+
+        apiKey := IniRead(cfg.ConfigFile, "GoogleAI", keyName, "")
+        if (apiKey != "") {
+            return {
+                Name: keyName,
+                Value: apiKey
+            }
+        }
+
+        if (keyName != "APIKey" && cfg.APIKey != "") {
+            return {
+                Name: "APIKey",
+                Value: cfg.APIKey
+            }
+        }
+
+        throw Error("請在 " . cfg.ConfigFile . " 中設定 [GoogleAI] " . keyName)
+    }
+
+    static _ResolveGoogleAIOptions(aiConfig := 0) {
         cfg := this._GetGoogleAIConfig()
+        modelName := (IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) ? aiConfig.Model : ""
+        temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : ""
+        topP := (IsObject(aiConfig) && aiConfig.HasOwnProp("TopP")) ? aiConfig.TopP : ""
+        apiKey := this._ResolveGoogleAIAPIKey(cfg, aiConfig)
 
         return {
-            APIKey: cfg.APIKey,
+            APIKey: apiKey.Value,
+            APIKeyName: apiKey.Name,
             Model: (modelName != "") ? modelName : cfg.Model,
             Temperature: (temperature != "") ? temperature : cfg.Temperature,
             TopP: (topP != "") ? topP : cfg.TopP
@@ -3727,9 +3759,9 @@ class RisController {
         return escaped
     }
 
-    static _BuildGoogleAIRequest(promptText, modelName := "", temperature := "", topP := "") {
+    static _BuildGoogleAIRequest(promptText, aiConfig := 0) {
         configStart := A_TickCount
-        options := this._ResolveGoogleAIOptions(modelName, temperature, topP)
+        options := this._ResolveGoogleAIOptions(aiConfig)
         configTime := A_TickCount - configStart
 
         payloadStart := A_TickCount
@@ -3737,6 +3769,7 @@ class RisController {
         return {
             Url: this._BuildGoogleAIUrl(options),
             Payload: this._BuildGoogleAIPayload(promptText, options),
+            APIKeyName: options.APIKeyName,
             Metrics: {
                 ConfigReadTime: configTime,
                 PayloadBuildTime: A_TickCount - payloadStart
@@ -3848,8 +3881,8 @@ class RisController {
         ))
     }
 
-    static _CallGoogleAI(promptText, modelName := "", temperature := "", topP := "") {
-        request := this._BuildGoogleAIRequest(promptText, modelName, temperature, topP)
+    static _CallGoogleAI(promptText, aiConfig := 0) {
+        request := this._BuildGoogleAIRequest(promptText, aiConfig)
         waitStart := A_TickCount
         response := this._SendGoogleAIRequest(request.Url, request.Payload)
         request.Metrics.WaitForResponseTime := A_TickCount - waitStart
@@ -3865,7 +3898,10 @@ class RisController {
         parsed := this._ParseGoogleAIResponse(response.ResponseText)
         request.Metrics.ResponseParseTime := A_TickCount - parseStart
         this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
-        return parsed
+        return {
+            Result: parsed,
+            APIKeyName: request.APIKeyName
+        }
     }
 
     ; [新增] 專用於 Debug 的持久化錯誤視窗

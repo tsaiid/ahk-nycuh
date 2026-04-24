@@ -10,7 +10,9 @@ class RisConfig {
     static AI := {
         ; --- Indication 產生設定 ---
         Indication: {
-            Model: "gemma-4-31b-it",
+            APIKeyName: "IndicationAPIKey",
+            ;Model: "gemma-4-31b-it",
+            Model: "gemini-3.1-flash-lite-preview",
             Temperature: 0.2,
             TopP: 0.95,
             SystemPrompt: "
@@ -43,7 +45,9 @@ class RisConfig {
 
         ; --- Impression 產生設定 ---
         Impression: {
-            Model: "gemma-4-31b-it",
+            APIKeyName: "ImpressionAPIKey",
+            ;Model: "gemma-4-31b-it",
+            Model: "gemini-3.1-flash-lite-preview",
             Temperature: 0.2,
             TopP: 0.95,
             Prompt: "
@@ -80,7 +84,9 @@ class RisConfig {
 
         ; --- 文字潤色/翻譯設定 ---
         Refine: {
-            Model: "gemma-4-31b-it",
+            APIKeyName: "RefineAPIKey",
+            ;Model: "gemma-4-31b-it",
+            Model: "gemini-3.1-flash-lite-preview",
             Temperature: 0.3,
             TopP: 0.95,
             SystemPrompt: "
