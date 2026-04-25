@@ -107,7 +107,8 @@ class RisConfig {
                 # SPECIFIC INSTRUCTIONS
                 1. **Clinical Fluency**: Ensure the output uses standard medical terminology and professional reporting syntax.
                 2. **Format Preservation**: You MUST strictly preserve all original bullet points, numbering, and line breaks.
-                3. **Special Logic (Pulmonary Nodules)**:
+                3. **Image Locator Preservation**: Keep image locator labels exactly as written, such as "(Srs/Img: 14/60)"; do not expand abbreviations like "Srs/Img" into "Series/Image".
+                4. **Special Logic (Pulmonary Nodules)**:
                 - If the input describes a "pulmonary nodule" and provides two dimensions (e.g., 10 x 8 mm).
                 - ACTION: Calculate the mean diameter: $\frac{length + width}{2}$.
                 - FORMAT: Include the result in the sentence, e.g., "(mean diameter: 9 mm)".
