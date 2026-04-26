@@ -304,12 +304,7 @@ GetUnremarkableOrgans(searchText) {
 ::actok::
 {
     ; 1. 取得文本
-    searchText := RisController.GetFindingContent()
-    if (searchText == "") {
-        try {
-            searchText := RisController.FindingText
-        }
-    }
+    searchText := RisController.GetFindingSearchText()
 
     ; 2. 呼叫 Helper 取得未提及器官
     safeOrgans := GetUnremarkableOrgans(searchText)
@@ -323,12 +318,7 @@ GetUnremarkableOrgans(searchText) {
 ::actok1::
 {
     ; 1. 取得文本
-    searchText := RisController.GetFindingContent()
-    if (searchText == "") {
-        try {
-            searchText := RisController.FindingText
-        }
-    }
+    searchText := RisController.GetFindingSearchText()
 
     ; 2. 處理器官部分 (與 actok 相同)
     safeOrgans := GetUnremarkableOrgans(searchText)

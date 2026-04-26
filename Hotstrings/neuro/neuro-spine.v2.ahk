@@ -345,14 +345,7 @@ SUGGESTION:
 GenerateSpineImpression(isMild := false)
 {
     ; 1. 取得文本內容
-    searchText := RisController.GetFindingContent()
-    if (searchText == "") {
-        try {
-            if (RisController.FindingEdit) {
-                searchText := ControlGetText(RisController.FindingEdit.NativeWindowHandle)
-            }
-        }
-    }
+    searchText := RisController.GetFindingSearchText()
 
     ; 若完全無內容，給出預設值 (依照 isMild 決定前綴)
     if (searchText == "") {

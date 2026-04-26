@@ -302,6 +302,27 @@ class RisController {
         }
     }
 
+    static HasFindingContentRange(mode := "Advanced") {
+        try {
+            return this._FindContentRange(this.FindingText, mode) ? true : false
+        } catch {
+            return false
+        }
+    }
+
+    static GetFindingSearchText(mode := "Advanced") {
+        try {
+            searchText := this.GetFindingContent()
+            if (searchText != "" || this.HasFindingContentRange(mode)) {
+                return searchText
+            }
+
+            return this.FindingText
+        } catch {
+            return ""
+        }
+    }
+
     ; =================================================================
     ; 4. 系統功能 (Notify & Focus)
     ; =================================================================
@@ -2943,7 +2964,7 @@ class RisController {
 
         if (mode == "Advanced") {
             ; CT/MR 的起始關鍵字
-            if RegExMatch(text, "m)FINDINGS:\r?\n|The study shows:\r?\n\r?\n|show the following findings:\r?\n\r?\n|which revealed:\r?\n\r?\n", &match) {
+            if RegExMatch(text, "m)FINDINGS:[ \t]*(?:\r?\n)?|The study shows:\r?\n\r?\n|show the following findings:\r?\n\r?\n|which revealed:\r?\n\r?\n", &match) {
                 startPos := match.Pos + match.Len - 1
 
                 ; CT/MR 特有的結尾偵測 (REMARKS/RECOMMENDATION)

@@ -219,12 +219,7 @@ GetUnremarkableNeckFindings(searchText) {
 ::necok::
 {
     ; 1. 取得文本
-    searchText := RisController.GetFindingContent()
-    if (searchText == "") {
-        try {
-            searchText := RisController.FindingText
-        }
-    }
+    searchText := RisController.GetFindingSearchText()
 
     ; 2. 呼叫 Helper 取得未提及之檢查項
     findings := GetUnremarkableNeckFindings(searchText)
@@ -572,12 +567,7 @@ The major neck and intracranial arteries are patent, without vascular anomaly no
 GenerateBrainImpression(isMild := false)
 {
     ; 1. 取得文本內容 (沿用既有邏輯)
-    searchText := RisController.GetFindingContent()
-    if (searchText == "") {
-        try {
-            searchText := RisController.FindingText
-        }
-    }
+    searchText := RisController.GetFindingSearchText()
 
     ; 若完全無內容，直接 Return 或給出預設
     if (searchText == "") {

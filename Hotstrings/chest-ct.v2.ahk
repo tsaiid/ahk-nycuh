@@ -141,12 +141,7 @@ GetUnremarkableChestFindings(searchText) {
 ::cctok::
 {
     ; 1. 取得文本
-    searchText := RisController.GetFindingContent()
-    if (searchText == "") {
-        try {
-            searchText := RisController.FindingText
-        }
-    }
+    searchText := RisController.GetFindingSearchText()
 
     ; 2. 呼叫 Helper 取得未提及之檢查項
     findings := GetUnremarkableChestFindings(searchText)
