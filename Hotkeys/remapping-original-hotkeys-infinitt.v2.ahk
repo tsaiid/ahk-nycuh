@@ -1,4 +1,5 @@
 #Requires AutoHotkey v2.0
+A_MaxHotkeysPerInterval := 200
 
 ;; for INFINITT PACS
 #HotIf MouseIsOverG3Pacs()
