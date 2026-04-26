@@ -1,6 +1,25 @@
 #Requires AutoHotkey v2.0
 
 ;; for INFINITT PACS
+#HotIf MouseIsOverG3Pacs()
+$WheelUp::FocusG3PacsUnderMouseAndScroll("WheelUp")
+$WheelDown::FocusG3PacsUnderMouseAndScroll("WheelDown")
+#HotIf
+
+MouseIsOverG3Pacs() {
+    MouseGetPos(,, &hwnd)
+    try return WinGetProcessName("ahk_id " hwnd) = "G3PACS.exe"
+    return false
+}
+
+FocusG3PacsUnderMouseAndScroll(direction) {
+    MouseGetPos(,, &hwnd)
+    if (hwnd && !WinActive("ahk_id " hwnd)) {
+        WinActivate("ahk_id " hwnd)
+    }
+    Click(direction)
+}
+
 #HotIf WinActive("ahk_exe G3PACS.exe")
 w::
 {
