@@ -3747,14 +3747,34 @@ class RisController {
         throw Error("請在 " . cfg.ConfigFile . " 中設定 [GoogleAI] " . keyName)
     }
 
-    static _ResolveGoogleAIOptions(aiConfig := 0) {
+    static _ResolveGoogleAIModelList(aiConfig := 0) {
+        cfg := this._GetGoogleAIConfig()
+        models := []
+        if (IsObject(aiConfig) && aiConfig.HasOwnProp("Models")) {
+            for _, modelName in aiConfig.Models {
+                modelName := Trim(modelName)
+                if (modelName != "") {
+                    models.Push(modelName)
+                }
+            }
+        }
+
+        if (models.Length == 0) {
+            modelName := (IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) ? Trim(aiConfig.Model) : ""
+            models.Push((modelName != "") ? modelName : cfg.Model)
+        }
+
+        return models
+    }
+
+    static _ResolveGoogleAIOptions(aiConfig := 0, modelOverride := "") {
         cfg := this._GetGoogleAIConfig()
         modelName := (IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) ? aiConfig.Model : ""
         temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : ""
         thinkingLevel := (IsObject(aiConfig) && aiConfig.HasOwnProp("ThinkingLevel")) ? aiConfig.ThinkingLevel : ""
         topP := (IsObject(aiConfig) && aiConfig.HasOwnProp("TopP")) ? aiConfig.TopP : ""
         apiKey := this._ResolveGoogleAIAPIKey(cfg, aiConfig)
-        resolvedModel := (modelName != "") ? modelName : cfg.Model
+        resolvedModel := (modelOverride != "") ? modelOverride : ((modelName != "") ? modelName : cfg.Model)
         if (thinkingLevel != "" && !this._GoogleAIModelSupportsThinkingLevel(resolvedModel)) {
             thinkingLevel := ""
         }
@@ -3808,9 +3828,9 @@ class RisController {
         return escaped
     }
 
-    static _BuildGoogleAIRequest(promptText, aiConfig := 0) {
+    static _BuildGoogleAIRequest(promptText, aiConfig := 0, modelOverride := "") {
         configStart := A_TickCount
-        options := this._ResolveGoogleAIOptions(aiConfig)
+        options := this._ResolveGoogleAIOptions(aiConfig, modelOverride)
         configTime := A_TickCount - configStart
 
         payloadStart := A_TickCount
@@ -3931,28 +3951,45 @@ class RisController {
         ))
     }
 
+    static _ShouldRetryGoogleAIModel(status) {
+        return status == 500 || status == 503
+    }
+
     static _CallGoogleAI(promptText, aiConfig := 0) {
-        request := this._BuildGoogleAIRequest(promptText, aiConfig)
-        waitStart := A_TickCount
-        response := this._SendGoogleAIRequest(request.Url, request.Payload)
-        request.Metrics.WaitForResponseTime := A_TickCount - waitStart
-        this._DebugGoogleAIResponse(request.Url, request.Payload, response)
+        models := this._ResolveGoogleAIModelList(aiConfig)
+        lastError := ""
 
-        if (response.Status != 200) {
-            request.Metrics.ResponseParseTime := 0
+        for index, modelName in models {
+            request := this._BuildGoogleAIRequest(promptText, aiConfig, modelName)
+            waitStart := A_TickCount
+            response := this._SendGoogleAIRequest(request.Url, request.Payload)
+            request.Metrics.WaitForResponseTime := A_TickCount - waitStart
+            this._DebugGoogleAIResponse(request.Url, request.Payload, response)
+
+            if (response.Status != 200) {
+                request.Metrics.ResponseParseTime := 0
+                this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+                lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
+                if (this._ShouldRetryGoogleAIModel(response.Status) && index < models.Length) {
+                    this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
+                    OutputDebug("[RisController] GoogleAI retry with fallback model after HTTP " . response.Status . ": " . request.Model . "`n")
+                    continue
+                }
+                throw Error(lastError)
+            }
+
+            parseStart := A_TickCount
+            parsed := this._ParseGoogleAIResponse(response.ResponseText)
+            request.Metrics.ResponseParseTime := A_TickCount - parseStart
             this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
-            throw Error("HTTP " . response.Status . " - " . response.ResponseText)
+            return {
+                Result: parsed,
+                APIKeyName: request.APIKeyName,
+                Model: request.Model
+            }
         }
 
-        parseStart := A_TickCount
-        parsed := this._ParseGoogleAIResponse(response.ResponseText)
-        request.Metrics.ResponseParseTime := A_TickCount - parseStart
-        this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
-        return {
-            Result: parsed,
-            APIKeyName: request.APIKeyName,
-            Model: request.Model
-        }
+        throw Error(lastError)
     }
 
     ; [新增] 專用於 Debug 的持久化錯誤視窗
