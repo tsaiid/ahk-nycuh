@@ -18,6 +18,8 @@ SetKeyDelay -1
 
 ; [新增] 設定工作列 (Tray) 上的 Icon
 TraySetIcon(A_ScriptDir "\assets\nycu_icon.png")
+A_TrayMenu.Add()
+A_TrayMenu.Add("重新載入相似檢查分組設定`tWin+Ctrl+R", ReloadSimGroups)
 
 global PRESERVE_CLIPBOARD := 0
 
@@ -367,6 +369,10 @@ Benchmark(funcObj, times := 1) {
 
 ; [新增] 全域快速鍵：Win+Ctrl+R 重新載入相似檢查分組設定
 #^r:: {
+    ReloadSimGroups()
+}
+
+ReloadSimGroups(*) {
     RisController.LoadSimGroups()
     RisController.Notify("相似分組對應表已更新！")
 }
