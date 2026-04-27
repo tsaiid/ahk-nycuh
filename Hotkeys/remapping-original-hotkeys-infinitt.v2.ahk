@@ -7,10 +7,18 @@ $WheelUp::FocusG3PacsUnderMouseAndScroll("WheelUp")
 $WheelDown::FocusG3PacsUnderMouseAndScroll("WheelDown")
 #HotIf
 
+#HotIf IsG3PacsHotkeyContext()
+^s::SelectG3PacsSortBySliceLocationDesc()
+#HotIf
+
 MouseIsOverG3Pacs() {
     MouseGetPos(,, &hwnd)
     try return WinGetProcessName("ahk_id " hwnd) = "G3PACS.exe"
     return false
+}
+
+IsG3PacsHotkeyContext() {
+    return WinActive("ahk_exe G3PACS.exe") && MouseIsOverG3Pacs()
 }
 
 FocusG3PacsUnderMouseAndScroll(direction) {
@@ -19,6 +27,12 @@ FocusG3PacsUnderMouseAndScroll(direction) {
         WinActivate("ahk_id " hwnd)
     }
     Click(direction)
+}
+
+SelectG3PacsSortBySliceLocationDesc() {
+    Click("Right")
+    Sleep(50)
+    Send("{Down 25}{Right}{Down 9}{Enter}")
 }
 
 #HotIf WinActive("ahk_exe G3PACS.exe")
