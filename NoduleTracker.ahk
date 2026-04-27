@@ -750,6 +750,11 @@ class NoduleTracker {
                 return
             }
             targetNum := Integer(val)
+            if (targetNum < 1) {
+                inputGui.Destroy()
+                NoduleTracker.ShowTip("❌ 影像編號需大於 0", 1500)
+                return
+            }
             inputGui.Destroy()
             msg := "【Ctrl+G 執行除錯】`n目標影像編號: " targetNum "`n"
             try {
@@ -795,6 +800,15 @@ class NoduleTracker {
                     throw Error("無法定位目標 ComboBox")
                 }
                 msg .= "- 定位成功: " targetCombo " (方法: " method ")`n"
+                itemCount := SendMessage(0x0146, 0, 0, targetCombo, "ahk_id " targetHwnd) ; CB_GETCOUNT
+                if (itemCount != -1) {
+                    msg .= "- ComboBox 項目數: " itemCount "`n"
+                    if (targetNum > itemCount) {
+                        throw Error("影像編號超過範圍 (最大: " itemCount ")")
+                    }
+                } else {
+                    msg .= "- ComboBox 項目數: 無法讀取，改用寫入後驗證`n"
+                }
                 success := false
                 try {
                     ControlChooseIndex(targetNum, targetCombo, "ahk_id " targetHwnd)
@@ -809,6 +823,11 @@ class NoduleTracker {
                     }
                 }
                 if (success) {
+                    selectedIndex := SendMessage(0x0147, 0, 0, targetCombo, "ahk_id " targetHwnd) ; CB_GETCURSEL
+                    msg .= "- 寫入後選取 index: " selectedIndex "`n"
+                    if (selectedIndex != targetNum - 1) {
+                        throw Error("寫入後驗證失敗，目前選取: " (selectedIndex + 1))
+                    }
                     NoduleTracker.ShowTip("✅ 跳至影像: " targetNum, 1000)
                 } else {
                     throw Error("所有寫入方法皆失敗")
