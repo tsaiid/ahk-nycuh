@@ -214,6 +214,7 @@ class RisController {
     static _shellTrack := Map()         ; [新增] 用於紀錄每個 HWND 的處理狀態 {time: TickCount, timer: Func}
     static _shellTrackTTL := 15000
     static IsDebug := false            ; [新增] Debug 模式切換
+    static ShowGoogleAICurlDebug := false
 
     ; [自動更新相關狀態]
     static _lastUpdateTick := 0           ; 上次更新的時間
@@ -3718,10 +3719,31 @@ class RisController {
             APIKey: apiKey,
             Model: IniRead(configFile, "GoogleAI", "Model", "gemma-3-27b-it"),
             Temperature: IniRead(configFile, "GoogleAI", "Temperature", "0.2"),
-            TopP: IniRead(configFile, "GoogleAI", "TopP", "0.95")
+            TopP: IniRead(configFile, "GoogleAI", "TopP", "0.95"),
+            EnableGoogleSearch: this._ParseConfigBool(IniRead(configFile, "GoogleAI", "EnableGoogleSearch", "false"), false)
         }
 
         return this._googleAIConfig
+    }
+
+    static _ParseConfigBool(value, defaultValue := false) {
+        if (value == "") {
+            return defaultValue
+        }
+
+        if IsNumber(value) {
+            return Number(value) != 0
+        }
+
+        normalized := StrLower(Trim(value))
+        if (normalized == "true" || normalized == "yes" || normalized == "on") {
+            return true
+        }
+        if (normalized == "false" || normalized == "no" || normalized == "off") {
+            return false
+        }
+
+        return defaultValue
     }
 
     static _ResolveGoogleAIAPIKey(cfg, aiConfig) {
@@ -3774,6 +3796,7 @@ class RisController {
         temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : ""
         thinkingLevel := (IsObject(aiConfig) && aiConfig.HasOwnProp("ThinkingLevel")) ? aiConfig.ThinkingLevel : ""
         topP := (IsObject(aiConfig) && aiConfig.HasOwnProp("TopP")) ? aiConfig.TopP : ""
+        enableGoogleSearch := (IsObject(aiConfig) && aiConfig.HasOwnProp("EnableGoogleSearch")) ? aiConfig.EnableGoogleSearch : cfg.EnableGoogleSearch
         apiKey := this._ResolveGoogleAIAPIKey(cfg, aiConfig)
         resolvedModel := (modelOverride != "") ? modelOverride : ((modelName != "") ? modelName : cfg.Model)
         if (thinkingLevel != "" && !this._GoogleAIModelSupportsThinkingLevel(resolvedModel)) {
@@ -3786,7 +3809,8 @@ class RisController {
             Model: resolvedModel,
             Temperature: (temperature != "") ? temperature : cfg.Temperature,
             ThinkingLevel: thinkingLevel,
-            TopP: (topP != "") ? topP : cfg.TopP
+            TopP: (topP != "") ? topP : cfg.TopP,
+            EnableGoogleSearch: this._ParseConfigBool(enableGoogleSearch, false)
         }
     }
 
@@ -3810,14 +3834,18 @@ class RisController {
         }
         generationConfig .= '"topP": ' . options.TopP
 
-        return '{'
+        payload := '{'
             . '"contents": [{'
                 . '"role": "user",'
                 . '"parts": [{"text": "' . escapedPrompt . '"}]'
             . '}],'
-            . '"generationConfig": {' . generationConfig . '},'
-            . '"tools": [{"googleSearch": {}}]'
-        . '}'
+            . '"generationConfig": {' . generationConfig . '}'
+
+        if (options.EnableGoogleSearch) {
+            payload .= ',"tools": [{"googleSearch": {}}]'
+        }
+
+        return payload . '}'
     }
 
     static _EscapeJsonString(text) {
@@ -3931,13 +3959,66 @@ class RisController {
         return this._StripMarkdownCodeFence(text)
     }
 
-    static _DebugGoogleAIResponse(url, payload, response) {
-        if (!this.IsDebug) {
+    static _EscapePowerShellSingleQuotedString(text) {
+        return StrReplace(text, "'", "''")
+    }
+
+    static _BuildGoogleAICurlCommand(url, payload) {
+        escapedUrl := this._EscapePowerShellSingleQuotedString(url)
+
+        return "$uri = '" . escapedUrl . "'`r`n"
+            . "$body = @'`r`n"
+            . payload . "`r`n"
+            . "'@`r`n"
+            . "$sw = [Diagnostics.Stopwatch]::StartNew()`r`n"
+            . "$response = curl.exe -sS -X POST -H 'Content-Type: application/json' --data-binary $body $uri`r`n"
+            . "$sw.Stop()`r`n"
+            . "$response`r`n"
+            . '"ElapsedMs=$($sw.ElapsedMilliseconds)"'
+    }
+
+    static _ShowGoogleAIDebugCurl(url, payload, response, request := 0) {
+        curlCommand := this._BuildGoogleAICurlCommand(url, payload)
+        modelText := IsObject(request) && request.HasOwnProp("Model") ? request.Model : "(unknown)"
+        apiKeyName := IsObject(request) && request.HasOwnProp("APIKeyName") ? request.APIKeyName : "(unknown)"
+        waitText := ""
+        if (IsObject(request) && request.HasOwnProp("Metrics") && request.Metrics.HasOwnProp("WaitForResponseTime")) {
+            waitText := "`r`nWaitForResponse: " . request.Metrics.WaitForResponseTime . " ms"
+        }
+
+        debugGui := Gui("+AlwaysOnTop +Resize", "Google AI Debug - curl")
+        debugGui.SetFont("s10", "Microsoft JhengHei UI")
+        debugGui.Add("Text", "w760", "Status: " . response.Status
+            . "`r`nModel: " . modelText
+            . "`r`nAPI Key: " . apiKeyName
+            . waitText
+            . "`r`nPayload: " . StrLen(payload) . " chars"
+            . "`r`nResponse: " . StrLen(response.ResponseText) . " chars")
+        curlEdit := debugGui.Add("Edit", "w760 h360 ReadOnly Multi -Wrap", curlCommand)
+
+        btnCopy := debugGui.Add("Button", "w140 x10 y+12", "複製 curl")
+        btnCopy.OnEvent("Click", (*) => (
+            A_Clipboard := curlCommand,
+            this.Notify("已複製 curl 測試指令", 2000)
+        ))
+
+        btnCopyAll := debugGui.Add("Button", "w180 x+10 yp", "複製完整 debug")
+        btnCopyAll.OnEvent("Click", (*) => (
+            A_Clipboard := "URL: " . url . "`r`n`r`nPayload:`r`n" . payload . "`r`n`r`nResponse:`r`n" . response.ResponseText . "`r`n`r`nCurl:`r`n" . curlCommand,
+            this.Notify("已複製完整 debug 資訊", 2000)
+        ))
+
+        btnClose := debugGui.Add("Button", "w100 x+10 yp", "關閉")
+        btnClose.OnEvent("Click", (*) => debugGui.Destroy())
+        debugGui.Show()
+    }
+
+    static _DebugGoogleAIResponse(url, payload, response, request := 0) {
+        if (!this.ShowGoogleAICurlDebug) {
             return
         }
 
-        A_Clipboard := "URL: " . url . "`n`nPayload: " . payload . "`n`nResponse: " . response.ResponseText
-        MsgBox("【API Debug】原始回應已複製到剪貼簿：`n`nStatus: " . response.Status . "`n`n" . SubStr(response.ResponseText, 1, 1000), "Google AI Debug")
+        this._ShowGoogleAIDebugCurl(url, payload, response, request)
     }
 
     static _LogGoogleAIBlockingMetrics(metrics, status := "") {
@@ -4041,7 +4122,7 @@ class RisController {
             waitStart := A_TickCount
             response := this._SendGoogleAIRequest(request.Url, request.Payload)
             request.Metrics.WaitForResponseTime := A_TickCount - waitStart
-            this._DebugGoogleAIResponse(request.Url, request.Payload, response)
+            this._DebugGoogleAIResponse(request.Url, request.Payload, response, request)
 
             if (response.Status != 200) {
                 request.Metrics.ResponseParseTime := 0

@@ -17,13 +17,14 @@ class RisConfig {
         Indication: {
             APIKeyName: "IndicationAPIKey",
             Models: [
-                "gemini-3.1-flash-lite-preview",
                 "gemma-4-31b-it",
-                "gemma-4-26b-a4b-it"
+                "gemma-4-26b-a4b-it",
+                "gemini-3.1-flash-lite-preview"
             ],
             Temperature: 0.2,
             ThinkingLevel: "MINIMAL",
             TopP: 0.95,
+            EnableGoogleSearch: false,
             SystemPrompt: "
             (
                 [Role]
@@ -56,13 +57,14 @@ class RisConfig {
         Impression: {
             APIKeyName: "ImpressionAPIKey",
             Models: [
-                "gemini-3.1-flash-lite-preview",
                 "gemma-4-31b-it",
-                "gemma-4-26b-a4b-it"
+                "gemma-4-26b-a4b-it",
+                "gemini-3.1-flash-lite-preview"
             ],
             Temperature: 0.2,
             ThinkingLevel: "MINIMAL",
             TopP: 0.95,
+            EnableGoogleSearch: false,
             Prompt: "
             (
                 # Role
@@ -99,13 +101,14 @@ class RisConfig {
         Refine: {
             APIKeyName: "RefineAPIKey",
             Models: [
-                "gemini-3.1-flash-lite-preview",
                 "gemma-4-31b-it",
-                "gemma-4-26b-a4b-it"
+                "gemma-4-26b-a4b-it",
+                "gemini-3.1-flash-lite-preview"
             ],
             Temperature: 0.3,
             ThinkingLevel: "MINIMAL",
             TopP: 0.95,
+            EnableGoogleSearch: false,
             SystemPrompt: "
             (
                 # ROLE
