@@ -530,11 +530,14 @@ class NoduleTracker {
             focusHwnd := hwnd
         }
         msg := "【Pattern 探針資訊】`n當前指向 ClassNN: " ctrlClassNN "`n`n"
+        focusNum := NoduleTracker.ExtractClassNNNumber(ctrlClassNN)
+        accProbeNums := {focus: focusNum, img: "", srs: "", desc: ""}
+        suggestedProbeReport := ""
         matchFound := false
         match := this.FindPatternMatch(ctrlClassNN, hwnd)
         if (match) {
             candidate := match.candidate
-            msg .= "🎯 探針命中: " match.name "`n"
+            msg .= "🎯 探針命中: " NoduleTracker.FormatPatternName(match.name) "`n"
             imgVal := ""
             try imgVal := ControlGetText(candidate.img, hwnd)
             srsText := ""
@@ -564,6 +567,7 @@ class NoduleTracker {
         if (!matchFound) {
             msg .= "❌ 狀態：未命中任何完整 Pattern 規則。`n"
             msg .= "  (請確認該控制項是否已加入 GenerateMaps 的配置中)`n"
+            msg .= "{SuggestedProbeReport}`n"
         }
         msg .= "`n====================`n【Acc 備用方案除錯】`n"
         try {
@@ -604,8 +608,9 @@ class NoduleTracker {
                             loc := imgEl.Location
                             imgHwnd := NoduleTracker.WindowFromPoint(loc.x + 5, loc.y + 5)
                             imgNN := ControlGetClassNN(imgHwnd)
-                            RegExMatch(imgNN, "(\d+)$", &nnMatch)
-                            msg .= "     (📍 Img ClassNN: " imgNN " -> 數字: " (nnMatch ? nnMatch[1] : "?") ")`n"
+                            imgNum := NoduleTracker.ExtractClassNNNumber(imgNN)
+                            accProbeNums.img := imgNum
+                            msg .= "     (📍 Img ClassNN: " imgNN " -> 數字: " (imgNum != "" ? imgNum : "?") ")`n"
                         } catch {
                             msg .= "   ❌ 預測的 Img 路徑無效`n"
                         }
@@ -615,8 +620,9 @@ class NoduleTracker {
                             msg .= "   ✅ Srs 座標框: W" loc.w " H" loc.h "`n"
                             srsHwnd := NoduleTracker.WindowFromPoint(loc.x + 5, loc.y + 5)
                             srsNN := ControlGetClassNN(srsHwnd)
-                            RegExMatch(srsNN, "(\d+)$", &nnMatch)
-                            msg .= "     (📍 Srs ClassNN: " srsNN " -> 數字: " (nnMatch ? nnMatch[1] : "?") ")`n"
+                            srsNum := NoduleTracker.ExtractClassNNNumber(srsNN)
+                            accProbeNums.srs := srsNum
+                            msg .= "     (📍 Srs ClassNN: " srsNN " -> 數字: " (srsNum != "" ? srsNum : "?") ")`n"
                             descVal := ""
                             try {
                                 descPath := srsPath . ",2,4"
@@ -627,8 +633,9 @@ class NoduleTracker {
                                     dLoc := descEl.Location
                                     dHwnd := NoduleTracker.WindowFromPoint(dLoc.x + 5, dLoc.y + 5)
                                     dNN := ControlGetClassNN(dHwnd)
-                                    RegExMatch(dNN, "(\d+)$", &dnnMatch)
-                                    msg .= "     (📍 Desc ClassNN: " dNN " -> 數字: " (dnnMatch ? dnnMatch[1] : "?") ")`n"
+                                    descNum := NoduleTracker.ExtractClassNNNumber(dNN)
+                                    accProbeNums.desc := descNum
+                                    msg .= "     (📍 Desc ClassNN: " dNN " -> 數字: " (descNum != "" ? descNum : "?") ")`n"
                                 }
                             }
                             rawText := ""
@@ -657,6 +664,9 @@ class NoduleTracker {
                             } else {
                                 msg .= "   🎯 解析結果: [無法識別序列號]`n"
                             }
+                            if (!matchFound) {
+                                suggestedProbeReport := NoduleTracker.BuildSuggestedProbeReport(accProbeNums)
+                            }
                         } catch {
                             msg .= "   ❌ 預測的 Srs 路徑無效`n"
                         }
@@ -668,6 +678,7 @@ class NoduleTracker {
         } catch Error as e {
             msg .= "❌ Acc 發生執行期錯誤: " e.Message "`n"
         }
+        msg := StrReplace(msg, "{SuggestedProbeReport}`n", suggestedProbeReport)
         NoduleTracker.ShowDebugWindow(Trim(msg, "`n"), "Pattern 探針資訊")
     }
 
@@ -1259,6 +1270,51 @@ class NoduleTracker {
             return ""
         }
         return Trim(path, ",")
+    }
+
+    static ExtractClassNNNumber(classNN) {
+        if (RegExMatch(classNN, "(\d+)$", &match)) {
+            return Integer(match[1])
+        }
+        return ""
+    }
+
+    static BuildSuggestedProbeReport(nums) {
+        if (nums.focus == "" || nums.img == "" || nums.srs == "" || nums.desc == "") {
+            return ""
+        }
+
+        candidates := []
+        for family in [{focus: 3, img: 10}, {focus: 5, img: 57}] {
+            offset := nums.focus - family.focus
+            if (offset >= 0 && offset < 8) {
+                expectedImg := family.img + (offset * 6)
+                if (nums.img == expectedImg) {
+                    candidates.Push({text: "[" family.focus ", " family.img ", " (nums.srs - (offset * 3)) ", " (nums.desc - (offset * 5)) "]", offset: offset})
+                }
+            }
+        }
+        if (candidates.Length == 0) {
+            directProbe := "[" nums.focus ", " nums.img ", " nums.srs ", " nums.desc "]"
+            return "   ⚠️ 無法回推建議 probe: " directProbe " (警告：不符合 [3, 10, ?, ?] 或 [5, 57, ?, ?]，請人工確認)`n"
+        }
+
+        msg := "   💡 建議新增 probe: "
+        for idx, candidate in candidates {
+            msg .= (idx > 1 ? " 或 " : "") candidate.text
+        }
+        if (candidates[1].offset > 0) {
+            msg .= " (註：從 focus " nums.focus " 回推)"
+        }
+        msg .= "`n"
+        return msg
+    }
+
+    static FormatPatternName(patternName) {
+        if (RegExMatch(patternName, "^Pattern_(\d+)_(\d+)_(\d+)_(\d+)$", &match)) {
+            return "[" match[1] ", " match[2] ", " match[3] ", " match[4] "]"
+        }
+        return patternName
     }
 
     static ShowTip(msg, duration) {
