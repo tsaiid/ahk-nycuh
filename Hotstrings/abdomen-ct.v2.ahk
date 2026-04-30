@@ -1378,11 +1378,6 @@ Mildly distended gallbladder, with mild GB wall thickening. No obvious perichole
 Several gallbladder stones and mild GB distention. However, no obvious GB wall thickening or pericholecystic fat stranding. Acute cholecystitis may be less likely. Clinical and sonographic correlation is suggested.
 
 No CBD or IHD dilatation.
-
-The liver, spleen, pancreas, adrenals, kidneys, and bowels are unremarkable.
-The lower abdomen and pelvis are unremarkable.
-No retroperitoneal or mesenteric lymphadenopathy.
-The lungs covered in the scanning range are unremarkable.
   )"
     RisController.PasteToFinding(MyForm)
 
