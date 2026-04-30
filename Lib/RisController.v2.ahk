@@ -183,6 +183,7 @@ class RisController {
     static _stateCache := Map()
     static _aiCache := Map()
     static _googleAIConfig := 0
+    static _googleAIModelHttpErrors := Map()
     static _notifyGui := 0
     static _notifyQueue := []
     static _notifySlots := []
@@ -3955,8 +3956,84 @@ class RisController {
         return status == 500 || status == 503
     }
 
+    static _GetGoogleAIModelHealthPolicy() {
+        if (RisConfig.HasOwnProp("GoogleAIModelHealth")) {
+            policy := RisConfig.GoogleAIModelHealth
+            return {
+                ErrorWindowMs: policy.HasOwnProp("ErrorWindowMs") ? policy.ErrorWindowMs : 3600000,
+                ErrorThreshold: policy.HasOwnProp("ErrorThreshold") ? policy.ErrorThreshold : 3
+            }
+        }
+
+        return {
+            ErrorWindowMs: 3600000,
+            ErrorThreshold: 3
+        }
+    }
+
+    static _PruneGoogleAIModelHttpErrors(modelName, nowTick, policy) {
+        if (!this._googleAIModelHttpErrors.Has(modelName)) {
+            this._googleAIModelHttpErrors[modelName] := []
+            return this._googleAIModelHttpErrors[modelName]
+        }
+
+        pruned := []
+        for _, errorTick in this._googleAIModelHttpErrors[modelName] {
+            if (nowTick - errorTick <= policy.ErrorWindowMs) {
+                pruned.Push(errorTick)
+            }
+        }
+
+        this._googleAIModelHttpErrors[modelName] := pruned
+        return pruned
+    }
+
+    static _RecordGoogleAIModelHttpError(modelName, policy) {
+        nowTick := A_TickCount
+        errors := this._PruneGoogleAIModelHttpErrors(modelName, nowTick, policy)
+        errors.Push(nowTick)
+        this._googleAIModelHttpErrors[modelName] := errors
+        OutputDebug(Format(
+            "[RisController] GoogleAI model HTTP error count: model={}, count={}, window={}ms`n",
+            modelName,
+            errors.Length,
+            policy.ErrorWindowMs
+        ))
+    }
+
+    static _IsGoogleAIModelDegraded(modelName, policy) {
+        errors := this._PruneGoogleAIModelHttpErrors(modelName, A_TickCount, policy)
+        return errors.Length >= policy.ErrorThreshold
+    }
+
+    static _PrioritizeGoogleAIModels(models, policy) {
+        preferredModels := []
+        degradedModels := []
+
+        for _, modelName in models {
+            if (this._IsGoogleAIModelDegraded(modelName, policy)) {
+                degradedModels.Push(modelName)
+            } else {
+                preferredModels.Push(modelName)
+            }
+        }
+
+        if (preferredModels.Length == 0) {
+            OutputDebug("[RisController] GoogleAI all models are degraded; preserve configured model order`n")
+            return models
+        }
+
+        for _, modelName in degradedModels {
+            preferredModels.Push(modelName)
+        }
+
+        return preferredModels
+    }
+
     static _CallGoogleAI(promptText, aiConfig := 0) {
         models := this._ResolveGoogleAIModelList(aiConfig)
+        healthPolicy := this._GetGoogleAIModelHealthPolicy()
+        models := this._PrioritizeGoogleAIModels(models, healthPolicy)
         lastError := ""
 
         for index, modelName in models {
@@ -3969,6 +4046,7 @@ class RisController {
             if (response.Status != 200) {
                 request.Metrics.ResponseParseTime := 0
                 this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+                this._RecordGoogleAIModelHttpError(request.Model, healthPolicy)
                 lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
                 if (this._ShouldRetryGoogleAIModel(response.Status) && index < models.Length) {
                     this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)

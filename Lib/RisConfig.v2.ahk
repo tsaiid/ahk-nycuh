@@ -7,6 +7,11 @@
  * 注意：API Key 仍保留在 config\private.ini 中以確保安全性。
  */
 class RisConfig {
+    static GoogleAIModelHealth := {
+        ErrorWindowMs: 3600000,
+        ErrorThreshold: 3
+    }
+
     static AI := {
         ; --- Indication 產生設定 ---
         Indication: {
