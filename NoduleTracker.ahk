@@ -105,7 +105,8 @@ class NoduleTracker {
         classPrefix := "Afx:00400000:b:00000000:00000013:00000000"
         this.PatternList := []
 
-        ; ★ 極簡配置：只需依序填入 [Focus起始, Combo起始, Afx起始, Desc起始]
+        ; ★ 極簡配置：只需依序填入 [Focus起始, Img Combo起始, Afx起始, Desc起始]
+        ; Img 影像組 Combo 由 Img Combo +3 推導，列遞增同樣為 +6。
         configs := [
             [3, 10, 29, 101],
             [3, 10, 31, 101],
@@ -138,9 +139,10 @@ class NoduleTracker {
                 i := A_Index - 1
                 f := classPrefix . (cfg[1] + i)
                 c := "ComboBox" . (cfg[2] + (i * 6))
+                g := "ComboBox" . (cfg[2] + 3 + (i * 6))
                 a := "AfxWnd140u" . (cfg[3] + (i * 3))
                 d := "Button" . (cfg[4] + (i * 5))
-                pMap[f] := {img: c, srs: a, desc: d, type: pName}
+                pMap[f] := {img: c, imgGroup: g, srs: a, desc: d, type: pName}
             }
             this.PatternList.Push({name: pName, map: pMap})
         }
@@ -277,6 +279,8 @@ class NoduleTracker {
                 if (!IsNumber(Trim(imgVal))) {
                     return {srs: "", img: "", valid: false, error: "ComboBox 無有效數字"}
                 }
+                imgInfo := NoduleTracker.ApplyImageGroupOffset(imgVal, candidate.img, candidate.imgGroup, hwnd, focusNN)
+                imgVal := imgInfo.value
 
                 srsVal := ""
                 try {
@@ -364,6 +368,14 @@ class NoduleTracker {
             try {
                 imgEl := pacsRoot[imgPath]
                 imgVal := Trim(imgEl.Value)
+                try {
+                    loc := imgEl.Location
+                    imgNN := ControlGetClassNN(NoduleTracker.WindowFromPoint(loc.x + 5, loc.y + 5))
+                    imgInfo := NoduleTracker.ApplyImageGroupOffsetFromAccPaths(imgVal, imgNN, pacsRoot, pathParts, targetIdx, pacsHwnd)
+                    if (imgInfo.groupValue != "") {
+                        imgVal := imgInfo.value
+                    }
+                }
             } catch {
                 imgVal := ""
             }
@@ -541,11 +553,20 @@ class NoduleTracker {
             imgVal := ""
             try imgVal := ControlGetText(candidate.img, hwnd)
             imgMax := NoduleTracker.GetComboBoxItemCount(candidate.img, hwnd)
+            imgInfo := NoduleTracker.ApplyImageGroupOffset(imgVal, candidate.img, candidate.imgGroup, hwnd, ctrlClassNN)
             srsText := ""
             try srsText := ControlGetText(candidate.srs, hwnd)
             descText := ""
             try descText := ControlGetText(candidate.desc, hwnd)
-            msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ") (最大: " (imgMax != "" ? imgMax : "無法讀取") ")`n"
+            msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ") (最大: " (imgMax != "" ? imgMax : "無法讀取") ")"
+            if (imgInfo.groupValue != "") {
+                msg .= " (影像組: " imgInfo.groupClassNN "=" imgInfo.groupValue
+                if (imgInfo.itemCount != "") {
+                    msg .= ", 調整後: " imgInfo.value
+                }
+                msg .= ")"
+            }
+            msg .= "`n"
             msg .= "  - Srs 控制項: " candidate.srs " (文字: " Trim(srsText) ")`n"
             msg .= "  - Desc 控制項: " candidate.desc " (數值: " Trim(descText) ")`n"
             srsVal := ""
@@ -592,6 +613,7 @@ class NoduleTracker {
                     if (pathParts.Length >= 2) {
                         targetIdx := pathParts.Length - 1
                         pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
+                        imgPathParts := pathParts.Clone()
                         basePathImg := ""
                         Loop targetIdx {
                             basePathImg .= pathParts[A_Index] ","
@@ -612,6 +634,24 @@ class NoduleTracker {
                             imgNum := NoduleTracker.ExtractClassNNNumber(imgNN)
                             accProbeNums.img := imgNum
                             msg .= "     (📍 Img ClassNN: " imgNN " -> 數字: " (imgNum != "" ? imgNum : "?") ")`n"
+                            for imgGroupPath in NoduleTracker.GetImageGroupAccPaths(imgPathParts, targetIdx) {
+                                try {
+                                    imgGroupEl := pacsRoot[imgGroupPath]
+                                    accText := NoduleTracker.GetAccElementText(imgGroupEl)
+                                    msg .= "     (🧩 影像組候選 Acc path: " imgGroupPath " Value=[" accText.value "] Name=[" accText.name "])`n"
+                                    imgInfo := NoduleTracker.ApplyImageGroupOffsetFromAcc(imgEl.Value, imgNN, imgGroupEl, hwnd)
+                                    if (imgInfo.groupValue != "") {
+                                        msg .= "     (✅ 影像組 Acc 命中: " imgGroupPath "=" imgInfo.groupValue
+                                        if (imgInfo.itemCount != "") {
+                                            msg .= ", 調整後 Img: " imgInfo.value
+                                        }
+                                        msg .= ")`n"
+                                        break
+                                    }
+                                } catch Error as e {
+                                    msg .= "     (🧩 影像組候選 Acc path: " imgGroupPath " 讀取失敗: " e.Message ")`n"
+                                }
+                            }
                         } catch {
                             msg .= "   ❌ 預測的 Img 路徑無效`n"
                         }
@@ -1287,6 +1327,116 @@ class NoduleTracker {
         } catch {
             return ""
         }
+    }
+
+    static GetImageGroupAccPaths(pathParts, targetIdx) {
+        paths := []
+        if (targetIdx < 1 || pathParts.Length < 2 || targetIdx > pathParts.Length) {
+            return paths
+        }
+
+        ; Acc tree 的影像組節點是 Img row 的下一個 sibling；
+        ; ClassNN 才是 ComboBox10 -> ComboBox13 的 +3 規則。
+        groupIdx := Integer(pathParts[targetIdx]) + 1
+        suffixes := ["4,4,4"]
+        for suffix in suffixes {
+            basePath := ""
+            Loop targetIdx {
+                if (A_Index == targetIdx) {
+                    basePath .= groupIdx ","
+                } else {
+                    basePath .= pathParts[A_Index] ","
+                }
+            }
+            paths.Push(basePath . suffix)
+        }
+        return paths
+    }
+
+    static GetAccElementText(accEl) {
+        text := {value: "", name: ""}
+        try {
+            text.value := Trim(accEl.Value)
+        }
+        try {
+            text.name := Trim(accEl.Name)
+        }
+        return text
+    }
+
+    static ApplyImageGroupOffset(imgVal, imgClassNN, imgGroupClassNN, hwnd, focusNN := "") {
+        info := {value: Trim(imgVal), groupClassNN: imgGroupClassNN, groupValue: "", itemCount: "", adjusted: false}
+        if (!IsNumber(info.value) || imgGroupClassNN == "") {
+            return info
+        }
+        if (focusNN != "" && !NoduleTracker.VerifySpatialMatch(imgGroupClassNN, focusNN, hwnd)) {
+            return info
+        }
+
+        try {
+            info.groupValue := Trim(ControlGetText(imgGroupClassNN, hwnd))
+        } catch {
+            return info
+        }
+        if (info.groupValue == "" || StrUpper(info.groupValue) == "A" || !IsNumber(info.groupValue)) {
+            return info
+        }
+
+        groupNum := Integer(info.groupValue)
+        if (groupNum < 1) {
+            return info
+        }
+
+        info.itemCount := NoduleTracker.GetComboBoxItemCount(imgClassNN, hwnd)
+        if (info.itemCount == "") {
+            return info
+        }
+
+        info.value := String(Integer(info.value) + ((groupNum - 1) * Integer(info.itemCount)))
+        info.adjusted := groupNum > 1
+        return info
+    }
+
+    static ApplyImageGroupOffsetFromAcc(imgVal, imgClassNN, imgGroupEl, hwnd) {
+        info := {value: Trim(imgVal), groupClassNN: "Acc", groupValue: "", itemCount: "", adjusted: false}
+        if (!IsNumber(info.value) || !imgGroupEl) {
+            return info
+        }
+
+        accText := NoduleTracker.GetAccElementText(imgGroupEl)
+        info.groupValue := accText.value != "" ? accText.value : accText.name
+        if (info.groupValue == "" || StrUpper(info.groupValue) == "A" || !IsNumber(info.groupValue)) {
+            return info
+        }
+
+        groupNum := Integer(info.groupValue)
+        if (groupNum < 1) {
+            return info
+        }
+
+        info.itemCount := NoduleTracker.GetComboBoxItemCount(imgClassNN, hwnd)
+        if (info.itemCount == "") {
+            return info
+        }
+
+        info.value := String(Integer(info.value) + ((groupNum - 1) * Integer(info.itemCount)))
+        info.adjusted := groupNum > 1
+        return info
+    }
+
+    static ApplyImageGroupOffsetFromAccPaths(imgVal, imgClassNN, pacsRoot, pathParts, targetIdx, hwnd) {
+        info := {value: Trim(imgVal), groupClassNN: "Acc", groupValue: "", itemCount: "", adjusted: false, path: ""}
+        for imgGroupPath in NoduleTracker.GetImageGroupAccPaths(pathParts, targetIdx) {
+            try {
+                imgGroupEl := pacsRoot[imgGroupPath]
+                candidate := NoduleTracker.ApplyImageGroupOffsetFromAcc(imgVal, imgClassNN, imgGroupEl, hwnd)
+                if (candidate.groupValue != "") {
+                    candidate.path := imgGroupPath
+                    return candidate
+                }
+            }
+        }
+        return info
     }
 
     static BuildSuggestedProbeReport(nums) {
