@@ -2,6 +2,7 @@
 ; http://www.autohotkey.com/board/topic/77888-accessible-info-viewer-alpha-release-2012-09-20/
 ; https://dl.dropbox.com/u/47573473/Accessible%20Info%20Viewer/AccViewer%20Source.ahk
 ; iaux:= 3.5*10 ;35
+#Requires AutoHotkey v1.1
 #SingleInstance force
 ;Acc_Init()
 
