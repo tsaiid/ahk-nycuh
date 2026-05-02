@@ -540,11 +540,12 @@ class NoduleTracker {
             msg .= "🎯 探針命中: " NoduleTracker.FormatPatternName(match.name) "`n"
             imgVal := ""
             try imgVal := ControlGetText(candidate.img, hwnd)
+            imgMax := NoduleTracker.GetComboBoxItemCount(candidate.img, hwnd)
             srsText := ""
             try srsText := ControlGetText(candidate.srs, hwnd)
             descText := ""
             try descText := ControlGetText(candidate.desc, hwnd)
-            msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ")`n"
+            msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ") (最大: " (imgMax != "" ? imgMax : "無法讀取") ")`n"
             msg .= "  - Srs 控制項: " candidate.srs " (文字: " Trim(srsText) ")`n"
             msg .= "  - Desc 控制項: " candidate.desc " (數值: " Trim(descText) ")`n"
             srsVal := ""
@@ -1277,6 +1278,15 @@ class NoduleTracker {
             return Integer(match[1])
         }
         return ""
+    }
+
+    static GetComboBoxItemCount(classNN, hwnd) {
+        try {
+            itemCount := SendMessage(0x0146, 0, 0, classNN, "ahk_id " hwnd) ; CB_GETCOUNT
+            return itemCount != -1 ? itemCount : ""
+        } catch {
+            return ""
+        }
     }
 
     static BuildSuggestedProbeReport(nums) {
