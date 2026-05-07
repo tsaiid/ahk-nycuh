@@ -1277,17 +1277,23 @@ class RisController {
     }
 
     static DeleteWordBackward() {
-        if !this.IsTargetFocused() {
-            return false
+        ; 如果是標準 RIS，維持原本精確的欄位檢查
+        if (this.IsStandardRis) {
+            if !this.IsTargetFocused() {
+                return false
+            }
         }
+        
         try {
             hCtrl := ControlGetFocus("A")
+            if !hCtrl {
+                return false
+            }
+            this._BashDeleteAlgo(hCtrl)
+            return true
         } catch {
             return false
         }
-
-        this._BashDeleteAlgo(hCtrl)
-        return true
     }
 
     static MoveCaret(mode) {

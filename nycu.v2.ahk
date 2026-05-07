@@ -66,17 +66,17 @@ RisController.EnableShellHookFocus()
     #Include Hotstrings\others.v2.ahk
     #Include Hotstrings\special.v2.ahk
     #Include Hotstrings\breast-mr.v2.ahk
-#HotIf
 
-; --- 專業 RIS 自動化熱鍵 (僅在「標準」報告視窗生效) ---
-#HotIf IsRisReportWindow()
-
-    ; --- 通用編輯增強 ---
+    ; --- 通用編輯增強 (依賴 RisController 的防禦性保護) ---
     ; Ctrl+W: 刪除前一個字 (Bash Style)
     ^w:: {
         Critical
         RisController.DeleteWordBackward()
     }
+#HotIf
+
+; --- 專業 RIS 自動化熱鍵 (僅在「標準」報告視窗生效) ---
+#HotIf IsRisReportWindow()
 
     !Up::RisController.MoveCurrentLine("Up")
     !Down::RisController.MoveCurrentLine("Down")
