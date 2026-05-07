@@ -28,8 +28,13 @@ class RisController {
     ; 1. 設定區 (Configuration)
     ; =================================================================
     static WinTitle := "報告作業(frmRISReport)"
+    static LdctReportWinTitle := "肺癌篩檢底劑量電腦斷層掃瞄結果報告  (frmLDCTReport)"
     static AbnormalWinTitle := "檢查結果(frmPos)"
     static ConsultationWinTitle := "會診資訊(frmReqCon)"
+
+    ; [新增] 環境判定：是否為標準 RIS 報告視窗
+    static IsStandardRis => WinActive(this.WinTitle)
+
     static WorklistWinTitle := "工作清單(frmRIS)"
     static _layoutShiftProp := "RisLayoutShiftApplied"
     static _bottomCtrlShiftProp := "RisBottomCtrlShiftApplied"
@@ -101,6 +106,8 @@ class RisController {
     ; 類別載入時自動執行
     static __New() {
         this.LoadSimGroups()
+        GroupAdd "RisReportGroup", "報告作業(frmRISReport)"
+        GroupAdd "RisReportGroup", "肺癌篩檢底劑量電腦斷層掃瞄結果報告  (frmLDCTReport)"
     }
 
     /**
@@ -313,6 +320,9 @@ class RisController {
     }
 
     static GetFindingSearchText(mode := "Advanced") {
+        if (!this.IsStandardRis) {
+            return ""
+        }
         try {
             searchText := this.GetFindingContent()
             if (searchText != "" || this.HasFindingContentRange(mode)) {
@@ -949,8 +959,21 @@ class RisController {
     ; =================================================================
     ; 5. 報告操作 (Paste, Append, Insert)
     ; =================================================================
-    static PasteToFinding(text) => this.PasteTo(this.FindingEdit, text)
-    static PasteToImpression(text) => this.PasteTo(this.ImpressionEdit, text)
+    static PasteToFinding(text) {
+        if (!this.IsStandardRis) {
+            SendText(text)
+            return
+        }
+        this.PasteTo(this.FindingEdit, text)
+    }
+
+    static PasteToImpression(text) {
+        if (!this.IsStandardRis) {
+            SendText(text)
+            return
+        }
+        this.PasteTo(this.ImpressionEdit, text)
+    }
 
     static PasteTo(targetEl, text) {
         if (text == "") {
@@ -2511,6 +2534,9 @@ class RisController {
     }
 
     static GetComparisonSuffix() {
+        if (!this.IsStandardRis) {
+            return ""
+        }
         currentReqNo := this._GetCurrentReqNo()
         if (this._compContext.ReqNo != "" && this._compContext.ReqNo == currentReqNo) {
             return " dated " . this._compContext.Date
@@ -2519,6 +2545,9 @@ class RisController {
     }
 
     static GetComparisonDate() {
+        if (!this.IsStandardRis) {
+            return ""
+        }
         currentReqNo := this._GetCurrentReqNo()
 
         ; 只有當曾經執行過 Copy Report (AppendPreviousReport) 導致 Date 有值時才進行

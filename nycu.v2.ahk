@@ -43,8 +43,8 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 ; 啟動自動搶焦功能 (搶回 RIS 焦點以便自動化工具運作)
 RisController.EnableShellHookFocus()
 
-#HotIf IsRisReportWindow()
-
+; --- Hotstrings (在標準 RIS 與 LDCT 視窗均生效) ---
+#HotIf IsAnyRisReportWindow()
     #Include Hotstrings\regex-hotstrings.v2.ahk
     #Include Hotstrings\chest-ct.v2.ahk
     #Include Hotstrings\abdomen-ct.v2.ahk
@@ -66,6 +66,23 @@ RisController.EnableShellHookFocus()
     #Include Hotstrings\others.v2.ahk
     #Include Hotstrings\special.v2.ahk
     #Include Hotstrings\breast-mr.v2.ahk
+#HotIf
+
+; --- 專業 RIS 自動化熱鍵 (僅在「標準」報告視窗生效) ---
+#HotIf IsRisReportWindow()
+
+    ; --- 通用編輯增強 ---
+    ; Ctrl+W: 刪除前一個字 (Bash Style)
+    ^w:: {
+        Critical
+        RisController.DeleteWordBackward()
+    }
+
+    !Up::RisController.MoveCurrentLine("Up")
+    !Down::RisController.MoveCurrentLine("Down")
+
+    ; --- Triple Click Handler ---
+    ~LButton:: RisController.HandleTripleClick()
 
     ^9:: {
     }
@@ -149,22 +166,9 @@ RisController.EnableShellHookFocus()
     ; --- Copy Finding to Impression ---
     #v:: RisController.CopyFindingToImpression()
 
-    ; Ctrl+W: 刪除前一個字 (Bash Style)
-    ^w:: {
-        Critical
-        RisController.DeleteWordBackward()
-    }
-
-    !Up::RisController.MoveCurrentLine("Up")
-    !Down::RisController.MoveCurrentLine("Down")
-
-    ; --- Triple Click Handler ---
-    ; 讓滑鼠左鍵通過，同時觸發連點檢查
-    ~LButton:: RisController.HandleTripleClick()
-
 #HotIf ; IsRisReportWindow()
 
-; 只有在「RIS 視窗作用中」且「焦點在輸入框內」時，這個熱鍵才存在
+; 只有在「標準 RIS」且「焦點在輸入框內」時，這些熱鍵才存在
 #HotIf IsRisEditContext()
     ; Insert Indication by AI
     !i:: RisController.GenerateAndInsertIndication()
@@ -391,6 +395,14 @@ WithImeGuard(action) {
 
 IsRisReportWindow() {
     return WinActive(RisController.WinTitle)
+}
+
+IsLdctReportWindow() {
+    return WinActive(RisController.LdctReportWinTitle)
+}
+
+IsAnyRisReportWindow() {
+    return IsRisReportWindow() || IsLdctReportWindow()
 }
 
 IsRisEditContext() {

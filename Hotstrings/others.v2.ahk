@@ -178,7 +178,8 @@
 :c:CMP::
 {
     text := "COMPARISON: "
-    if (date := RisController.GetComparisonDate()) {
+    ; 只有在標準 RIS 視窗且有日期時才補上
+    if WinActive(RisController.WinTitle) && (date := RisController.GetComparisonDate()) {
         text .= date
     }
     SendText(text)
