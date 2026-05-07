@@ -887,8 +887,26 @@ class RisController {
     }
 
     static ActivateOrToggleFocus() {
-        targetHwnd := 0 ; [新增] 用來記錄最後聚焦的視窗 Handle
+        targetHwnd := 0
 
+        ; [優先順序] 1. 檢查是否正在使用 LDCT 視窗，或是 LDCT 視窗存在
+        if WinActive(this.LdctReportWinTitle) || WinExist(this.LdctReportWinTitle) {
+            targetHwnd := WinExist(this.LdctReportWinTitle)
+
+            if !WinActive(targetHwnd) {
+                WinActivate(targetHwnd)
+                WinWaitActive(targetHwnd, , 1)
+            } else {
+                ; 如果已經在 LDCT 視窗，嘗試在控制項間切換焦點 (簡單模擬)
+                Send "{Tab}"
+            }
+
+            try targetHwnd := ControlGetFocus("A")
+            SetTimer( () => this._HighlightCaret(targetHwnd), -10 )
+            return
+        }
+
+        ; [優先順序] 2. 原本的標準 RIS 邏輯
         try {
             if !WinActive(this.WinTitle) {
                 ; [修改] 1. 先確認視窗是否確實存在
