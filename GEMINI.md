@@ -60,3 +60,4 @@
 - When the user requests to memorize something, add memories in this file rather than systemic GEMINI.md.
 - 在 AutoHotkey v2 中，箭頭函式 (Arrow Functions) `=>` 僅支援單一表達式 (Expression)，不支援大括號 `{}` 包裝的陳述句區塊 (Block-body)。
 - Use `rg` instead of `grep`.
+- 每次修改程式碼後，必須執行 `powershell -NoProfile -ExecutionPolicy Bypass -File Utilities\compile-check.ps1` 進行語法驗證。

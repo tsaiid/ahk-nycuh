@@ -301,17 +301,42 @@ GetUnremarkableOrgans(searchText) {
     return safeOrgans
 }
 
+; [新增] 共用方法：檢查並取得額外的 negative findings (淋巴結, Free Air, Ascites)
+GetAbdomenExtraFindings(searchText, includeFreeAir := false, includeAscites := false) {
+    extra := ""
+    ; 淋巴結檢查
+    if (!InStr(searchText, "lymph") && !InStr(searchText, "node") && !InStr(searchText, "lymphadenopathy")) {
+        extra .= "`nNo definite retroperitoneal or mesenteric lymphadenopathy identified."
+    }
+    ; Free Air
+    if (includeFreeAir && !InStr(searchText, "free air")) {
+        extra .= "`nNo evidence of intraperitoneal free air."
+    }
+    ; Ascites
+    if (includeAscites && !InStr(searchText, "ascites")) {
+        extra .= "`nNo obvious ascites."
+    }
+    return extra
+}
+
 ::actok::
 {
     ; 1. 取得文本
     searchText := RisController.GetFindingSearchText()
 
-    ; 2. 呼叫 Helper 取得未提及器官
+    ; 2. 處理器官列表
     safeOrgans := GetUnremarkableOrgans(searchText)
-
-    ; 3. 輸出
+    finalOutput := ""
     if (safeOrgans.Length > 0) {
-        Paste("The " . FormatList(safeOrgans) . " are unremarkable.")
+        finalOutput .= "The " . FormatList(safeOrgans) . " are unremarkable."
+    }
+
+    ; 3. 處理淋巴結 (actok 只加淋巴結)
+    finalOutput .= GetAbdomenExtraFindings(searchText, false, false)
+
+    ; 4. 輸出
+    if (Trim(finalOutput) != "") {
+        Paste(Trim(finalOutput))
     }
 }
 
@@ -320,22 +345,15 @@ GetUnremarkableOrgans(searchText) {
     ; 1. 取得文本
     searchText := RisController.GetFindingSearchText()
 
-    ; 2. 處理器官部分 (與 actok 相同)
+    ; 2. 處理器官列表
     safeOrgans := GetUnremarkableOrgans(searchText)
-
     finalOutput := ""
     if (safeOrgans.Length > 0) {
         finalOutput .= "The " . FormatList(safeOrgans) . " are unremarkable. "
     }
 
-    ; 3. [新增] 偵測 Free Air 與 Ascites
-    if (!InStr(searchText, "free air")) {
-        finalOutput .= "`nNo evidence of intraperitoneal free air."
-    }
-
-    if (!InStr(searchText, "ascites")) {
-        finalOutput .= "`nNo obvious ascites."
-    }
+    ; 3. 處理淋巴結、Free Air 與 Ascites
+    finalOutput .= GetAbdomenExtraFindings(searchText, true, true)
 
     ; 4. 執行輸出
     if (Trim(finalOutput) != "") {
