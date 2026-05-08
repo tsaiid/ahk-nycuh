@@ -886,9 +886,18 @@ class RisController {
         if !hFind || !hImp || !this._hCustomFont
             return
 
+        this._ApplyCustomFontToControls(hFind, hImp)
+    }
+
+    static _ApplyCustomFontToControls(hwnds*) {
+        if !this._hCustomFont
+            return
+
         try {
-            SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hFind)
-            SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hImp)
+            for hwnd in hwnds {
+                if hwnd
+                    SendMessage(this.MSG.SETFONT, this._hCustomFont, 1, , "ahk_id " hwnd)
+            }
         }
     }
 
@@ -3675,8 +3684,9 @@ class RisController {
 
         ; --- 第二列：內容對齊 ---
         ; 兩者皆設為 ReadOnly，並加入 -WantReturn 讓 Enter 鍵能觸發 Default 按鈕
-        myGui.Add("Edit", "xm w400 r15 ReadOnly Multi -WantReturn", original)
+        originalEdit := myGui.Add("Edit", "xm w400 r15 ReadOnly Multi -WantReturn", original)
         refinedEdit := myGui.Add("Edit", "x+20 yp w400 r15 ReadOnly Multi -WantReturn", refined)
+        this._ApplyCustomFontToControls(originalEdit.Hwnd, refinedEdit.Hwnd)
 
         if IsObject(debugInfo) {
             myGui.SetFont("s10", "Consolas")
