@@ -3616,7 +3616,10 @@ class RisController {
 
     static _ShowPolishComparisonGui(hEdit, original, refined, sel, debugInfo := "") {
         ; 建立比對 GUI
-        myGui := Gui("+AlwaysOnTop", "AI 潤色結果比對")
+        myGui := Gui("+AlwaysOnTop +ToolWindow", "AI 潤色結果比對")
+        myGui.MarginX := 14
+        myGui.MarginY := 12
+        myGui.BackColor := "F4F5F7"
         myGui.SetFont("s11", "Microsoft JhengHei UI")
 
         ; --- 第一列：標題對齊 ---
@@ -3659,10 +3662,28 @@ class RisController {
         myGui.OnEvent("Escape", (*) => myGui.Destroy())
 
         myGui.Show("Center")
+        this._ApplyPolishComparisonWindowStyle(myGui.Hwnd)
 
         ; 自動聚焦到結果框（方便按 Enter），並將游標移至開頭（防止自動全選）
         refinedEdit.Focus()
         SendMessage(0x00B1, 0, 0, refinedEdit.Hwnd) ; EM_SETSEL: Start=0, End=0
+    }
+
+    static _ApplyPolishComparisonWindowStyle(hwnd) {
+        try {
+            if (this._GetWindowsBuildNumber() < 22000) {
+                renderingPolicy := 1 ; DWMNCRP_DISABLED: remove Win10 DWM shadow/edge.
+                DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 2, "Int*", renderingPolicy, "UInt", 4)
+                return
+            }
+
+            borderColor := 0xFFFFFFFE ; DWMWA_COLOR_NONE: remove Win11 DWM outline while keeping shadow.
+            DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 34, "UInt*", borderColor, "UInt", 4)
+        }
+    }
+
+    static _GetWindowsBuildNumber() {
+        return RegExMatch(A_OSVersion, "^\d+\.\d+\.(\d+)", &match) ? Integer(match[1]) : 0
     }
 
     ; [內部 Helper] 專用於插入 Impression 欄位
