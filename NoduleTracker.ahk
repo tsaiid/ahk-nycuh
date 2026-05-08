@@ -150,7 +150,7 @@ class NoduleTracker {
 
     OptimizePatternOrder() {
         try {
-            NoduleTracker.Sort(this.PatternList, (a, b) => b.hits - a.hits)
+            this.Sort(this.PatternList, (a, b) => b.hits - a.hits)
             /*
             for patternData in this.PatternList {
                 patternData.hits := Integer(IniRead(this.StatsFile, "Hits", patternData.name, 0))
@@ -170,7 +170,7 @@ class NoduleTracker {
         }
     }
 
-    static Sort(arr, compareFunc := "") {
+    Sort(arr, compareFunc := "") {
         if (arr.Length < 2) {
             return arr
         }
@@ -236,9 +236,9 @@ class NoduleTracker {
                     continue
                 }
 
-                if (NoduleTracker.VerifySpatialMatch(candidate.srs, focusNN, hwnd) &&
-                    NoduleTracker.VerifySpatialMatch(candidate.img, focusNN, hwnd) &&
-                    NoduleTracker.VerifySpatialMatch(candidate.desc, focusNN, hwnd)) {
+                if (this.VerifySpatialMatch(candidate.srs, focusNN, hwnd) &&
+                    this.VerifySpatialMatch(candidate.img, focusNN, hwnd) &&
+                    this.VerifySpatialMatch(candidate.desc, focusNN, hwnd)) {
 
                     ; [新增] 驗證 Description 控制項文字格式 (必須符合 "(從1開始的數字) 文字")
                     try {
@@ -279,7 +279,7 @@ class NoduleTracker {
                 if (!IsNumber(Trim(imgVal))) {
                     return {srs: "", img: "", valid: false, error: "ComboBox 無有效數字"}
                 }
-                imgInfo := NoduleTracker.ApplyImageGroupOffset(imgVal, candidate.img, candidate.imgGroup, hwnd, focusNN)
+                imgInfo := this.ApplyImageGroupOffset(imgVal, candidate.img, candidate.imgGroup, hwnd, focusNN)
                 imgVal := imgInfo.value
 
                 srsVal := ""
@@ -291,7 +291,7 @@ class NoduleTracker {
 
                     if (cW > 0 && cH > 0) {
                         scanW := (cW > 150) ? 150 : cW
-                        ocrResult := NoduleTracker.CaptureSrsOcr(screenX, screenY, scanW, cH)
+                        ocrResult := this.CaptureSrsOcr(screenX, screenY, scanW, cH)
                         srsVal := ocrResult.srs
                     }
 
@@ -350,7 +350,7 @@ class NoduleTracker {
             if (!focusedEl) {
                 return {srs: "", img: "", error: "Acc: 無法從座標取得節點"}
             }
-            fullPath := NoduleTracker.GetRelativePath(focusedEl, pacsRoot)
+            fullPath := this.GetRelativePath(focusedEl, pacsRoot)
             if (fullPath == "") {
                 return {srs: "", img: "", error: "Acc: 路徑不在當前視窗內或解析超時"}
             }
@@ -370,8 +370,8 @@ class NoduleTracker {
                 imgVal := Trim(imgEl.Value)
                 try {
                     loc := imgEl.Location
-                    imgNN := ControlGetClassNN(NoduleTracker.WindowFromPoint(loc.x + 5, loc.y + 5))
-                    imgInfo := NoduleTracker.ApplyImageGroupOffsetFromAccPaths(imgVal, imgNN, pacsRoot, pathParts, targetIdx, pacsHwnd)
+                    imgNN := ControlGetClassNN(this.WindowFromPoint(loc.x + 5, loc.y + 5))
+                    imgInfo := this.ApplyImageGroupOffsetFromAccPaths(imgVal, imgNN, pacsRoot, pathParts, targetIdx, pacsHwnd)
                     if (imgInfo.groupValue != "") {
                         imgVal := imgInfo.value
                     }
@@ -406,13 +406,13 @@ class NoduleTracker {
                     }
                 }
                 if (rawText != "") {
-                    srsVal := NoduleTracker.ParseSrs(rawText)
+                    srsVal := this.ParseSrs(rawText)
                 }
                 if (srsVal == "") {
                     loc := srsEl.Location
                     if (loc.w > 0 && loc.h > 0) {
                         scanW := (loc.w > 150) ? 150 : loc.w
-                        ocrResult := NoduleTracker.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h)
+                        ocrResult := this.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h)
                         srsVal := ocrResult.srs
                     }
                 }
@@ -439,7 +439,7 @@ class NoduleTracker {
             }
             For existingItem in this.NoduleData[location] {
                 if (existingItem.srs == info.srs && existingItem.img == info.img) {
-                    NoduleTracker.ShowTip("⚠️ 已存在 (忽略)", 1000)
+                    this.ShowTip("⚠️ 已存在 (忽略)", 1000)
                     return
                 }
             }
@@ -451,7 +451,7 @@ class NoduleTracker {
                 this.GuiStatusMsg := ""
                 this.UpdateGUI()
                 methodTag := (info.HasOwnProp("method")) ? "[" info.method "] " : ""
-                NoduleTracker.ShowTip("✅ " methodTag location ": " info.srs "/" info.img, 1000)
+                this.ShowTip("✅ " methodTag location ": " info.srs "/" info.img, 1000)
             }
         } catch Error as e {
             this.GuiStatusMsg := "❌ Critical: " e.Message
@@ -462,19 +462,19 @@ class NoduleTracker {
     DirectCopy(location) {
         info := this.GetSmartInfo()
         if (!info.valid) {
-            NoduleTracker.ShowTip("⚠️ 複製失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2500)
+            this.ShowTip("⚠️ 複製失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2500)
             return
         }
         reportStr := location . " of lung (Srs/Img: " . info.srs . "/" . info.img . ")"
         A_Clipboard := reportStr
-        NoduleTracker.ShowTip("📋 Copied:`n" reportStr, 2000)
+        this.ShowTip("📋 Copied:`n" reportStr, 2000)
     }
 
     SimpleDirectCopy() {
         try {
             info := this.GetSmartInfo()
             if (!info.valid) {
-                NoduleTracker.ShowTip("⚠️ 抓取失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2000)
+                this.ShowTip("⚠️ 抓取失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2000)
                 return
             }
             clipStr := A_Clipboard
@@ -509,7 +509,7 @@ class NoduleTracker {
             if (!isNewDup)
                 entries.Push({srs: info.srs, img: info.img})
             if (entries.Length > 1) {
-                NoduleTracker.Sort(entries, (a, b) => (
+                this.Sort(entries, (a, b) => (
                     s1 := Integer(a.srs), s2 := Integer(b.srs),
                     i1 := Integer(a.img), i2 := Integer(b.img),
                     s1 != s2 ? s1 - s2 : i1 - i2
@@ -529,9 +529,9 @@ class NoduleTracker {
             }
             reportStr := "(Srs/Img: " . groupedStr . ")"
             A_Clipboard := reportStr
-            NoduleTracker.ShowTip("📋 Copied:`n" reportStr, 2000)
+            this.ShowTip("📋 Copied:`n" reportStr, 2000)
         } catch Error as e {
-            NoduleTracker.ShowTip("❌ " e.Message, 2000)
+            this.ShowTip("❌ " e.Message, 2000)
         }
     }
 
@@ -542,18 +542,18 @@ class NoduleTracker {
             focusHwnd := hwnd
         }
         msg := "【Pattern 探針資訊】`n當前指向 ClassNN: " ctrlClassNN "`n`n"
-        focusNum := NoduleTracker.ExtractClassNNNumber(ctrlClassNN)
+        focusNum := this.ExtractClassNNNumber(ctrlClassNN)
         accProbeNums := {focus: focusNum, img: "", srs: "", desc: ""}
         suggestedProbeReport := ""
         matchFound := false
         match := this.FindPatternMatch(ctrlClassNN, hwnd)
         if (match) {
             candidate := match.candidate
-            msg .= "🎯 探針命中: " NoduleTracker.FormatPatternName(match.name) "`n"
+            msg .= "🎯 探針命中: " this.FormatPatternName(match.name) "`n"
             imgVal := ""
             try imgVal := ControlGetText(candidate.img, hwnd)
-            imgMax := NoduleTracker.GetComboBoxItemCount(candidate.img, hwnd)
-            imgInfo := NoduleTracker.ApplyImageGroupOffset(imgVal, candidate.img, candidate.imgGroup, hwnd, ctrlClassNN)
+            imgMax := this.GetComboBoxItemCount(candidate.img, hwnd)
+            imgInfo := this.ApplyImageGroupOffset(imgVal, candidate.img, candidate.imgGroup, hwnd, ctrlClassNN)
             srsText := ""
             try srsText := ControlGetText(candidate.srs, hwnd)
             descText := ""
@@ -577,12 +577,12 @@ class NoduleTracker {
                 srsX := NumGet(pt, 0, "int"), srsY := NumGet(pt, 4, "int")
                 if (cW > 0 && cH > 0) {
                     scanW := (cW > 150) ? 150 : cW
-                    ocrResult := NoduleTracker.CaptureSrsOcr(srsX, srsY, scanW, cH)
+                    ocrResult := this.CaptureSrsOcr(srsX, srsY, scanW, cH)
                     srsVal := ocrResult.srs
                     msg .= "  - OCR 解析 Series: [" (srsVal == "" ? "解析失敗" : srsVal) "]`n"
                     msg .= "    (方法: " ocrResult.method ")`n"
                     msg .= "    (原始文字: " StrReplace(ocrResult.Text, "`n", " ") ")`n"
-                    msg .= NoduleTracker.BuildOcrDebugReport(srsX, srsY, scanW, cH, "  - Series OCR 多選項結果")
+                    msg .= this.BuildOcrDebugReport(srsX, srsY, scanW, cH, "  - Series OCR 多選項結果")
                 }
             }
             matchFound := true
@@ -605,7 +605,7 @@ class NoduleTracker {
             if (!focusedEl) {
                 msg .= "❌ 無法從該座標取得 Acc 節點`n"
             } else {
-                fullPath := NoduleTracker.GetRelativePath(focusedEl, pacsRoot)
+                fullPath := this.GetRelativePath(focusedEl, pacsRoot)
                 if (fullPath == "") {
                     msg .= "❌ 無法解析相對路徑 (越界或超時)`n"
                 } else {
@@ -630,17 +630,17 @@ class NoduleTracker {
                             imgEl := pacsRoot[imgPath]
                             msg .= "   ✅ 抓取 Img 值: [" Trim(imgEl.Value) "]`n"
                             loc := imgEl.Location
-                            imgHwnd := NoduleTracker.WindowFromPoint(loc.x + 5, loc.y + 5)
+                            imgHwnd := this.WindowFromPoint(loc.x + 5, loc.y + 5)
                             imgNN := ControlGetClassNN(imgHwnd)
-                            imgNum := NoduleTracker.ExtractClassNNNumber(imgNN)
+                            imgNum := this.ExtractClassNNNumber(imgNN)
                             accProbeNums.img := imgNum
                             msg .= "     (📍 Img ClassNN: " imgNN " -> 數字: " (imgNum != "" ? imgNum : "?") ")`n"
-                            for imgGroupPath in NoduleTracker.GetImageGroupAccPaths(imgPathParts, targetIdx) {
+                            for imgGroupPath in this.GetImageGroupAccPaths(imgPathParts, targetIdx) {
                                 try {
                                     imgGroupEl := pacsRoot[imgGroupPath]
-                                    accText := NoduleTracker.GetAccElementText(imgGroupEl)
+                                    accText := this.GetAccElementText(imgGroupEl)
                                     msg .= "     (🧩 影像組候選 Acc path: " imgGroupPath " Value=[" accText.value "] Name=[" accText.name "])`n"
-                                    imgInfo := NoduleTracker.ApplyImageGroupOffsetFromAcc(imgEl.Value, imgNN, imgGroupEl, hwnd)
+                                    imgInfo := this.ApplyImageGroupOffsetFromAcc(imgEl.Value, imgNN, imgGroupEl, hwnd)
                                     if (imgInfo.groupValue != "") {
                                         msg .= "     (✅ 影像組 Acc 命中: " imgGroupPath "=" imgInfo.groupValue
                                         if (imgInfo.itemCount != "") {
@@ -660,9 +660,9 @@ class NoduleTracker {
                             srsEl := pacsRoot[srsPath]
                             loc := srsEl.Location
                             msg .= "   ✅ Srs 座標框: W" loc.w " H" loc.h "`n"
-                            srsHwnd := NoduleTracker.WindowFromPoint(loc.x + 5, loc.y + 5)
+                            srsHwnd := this.WindowFromPoint(loc.x + 5, loc.y + 5)
                             srsNN := ControlGetClassNN(srsHwnd)
-                            srsNum := NoduleTracker.ExtractClassNNNumber(srsNN)
+                            srsNum := this.ExtractClassNNNumber(srsNN)
                             accProbeNums.srs := srsNum
                             msg .= "     (📍 Srs ClassNN: " srsNN " -> 數字: " (srsNum != "" ? srsNum : "?") ")`n"
                             descVal := ""
@@ -673,9 +673,9 @@ class NoduleTracker {
                                 if (descVal != "") {
                                     msg .= "   📝 Series Desc: [" descVal "]`n"
                                     dLoc := descEl.Location
-                                    dHwnd := NoduleTracker.WindowFromPoint(dLoc.x + 5, dLoc.y + 5)
+                                    dHwnd := this.WindowFromPoint(dLoc.x + 5, dLoc.y + 5)
                                     dNN := ControlGetClassNN(dHwnd)
-                                    descNum := NoduleTracker.ExtractClassNNNumber(dNN)
+                                    descNum := this.ExtractClassNNNumber(dNN)
                                     accProbeNums.desc := descNum
                                     msg .= "     (📍 Desc ClassNN: " dNN " -> 數字: " (descNum != "" ? descNum : "?") ")`n"
                                 }
@@ -688,17 +688,17 @@ class NoduleTracker {
                             srsVal := ""
                             if (rawText != "") {
                                 msg .= "   🔍 Acc 屬性文字: [" rawText "]`n"
-                                srsVal := NoduleTracker.ParseSrs(rawText)
+                                srsVal := this.ParseSrs(rawText)
                             }
                             if (srsVal == "") {
                                 msg .= "   ⚠️ 文字解析無結果，啟動 OCR...`n"
                                 if (loc.w > 0 && loc.h > 0) {
                                     scanW := (loc.w > 150) ? 150 : loc.w
-                                    ocrResult := NoduleTracker.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h)
+                                    ocrResult := this.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h)
                                     safeText := StrReplace(ocrResult.Text, "`n", " ")
                                     msg .= "   🔍 OCR 方法: [" ocrResult.method "]`n"
                                     msg .= "   🔍 OCR 原始文字: [" safeText "]`n"
-                                    msg .= NoduleTracker.BuildOcrDebugReport(loc.x, loc.y, scanW, loc.h, "   - Srs OCR 多選項結果")
+                                    msg .= this.BuildOcrDebugReport(loc.x, loc.y, scanW, loc.h, "   - Srs OCR 多選項結果")
                                     srsVal := ocrResult.srs
                                 }
                             }
@@ -708,7 +708,7 @@ class NoduleTracker {
                                 msg .= "   🎯 解析結果: [無法識別序列號]`n"
                             }
                             if (!matchFound) {
-                                suggestedProbeReport := NoduleTracker.BuildSuggestedProbeReport(accProbeNums)
+                                suggestedProbeReport := this.BuildSuggestedProbeReport(accProbeNums)
                             }
                         } catch {
                             msg .= "   ❌ 預測的 Srs 路徑無效`n"
@@ -722,7 +722,7 @@ class NoduleTracker {
             msg .= "❌ Acc 發生執行期錯誤: " e.Message "`n"
         }
         msg := StrReplace(msg, "{SuggestedProbeReport}`n", suggestedProbeReport)
-        NoduleTracker.ShowDebugWindow(Trim(msg, "`n"), "Pattern 探針資訊")
+        this.ShowDebugWindow(Trim(msg, "`n"), "Pattern 探針資訊")
     }
 
     RunSmartBenchmark() {
@@ -730,7 +730,7 @@ class NoduleTracker {
         hwnd := WinActive("A")
         focusHwnd := ControlGetFocus("A")
         if (!focusHwnd) {
-            NoduleTracker.ShowDebugWindow("❌ 測試失敗：無法取得視窗焦點。", "效能測試錯誤")
+            this.ShowDebugWindow("❌ 測試失敗：無法取得視窗焦點。", "效能測試錯誤")
             return
         }
         focusNN := ControlGetClassNN(focusHwnd)
@@ -761,7 +761,7 @@ class NoduleTracker {
         } else {
             resultText .= "💡 建議：請檢查 F12 探針資訊以修正 Pattern 映射表。"
         }
-        NoduleTracker.ShowDebugWindow(resultText, "智慧抓取效能測試")
+        this.ShowDebugWindow(resultText, "智慧抓取效能測試")
     }
 
     QuickSetImage() {
@@ -772,7 +772,7 @@ class NoduleTracker {
             try targetFocusHwnd := ControlGetHwnd(mCtrlNN, "ahk_id " targetHwnd)
         }
         if (!targetFocusHwnd) {
-            NoduleTracker.ShowTip("❌ 無法鎖定目標控制項", 1500)
+            this.ShowTip("❌ 無法鎖定目標控制項", 1500)
             return
         }
         inputGui := Gui("+AlwaysOnTop -Caption +Border", "Jump to Image")
@@ -808,7 +808,7 @@ class NoduleTracker {
             targetNum := Integer(val)
             if (targetNum < 1) {
                 inputGui.Destroy()
-                NoduleTracker.ShowTip("❌ 影像編號需大於 0", 1500)
+                this.ShowTip("❌ 影像編號需大於 0", 1500)
                 return
             }
             inputGui.Destroy()
@@ -832,7 +832,7 @@ class NoduleTracker {
                     tX := NumGet(pt, 0, "int") + (cW // 2)
                     tY := NumGet(pt, 4, "int") + (cH // 2)
                     focusedEl := Acc.ElementFromPoint(tX, tY)
-                    fullPath := NoduleTracker.GetRelativePath(focusedEl, pacsRoot)
+                    fullPath := this.GetRelativePath(focusedEl, pacsRoot)
                     if (fullPath != "") {
                         pathParts := StrSplit(fullPath, ",")
                         if (pathParts.Length >= 2) {
@@ -846,7 +846,7 @@ class NoduleTracker {
                             try {
                                 comboEl := pacsRoot[comboPath]
                                 loc := comboEl.Location
-                                targetCombo := ControlGetClassNN(NoduleTracker.WindowFromPoint(loc.x + 10, loc.y + 10))
+                                targetCombo := ControlGetClassNN(this.WindowFromPoint(loc.x + 10, loc.y + 10))
                                 method := "Acc Path Calculation"
                             }
                         }
@@ -884,16 +884,16 @@ class NoduleTracker {
                     if (selectedIndex != targetNum - 1) {
                         throw Error("寫入後驗證失敗，目前選取: " (selectedIndex + 1))
                     }
-                    NoduleTracker.ShowTip("✅ 跳至影像: " targetNum, 1000)
+                    this.ShowTip("✅ 跳至影像: " targetNum, 1000)
                 } else {
                     throw Error("所有寫入方法皆失敗")
                 }
             } catch Error as e {
                 msg .= "❌ 錯誤: " e.Message "`n"
-                NoduleTracker.ShowTip("❌ 設定失敗", 2000)
+                this.ShowTip("❌ 設定失敗", 2000)
             }
             if (this.ShowDebugQuickSet) {
-                NoduleTracker.ShowDebugWindow(msg, "Ctrl+G 除錯資訊")
+                this.ShowDebugWindow(msg, "Ctrl+G 除錯資訊")
             }
         }
     }
@@ -1046,12 +1046,12 @@ class NoduleTracker {
         }
 
         if (imgList.Length == 0) {
-            NoduleTracker.ShowTip("! 無資料可複製", 2000)
+            this.ShowTip("! 無資料可複製", 2000)
             return
         }
 
         ; 數值排序
-        NoduleTracker.Sort(imgList)
+        this.Sort(imgList)
 
         finalStr := ""
         for val in imgList {
@@ -1060,7 +1060,7 @@ class NoduleTracker {
         finalStr := Trim(finalStr, ";")
 
         A_Clipboard := finalStr
-        NoduleTracker.ShowTip("📋 Copied Img No:`n" finalStr, 3000)
+        this.ShowTip("📋 Copied Img No:`n" finalStr, 3000)
     }
 
     CopyLocImg(*) {
@@ -1079,7 +1079,7 @@ class NoduleTracker {
                     imgList.Push(val)
                 }
                 ; 數值排序
-                NoduleTracker.Sort(imgList)
+                this.Sort(imgList)
 
                 imgStr := ""
                 for val in imgList {
@@ -1090,7 +1090,7 @@ class NoduleTracker {
             }
         }
         if (lobeParts.Length == 0) {
-            NoduleTracker.ShowTip("! 無資料可複製", 2000)
+            this.ShowTip("! 無資料可複製", 2000)
             return
         }
         finalStr := ""
@@ -1099,7 +1099,7 @@ class NoduleTracker {
         }
         finalStr := Trim(finalStr, ";")
         A_Clipboard := finalStr
-        NoduleTracker.ShowTip("📋 Copied Lobe:Img:`n" finalStr, 3000)
+        this.ShowTip("📋 Copied Lobe:Img:`n" finalStr, 3000)
     }
 
     ClearAll(*) {
@@ -1138,7 +1138,7 @@ class NoduleTracker {
                     srsKeys.Push(k)
                 }
                 if (srsKeys.Length > 1) {
-                    NoduleTracker.Sort(srsKeys, (a, b) => Integer(a) - Integer(b))
+                    this.Sort(srsKeys, (a, b) => Integer(a) - Integer(b))
                 }
                 lobeStr := ""
                 For sKey in srsKeys {
@@ -1155,7 +1155,7 @@ class NoduleTracker {
             }
         }
         if (reportParts.Length == 0) {
-            NoduleTracker.ShowTip("! 無資料可複製", 2000)
+            this.ShowTip("! 無資料可複製", 2000)
             return
         }
         finalStr := ""
@@ -1170,11 +1170,11 @@ class NoduleTracker {
             finalStr .= "and " . reportParts[reportParts.Length]
         }
         A_Clipboard := finalStr
-        NoduleTracker.ShowTip("Copied:`n" finalStr, 3000)
+        this.ShowTip("Copied:`n" finalStr, 3000)
     }
 
     SortNoduleData(arr) {
-        NoduleTracker.Sort(arr, (a, b) => (
+        this.Sort(arr, (a, b) => (
             s1 := Integer(a.srs), s2 := Integer(b.srs),
             i1 := Integer(a.img), i2 := Integer(b.img),
             s1 != s2 ? s1 - s2 : i1 - i2
@@ -1194,9 +1194,9 @@ class NoduleTracker {
         }
     }
 
-    ; --- 靜態輔助方法 (Static Helpers) ---
+    ; --- 輔助方法 (Helpers) ---
 
-    static VerifySpatialMatch(childNN, focusNN, hwnd) {
+    VerifySpatialMatch(childNN, focusNN, hwnd) {
         try {
             ControlGetPos(&cX, &cY, &cW, &cH, childNN, hwnd)
             ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
@@ -1216,7 +1216,7 @@ class NoduleTracker {
         }
     }
 
-    static ParseSrs(text) {
+    ParseSrs(text) {
         splitText := StrSplit(text, ",")
         if (splitText.Length > 0) {
             if (RegExMatch(splitText[1], "(\d+)", &match)) {
@@ -1226,7 +1226,7 @@ class NoduleTracker {
         return ""
     }
 
-    static CaptureOcr(x, y, w, h, scale := 3) {
+    CaptureOcr(x, y, w, h, scale := 3) {
         try {
             return OCR.FromRect(x, y, w, h, {scale: scale})
         } catch {
@@ -1234,7 +1234,7 @@ class NoduleTracker {
         }
     }
 
-    static CaptureOcrWithOptions(x, y, w, h, options) {
+    CaptureOcrWithOptions(x, y, w, h, options) {
         try {
             return OCR.FromRect(x, y, w, h, options)
         } catch {
@@ -1242,15 +1242,15 @@ class NoduleTracker {
         }
     }
 
-    static CaptureSrsOcr(x, y, w, h) {
+    CaptureSrsOcr(x, y, w, h) {
         variants := [
             {method: "scale=3", opts: {scale: 3}},
             {method: "scale=3 invert", opts: {scale: 3, invertcolors: true}}
         ]
         fallback := {Text: "", srs: "", method: variants[1].method}
         for variant in variants {
-            result := NoduleTracker.CaptureOcrWithOptions(x, y, w, h, variant.opts)
-            srsVal := NoduleTracker.ParseSrs(result.Text)
+            result := this.CaptureOcrWithOptions(x, y, w, h, variant.opts)
+            srsVal := this.ParseSrs(result.Text)
             if (variant.method == variants[1].method) {
                 fallback := {Text: result.Text, srs: srsVal, method: variant.method}
             }
@@ -1261,7 +1261,7 @@ class NoduleTracker {
         return fallback
     }
 
-    static BuildOcrDebugReport(x, y, w, h, label := "") {
+    BuildOcrDebugReport(x, y, w, h, label := "") {
         variants := [
             {name: "scale=2", opts: {scale: 2}},
             {name: "scale=3", opts: {scale: 3}},
@@ -1278,7 +1278,7 @@ class NoduleTracker {
         }
         msg .= "    區域: X" x " Y" y " W" w " H" h "`n"
         for variant in variants {
-            result := NoduleTracker.CaptureOcrWithOptions(x, y, w, h, variant.opts)
+            result := this.CaptureOcrWithOptions(x, y, w, h, variant.opts)
             text := Trim(StrReplace(result.Text, "`n", " "))
             if (text == "") {
                 text := "<empty>"
@@ -1288,7 +1288,7 @@ class NoduleTracker {
         return msg
     }
 
-    static ProbeComboBox(controlName, hwnd) {
+    ProbeComboBox(controlName, hwnd) {
         try {
             txt := ControlGetText(controlName, hwnd)
             return IsNumber(Trim(txt))
@@ -1297,7 +1297,7 @@ class NoduleTracker {
         }
     }
 
-    static GetRelativePath(targetEl, rootEl) {
+    GetRelativePath(targetEl, rootEl) {
         path := ""
         curr := targetEl
         startTime := A_TickCount
@@ -1334,14 +1334,14 @@ class NoduleTracker {
         return Trim(path, ",")
     }
 
-    static ExtractClassNNNumber(classNN) {
+    ExtractClassNNNumber(classNN) {
         if (RegExMatch(classNN, "(\d+)$", &match)) {
             return Integer(match[1])
         }
         return ""
     }
 
-    static GetComboBoxItemCount(classNN, hwnd) {
+    GetComboBoxItemCount(classNN, hwnd) {
         try {
             itemCount := SendMessage(0x0146, 0, 0, classNN, "ahk_id " hwnd) ; CB_GETCOUNT
             return itemCount != -1 ? itemCount : ""
@@ -1350,7 +1350,7 @@ class NoduleTracker {
         }
     }
 
-    static GetImageGroupAccPaths(pathParts, targetIdx) {
+    GetImageGroupAccPaths(pathParts, targetIdx) {
         paths := []
         if (targetIdx < 1 || pathParts.Length < 2 || targetIdx > pathParts.Length) {
             return paths
@@ -1374,7 +1374,7 @@ class NoduleTracker {
         return paths
     }
 
-    static GetAccElementText(accEl) {
+    GetAccElementText(accEl) {
         text := {value: "", name: ""}
         try {
             text.value := Trim(accEl.Value)
@@ -1385,12 +1385,12 @@ class NoduleTracker {
         return text
     }
 
-    static ApplyImageGroupOffset(imgVal, imgClassNN, imgGroupClassNN, hwnd, focusNN := "") {
+    ApplyImageGroupOffset(imgVal, imgClassNN, imgGroupClassNN, hwnd, focusNN := "") {
         info := {value: Trim(imgVal), groupClassNN: imgGroupClassNN, groupValue: "", itemCount: "", adjusted: false}
         if (!IsNumber(info.value) || imgGroupClassNN == "") {
             return info
         }
-        if (focusNN != "" && !NoduleTracker.VerifySpatialMatch(imgGroupClassNN, focusNN, hwnd)) {
+        if (focusNN != "" && !this.VerifySpatialMatch(imgGroupClassNN, focusNN, hwnd)) {
             return info
         }
 
@@ -1408,7 +1408,7 @@ class NoduleTracker {
             return info
         }
 
-        info.itemCount := NoduleTracker.GetComboBoxItemCount(imgClassNN, hwnd)
+        info.itemCount := this.GetComboBoxItemCount(imgClassNN, hwnd)
         if (info.itemCount == "") {
             return info
         }
@@ -1418,13 +1418,13 @@ class NoduleTracker {
         return info
     }
 
-    static ApplyImageGroupOffsetFromAcc(imgVal, imgClassNN, imgGroupEl, hwnd) {
+    ApplyImageGroupOffsetFromAcc(imgVal, imgClassNN, imgGroupEl, hwnd) {
         info := {value: Trim(imgVal), groupClassNN: "Acc", groupValue: "", itemCount: "", adjusted: false}
         if (!IsNumber(info.value) || !imgGroupEl) {
             return info
         }
 
-        accText := NoduleTracker.GetAccElementText(imgGroupEl)
+        accText := this.GetAccElementText(imgGroupEl)
         info.groupValue := accText.value != "" ? accText.value : accText.name
         if (info.groupValue == "" || StrUpper(info.groupValue) == "A" || !IsNumber(info.groupValue)) {
             return info
@@ -1435,7 +1435,7 @@ class NoduleTracker {
             return info
         }
 
-        info.itemCount := NoduleTracker.GetComboBoxItemCount(imgClassNN, hwnd)
+        info.itemCount := this.GetComboBoxItemCount(imgClassNN, hwnd)
         if (info.itemCount == "") {
             return info
         }
@@ -1445,12 +1445,12 @@ class NoduleTracker {
         return info
     }
 
-    static ApplyImageGroupOffsetFromAccPaths(imgVal, imgClassNN, pacsRoot, pathParts, targetIdx, hwnd) {
+    ApplyImageGroupOffsetFromAccPaths(imgVal, imgClassNN, pacsRoot, pathParts, targetIdx, hwnd) {
         info := {value: Trim(imgVal), groupClassNN: "Acc", groupValue: "", itemCount: "", adjusted: false, path: ""}
-        for imgGroupPath in NoduleTracker.GetImageGroupAccPaths(pathParts, targetIdx) {
+        for imgGroupPath in this.GetImageGroupAccPaths(pathParts, targetIdx) {
             try {
                 imgGroupEl := pacsRoot[imgGroupPath]
-                candidate := NoduleTracker.ApplyImageGroupOffsetFromAcc(imgVal, imgClassNN, imgGroupEl, hwnd)
+                candidate := this.ApplyImageGroupOffsetFromAcc(imgVal, imgClassNN, imgGroupEl, hwnd)
                 if (candidate.groupValue != "") {
                     candidate.path := imgGroupPath
                     return candidate
@@ -1460,7 +1460,7 @@ class NoduleTracker {
         return info
     }
 
-    static BuildSuggestedProbeReport(nums) {
+    BuildSuggestedProbeReport(nums) {
         if (nums.focus == "" || nums.img == "" || nums.srs == "" || nums.desc == "") {
             return ""
         }
@@ -1491,23 +1491,23 @@ class NoduleTracker {
         return msg
     }
 
-    static FormatPatternName(patternName) {
+    FormatPatternName(patternName) {
         if (RegExMatch(patternName, "^Pattern_(\d+)_(\d+)_(\d+)_(\d+)$", &match)) {
             return "[" match[1] ", " match[2] ", " match[3] ", " match[4] "]"
         }
         return patternName
     }
 
-    static ShowTip(msg, duration) {
+    ShowTip(msg, duration) {
         ToolTip(msg)
         SetTimer(() => ToolTip(), -duration)
     }
 
-    static WindowFromPoint(x, y) {
+    WindowFromPoint(x, y) {
         return DllCall("WindowFromPoint", "int64", (x & 0xFFFFFFFF) | (y << 32), "ptr")
     }
 
-    static ShowDebugWindow(content, title := "Debug Info", timeout := 0) {
+    ShowDebugWindow(content, title := "Debug Info", timeout := 0) {
         debugGui := Gui("+AlwaysOnTop +Resize", title)
         debugGui.SetFont("s10", "Maple Mono CN")
         debugGui.BackColor := "F0F0F0"
