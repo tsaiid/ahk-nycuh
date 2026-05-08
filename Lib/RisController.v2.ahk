@@ -3472,8 +3472,7 @@ class RisController {
 
     static _RunRefineRequest(request) {
         response := this._RunAIRequest(request)
-        this.Notify(this._FormatAICompleteNotify("AI 潤色完成", response.APIKeyName, response.Model), 2500)
-        return response.Result
+        return response
     }
 
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
@@ -3585,7 +3584,8 @@ class RisController {
             this.Notify("AI 潤色中...", 3000)
 
             request := this._BuildRefineRequest(selectedText)
-            result := this._RunRefineRequest(request)
+            response := this._RunRefineRequest(request)
+            result := response.Result
 
             ; 格式化換行
             result := StrReplace(result, "`r`n", "`n")
@@ -3597,7 +3597,8 @@ class RisController {
             this._RestoreCursor()
 
             ; 顯示比對視窗
-            this._ShowPolishComparisonGui(hEdit, selectedText, result, sel)
+            debugInfo := this._FormatPolishComparisonDebugInfo(response)
+            this._ShowPolishComparisonGui(hEdit, selectedText, result, sel, debugInfo)
 
         } catch as err {
             this._RestoreCursor()
@@ -3605,7 +3606,15 @@ class RisController {
         }
     }
 
-    static _ShowPolishComparisonGui(hEdit, original, refined, sel) {
+    static _FormatPolishComparisonDebugInfo(response) {
+        return {
+            APIKeyName: response.APIKeyName,
+            Model: response.Model,
+            ApiTime: response.ApiTime . " ms"
+        }
+    }
+
+    static _ShowPolishComparisonGui(hEdit, original, refined, sel, debugInfo := "") {
         ; 建立比對 GUI
         myGui := Gui("+AlwaysOnTop", "AI 潤色結果比對")
         myGui.SetFont("s11", "Microsoft JhengHei UI")
@@ -3618,6 +3627,14 @@ class RisController {
         ; 兩者皆設為 ReadOnly，並加入 -WantReturn 讓 Enter 鍵能觸發 Default 按鈕
         myGui.Add("Edit", "xm w400 r15 ReadOnly Multi -WantReturn", original)
         refinedEdit := myGui.Add("Edit", "x+20 yp w400 r15 ReadOnly Multi -WantReturn", refined)
+
+        if IsObject(debugInfo) {
+            myGui.SetFont("s10", "Consolas")
+            myGui.Add("Text", "xm y+12 w260 Center", "API Key: " . debugInfo.APIKeyName)
+            myGui.Add("Text", "x+20 yp w260 Center", "Model: " . debugInfo.Model)
+            myGui.Add("Text", "x+20 yp w260 Center", "API Time: " . debugInfo.ApiTime)
+            myGui.SetFont("s11", "Microsoft JhengHei UI")
+        }
 
         ; --- 第三列：按鈕區 ---
         btnAccept := myGui.Add("Button", "Default w180 x220 y+20", "✅ Accept (Enter)")
