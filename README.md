@@ -64,6 +64,15 @@ ShuttlePRO v2 控制器整合腳本。
 - 部分功能依賴醫院端實際安裝的應用程式與視窗結構，例如 RIS、INFINITT PACS、ShuttlePRO 裝置
 - AI 功能需自行在腳本設定中填入 provider API key
 
+## AI provider 設定
+
+RIS 內建 AI 功能可在 `Lib/RisConfig.v2.ahk` 內針對 `Indication`、`Impression`、`Refine` 分別選擇 `Provider: "google"` 或 `Provider: "openai"`。
+
+OpenAI API key 請放在 `config/private.ini` 的 `[OpenAI]` 區段，可共用 `APIKey`，或分別設定 `IndicationAPIKey`、`ImpressionAPIKey`、`RefineAPIKey`。目前預設策略為：
+
+- `Indication` / `Refine`: `gpt-5.4-nano`
+- `Impression`: `gpt-5.4-mini`
+
 ## 使用方式
 
 依需求執行對應入口腳本即可，例如：

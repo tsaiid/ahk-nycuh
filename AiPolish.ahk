@@ -69,7 +69,7 @@ global AI_POLISH_CONFIG := {
     Hotkey: AI_POLISH_HOTKEY,
     PasteShortcut: "^v",
     CopyShortcut: "^c",
-    Provider: "google",
+    Provider: "openai",
     NotifyDurationMs: 1800,
     ReviewGuiTitle: "AI 潤色結果比對",
     ReviewFontName: "Microsoft JhengHei UI",
@@ -107,8 +107,9 @@ global AI_POLISH_CONFIG := {
         "openai", {
             APIKey: "",
             BaseUrl: "https://api.openai.com/v1/responses",
-            Model: "gpt-5-mini",
-            Temperature: 0.3
+            Model: "gpt-5.4-nano",
+            Temperature: 0.3,
+            ReasoningEffort: "none"
         },
         "claude", {
             APIKey: "",
@@ -186,7 +187,9 @@ CallAI(promptText) {
     switch providerName {
         case "google":
             return CallGoogleAI(promptText)
-        case "openai", "claude":
+        case "openai":
+            return CallOpenAI(promptText)
+        case "claude":
             throw Error("目前尚未實作 provider: " . providerName)
         default:
             throw Error("不支援的 provider: " . providerName)
@@ -221,6 +224,10 @@ GetProviderRuntimeConfig(providerName) {
         runtime.MaxTokens := provider.MaxTokens
     }
 
+    if provider.HasOwnProp("ReasoningEffort") {
+        runtime.ReasoningEffort := provider.ReasoningEffort
+    }
+
     return runtime
 }
 
@@ -239,6 +246,37 @@ CallGoogleAI(promptText) {
     }
 
     return ParseGoogleResponse(response.ResponseText)
+}
+
+CallOpenAI(promptText) {
+    runtime := GetProviderRuntimeConfig("openai")
+    payload := BuildOpenAIPayload(promptText, runtime)
+    response := SendOpenAIJsonRequest(runtime.BaseUrl, payload, runtime.APIKey)
+
+    if (AI_POLISH_CONFIG.Debug) {
+        A_Clipboard := "URL: " . runtime.BaseUrl . "`n`nPayload: " . payload . "`n`nResponse: " . response.ResponseText
+    }
+
+    if (response.Status != 200) {
+        throw Error("HTTP " . response.Status . " - " . response.ResponseText)
+    }
+
+    return ParseOpenAIResponse(response.ResponseText)
+}
+
+BuildOpenAIPayload(promptText, runtime) {
+    escapedPrompt := EscapeJsonString(promptText)
+    reasoningEffort := runtime.HasOwnProp("ReasoningEffort") ? runtime.ReasoningEffort : "none"
+
+    return '{'
+        . '"model":"' . EscapeJsonString(runtime.Model) . '",'
+        . '"input":[{'
+            . '"role":"user",'
+            . '"content":[{"type":"input_text","text":"' . escapedPrompt . '"}]'
+        . '}],'
+        . '"reasoning":{"effort":"' . EscapeJsonString(reasoningEffort) . '"},'
+        . '"temperature":' . runtime.Temperature
+    . '}'
 }
 
 BuildGooglePayload(promptText, runtime) {
@@ -274,10 +312,57 @@ SendJsonRequest(url, payload) {
     }
 }
 
+SendOpenAIJsonRequest(url, payload, apiKey) {
+    req := ComObject("WinHttp.WinHttpRequest.5.1")
+    req.Open("POST", url, true)
+    req.SetRequestHeader("Content-Type", "application/json")
+    req.SetRequestHeader("Authorization", "Bearer " . apiKey)
+    req.Send(payload)
+
+    while !req.WaitForResponse(0.01) {
+        Sleep(10)
+    }
+
+    return {
+        Status: req.Status,
+        ResponseText: req.ResponseText
+    }
+}
+
 ParseGoogleResponse(responseText) {
     text := ExtractGoogleResponseText(responseText)
     text := DecodeGoogleResponseText(text)
     return StripMarkdownCodeFence(text)
+}
+
+ParseOpenAIResponse(responseText) {
+    text := ExtractOpenAIResponseText(responseText)
+    text := DecodeGoogleResponseText(text)
+    return StripMarkdownCodeFence(text)
+}
+
+ExtractOpenAIResponseText(responseText) {
+    combinedText := ""
+    searchPos := 1
+
+    while (searchPos := RegExMatch(responseText, 's)"type"\s*:\s*"output_text".*?"text"\s*:\s*"(.*?)(?<!\\)"', &match, searchPos)) {
+        combinedText .= match[1]
+        searchPos += match.Len
+    }
+
+    if (combinedText == "") {
+        searchPos := 1
+        while (searchPos := RegExMatch(responseText, 's)"output_text"\s*:\s*"(.*?)(?<!\\)"', &match, searchPos)) {
+            combinedText .= match[1]
+            searchPos += match.Len
+        }
+    }
+
+    if (combinedText = "") {
+        throw Error("無法從 OpenAI 回應中提取有效文字")
+    }
+
+    return combinedText
 }
 
 ExtractGoogleResponseText(responseText) {

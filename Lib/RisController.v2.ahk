@@ -3441,13 +3441,14 @@ class RisController {
 
     static _BuildAIRequestResult(promptText, aiConfig) {
         t0 := A_TickCount
-        response := this._CallGoogleAI(promptText, aiConfig)
+        response := this._CallAI(promptText, aiConfig)
 
         return {
             Result: response.Result,
             ApiTime: A_TickCount - t0,
             APIKeyName: response.APIKeyName,
-            Model: response.Model
+            Model: response.Model,
+            Provider: response.Provider
         }
     }
 
@@ -3841,8 +3842,65 @@ class RisController {
     ; =================================================================
     ; 10.1 AI Transport
     ; request prepare / transport wait / response parse
-    ; 目前僅保留 Google AI 單一供應商 facade，不在此層擴充 provider switch
     ; =================================================================
+    static _GetAIProvider(aiConfig := 0) {
+        if (IsObject(aiConfig) && aiConfig.HasOwnProp("Provider") && aiConfig.Provider != "") {
+            return StrLower(Trim(aiConfig.Provider))
+        }
+
+        return StrLower(Trim(IniRead("config\private.ini", "AI", "Provider", "google")))
+    }
+
+    static _GetAIProviderModels(aiConfig, providerName, fallbackModel := "") {
+        models := []
+        providerName := StrLower(Trim(providerName))
+        providerProp := (providerName == "openai") ? "OpenAIModels" : "GoogleModels"
+
+        if (IsObject(aiConfig) && aiConfig.HasOwnProp(providerProp)) {
+            for _, modelName in aiConfig.%providerProp% {
+                modelName := Trim(modelName)
+                if (modelName != "") {
+                    models.Push(modelName)
+                }
+            }
+        }
+
+        if (models.Length == 0 && IsObject(aiConfig) && aiConfig.HasOwnProp("Models")) {
+            for _, modelName in aiConfig.Models {
+                modelName := Trim(modelName)
+                if (modelName != "") {
+                    models.Push(modelName)
+                }
+            }
+        }
+
+        if (models.Length == 0 && IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) {
+            modelName := Trim(aiConfig.Model)
+            if (modelName != "") {
+                models.Push(modelName)
+            }
+        }
+
+        if (models.Length == 0 && fallbackModel != "") {
+            models.Push(fallbackModel)
+        }
+
+        return models
+    }
+
+    static _CallAI(promptText, aiConfig := 0) {
+        providerName := this._GetAIProvider(aiConfig)
+
+        switch providerName {
+            case "google":
+                return this._CallGoogleAI(promptText, aiConfig)
+            case "openai":
+                return this._CallOpenAI(promptText, aiConfig)
+            default:
+                throw Error("不支援的 AI provider: " . providerName)
+        }
+    }
+
     static _GetGoogleAIConfig() {
         if (this._googleAIConfig) {
             return this._googleAIConfig
@@ -3909,22 +3967,7 @@ class RisController {
 
     static _ResolveGoogleAIModelList(aiConfig := 0) {
         cfg := this._GetGoogleAIConfig()
-        models := []
-        if (IsObject(aiConfig) && aiConfig.HasOwnProp("Models")) {
-            for _, modelName in aiConfig.Models {
-                modelName := Trim(modelName)
-                if (modelName != "") {
-                    models.Push(modelName)
-                }
-            }
-        }
-
-        if (models.Length == 0) {
-            modelName := (IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) ? Trim(aiConfig.Model) : ""
-            models.Push((modelName != "") ? modelName : cfg.Model)
-        }
-
-        return models
+        return this._GetAIProviderModels(aiConfig, "google", cfg.Model)
     }
 
     static _ResolveGoogleAIOptions(aiConfig := 0, modelOverride := "") {
@@ -4281,7 +4324,171 @@ class RisController {
             return {
                 Result: parsed,
                 APIKeyName: request.APIKeyName,
-                Model: request.Model
+                Model: request.Model,
+                Provider: "google"
+            }
+        }
+
+        throw Error(lastError)
+    }
+
+    static _GetOpenAIConfig() {
+        return {
+            ConfigFile: "config\private.ini",
+            APIKey: IniRead("config\private.ini", "OpenAI", "APIKey", ""),
+            BaseUrl: IniRead("config\private.ini", "OpenAI", "BaseUrl", "https://api.openai.com/v1/responses"),
+            Model: IniRead("config\private.ini", "OpenAI", "Model", "gpt-5.4-nano"),
+            Temperature: IniRead("config\private.ini", "OpenAI", "Temperature", "0.2"),
+            ReasoningEffort: IniRead("config\private.ini", "OpenAI", "ReasoningEffort", "none")
+        }
+    }
+
+    static _ResolveOpenAIAPIKey(cfg, aiConfig) {
+        keyName := "APIKey"
+        if (IsObject(aiConfig) && aiConfig.HasOwnProp("APIKeyName") && aiConfig.APIKeyName != "") {
+            keyName := aiConfig.APIKeyName
+        }
+
+        apiKey := IniRead(cfg.ConfigFile, "OpenAI", keyName, "")
+        if (apiKey != "") {
+            return {
+                Name: keyName,
+                Value: apiKey
+            }
+        }
+
+        if (keyName != "APIKey" && cfg.APIKey != "") {
+            return {
+                Name: "APIKey",
+                Value: cfg.APIKey
+            }
+        }
+
+        throw Error("請在 " . cfg.ConfigFile . " 中設定 [OpenAI] " . keyName)
+    }
+
+    static _ResolveOpenAIModelList(aiConfig := 0) {
+        cfg := this._GetOpenAIConfig()
+        return this._GetAIProviderModels(aiConfig, "openai", cfg.Model)
+    }
+
+    static _ResolveOpenAIOptions(aiConfig := 0, modelOverride := "") {
+        cfg := this._GetOpenAIConfig()
+        temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : cfg.Temperature
+        reasoningEffort := (IsObject(aiConfig) && aiConfig.HasOwnProp("ReasoningEffort")) ? aiConfig.ReasoningEffort : cfg.ReasoningEffort
+        apiKey := this._ResolveOpenAIAPIKey(cfg, aiConfig)
+
+        return {
+            APIKey: apiKey.Value,
+            APIKeyName: apiKey.Name,
+            BaseUrl: cfg.BaseUrl,
+            Model: modelOverride,
+            Temperature: temperature,
+            ReasoningEffort: reasoningEffort
+        }
+    }
+
+    static _BuildOpenAIPayload(promptText, options) {
+        escapedPrompt := this._EscapeJsonString(promptText)
+        payload := '{'
+            . '"model":"' . this._EscapeJsonString(options.Model) . '",'
+            . '"input":[{"role":"user","content":[{"type":"input_text","text":"' . escapedPrompt . '"}]}],'
+            . '"reasoning":{"effort":"' . this._EscapeJsonString(options.ReasoningEffort) . '"},'
+            . '"temperature":' . options.Temperature
+        return payload . '}'
+    }
+
+    static _BuildOpenAIRequest(promptText, aiConfig := 0, modelOverride := "") {
+        configStart := A_TickCount
+        options := this._ResolveOpenAIOptions(aiConfig, modelOverride)
+        configTime := A_TickCount - configStart
+
+        payloadStart := A_TickCount
+        return {
+            Url: options.BaseUrl,
+            Payload: this._BuildOpenAIPayload(promptText, options),
+            APIKey: options.APIKey,
+            APIKeyName: options.APIKeyName,
+            Model: options.Model,
+            Metrics: {
+                ConfigReadTime: configTime,
+                PayloadBuildTime: A_TickCount - payloadStart
+            }
+        }
+    }
+
+    static _SendOpenAIRequest(request) {
+        req := ComObject("WinHttp.WinHttpRequest.5.1")
+        req.Open("POST", request.Url, True)
+        req.SetRequestHeader("Content-Type", "application/json")
+        req.SetRequestHeader("Authorization", "Bearer " . request.APIKey)
+        req.Send(request.Payload)
+
+        while !req.WaitForResponse(0.01) {
+            Sleep(10)
+        }
+
+        return {
+            Status: req.Status,
+            ResponseText: req.ResponseText
+        }
+    }
+
+    static _ExtractOpenAIResponseText(responseText) {
+        combinedText := ""
+        searchPos := 1
+
+        while (searchPos := RegExMatch(responseText, 's)"type"\s*:\s*"output_text".*?"text"\s*:\s*"(.*?)(?<!\\)"', &match, searchPos)) {
+            combinedText .= match[1]
+            searchPos += match.Len
+        }
+
+        if (combinedText == "") {
+            searchPos := 1
+            while (searchPos := RegExMatch(responseText, 's)"output_text"\s*:\s*"(.*?)(?<!\\)"', &match, searchPos)) {
+                combinedText .= match[1]
+                searchPos += match.Len
+            }
+        }
+
+        if (combinedText == "") {
+            throw Error("無法從 OpenAI 回應中提取有效文字。")
+        }
+
+        return combinedText
+    }
+
+    static _ParseOpenAIResponse(responseText) {
+        text := this._ExtractOpenAIResponseText(responseText)
+        text := this._DecodeGoogleAIResponseText(text)
+        return this._StripMarkdownCodeFence(text)
+    }
+
+    static _CallOpenAI(promptText, aiConfig := 0) {
+        models := this._ResolveOpenAIModelList(aiConfig)
+        lastError := ""
+
+        for index, modelName in models {
+            request := this._BuildOpenAIRequest(promptText, aiConfig, modelName)
+            waitStart := A_TickCount
+            response := this._SendOpenAIRequest(request)
+            request.Metrics.WaitForResponseTime := A_TickCount - waitStart
+
+            if (response.Status != 200) {
+                lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
+                if (this._ShouldRetryGoogleAIModel(response.Status) && index < models.Length) {
+                    this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
+                    continue
+                }
+                throw Error(lastError)
+            }
+
+            parsed := this._ParseOpenAIResponse(response.ResponseText)
+            return {
+                Result: parsed,
+                APIKeyName: request.APIKeyName,
+                Model: request.Model,
+                Provider: "openai"
             }
         }
 

@@ -15,13 +15,18 @@ class RisConfig {
     static AI := {
         ; --- Indication 產生設定 ---
         Indication: {
+            Provider: "openai",
             APIKeyName: "IndicationAPIKey",
-            Models: [
+            GoogleModels: [
                 "gemma-4-31b-it",
                 "gemma-4-26b-a4b-it",
                 "gemini-3.1-flash-lite-preview"
             ],
+            OpenAIModels: [
+                "gpt-5.4-nano"
+            ],
             Temperature: 0.2,
+            ReasoningEffort: "none",
             ThinkingLevel: "MINIMAL",
             TopP: 0.95,
             EnableGoogleSearch: false,
@@ -55,13 +60,18 @@ class RisConfig {
 
         ; --- Impression 產生設定 ---
         Impression: {
+            Provider: "openai",
             APIKeyName: "ImpressionAPIKey",
-            Models: [
+            GoogleModels: [
                 "gemma-4-31b-it",
                 "gemma-4-26b-a4b-it",
                 "gemini-3.1-flash-lite-preview"
             ],
+            OpenAIModels: [
+                "gpt-5.4-mini"
+            ],
             Temperature: 0.2,
+            ReasoningEffort: "none",
             ThinkingLevel: "MINIMAL",
             TopP: 0.95,
             EnableGoogleSearch: false,
@@ -99,13 +109,18 @@ class RisConfig {
 
         ; --- 文字潤色/翻譯設定 ---
         Refine: {
+            Provider: "openai",
             APIKeyName: "RefineAPIKey",
-            Models: [
+            GoogleModels: [
                 "gemma-4-31b-it",
                 "gemma-4-26b-a4b-it",
                 "gemini-3.1-flash-lite-preview"
             ],
+            OpenAIModels: [
+                "gpt-5.4-nano"
+            ],
             Temperature: 0.3,
+            ReasoningEffort: "none",
             ThinkingLevel: "MINIMAL",
             TopP: 0.95,
             EnableGoogleSearch: false,
