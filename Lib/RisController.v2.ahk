@@ -206,7 +206,6 @@ class RisController {
     static _notifyPaddingY := 14
     static _notifySlotGap := 8
     static _notifySlotHeight := 36
-    static _notifyTextPaddingY := 5
     static _compContext := {ReqNo: "", Date: ""}
     static _workingCursorCache := {AppStarting: "", CursorBaseSize: "", Path: ""}
     static _hCustomFont := 0
@@ -385,7 +384,7 @@ class RisController {
         this._notifySlotItemIds := []
 
         loop this._notifyMaxVisible {
-            slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", this._notifyPaddingX, this._notifyPaddingY, this._notifyWidth, this._notifySlotHeight), "")
+            slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} Center +0x200 Hidden", this._notifyPaddingX, this._notifyPaddingY, this._notifyWidth, this._notifySlotHeight), "")
             slot.OnEvent("Click", ObjBindMethod(this, "_HandleNotifySlotClick", A_Index))
             this._notifySlots.Push(slot)
             this._notifySlotItemIds.Push(0)
@@ -408,7 +407,7 @@ class RisController {
                 displayText := this._WrapNotifyText(item.text, innerWidth)
                 slotHeight := this._MeasureNotifyTextHeight(displayText)
                 slot.Text := displayText
-                slot.Move(this._notifyPaddingX, y + this._notifyTextPaddingY, innerWidth, slotHeight - this._notifyTextPaddingY * 2)
+                slot.Move(this._notifyPaddingX, y, innerWidth, slotHeight)
                 slot.Opt("-Hidden")
                 this._notifySlotItemIds[index] := item.id
                 height := y + slotHeight + this._notifyPaddingY
