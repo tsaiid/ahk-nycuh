@@ -291,8 +291,8 @@ class NoduleTracker {
 
                     if (cW > 0 && cH > 0) {
                         scanW := (cW > 150) ? 150 : cW
-                        ocrResult := NoduleTracker.CaptureOcr(screenX, screenY, scanW, cH, 3)
-                        srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
+                        ocrResult := NoduleTracker.CaptureSrsOcr(screenX, screenY, scanW, cH)
+                        srsVal := ocrResult.srs
                     }
 
                     if (this.DebugOCR) {
@@ -412,8 +412,8 @@ class NoduleTracker {
                     loc := srsEl.Location
                     if (loc.w > 0 && loc.h > 0) {
                         scanW := (loc.w > 150) ? 150 : loc.w
-                        ocrResult := NoduleTracker.CaptureOcr(loc.x, loc.y, scanW, loc.h, 3)
-                        srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
+                        ocrResult := NoduleTracker.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h)
+                        srsVal := ocrResult.srs
                     }
                 }
             }
@@ -577,9 +577,10 @@ class NoduleTracker {
                 srsX := NumGet(pt, 0, "int"), srsY := NumGet(pt, 4, "int")
                 if (cW > 0 && cH > 0) {
                     scanW := (cW > 150) ? 150 : cW
-                    ocrResult := NoduleTracker.CaptureOcr(srsX, srsY, scanW, cH, 3)
-                    srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
+                    ocrResult := NoduleTracker.CaptureSrsOcr(srsX, srsY, scanW, cH)
+                    srsVal := ocrResult.srs
                     msg .= "  - OCR 解析 Series: [" (srsVal == "" ? "解析失敗" : srsVal) "]`n"
+                    msg .= "    (方法: " ocrResult.method ")`n"
                     msg .= "    (原始文字: " StrReplace(ocrResult.Text, "`n", " ") ")`n"
                     msg .= NoduleTracker.BuildOcrDebugReport(srsX, srsY, scanW, cH, "  - Series OCR 多選項結果")
                 }
@@ -693,11 +694,12 @@ class NoduleTracker {
                                 msg .= "   ⚠️ 文字解析無結果，啟動 OCR...`n"
                                 if (loc.w > 0 && loc.h > 0) {
                                     scanW := (loc.w > 150) ? 150 : loc.w
-                                    ocrResult := NoduleTracker.CaptureOcr(loc.x, loc.y, scanW, loc.h, 3)
+                                    ocrResult := NoduleTracker.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h)
                                     safeText := StrReplace(ocrResult.Text, "`n", " ")
+                                    msg .= "   🔍 OCR 方法: [" ocrResult.method "]`n"
                                     msg .= "   🔍 OCR 原始文字: [" safeText "]`n"
                                     msg .= NoduleTracker.BuildOcrDebugReport(loc.x, loc.y, scanW, loc.h, "   - Srs OCR 多選項結果")
-                                    srsVal := NoduleTracker.ParseSrs(ocrResult.Text)
+                                    srsVal := ocrResult.srs
                                 }
                             }
                             if (srsVal != "") {
@@ -1238,6 +1240,25 @@ class NoduleTracker {
         } catch {
             return {Text: ""}
         }
+    }
+
+    static CaptureSrsOcr(x, y, w, h) {
+        variants := [
+            {method: "scale=3", opts: {scale: 3}},
+            {method: "scale=3 invert", opts: {scale: 3, invertcolors: true}}
+        ]
+        fallback := {Text: "", srs: "", method: variants[1].method}
+        for variant in variants {
+            result := NoduleTracker.CaptureOcrWithOptions(x, y, w, h, variant.opts)
+            srsVal := NoduleTracker.ParseSrs(result.Text)
+            if (variant.method == variants[1].method) {
+                fallback := {Text: result.Text, srs: srsVal, method: variant.method}
+            }
+            if (srsVal != "") {
+                return {Text: result.Text, srs: srsVal, method: variant.method}
+            }
+        }
+        return fallback
     }
 
     static BuildOcrDebugReport(x, y, w, h, label := "") {
