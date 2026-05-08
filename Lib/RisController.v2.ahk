@@ -207,6 +207,7 @@ class RisController {
     static _notifySlotGap := 8
     static _notifySlotHeight := 36
     static _notifyTextPaddingY := 5
+    static _notifyLineSpacingScale := 1.2
     static _compContext := {ReqNo: "", Date: ""}
     static _workingCursorCache := {AppStarting: "", CursorBaseSize: "", Path: ""}
     static _hCustomFont := 0
@@ -387,7 +388,7 @@ class RisController {
         loop this._notifyMaxVisible {
             slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", this._notifyPaddingX, this._notifyPaddingY, this._notifyWidth, this._notifySlotHeight), "")
             slot.OnEvent("Click", ObjBindMethod(this, "_HandleNotifySlotClick", A_Index))
-            this._notifySlots.Push(slot)
+            this._notifySlots.Push([slot])
             this._notifySlotItemIds.Push(0)
         }
 
@@ -402,20 +403,29 @@ class RisController {
         height := this._notifyPaddingY * 2
         y := this._notifyPaddingY
 
-        for index, slot in this._notifySlots {
+        for index, slotLines in this._notifySlots {
             if (index <= visibleCount) {
                 item := this._notifyQueue[index]
-                displayText := this._WrapNotifyText(item.text, innerWidth)
-                slotHeight := this._MeasureNotifyTextHeight(displayText)
-                slot.Text := displayText
-                slot.Move(this._notifyPaddingX, y + this._notifyTextPaddingY, innerWidth, slotHeight - this._notifyTextPaddingY * 2)
-                slot.Opt("-Hidden")
+                displayLines := this._WrapNotifyLines(item.text, innerWidth)
+                textHeight := this._MeasureNotifyLinesHeight(displayLines)
+                slotHeight := Max(this._notifySlotHeight, textHeight + this._notifyTextPaddingY * 2)
+                textY := y + Floor((slotHeight - textHeight) / 2)
+                lineHeight := this._MeasureNotifyLineHeight()
+                lineAdvance := Ceil(lineHeight * this._notifyLineSpacingScale)
+
+                for lineIndex, lineText in displayLines {
+                    lineSlot := this._GetNotifyLineSlot(index, lineIndex)
+                    lineSlot.Text := lineText
+                    lineSlot.Move(this._notifyPaddingX, textY + (lineIndex - 1) * lineAdvance, innerWidth, lineHeight)
+                    lineSlot.Opt("-Hidden")
+                }
+
+                this._HideNotifyLineSlots(index, displayLines.Length + 1)
                 this._notifySlotItemIds[index] := item.id
                 height := y + slotHeight + this._notifyPaddingY
                 y += slotHeight + this._notifySlotGap
             } else {
-                slot.Text := ""
-                slot.Opt("Hidden")
+                this._HideNotifyLineSlots(index)
                 this._notifySlotItemIds[index] := 0
             }
         }
@@ -458,27 +468,63 @@ class RisController {
     }
 
     static _MeasureNotifyTextHeight(text) {
+        return this._MeasureNotifyLinesHeight(StrSplit(text, "`n", "`r"))
+    }
+
+    static _MeasureNotifyLinesHeight(lines) {
+        lineCount := lines.Length
+        if (lineCount = 0)
+            return this._MeasureNotifyLineHeight()
+
+        lineHeight := this._MeasureNotifyLineHeight()
+        lineAdvance := Ceil(lineHeight * this._notifyLineSpacingScale)
+        return lineHeight + (lineCount - 1) * lineAdvance
+    }
+
+    static _MeasureNotifyLineHeight() {
         hdcState := this._BeginNotifyTextMeasure()
         if !hdcState.hdc
-            return this._notifySlotHeight
+            return this._notifySlotHeight - this._notifyTextPaddingY * 2
 
-        textHeight := 0
+        lineHeight := 0
         sizeBuffer := Buffer(8, 0)
-        for line in StrSplit(text, "`n", "`r") {
-            lineText := (line = "") ? " " : line
-            if DllCall("GetTextExtentPoint32", "Ptr", hdcState.hdc, "Str", lineText, "Int", StrLen(lineText), "Ptr", sizeBuffer.Ptr, "Int")
-                textHeight += NumGet(sizeBuffer, 4, "Int")
-        }
+        sampleText := "Ag"
+        if DllCall("GetTextExtentPoint32", "Ptr", hdcState.hdc, "Str", sampleText, "Int", StrLen(sampleText), "Ptr", sizeBuffer.Ptr, "Int")
+            lineHeight := NumGet(sizeBuffer, 4, "Int")
         this._EndNotifyTextMeasure(hdcState)
-        return Max(this._notifySlotHeight, textHeight + 10)
+        return Max(1, lineHeight)
     }
 
     static _WrapNotifyText(text, maxWidth) {
+        wrappedLines := this._WrapNotifyLines(text, maxWidth)
+        return wrappedLines.Length ? this._JoinNotifyLines(wrappedLines) : text
+    }
+
+    static _WrapNotifyLines(text, maxWidth) {
         wrappedLines := []
         for rawLine in StrSplit(text, "`n", "`r")
             this._AppendWrappedNotifyLine(wrappedLines, rawLine, maxWidth)
 
-        return wrappedLines.Length ? this._JoinNotifyLines(wrappedLines) : text
+        return wrappedLines.Length ? wrappedLines : [text]
+    }
+
+    static _GetNotifyLineSlot(slotIndex, lineIndex) {
+        while (this._notifySlots[slotIndex].Length < lineIndex) {
+            lineSlot := this._notifyGui.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", this._notifyPaddingX, this._notifyPaddingY, this._notifyWidth, this._notifySlotHeight), "")
+            lineSlot.OnEvent("Click", ObjBindMethod(this, "_HandleNotifySlotClick", slotIndex))
+            this._notifySlots[slotIndex].Push(lineSlot)
+        }
+
+        return this._notifySlots[slotIndex][lineIndex]
+    }
+
+    static _HideNotifyLineSlots(slotIndex, startIndex := 1) {
+        for lineIndex, lineSlot in this._notifySlots[slotIndex] {
+            if (lineIndex >= startIndex) {
+                lineSlot.Text := ""
+                lineSlot.Opt("Hidden")
+            }
+        }
     }
 
     static _AppendWrappedNotifyLine(lines, text, maxWidth) {
@@ -579,7 +625,7 @@ class RisController {
         if !this._notifySlots.Length
             return {hdc: 0, hwnd: 0, oldFont: 0}
 
-        hwnd := this._notifySlots[1].Hwnd
+        hwnd := this._notifySlots[1][1].Hwnd
         hdc := DllCall("GetDC", "Ptr", hwnd, "Ptr")
         if !hdc
             return {hdc: 0, hwnd: hwnd, oldFont: 0}
