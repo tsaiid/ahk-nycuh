@@ -1851,6 +1851,10 @@ class RisController {
             return
         }
 
+        if (!this._AreReportEditorsBlankForIndicationPreload()) {
+            return
+        }
+
         this._indicationPreloadTask := ObjBindMethod(this, "_StartIndicationPreload")
         SetTimer(this._indicationPreloadTask, -10)
     }
@@ -1867,9 +1871,24 @@ class RisController {
             return
         }
 
+        if (!this._AreReportEditorsBlankForIndicationPreload()) {
+            return
+        }
+
         try {
             this.GenerateAndInsertIndication(false, true)
         }
+    }
+
+    static _AreReportEditorsBlankForIndicationPreload() {
+        try {
+            findingText := ControlGetText(this.FindingEdit.NativeWindowHandle)
+            impressionText := ControlGetText(this.ImpressionEdit.NativeWindowHandle)
+        } catch {
+            return false
+        }
+
+        return Trim(findingText, " `t`r`n") == "" && Trim(impressionText, " `t`r`n") == ""
     }
 
     static _ApplyLayout(hFind, hImp) {
