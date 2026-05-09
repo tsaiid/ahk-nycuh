@@ -3806,7 +3806,6 @@ class RisController {
             }
         }
 
-        startTick := A_TickCount
         loop {
             pendingCount := 0
 
@@ -3815,7 +3814,7 @@ class RisController {
                     continue
                 }
 
-                if (A_TickCount - startTick > this._aiProviderTimeoutMs) {
+                if (A_TickCount - task.TaskStartedAt > this._aiProviderTimeoutMs) {
                     task.Done := true
                     try task.Req.Abort()
                     results[task.Provider] := this._BuildRefineProviderFailureResult(task.DisplayName, "AI request timeout")
@@ -3827,12 +3826,25 @@ class RisController {
                     continue
                 }
 
-                task.Done := true
                 task.CompletedAt := A_TickCount
                 try {
                     response := this._FinalizeRefineProviderTask(task)
+                    task.Done := true
                     results[task.Provider] := this._BuildRefineProviderSuccessResult(task.DisplayName, response, trailingNewlines)
                 } catch as err {
+                    if (this._ShouldRetryRefineProviderTask(task)) {
+                        try {
+                            this._StartNextRefineProviderRequest(task)
+                            pendingCount += 1
+                            continue
+                        } catch as retryErr {
+                            task.Done := true
+                            results[task.Provider] := this._BuildRefineProviderFailureResult(task.DisplayName, retryErr.Message)
+                            continue
+                        }
+                    }
+
+                    task.Done := true
                     results[task.Provider] := this._BuildRefineProviderFailureResult(task.DisplayName, err.Message)
                 }
             }
@@ -3856,34 +3868,69 @@ class RisController {
                 models := this._ResolveGoogleAIModelList(request.Config)
                 healthPolicy := this._GetGoogleAIModelHealthPolicy()
                 models := this._PrioritizeGoogleAIModels(models, healthPolicy)
-                providerRequest := this._BuildGoogleAIRequest(request.Prompt, request.Config, models[1])
-                startedAt := A_TickCount
-                req := this._SendGoogleAIRequestAsync(providerRequest.Url, providerRequest.Payload)
-                return {
+                task := {
                     Provider: providerName,
                     DisplayName: displayName,
-                    Request: providerRequest,
-                    Req: req,
-                    StartedAt: startedAt,
+                    Prompt: request.Prompt,
+                    Config: request.Config,
+                    Models: models,
+                    ModelIndex: 0,
+                    TaskStartedAt: A_TickCount,
                     Done: false,
                     HealthPolicy: healthPolicy
                 }
+                this._StartNextRefineProviderRequest(task)
+                return task
             case "openai":
                 models := this._ResolveOpenAIModelList(request.Config)
-                providerRequest := this._BuildOpenAIRequest(request.Prompt, request.Config, models[1])
-                startedAt := A_TickCount
-                req := this._SendOpenAIRequestAsync(providerRequest)
-                return {
+                task := {
                     Provider: providerName,
                     DisplayName: displayName,
-                    Request: providerRequest,
-                    Req: req,
-                    StartedAt: startedAt,
+                    Prompt: request.Prompt,
+                    Config: request.Config,
+                    Models: models,
+                    ModelIndex: 0,
+                    TaskStartedAt: A_TickCount,
                     Done: false
                 }
+                this._StartNextRefineProviderRequest(task)
+                return task
             default:
                 throw Error("不支援的 AI provider: " . providerName)
         }
+    }
+
+    static _StartNextRefineProviderRequest(task) {
+        task.ModelIndex += 1
+        if (task.ModelIndex > task.Models.Length) {
+            throw Error("沒有可用的 " . task.DisplayName . " fallback model")
+        }
+
+        modelName := task.Models[task.ModelIndex]
+        if (task.Provider == "google") {
+            providerRequest := this._BuildGoogleAIRequest(task.Prompt, task.Config, modelName)
+            startedAt := A_TickCount
+            req := this._SendGoogleAIRequestAsync(providerRequest.Url, providerRequest.Payload)
+        } else if (task.Provider == "openai") {
+            providerRequest := this._BuildOpenAIRequest(task.Prompt, task.Config, modelName)
+            startedAt := A_TickCount
+            req := this._SendOpenAIRequestAsync(providerRequest)
+        } else {
+            throw Error("不支援的 AI provider: " . task.Provider)
+        }
+
+        task.Request := providerRequest
+        task.Req := req
+        task.StartedAt := startedAt
+        task.CompletedAt := 0
+        task.LastHttpStatus := ""
+        task.LastError := ""
+    }
+
+    static _ShouldRetryRefineProviderTask(task) {
+        return task.HasOwnProp("LastHttpStatus")
+            && this._ShouldRetryAIModel(task.LastHttpStatus)
+            && task.ModelIndex < task.Models.Length
     }
 
     static _FinalizeRefineProviderTask(task) {
@@ -3901,12 +3948,14 @@ class RisController {
         }
 
         if (response.Status != 200) {
+            task.LastHttpStatus := response.Status
+            task.LastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
             if (task.Provider == "google") {
                 request.Metrics.ResponseParseTime := 0
                 this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
                 this._RecordGoogleAIModelHttpError(request.Model, task.HealthPolicy)
             }
-            throw Error("HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText)
+            throw Error(task.LastError)
         }
 
         parseStart := A_TickCount
@@ -4591,8 +4640,12 @@ class RisController {
         ))
     }
 
-    static _ShouldRetryGoogleAIModel(status) {
+    static _ShouldRetryAIModel(status) {
         return status == 500 || status == 503
+    }
+
+    static _ShouldRetryGoogleAIModel(status) {
+        return this._ShouldRetryAIModel(status)
     }
 
     static _GetGoogleAIModelHealthPolicy() {
@@ -4687,7 +4740,7 @@ class RisController {
                 this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
                 this._RecordGoogleAIModelHttpError(request.Model, healthPolicy)
                 lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
-                if (this._ShouldRetryGoogleAIModel(response.Status) && index < models.Length) {
+                if (this._ShouldRetryAIModel(response.Status) && index < models.Length) {
                     this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
                     OutputDebug("[RisController] GoogleAI retry with fallback model after HTTP " . response.Status . ": " . request.Model . "`n")
                     continue
@@ -4859,7 +4912,7 @@ class RisController {
 
             if (response.Status != 200) {
                 lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
-                if (this._ShouldRetryGoogleAIModel(response.Status) && index < models.Length) {
+                if (this._ShouldRetryAIModel(response.Status) && index < models.Length) {
                     this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
                     continue
                 }
