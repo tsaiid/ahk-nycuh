@@ -118,7 +118,7 @@ class RisConfig {
                 "gemini-3.1-flash-lite-preview"
             ],
             OpenAIModels: [
-                "gpt-5.4-nano"
+                "gpt-5.4-mini"
             ],
             Temperature: 0.3,
             ReasoningEffort: "none",
