@@ -420,6 +420,7 @@ No remarkable intracranial findings.
     RisController.PasteToImpression(MyForm)
 }
 
+::mrbok0::Post contrast study shows no abnormal enhancing lesion in the brain and no abnormal leptomeningeal enhancement noted.
 ::mrbok::
 {
     MyForm := "
