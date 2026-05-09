@@ -436,8 +436,22 @@ class RisController {
         }
 
         totalWidth := innerWidth + this._notifyPaddingX * 2
-        g.Show(Format("NoActivate Center w{1} h{2}", totalWidth, height))
+        position := this._GetNotifyWindowPosition(totalWidth, height)
+        g.Show(Format("NoActivate x{1} y{2} w{3} h{4}", position.x, position.y, totalWidth, height))
         this._ApplyNotifyVisualStyle()
+    }
+
+    static _GetNotifyWindowPosition(width, height) {
+        MonitorGetWorkArea(, &left, &top, &right, &bottom)
+        workWidth := right - left
+        workHeight := bottom - top
+        x := left + Floor((workWidth - width) / 2)
+        y := top + Floor((workHeight * 2 / 5) - (height / 2))
+
+        return {
+            x: Max(left, x),
+            y: Max(top, y)
+        }
     }
 
     static _GetNotifyContentWidth() {
