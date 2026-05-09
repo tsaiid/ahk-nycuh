@@ -179,8 +179,11 @@ RisController.EnableShellHookFocus()
         WithImeGuard(() => RisController.GenerateAndInsertImpression(true))
     }
 
+    ; Compare polish results by OpenAI and Google AI
+    !r:: RisController.CompareSelectionWithAI()
+
     ; Polish selection by AI
-    !r:: RisController.PolishSelectionWithAI()
+    !+r:: RisController.PolishSelectionWithAI()
 
     ; --- Emacs Word Movement ---
     ; Ctrl+A: Emacs 行首 (若不在目標框則為全選)

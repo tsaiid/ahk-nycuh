@@ -3638,60 +3638,147 @@ class RisController {
 
     ; [新增] 文字潤色與翻譯 (Polishing)
     ; 使用 LLM 優化所選取的文字，並提供對照視窗供使用者確認是否採用
-    static PolishSelectionWithAI() {
+    static _GetPolishSelectionContext() {
         if !this.IsTargetFocused() {
             this.Notify("請先點擊要處理的文字欄位")
-            return
+            return false
         }
 
+        hEdit := ControlGetFocus("A")
+        sel := this._EditGetSel(hEdit)
+
+        ; 檢查是否有選取文字
+        if (sel.Start == sel.End) {
+            this.Notify("請先選取要潤色的文字")
+            return false
+        }
+
+        fullText := ControlGetText(hEdit)
+        selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
+        trailingNewlines := ""
+
+        if (Trim(selectedText) == "") {
+            this.Notify("選取的文字為空")
+            return false
+        }
+
+        if RegExMatch(selectedText, "(\R+)$", &match) {
+            trailingNewlines := StrReplace(match[1], "`r`n", "`n")
+            trailingNewlines := StrReplace(trailingNewlines, "`r", "`n")
+            trailingNewlines := StrReplace(trailingNewlines, "`n", "`r`n")
+        }
+
+        return {
+            Hwnd: hEdit,
+            Selection: sel,
+            SelectedText: selectedText,
+            TrailingNewlines: trailingNewlines
+        }
+    }
+
+    static _NormalizePolishResult(result, trailingNewlines := "") {
+        result := this._NormalizeAIResult(result)
+        if (trailingNewlines != "") {
+            result .= trailingNewlines
+        }
+        return result
+    }
+
+    static PolishSelectionWithAI() {
         try {
-            hEdit := ControlGetFocus("A")
-            sel := this._EditGetSel(hEdit)
-
-            ; 檢查是否有選取文字
-            if (sel.Start == sel.End) {
-                this.Notify("請先選取要潤色的文字")
+            context := this._GetPolishSelectionContext()
+            if (!context) {
                 return
-            }
-
-            fullText := ControlGetText(hEdit)
-            selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
-            trailingNewlines := ""
-
-            if (Trim(selectedText) == "") {
-                this.Notify("選取的文字為空")
-                return
-            }
-
-            if RegExMatch(selectedText, "(\R+)$", &match) {
-                trailingNewlines := StrReplace(match[1], "`r`n", "`n")
-                trailingNewlines := StrReplace(trailingNewlines, "`r", "`n")
-                trailingNewlines := StrReplace(trailingNewlines, "`n", "`r`n")
             }
 
             this._ShowWaitCursor()
             this.Notify("AI 潤色中...", 3000)
 
-            request := this._BuildRefineRequest(selectedText)
+            request := this._BuildRefineRequest(context.SelectedText)
             response := this._RunRefineRequest(request)
-            result := response.Result
-
-            ; 格式化換行
-            result := StrReplace(result, "`r`n", "`n")
-            result := StrReplace(result, "`n", "`r`n")
-            if (trailingNewlines != "") {
-                result .= trailingNewlines
-            }
+            result := this._NormalizePolishResult(response.Result, context.TrailingNewlines)
 
             this._RestoreCursor()
 
             ; 顯示比對視窗
             debugInfo := this._FormatPolishComparisonDebugInfo(response)
-            this._ShowPolishComparisonGui(hEdit, selectedText, result, sel, debugInfo)
+            this._ShowPolishComparisonGui(context.Hwnd, context.SelectedText, result, context.Selection, debugInfo)
 
         } catch as err {
             this._RestoreCursor()
             this.Notify("AI 潤色失敗: " . err.Message)
+        }
+    }
+
+    static CompareSelectionWithAI() {
+        if (!this._BeginForegroundAIRequest()) {
+            return
+        }
+
+        try {
+            context := this._GetPolishSelectionContext()
+            if (!context) {
+                return
+            }
+
+            this.Notify("OpenAI 潤色中...", 3000)
+            openAIResult := this._TryRunRefineProvider(context.SelectedText, "openai", "OpenAI", context.TrailingNewlines)
+
+            this.Notify("Google AI 潤色中...", 3000)
+            googleResult := this._TryRunRefineProvider(context.SelectedText, "google", "Google", context.TrailingNewlines)
+
+            if (!openAIResult.Success && !googleResult.Success) {
+                this.Notify("AI 對比失敗：兩家 provider 都沒有可用結果")
+                return
+            }
+
+            this._ShowPolishProviderComparisonGui(context.Hwnd, context.SelectedText, openAIResult, googleResult, context.Selection)
+
+        } catch as err {
+            this.Notify("AI 對比失敗: " . err.Message)
+        } finally {
+            this._FinishForegroundAIRequest()
+        }
+    }
+
+    static _CloneAIConfigWithProvider(aiConfig, providerName) {
+        cloned := {}
+        for key, value in aiConfig.OwnProps() {
+            cloned.%key% := value
+        }
+        cloned.Provider := providerName
+        return cloned
+    }
+
+    static _BuildRefineRequestForProvider(selectedText, providerName) {
+        conf := this._CloneAIConfigWithProvider(RisConfig.AI.Refine, providerName)
+        prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
+
+        return this._CreateAIRequest(prompt, conf)
+    }
+
+    static _TryRunRefineProvider(selectedText, providerName, displayName, trailingNewlines := "") {
+        try {
+            request := this._BuildRefineRequestForProvider(selectedText, providerName)
+            response := this._RunRefineRequest(request)
+            response.Result := this._NormalizePolishResult(response.Result, trailingNewlines)
+            return {
+                Success: true,
+                DisplayName: displayName,
+                Text: response.Result,
+                DebugInfo: this._FormatPolishComparisonDebugInfo(response)
+            }
+        } catch as err {
+            return {
+                Success: false,
+                DisplayName: displayName,
+                Text: "[" . displayName . " 失敗]`r`n" . err.Message,
+                DebugInfo: {
+                    APIKeyName: "-",
+                    Model: "-",
+                    ApiTime: "failed"
+                }
+            }
         }
     }
 
@@ -3757,6 +3844,104 @@ class RisController {
         ; 自動聚焦到結果框（方便按 Enter），並將游標移至開頭（防止自動全選）
         refinedEdit.Focus()
         SendMessage(0x00B1, 0, 0, refinedEdit.Hwnd) ; EM_SETSEL: Start=0, End=0
+    }
+
+    static _GetThreeColumnComparisonLayout() {
+        MonitorGetWorkArea(, &left, &top, &right, &bottom)
+        workWidth := right - left
+        maxWindowWidth := Floor(workWidth * 0.9)
+        marginX := 14
+        columnGap := 16
+        minColumnWidth := 280
+        columnWidth := Floor((maxWindowWidth - (marginX * 2) - (columnGap * 2)) / 3)
+
+        if (columnWidth < minColumnWidth) {
+            columnWidth := minColumnWidth
+        }
+
+        return {
+            MarginX: marginX,
+            Gap: columnGap,
+            ColumnWidth: columnWidth,
+            WindowWidth: (columnWidth * 3) + (columnGap * 2) + (marginX * 2)
+        }
+    }
+
+    static _ShowPolishProviderComparisonGui(hEdit, original, openAIResult, googleResult, sel) {
+        layout := this._GetThreeColumnComparisonLayout()
+        colW := layout.ColumnWidth
+        gap := layout.Gap
+
+        myGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "AI 潤色結果三欄比對")
+        myGui.MarginX := layout.MarginX
+        myGui.MarginY := 12
+        myGui.BackColor := "F4F5F7"
+        myGui.SetFont("s11", "Microsoft JhengHei UI")
+
+        myGui.Add("Text", Format("w{}", colW), "原始文字 (Original):")
+        myGui.Add("Text", Format("x+{} yp w{}", gap, colW), "OpenAI:")
+        myGui.Add("Text", Format("x+{} yp w{}", gap, colW), "Google AI:")
+
+        originalEdit := myGui.Add("Edit", Format("xm w{} r18 ReadOnly Multi -WantReturn", colW), original)
+        openAIEdit := myGui.Add("Edit", Format("x+{} yp w{} r18 ReadOnly Multi -WantReturn", gap, colW), openAIResult.Text)
+        googleEdit := myGui.Add("Edit", Format("x+{} yp w{} r18 ReadOnly Multi -WantReturn", gap, colW), googleResult.Text)
+        this._ApplyCustomFontToControls(originalEdit.Hwnd, openAIEdit.Hwnd, googleEdit.Hwnd)
+
+        myGui.SetFont("s9", "Consolas")
+        myGui.Add("Text", Format("xm y+10 w{} Center", colW), "")
+        myGui.Add("Text", Format("x+{} yp w{} Center", gap, colW), this._FormatProviderDebugLine(openAIResult))
+        myGui.Add("Text", Format("x+{} yp w{} Center", gap, colW), this._FormatProviderDebugLine(googleResult))
+        myGui.SetFont("s11", "Microsoft JhengHei UI")
+
+        buttonWidth := 160
+        totalButtonWidth := (buttonWidth * 3) + (gap * 2)
+        buttonX := Floor((layout.WindowWidth - totalButtonWidth) / 2)
+        btnUseOpenAI := myGui.Add("Button", Format("Default w{} x{} y+18", buttonWidth, buttonX), "Use OpenAI")
+        btnUseGoogle := myGui.Add("Button", Format("w{} x+{}", buttonWidth, gap), "Use Google")
+        btnReject := myGui.Add("Button", Format("w{} x+{}", buttonWidth, gap), "Reject")
+
+        if (!openAIResult.Success) {
+            btnUseOpenAI.Enabled := false
+        }
+        if (!googleResult.Success) {
+            btnUseGoogle.Enabled := false
+        }
+
+        applyResult(editCtrl, label, *) {
+            finalText := editCtrl.Value
+            finalText := StrReplace(finalText, "`r`n", "`n")
+            finalText := StrReplace(finalText, "`n", "`r`n")
+
+            this._EditSetSel(hEdit, sel.Start, sel.End)
+            this._ReplaceSelectionAndScroll(hEdit, finalText)
+            myGui.Destroy()
+            this.Notify("已套用 " . label . " 版本")
+        }
+
+        btnUseOpenAI.OnEvent("Click", applyResult.Bind(openAIEdit, "OpenAI"))
+        btnUseGoogle.OnEvent("Click", applyResult.Bind(googleEdit, "Google AI"))
+        btnReject.OnEvent("Click", (*) => myGui.Destroy())
+        myGui.OnEvent("Escape", (*) => myGui.Destroy())
+
+        myGui.Show(Format("w{} Center", layout.WindowWidth))
+        this._ApplyPolishComparisonWindowStyle(myGui.Hwnd)
+
+        if (openAIResult.Success) {
+            openAIEdit.Focus()
+            SendMessage(0x00B1, 0, 0, openAIEdit.Hwnd)
+        } else if (googleResult.Success) {
+            googleEdit.Focus()
+            SendMessage(0x00B1, 0, 0, googleEdit.Hwnd)
+        }
+    }
+
+    static _FormatProviderDebugLine(result) {
+        if (!IsObject(result) || !result.HasOwnProp("DebugInfo")) {
+            return ""
+        }
+
+        debugInfo := result.DebugInfo
+        return "API Key: " . debugInfo.APIKeyName . " | Model: " . debugInfo.Model . " | Time: " . debugInfo.ApiTime
     }
 
     static _ApplyPolishComparisonWindowStyle(hwnd) {
