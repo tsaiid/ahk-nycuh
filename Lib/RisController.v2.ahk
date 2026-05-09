@@ -223,6 +223,8 @@ class RisController {
     static _shellTrackTTL := 15000
     static IsDebug := false            ; [新增] Debug 模式切換
     static ShowGoogleAICurlDebug := false
+    static _aiProviderTimeoutMs := 90000
+    static _aiProviderPollIntervalMs := 25
 
     ; [自動更新相關狀態]
     static _lastUpdateTick := 0           ; 上次更新的時間
@@ -3721,11 +3723,13 @@ class RisController {
                 return
             }
 
-            this.Notify("OpenAI 潤色中...", 3000)
-            openAIResult := this._TryRunRefineProvider(context.SelectedText, "openai", "OpenAI", context.TrailingNewlines)
-
-            this.Notify("Google AI 潤色中...", 3000)
-            googleResult := this._TryRunRefineProvider(context.SelectedText, "google", "Google", context.TrailingNewlines)
+            this.Notify("OpenAI / Google AI 潤色中...", 3000)
+            results := this._RunRefineProvidersParallel(context.SelectedText, [
+                {Provider: "openai", DisplayName: "OpenAI"},
+                {Provider: "google", DisplayName: "Google"}
+            ], context.TrailingNewlines)
+            openAIResult := results["openai"]
+            googleResult := results["google"]
 
             if (!openAIResult.Success && !googleResult.Success) {
                 this.Notify("AI 對比失敗：兩家 provider 都沒有可用結果")
@@ -3761,24 +3765,166 @@ class RisController {
         try {
             request := this._BuildRefineRequestForProvider(selectedText, providerName)
             response := this._RunRefineRequest(request)
-            response.Result := this._NormalizePolishResult(response.Result, trailingNewlines)
-            return {
-                Success: true,
-                DisplayName: displayName,
-                Text: response.Result,
-                DebugInfo: this._FormatPolishComparisonDebugInfo(response)
-            }
+            return this._BuildRefineProviderSuccessResult(displayName, response, trailingNewlines)
         } catch as err {
-            return {
-                Success: false,
-                DisplayName: displayName,
-                Text: "[" . displayName . " 失敗]`r`n" . err.Message,
-                DebugInfo: {
-                    APIKeyName: "-",
-                    Model: "-",
-                    ApiTime: "failed"
+            return this._BuildRefineProviderFailureResult(displayName, err.Message)
+        }
+    }
+
+    static _BuildRefineProviderSuccessResult(displayName, response, trailingNewlines := "") {
+        response.Result := this._NormalizePolishResult(response.Result, trailingNewlines)
+        return {
+            Success: true,
+            DisplayName: displayName,
+            Text: response.Result,
+            DebugInfo: this._FormatPolishComparisonDebugInfo(response)
+        }
+    }
+
+    static _BuildRefineProviderFailureResult(displayName, message) {
+        return {
+            Success: false,
+            DisplayName: displayName,
+            Text: "[" . displayName . " 失敗]`r`n" . message,
+            DebugInfo: {
+                APIKeyName: "-",
+                Model: "-",
+                ApiTime: "failed"
+            }
+        }
+    }
+
+    static _RunRefineProvidersParallel(selectedText, providerSpecs, trailingNewlines := "") {
+        results := Map()
+        tasks := []
+
+        for _, spec in providerSpecs {
+            try {
+                tasks.Push(this._StartRefineProviderTask(selectedText, spec.Provider, spec.DisplayName))
+            } catch as err {
+                results[spec.Provider] := this._BuildRefineProviderFailureResult(spec.DisplayName, err.Message)
+            }
+        }
+
+        startTick := A_TickCount
+        loop {
+            pendingCount := 0
+
+            for _, task in tasks {
+                if (task.Done) {
+                    continue
+                }
+
+                if (A_TickCount - startTick > this._aiProviderTimeoutMs) {
+                    task.Done := true
+                    try task.Req.Abort()
+                    results[task.Provider] := this._BuildRefineProviderFailureResult(task.DisplayName, "AI request timeout")
+                    continue
+                }
+
+                if (!task.Req.WaitForResponse(0)) {
+                    pendingCount += 1
+                    continue
+                }
+
+                task.Done := true
+                task.CompletedAt := A_TickCount
+                try {
+                    response := this._FinalizeRefineProviderTask(task)
+                    results[task.Provider] := this._BuildRefineProviderSuccessResult(task.DisplayName, response, trailingNewlines)
+                } catch as err {
+                    results[task.Provider] := this._BuildRefineProviderFailureResult(task.DisplayName, err.Message)
                 }
             }
+
+            if (pendingCount == 0) {
+                break
+            }
+
+            Sleep(this._aiProviderPollIntervalMs)
+        }
+
+        return results
+    }
+
+    static _StartRefineProviderTask(selectedText, providerName, displayName) {
+        request := this._BuildRefineRequestForProvider(selectedText, providerName)
+        providerName := StrLower(Trim(providerName))
+
+        switch providerName {
+            case "google":
+                models := this._ResolveGoogleAIModelList(request.Config)
+                healthPolicy := this._GetGoogleAIModelHealthPolicy()
+                models := this._PrioritizeGoogleAIModels(models, healthPolicy)
+                providerRequest := this._BuildGoogleAIRequest(request.Prompt, request.Config, models[1])
+                startedAt := A_TickCount
+                req := this._SendGoogleAIRequestAsync(providerRequest.Url, providerRequest.Payload)
+                return {
+                    Provider: providerName,
+                    DisplayName: displayName,
+                    Request: providerRequest,
+                    Req: req,
+                    StartedAt: startedAt,
+                    Done: false,
+                    HealthPolicy: healthPolicy
+                }
+            case "openai":
+                models := this._ResolveOpenAIModelList(request.Config)
+                providerRequest := this._BuildOpenAIRequest(request.Prompt, request.Config, models[1])
+                startedAt := A_TickCount
+                req := this._SendOpenAIRequestAsync(providerRequest)
+                return {
+                    Provider: providerName,
+                    DisplayName: displayName,
+                    Request: providerRequest,
+                    Req: req,
+                    StartedAt: startedAt,
+                    Done: false
+                }
+            default:
+                throw Error("不支援的 AI provider: " . providerName)
+        }
+    }
+
+    static _FinalizeRefineProviderTask(task) {
+        request := task.Request
+        response := {
+            Status: task.Req.Status,
+            ResponseText: task.Req.ResponseText
+        }
+
+        completedAt := task.HasOwnProp("CompletedAt") ? task.CompletedAt : A_TickCount
+        providerLatency := completedAt - task.StartedAt
+        request.Metrics.WaitForResponseTime := providerLatency
+        if (task.Provider == "google") {
+            this._DebugGoogleAIResponse(request.Url, request.Payload, response, request)
+        }
+
+        if (response.Status != 200) {
+            if (task.Provider == "google") {
+                request.Metrics.ResponseParseTime := 0
+                this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+                this._RecordGoogleAIModelHttpError(request.Model, task.HealthPolicy)
+            }
+            throw Error("HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText)
+        }
+
+        parseStart := A_TickCount
+        parsed := (task.Provider == "openai")
+            ? this._ParseOpenAIResponse(response.ResponseText)
+            : this._ParseGoogleAIResponse(response.ResponseText)
+        request.Metrics.ResponseParseTime := A_TickCount - parseStart
+
+        if (task.Provider == "google") {
+            this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+        }
+
+        return {
+            Result: parsed,
+            ApiTime: providerLatency,
+            APIKeyName: request.APIKeyName,
+            Model: request.Model,
+            Provider: task.Provider
         }
     }
 
@@ -3893,12 +4039,12 @@ class RisController {
         myGui.Add("Text", Format("x+{} yp w{} Center", gap, colW), this._FormatProviderDebugLine(googleResult))
         myGui.SetFont("s11", "Microsoft JhengHei UI")
 
-        buttonWidth := 160
-        totalButtonWidth := (buttonWidth * 3) + (gap * 2)
-        buttonX := Floor((layout.WindowWidth - totalButtonWidth) / 2)
-        btnUseOpenAI := myGui.Add("Button", Format("Default w{} x{} y+18", buttonWidth, buttonX), "Use OpenAI")
-        btnUseGoogle := myGui.Add("Button", Format("w{} x+{}", buttonWidth, gap), "Use Google")
-        btnReject := myGui.Add("Button", Format("w{} x+{}", buttonWidth, gap), "Reject")
+        buttonWidth := Min(160, colW)
+        buttonOffset := Floor((colW - buttonWidth) / 2)
+        openAIButtonX := layout.MarginX + colW + gap + buttonOffset
+        googleButtonX := layout.MarginX + (colW * 2) + (gap * 2) + buttonOffset
+        btnUseOpenAI := myGui.Add("Button", Format("Default w{} x{} y+18", buttonWidth, openAIButtonX), "Use OpenAI")
+        btnUseGoogle := myGui.Add("Button", Format("w{} x{} yp", buttonWidth, googleButtonX), "Use Google")
 
         if (!openAIResult.Success) {
             btnUseOpenAI.Enabled := false
@@ -3920,7 +4066,6 @@ class RisController {
 
         btnUseOpenAI.OnEvent("Click", applyResult.Bind(openAIEdit, "OpenAI"))
         btnUseGoogle.OnEvent("Click", applyResult.Bind(googleEdit, "Google AI"))
-        btnReject.OnEvent("Click", (*) => myGui.Destroy())
         myGui.OnEvent("Escape", (*) => myGui.Destroy())
 
         myGui.Show(Format("w{} Center", layout.WindowWidth))
@@ -4291,13 +4436,18 @@ class RisController {
         }
     }
 
-    static _SendGoogleAIRequest(url, payload) {
+    static _SendGoogleAIRequestAsync(url, payload) {
         req := ComObject("WinHttp.WinHttpRequest.5.1")
 
-        ; 目前先保留既有非同步 request + wait 介面，後續可獨立抽成 transport/service。
         req.Open("POST", url, True)
         req.SetRequestHeader("Content-Type", "application/json")
         req.Send(payload)
+        return req
+    }
+
+    static _SendGoogleAIRequest(url, payload) {
+        ; 目前先保留既有非同步 request + wait 介面，後續可獨立抽成 transport/service。
+        req := this._SendGoogleAIRequestAsync(url, payload)
         this._WaitForGoogleAIResponse(req)
 
         return {
@@ -4646,11 +4796,7 @@ class RisController {
     }
 
     static _SendOpenAIRequest(request) {
-        req := ComObject("WinHttp.WinHttpRequest.5.1")
-        req.Open("POST", request.Url, True)
-        req.SetRequestHeader("Content-Type", "application/json")
-        req.SetRequestHeader("Authorization", "Bearer " . request.APIKey)
-        req.Send(request.Payload)
+        req := this._SendOpenAIRequestAsync(request)
 
         while !req.WaitForResponse(0.01) {
             Sleep(10)
@@ -4660,6 +4806,15 @@ class RisController {
             Status: req.Status,
             ResponseText: req.ResponseText
         }
+    }
+
+    static _SendOpenAIRequestAsync(request) {
+        req := ComObject("WinHttp.WinHttpRequest.5.1")
+        req.Open("POST", request.Url, True)
+        req.SetRequestHeader("Content-Type", "application/json")
+        req.SetRequestHeader("Authorization", "Bearer " . request.APIKey)
+        req.Send(request.Payload)
+        return req
     }
 
     static _ExtractOpenAIResponseText(responseText) {
