@@ -4228,10 +4228,6 @@ class RisController {
         return this._googleAIConfig
     }
 
-    static _ResolveGoogleAIAPIKey(cfg, aiConfig) {
-        return RisAIConfigResolver.ResolveAPIKey(cfg, aiConfig, "GoogleAI")
-    }
-
     static _ResolveGoogleAIModelList(aiConfig := 0) {
         cfg := this._GetGoogleAIConfig()
         return RisAIProviderPolicy.ResolveModelList(aiConfig, "google", cfg.Model)
@@ -4239,26 +4235,7 @@ class RisController {
 
     static _ResolveGoogleAIOptions(aiConfig := 0, modelOverride := "") {
         cfg := this._GetGoogleAIConfig()
-        modelName := (IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) ? aiConfig.Model : ""
-        temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : ""
-        thinkingLevel := (IsObject(aiConfig) && aiConfig.HasOwnProp("ThinkingLevel")) ? aiConfig.ThinkingLevel : ""
-        topP := (IsObject(aiConfig) && aiConfig.HasOwnProp("TopP")) ? aiConfig.TopP : ""
-        enableGoogleSearch := (IsObject(aiConfig) && aiConfig.HasOwnProp("EnableGoogleSearch")) ? aiConfig.EnableGoogleSearch : cfg.EnableGoogleSearch
-        apiKey := this._ResolveGoogleAIAPIKey(cfg, aiConfig)
-        resolvedModel := (modelOverride != "") ? modelOverride : ((modelName != "") ? modelName : cfg.Model)
-        if (thinkingLevel != "" && !RisAIProviderPolicy.GoogleModelSupportsThinkingLevel(resolvedModel)) {
-            thinkingLevel := ""
-        }
-
-        return {
-            APIKey: apiKey.Value,
-            APIKeyName: apiKey.Name,
-            Model: resolvedModel,
-            Temperature: (temperature != "") ? temperature : cfg.Temperature,
-            ThinkingLevel: thinkingLevel,
-            TopP: (topP != "") ? topP : cfg.TopP,
-            EnableGoogleSearch: RisAIProviderPolicy.ParseConfigBool(enableGoogleSearch, false)
-        }
+        return RisAIConfigResolver.ResolveGoogleOptions(cfg, aiConfig, modelOverride)
     }
 
     static _BuildGoogleAIRequest(promptText, aiConfig := 0, modelOverride := "") {
@@ -4500,10 +4477,6 @@ class RisController {
         return RisAIConfigResolver.GetOpenAIConfig()
     }
 
-    static _ResolveOpenAIAPIKey(cfg, aiConfig) {
-        return RisAIConfigResolver.ResolveAPIKey(cfg, aiConfig, "OpenAI")
-    }
-
     static _ResolveOpenAIModelList(aiConfig := 0) {
         cfg := this._GetOpenAIConfig()
         return RisAIProviderPolicy.ResolveModelList(aiConfig, "openai", cfg.Model)
@@ -4511,18 +4484,7 @@ class RisController {
 
     static _ResolveOpenAIOptions(aiConfig := 0, modelOverride := "") {
         cfg := this._GetOpenAIConfig()
-        temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : cfg.Temperature
-        reasoningEffort := (IsObject(aiConfig) && aiConfig.HasOwnProp("ReasoningEffort")) ? aiConfig.ReasoningEffort : cfg.ReasoningEffort
-        apiKey := this._ResolveOpenAIAPIKey(cfg, aiConfig)
-
-        return {
-            APIKey: apiKey.Value,
-            APIKeyName: apiKey.Name,
-            BaseUrl: cfg.BaseUrl,
-            Model: modelOverride,
-            Temperature: temperature,
-            ReasoningEffort: reasoningEffort
-        }
+        return RisAIConfigResolver.ResolveOpenAIOptions(cfg, aiConfig, modelOverride)
     }
 
     static _BuildOpenAIRequest(promptText, aiConfig := 0, modelOverride := "") {

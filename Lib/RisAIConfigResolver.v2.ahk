@@ -23,6 +23,44 @@ class RisAIConfigResolver {
         }
     }
 
+    static ResolveGoogleOptions(cfg, aiConfig := 0, modelOverride := "") {
+        modelName := (IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) ? aiConfig.Model : ""
+        temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : ""
+        thinkingLevel := (IsObject(aiConfig) && aiConfig.HasOwnProp("ThinkingLevel")) ? aiConfig.ThinkingLevel : ""
+        topP := (IsObject(aiConfig) && aiConfig.HasOwnProp("TopP")) ? aiConfig.TopP : ""
+        enableGoogleSearch := (IsObject(aiConfig) && aiConfig.HasOwnProp("EnableGoogleSearch")) ? aiConfig.EnableGoogleSearch : cfg.EnableGoogleSearch
+        apiKey := this.ResolveAPIKey(cfg, aiConfig, "GoogleAI")
+        resolvedModel := (modelOverride != "") ? modelOverride : ((modelName != "") ? modelName : cfg.Model)
+        if (thinkingLevel != "" && !RisAIProviderPolicy.GoogleModelSupportsThinkingLevel(resolvedModel)) {
+            thinkingLevel := ""
+        }
+
+        return {
+            APIKey: apiKey.Value,
+            APIKeyName: apiKey.Name,
+            Model: resolvedModel,
+            Temperature: (temperature != "") ? temperature : cfg.Temperature,
+            ThinkingLevel: thinkingLevel,
+            TopP: (topP != "") ? topP : cfg.TopP,
+            EnableGoogleSearch: RisAIProviderPolicy.ParseConfigBool(enableGoogleSearch, false)
+        }
+    }
+
+    static ResolveOpenAIOptions(cfg, aiConfig := 0, modelOverride := "") {
+        temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : cfg.Temperature
+        reasoningEffort := (IsObject(aiConfig) && aiConfig.HasOwnProp("ReasoningEffort")) ? aiConfig.ReasoningEffort : cfg.ReasoningEffort
+        apiKey := this.ResolveAPIKey(cfg, aiConfig, "OpenAI")
+
+        return {
+            APIKey: apiKey.Value,
+            APIKeyName: apiKey.Name,
+            BaseUrl: cfg.BaseUrl,
+            Model: modelOverride,
+            Temperature: temperature,
+            ReasoningEffort: reasoningEffort
+        }
+    }
+
     static ResolveAPIKey(cfg, aiConfig, sectionName) {
         keyName := "APIKey"
         if (IsObject(aiConfig) && aiConfig.HasOwnProp("APIKeyName") && aiConfig.APIKeyName != "") {
