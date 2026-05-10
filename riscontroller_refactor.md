@@ -601,6 +601,7 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
   - `GetLogicalLineBoundaries(hCtrl, specificPos := -1)`
   - `SelectLine(hCtrl)`
   - `SelectLineForRemoval(hCtrl)`
+  - `InsertNewLine(hCtrl, mode := "Below")`
 
 `RisController` 目前仍保留 `_EditGetSel()` / `_EditSetSel()` / `_EditReplaceSel()` / `_ReplaceSelectionAndScroll()` / `_GetLogicalLineBoundaries()` / `_SelectLine()` / `_SelectLineForRemoval()` wrappers，目的是維持既有呼叫點穩定，避免同一 commit 同時處理大量 call-site churn。
 
@@ -613,6 +614,7 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 - scroll primitive
 - line index / line count primitive
 - 純 edit-control line boundary / select line helper
+- 不依賴 focus/clipboard/Notify 的 edit mutation helper
 
 暫時不要放入：
 - RIS UIA control lookup
@@ -627,6 +629,5 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
    - `CutLineOrSelection()`
    - `DeleteCurrentLine()`
    - `MoveCurrentLine(direction)`
-   - `InsertNewLine(mode)`
 
 高階 command 會碰到 target focus、clipboard、Notify 或 WinActive 行為，建議等 primitive 與 line boundary 穩定後再處理。

@@ -119,4 +119,19 @@ class RisEditControl {
             this.SetSel(hCtrl, bounds.Start - 2, bounds.FullEnd)
         }
     }
+
+    static InsertNewLine(hCtrl, mode := "Below") {
+        bounds := this.GetLogicalLineBoundaries(hCtrl)
+
+        if (mode = "Above") {
+            this.SetSel(hCtrl, bounds.Start, bounds.Start)
+            this.ReplaceSel(hCtrl, "`r`n")
+            this.SetSel(hCtrl, bounds.Start, bounds.Start)
+        } else {
+            this.SetSel(hCtrl, bounds.ContentEnd, bounds.ContentEnd)
+            this.ReplaceSel(hCtrl, "`r`n")
+        }
+
+        this.ScrollCaret(hCtrl)
+    }
 }

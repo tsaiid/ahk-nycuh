@@ -1575,20 +1575,7 @@ class RisController {
         }
         try {
             hEdit := ControlGetFocus("A")
-            bounds := this._GetLogicalLineBoundaries(hEdit)
-
-            if (mode = "Above") {
-                ; Shift+Enter 邏輯：移至行首 -> 插入 -> 游標回新行行首
-                this._EditSetSel(hEdit, bounds.Start, bounds.Start)
-                this._EditReplaceSel(hEdit, "`r`n")
-                this._EditSetSel(hEdit, bounds.Start, bounds.Start)
-            } else {
-                ; Ctrl+Enter 邏輯：移至行尾 -> 插入 -> 游標自然停在新行
-                this._EditSetSel(hEdit, bounds.ContentEnd, bounds.ContentEnd)
-                this._EditReplaceSel(hEdit, "`r`n")
-            }
-
-            this._EditScrollCaret(hEdit)
+            RisEditControl.InsertNewLine(hEdit, mode)
         }
     }
 
