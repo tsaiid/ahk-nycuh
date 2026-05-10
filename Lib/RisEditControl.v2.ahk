@@ -183,4 +183,18 @@ class RisEditControl {
             this.SetSel(hCtrl, sel.Start, sel.Start)
         }
     }
+
+    static MoveCaret(hCtrl, mode) {
+        bounds := this.GetLogicalLineBoundaries(hCtrl)
+
+        targetPos := 0
+        if (mode = "Start") {
+            targetPos := bounds.Start
+        } else if (mode = "End") {
+            targetPos := bounds.ContentEnd
+        }
+
+        this.SetSel(hCtrl, targetPos, targetPos)
+        this.ScrollCaret(hCtrl)
+    }
 }

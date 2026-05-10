@@ -1358,17 +1358,7 @@ class RisController {
         }
         try {
             hCtrl := ControlGetFocus("A")
-            bounds := this._GetLogicalLineBoundaries(hCtrl)
-
-            targetPos := 0
-            if (mode = "Start") {
-                targetPos := bounds.Start
-            } else if (mode = "End") {
-                targetPos := bounds.ContentEnd
-            }
-
-            this._EditSetSel(hCtrl, targetPos, targetPos)
-            this._EditScrollCaret(hCtrl)
+            RisEditControl.MoveCaret(hCtrl, mode)
             return true
         } catch {
             return false
