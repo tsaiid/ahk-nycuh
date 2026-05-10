@@ -53,4 +53,70 @@ class RisEditControl {
         SendMessage(this.MSG.GETSEL, startBuf.Ptr, endBuf.Ptr, hCtrl)
         return {Start: NumGet(startBuf, "UInt"), End: NumGet(endBuf, "UInt")}
     }
+
+    static GetLogicalLineBoundaries(hCtrl, specificPos := -1) {
+        try {
+            fullText := ControlGetText(hCtrl)
+        } catch {
+            return {Start: 0, ContentEnd: 0, FullEnd: 0}
+        }
+
+        if (specificPos != -1) {
+            caretPos := specificPos
+        } else {
+            caretPos := this.GetSel(hCtrl).Start
+        }
+
+        prevLineBreak := InStr(fullText, "`n", , caretPos + 1, -1)
+        lineStart := (prevLineBreak == 0) ? 0 : prevLineBreak
+
+        rPos := InStr(fullText, "`r", , lineStart + 1)
+        nPos := InStr(fullText, "`n", , lineStart + 1)
+
+        if (rPos == 0 && nPos == 0) {
+            nextLineBreak := 0
+        } else if (rPos == 0) {
+            nextLineBreak := nPos
+        } else if (nPos == 0) {
+            nextLineBreak := rPos
+        } else {
+            nextLineBreak := Min(rPos, nPos)
+        }
+
+        if (nextLineBreak == 0) {
+            contentEnd := StrLen(fullText)
+            fullEnd := contentEnd
+        } else {
+            contentEnd := nextLineBreak - 1
+
+            char := SubStr(fullText, nextLineBreak, 1)
+            if (char == "`r" && SubStr(fullText, nextLineBreak + 1, 1) == "`n") {
+                fullEnd := nextLineBreak + 1
+            } else {
+                fullEnd := nextLineBreak
+            }
+        }
+
+        return {Start: lineStart, ContentEnd: contentEnd, FullEnd: fullEnd}
+    }
+
+    static SelectLine(hCtrl) {
+        bounds := this.GetLogicalLineBoundaries(hCtrl)
+        if (bounds.FullEnd > bounds.Start) {
+            this.SetSel(hCtrl, bounds.Start, bounds.FullEnd)
+        }
+    }
+
+    static SelectLineForRemoval(hCtrl) {
+        bounds := this.GetLogicalLineBoundaries(hCtrl)
+        isLastLine := (bounds.FullEnd == bounds.ContentEnd)
+
+        if (!isLastLine) {
+            this.SetSel(hCtrl, bounds.Start, bounds.FullEnd)
+        } else if (bounds.Start == 0) {
+            this.SetSel(hCtrl, 0, bounds.FullEnd)
+        } else {
+            this.SetSel(hCtrl, bounds.Start - 2, bounds.FullEnd)
+        }
+    }
 }

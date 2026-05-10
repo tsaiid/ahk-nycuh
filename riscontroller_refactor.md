@@ -598,8 +598,11 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
   - `LineScroll(hCtrl, lineCount, columnCount := 0)`
   - `LineFromChar(hCtrl, charPos := -1)`
   - `GetLineCount(hCtrl)`
+  - `GetLogicalLineBoundaries(hCtrl, specificPos := -1)`
+  - `SelectLine(hCtrl)`
+  - `SelectLineForRemoval(hCtrl)`
 
-`RisController` 目前仍保留 `_EditGetSel()` / `_EditSetSel()` / `_EditReplaceSel()` / `_ReplaceSelectionAndScroll()` wrappers，目的是維持既有呼叫點穩定，避免同一 commit 同時處理大量 call-site churn。
+`RisController` 目前仍保留 `_EditGetSel()` / `_EditSetSel()` / `_EditReplaceSel()` / `_ReplaceSelectionAndScroll()` / `_GetLogicalLineBoundaries()` / `_SelectLine()` / `_SelectLineForRemoval()` wrappers，目的是維持既有呼叫點穩定，避免同一 commit 同時處理大量 call-site churn。
 
 ### `Lib\RisEditControl.v2.ahk`
 
@@ -609,7 +612,7 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 - Edit selection / replacement primitive
 - scroll primitive
 - line index / line count primitive
-- 未來可考慮放入純 edit-control line boundary helper
+- 純 edit-control line boundary / select line helper
 
 暫時不要放入：
 - RIS UIA control lookup
@@ -620,15 +623,7 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 
 ### 建議下一步
 
-1. **抽 line boundary helper**
-   - 將 `_GetLogicalLineBoundaries(hCtrl, specificPos := -1)` 移到 `RisEditControl.GetLogicalLineBoundaries(...)`
-   - controller wrapper 可先保留，降低 call-site 變動。
-
-2. **抽 select line helper**
-   - `_SelectLine(hCtrl)`
-   - `_SelectLineForRemoval(hCtrl)`
-
-3. **再評估搬高階 editor command**
+1. **再評估搬高階 editor command**
    - `CutLineOrSelection()`
    - `DeleteCurrentLine()`
    - `MoveCurrentLine(direction)`

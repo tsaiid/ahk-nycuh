@@ -2892,94 +2892,16 @@ class RisController {
     ; ----------------------------------------------------------------------------------
     ; [修改] 增加 specificPos 參數以支援查詢任意位置的行邊界
     static _GetLogicalLineBoundaries(hCtrl, specificPos := -1) {
-        try {
-            fullText := ControlGetText(hCtrl)
-        } catch {
-            return {Start: 0, ContentEnd: 0, FullEnd: 0}
-        }
-
-        ; 如果有指定位置則使用指定位置，否則抓取目前 Caret
-        if (specificPos != -1) {
-            caretPos := specificPos
-        } else {
-            sel := this._EditGetSel(hCtrl)
-            caretPos := sel.Start
-        }
-
-        ; 1. 找開頭 (Start): 往前找 `n
-        ; InStr 是 1-based，caretPos + 1 確保從游標處包含搜尋
-        prevLineBreak := InStr(fullText, "`n", , caretPos + 1, -1)
-
-        ; 換行符號在 prevLineBreak，下一字元(行首)的位置剛好等於 prevLineBreak 的數值 (因為 0-based 轉換關係)
-        lineStart := (prevLineBreak == 0) ? 0 : prevLineBreak
-
-        ; 2. 找結尾 (End): 往後找 `r 或 `n
-        ; 先找第一個出現的換行符號 (可能是 \r 或 \n)
-        rPos := InStr(fullText, "`r", , lineStart + 1)
-        nPos := InStr(fullText, "`n", , lineStart + 1)
-
-        if (rPos == 0 && nPos == 0) {
-            nextLineBreak := 0
-        } else if (rPos == 0) {
-            nextLineBreak := nPos
-        } else if (nPos == 0) {
-            nextLineBreak := rPos
-        } else {
-            nextLineBreak := Min(rPos, nPos)
-        }
-
-        if (nextLineBreak == 0) {
-            ; 最後一行，無換行符號
-            contentEnd := StrLen(fullText)
-            fullEnd := contentEnd
-        } else {
-            ; 找到換行符號，ContentEnd 在其之前 (index - 1)
-            contentEnd := nextLineBreak - 1
-
-            ; 判斷換行符號類型並計算 FullEnd
-            char := SubStr(fullText, nextLineBreak, 1)
-            if (char == "`r" && SubStr(fullText, nextLineBreak + 1, 1) == "`n") {
-                fullEnd := nextLineBreak + 1 ; \r\n 之後
-            } else {
-                fullEnd := nextLineBreak ; \r 或 \n 之後
-            }
-        }
-
-        return {Start: lineStart, ContentEnd: contentEnd, FullEnd: fullEnd}
+        return RisEditControl.GetLogicalLineBoundaries(hCtrl, specificPos)
     }
 
     static _SelectLine(hCtrl) {
-        bounds := this._GetLogicalLineBoundaries(hCtrl)
-        if (bounds.FullEnd > bounds.Start) {
-            this._EditSetSel(hCtrl, bounds.Start, bounds.FullEnd)
-        }
+        RisEditControl.SelectLine(hCtrl)
     }
 
     ; [新增] 用於刪除整行時的選取邏輯 (共用於 CutLineOrSelection 與 DeleteCurrentLine)
     static _SelectLineForRemoval(hCtrl) {
-        bounds := this._GetLogicalLineBoundaries(hCtrl)
-
-        ; 判斷是否為最後一行
-        ; 如果 FullEnd (含換行結尾) 等於 ContentEnd (內容結尾)，表示後面沒有換行符號
-        isLastLine := (bounds.FullEnd == bounds.ContentEnd)
-
-        if (!isLastLine) {
-            ; === 情況 A: 普通行 ===
-            ; 刪除行為：刪除整行 + 後方換行符號
-            this._EditSetSel(hCtrl, bounds.Start, bounds.FullEnd)
-        } else {
-            ; === 情況 B: 最後一行 (標準編輯器行為) ===
-
-            if (bounds.Start == 0) {
-                ; 特例：文件只有這一行，直接清空
-                this._EditSetSel(hCtrl, 0, bounds.FullEnd)
-            } else {
-                ; 標準刪除：刪除「前方」換行符號 + 整行內容
-                ; 範圍：從 (Start - 2) 到 FullEnd
-                ; 游標行為：Win32 Edit Control 清除後，游標會自然停在刪除點的位置 (即上一行的結尾)
-                this._EditSetSel(hCtrl, bounds.Start - 2, bounds.FullEnd)
-            }
-        }
+        RisEditControl.SelectLineForRemoval(hCtrl)
     }
 
     static _GetCleanCurrentExamName() {
