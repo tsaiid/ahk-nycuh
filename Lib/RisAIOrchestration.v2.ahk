@@ -70,6 +70,29 @@ class RisAIOrchestration {
             && task.ModelIndex < task.Models.Length
     }
 
+    static BuildTransportResponse(req) {
+        return {
+            Status: req.Status,
+            ResponseText: req.ResponseText
+        }
+    }
+
+    static ParseProviderResponse(providerName, responseText) {
+        return (providerName == "openai")
+            ? RisAIText.ParseOpenAIResponse(responseText)
+            : RisAIText.ParseGoogleResponse(responseText)
+    }
+
+    static BuildProviderResponseResult(parsed, request, apiTime, providerName) {
+        return {
+            Result: parsed,
+            ApiTime: apiTime,
+            APIKeyName: request.APIKeyName,
+            Model: request.Model,
+            Provider: providerName
+        }
+    }
+
     static FormatPolishComparisonDebugInfo(response) {
         return {
             APIKeyName: response.APIKeyName,

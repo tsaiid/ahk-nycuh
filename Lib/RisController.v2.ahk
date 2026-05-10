@@ -3854,10 +3854,7 @@ class RisController {
 
     static _FinalizeRefineProviderTask(task) {
         request := task.Request
-        response := {
-            Status: task.Req.Status,
-            ResponseText: task.Req.ResponseText
-        }
+        response := RisAIOrchestration.BuildTransportResponse(task.Req)
 
         completedAt := task.HasOwnProp("CompletedAt") ? task.CompletedAt : A_TickCount
         providerLatency := completedAt - task.StartedAt
@@ -3878,22 +3875,14 @@ class RisController {
         }
 
         parseStart := A_TickCount
-        parsed := (task.Provider == "openai")
-            ? RisAIText.ParseOpenAIResponse(response.ResponseText)
-            : RisAIText.ParseGoogleResponse(response.ResponseText)
+        parsed := RisAIOrchestration.ParseProviderResponse(task.Provider, response.ResponseText)
         request.Metrics.ResponseParseTime := A_TickCount - parseStart
 
         if (task.Provider == "google") {
             this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
         }
 
-        return {
-            Result: parsed,
-            ApiTime: providerLatency,
-            APIKeyName: request.APIKeyName,
-            Model: request.Model,
-            Provider: task.Provider
-        }
+        return RisAIOrchestration.BuildProviderResponseResult(parsed, request, providerLatency, task.Provider)
     }
 
     static _FormatPolishComparisonDebugInfo(response) {
