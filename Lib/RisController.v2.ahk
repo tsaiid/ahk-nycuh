@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0
 #Include .\UIA.v2.ahk
 #Include .\RisConfig.v2.ahk
+#Include .\RisAIProviderPolicy.v2.ahk
 #Include .\RisAIText.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
@@ -3893,7 +3894,7 @@ class RisController {
 
     static _ShouldRetryRefineProviderTask(task) {
         return task.HasOwnProp("LastHttpStatus")
-            && this._ShouldRetryAIModel(task.LastHttpStatus)
+            && RisAIProviderPolicy.ShouldRetryModelStatus(task.LastHttpStatus)
             && task.ModelIndex < task.Models.Length
     }
 
@@ -4334,7 +4335,7 @@ class RisController {
         enableGoogleSearch := (IsObject(aiConfig) && aiConfig.HasOwnProp("EnableGoogleSearch")) ? aiConfig.EnableGoogleSearch : cfg.EnableGoogleSearch
         apiKey := this._ResolveGoogleAIAPIKey(cfg, aiConfig)
         resolvedModel := (modelOverride != "") ? modelOverride : ((modelName != "") ? modelName : cfg.Model)
-        if (thinkingLevel != "" && !this._GoogleAIModelSupportsThinkingLevel(resolvedModel)) {
+        if (thinkingLevel != "" && !RisAIProviderPolicy.GoogleModelSupportsThinkingLevel(resolvedModel)) {
             thinkingLevel := ""
         }
 
@@ -4347,14 +4348,6 @@ class RisController {
             TopP: (topP != "") ? topP : cfg.TopP,
             EnableGoogleSearch: this._ParseConfigBool(enableGoogleSearch, false)
         }
-    }
-
-    static _GoogleAIModelSupportsThinkingLevel(modelName) {
-        unsupportedModels := Map(
-            "gemini-2.5-flash-lite", false
-        )
-
-        return !unsupportedModels.Has(StrLower(Trim(modelName)))
     }
 
     static _BuildGoogleAIUrl(options) {
@@ -4503,14 +4496,6 @@ class RisController {
         ))
     }
 
-    static _ShouldRetryAIModel(status) {
-        return status == 500 || status == 503
-    }
-
-    static _ShouldRetryGoogleAIModel(status) {
-        return this._ShouldRetryAIModel(status)
-    }
-
     static _GetGoogleAIModelHealthPolicy() {
         if (RisConfig.HasOwnProp("GoogleAIModelHealth")) {
             policy := RisConfig.GoogleAIModelHealth
@@ -4603,7 +4588,7 @@ class RisController {
                 this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
                 this._RecordGoogleAIModelHttpError(request.Model, healthPolicy)
                 lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
-                if (this._ShouldRetryAIModel(response.Status) && index < models.Length) {
+                if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status) && index < models.Length) {
                     this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
                     OutputDebug("[RisController] GoogleAI retry with fallback model after HTTP " . response.Status . ": " . request.Model . "`n")
                     continue
@@ -4745,7 +4730,7 @@ class RisController {
 
             if (response.Status != 200) {
                 lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
-                if (this._ShouldRetryAIModel(response.Status) && index < models.Length) {
+                if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status) && index < models.Length) {
                     this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
                     continue
                 }
