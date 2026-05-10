@@ -3640,7 +3640,7 @@ class RisController {
 
     ; [新增] 文字潤色與翻譯 (Polishing)
     ; 使用 LLM 優化所選取的文字，並提供對照視窗供使用者確認是否採用
-    static _GetPolishSelectionContext() {
+    static _GetPolishSelectionContext(selectCurrentLineIfEmpty := false) {
         if !this.IsTargetFocused() {
             this.Notify("請先點擊要處理的文字欄位")
             return false
@@ -3648,6 +3648,21 @@ class RisController {
 
         hEdit := ControlGetFocus("A")
         sel := this._EditGetSel(hEdit)
+        fullText := ControlGetText(hEdit)
+
+        if (selectCurrentLineIfEmpty && sel.Start == sel.End) {
+            bounds := this._GetLogicalLineBoundaries(hEdit)
+            lineText := (bounds.ContentEnd > bounds.Start)
+                ? SubStr(fullText, bounds.Start + 1, bounds.ContentEnd - bounds.Start)
+                : ""
+            if (Trim(lineText, " `t") == "") {
+                this.Notify("目前行為空")
+                return false
+            }
+
+            this._EditSetSel(hEdit, bounds.Start, bounds.FullEnd)
+            sel := {Start: bounds.Start, End: bounds.FullEnd}
+        }
 
         ; 檢查是否有選取文字
         if (sel.Start == sel.End) {
@@ -3655,11 +3670,10 @@ class RisController {
             return false
         }
 
-        fullText := ControlGetText(hEdit)
         selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
         trailingNewlines := ""
 
-        if (Trim(selectedText) == "") {
+        if (Trim(selectedText, " `t`r`n") == "") {
             this.Notify("選取的文字為空")
             return false
         }
@@ -3688,7 +3702,7 @@ class RisController {
 
     static PolishSelectionWithAI() {
         try {
-            context := this._GetPolishSelectionContext()
+            context := this._GetPolishSelectionContext(true)
             if (!context) {
                 return
             }
@@ -3718,7 +3732,7 @@ class RisController {
         }
 
         try {
-            context := this._GetPolishSelectionContext()
+            context := this._GetPolishSelectionContext(true)
             if (!context) {
                 return
             }
