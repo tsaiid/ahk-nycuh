@@ -7,6 +7,7 @@
 #Include .\RisAIPayload.v2.ahk
 #Include .\RisAIRequestBuilder.v2.ahk
 #Include .\RisAITransport.v2.ahk
+#Include .\RisAIDebug.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -4248,26 +4249,8 @@ class RisController {
         return RisAIRequestBuilder.BuildGoogleRequest(promptText, options, configTime)
     }
 
-    static _EscapePowerShellSingleQuotedString(text) {
-        return StrReplace(text, "'", "''")
-    }
-
-    static _BuildGoogleAICurlCommand(url, payload) {
-        escapedUrl := this._EscapePowerShellSingleQuotedString(url)
-
-        return "$uri = '" . escapedUrl . "'`r`n"
-            . "$body = @'`r`n"
-            . payload . "`r`n"
-            . "'@`r`n"
-            . "$sw = [Diagnostics.Stopwatch]::StartNew()`r`n"
-            . "$response = curl.exe -sS -X POST -H 'Content-Type: application/json' --data-binary $body $uri`r`n"
-            . "$sw.Stop()`r`n"
-            . "$response`r`n"
-            . '"ElapsedMs=$($sw.ElapsedMilliseconds)"'
-    }
-
     static _ShowGoogleAIDebugCurl(url, payload, response, request := 0) {
-        curlCommand := this._BuildGoogleAICurlCommand(url, payload)
+        curlCommand := RisAIDebug.BuildGoogleCurlCommand(url, payload)
         modelText := IsObject(request) && request.HasOwnProp("Model") ? request.Model : "(unknown)"
         apiKeyName := IsObject(request) && request.HasOwnProp("APIKeyName") ? request.APIKeyName : "(unknown)"
         waitText := ""
@@ -4311,15 +4294,7 @@ class RisController {
     }
 
     static _LogGoogleAIBlockingMetrics(metrics, status := "") {
-        statusText := (status != "") ? ", status=" . status : ""
-        OutputDebug(Format(
-            "[RisController] GoogleAI blocking metrics: config={}ms, payload={}ms, wait={}ms, parse={}ms{}`n",
-            metrics.ConfigReadTime,
-            metrics.PayloadBuildTime,
-            metrics.WaitForResponseTime,
-            metrics.ResponseParseTime,
-            statusText
-        ))
+        RisAIDebug.LogGoogleBlockingMetrics(metrics, status)
     }
 
     static _GetGoogleAIModelHealthPolicy() {
