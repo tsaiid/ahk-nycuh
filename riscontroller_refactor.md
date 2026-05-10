@@ -603,6 +603,7 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
   - `SelectLineForRemoval(hCtrl)`
   - `InsertNewLine(hCtrl, mode := "Below")`
   - `KillLine(hCtrl)`
+  - `DeleteCurrentLine(hCtrl)`
 
 `RisController` 目前仍保留 `_EditGetSel()` / `_EditSetSel()` / `_EditReplaceSel()` / `_ReplaceSelectionAndScroll()` / `_GetLogicalLineBoundaries()` / `_SelectLine()` / `_SelectLineForRemoval()` wrappers，目的是維持既有呼叫點穩定，避免同一 commit 同時處理大量 call-site churn。
 
@@ -628,7 +629,6 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 
 1. **再評估搬高階 editor command**
    - `CutLineOrSelection()`
-   - `DeleteCurrentLine()`
    - `MoveCurrentLine(direction)`
 
 高階 command 會碰到 target focus、clipboard、Notify 或 WinActive 行為，建議等 primitive 與 line boundary 穩定後再處理。

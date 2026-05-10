@@ -12,7 +12,8 @@ class RisEditControl {
         REPLACESEL:  0x00C2,
         LINEFROMCHAR: 0x00C9,
         SCROLLCARET: 0x00B7,
-        GETFIRSTVISIBLELINE: 0x00CE
+        GETFIRSTVISIBLELINE: 0x00CE,
+        CLEAR: 0x0303
     }
 
     static SetSel(hCtrl, startPos, endPos) {
@@ -147,5 +148,11 @@ class RisEditControl {
             this.SetSel(hCtrl, currentPos, targetPos)
             this.ReplaceSel(hCtrl, "")
         }
+    }
+
+    static DeleteCurrentLine(hCtrl) {
+        this.SelectLineForRemoval(hCtrl)
+        SendMessage(this.MSG.CLEAR, 0, 0, hCtrl)
+        this.ScrollCaret(hCtrl)
     }
 }

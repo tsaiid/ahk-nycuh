@@ -1354,13 +1354,7 @@ class RisController {
         }
         try {
             hFocus := ControlGetFocus("A")
-
-            ; 重構：使用共用的選取邏輯
-            this._SelectLineForRemoval(hFocus)
-
-            ; 執行刪除 (Clear 不會影響 Clipboard)
-            SendMessage(this.MSG.CLEAR, 0, 0, hFocus)
-            this._EditScrollCaret(hFocus)
+            RisEditControl.DeleteCurrentLine(hFocus)
         }
         return true
     }
