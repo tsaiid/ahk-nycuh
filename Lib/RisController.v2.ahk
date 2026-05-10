@@ -3832,7 +3832,7 @@ class RisController {
             task.LastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
             if (task.Provider == "google") {
                 request.Metrics.ResponseParseTime := 0
-                this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+                RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
                 RisAIModelHealth.RecordGoogleHttpError(request.Model, task.HealthPolicy)
             }
             throw Error(task.LastError)
@@ -3843,7 +3843,7 @@ class RisController {
         request.Metrics.ResponseParseTime := A_TickCount - parseStart
 
         if (task.Provider == "google") {
-            this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+            RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
         }
 
         return RisAIOrchestration.BuildProviderResponseResult(parsed, request, providerLatency, task.Provider)
@@ -4098,13 +4098,9 @@ class RisController {
     ; 10.1 AI Transport
     ; request prepare / transport wait / response parse
     ; =================================================================
-    static _GetAIProvider(aiConfig := 0) {
-        defaultProvider := IniRead("config\private.ini", "AI", "Provider", "google")
-        return RisAIProviderPolicy.ResolveProvider(aiConfig, defaultProvider)
-    }
-
     static _CallAI(promptText, aiConfig := 0) {
-        providerName := this._GetAIProvider(aiConfig)
+        defaultProvider := IniRead("config\private.ini", "AI", "Provider", "google")
+        providerName := RisAIProviderPolicy.ResolveProvider(aiConfig, defaultProvider)
 
         switch providerName {
             case "google":
@@ -4187,10 +4183,6 @@ class RisController {
         this._ShowGoogleAIDebugCurl(url, payload, response, request)
     }
 
-    static _LogGoogleAIBlockingMetrics(metrics, status := "") {
-        RisAIDebug.LogGoogleBlockingMetrics(metrics, status)
-    }
-
     static _CallGoogleAI(promptText, aiConfig := 0) {
         models := this._ResolveGoogleAIModelList(aiConfig)
         healthPolicy := RisAIModelHealth.GetGooglePolicy()
@@ -4206,7 +4198,7 @@ class RisController {
 
             if (response.Status != 200) {
                 request.Metrics.ResponseParseTime := 0
-                this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+                RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
                 RisAIModelHealth.RecordGoogleHttpError(request.Model, healthPolicy)
                 lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
                 if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status) && index < models.Length) {
@@ -4220,7 +4212,7 @@ class RisController {
             parseStart := A_TickCount
             parsed := RisAIOrchestration.ParseProviderResponse("google", response.ResponseText)
             request.Metrics.ResponseParseTime := A_TickCount - parseStart
-            this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
+            RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
             return RisAIOrchestration.BuildProviderCallResult(parsed, request, "google")
         }
 
