@@ -3,6 +3,7 @@
 #Include .\RisConfig.v2.ahk
 #Include .\RisAIProviderPolicy.v2.ahk
 #Include .\RisAIText.v2.ahk
+#Include .\RisAIPayload.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -4293,32 +4294,6 @@ class RisController {
         }
     }
 
-    static _BuildGoogleAIUrl(options) {
-        return "https://generativelanguage.googleapis.com/v1beta/models/" . options.Model . ":generateContent?key=" . options.APIKey
-    }
-
-    static _BuildGoogleAIPayload(promptText, options) {
-        escapedPrompt := RisAIText.EscapeJsonString(promptText)
-        generationConfig := '"temperature": ' . options.Temperature . ','
-        if (options.ThinkingLevel != "") {
-            generationConfig .= '"thinkingConfig": {"thinkingLevel": "' . RisAIText.EscapeJsonString(options.ThinkingLevel) . '"},'
-        }
-        generationConfig .= '"topP": ' . options.TopP
-
-        payload := '{'
-            . '"contents": [{'
-                . '"role": "user",'
-                . '"parts": [{"text": "' . escapedPrompt . '"}]'
-            . '}],'
-            . '"generationConfig": {' . generationConfig . '}'
-
-        if (options.EnableGoogleSearch) {
-            payload .= ',"tools": [{"googleSearch": {}}]'
-        }
-
-        return payload . '}'
-    }
-
     static _BuildGoogleAIRequest(promptText, aiConfig := 0, modelOverride := "") {
         configStart := A_TickCount
         options := this._ResolveGoogleAIOptions(aiConfig, modelOverride)
@@ -4327,8 +4302,8 @@ class RisController {
         payloadStart := A_TickCount
 
         return {
-            Url: this._BuildGoogleAIUrl(options),
-            Payload: this._BuildGoogleAIPayload(promptText, options),
+            Url: RisAIPayload.BuildGoogleUrl(options),
+            Payload: RisAIPayload.BuildGooglePayload(promptText, options),
             APIKeyName: options.APIKeyName,
             Model: options.Model,
             Metrics: {
@@ -4610,16 +4585,6 @@ class RisController {
         }
     }
 
-    static _BuildOpenAIPayload(promptText, options) {
-        escapedPrompt := RisAIText.EscapeJsonString(promptText)
-        payload := '{'
-            . '"model":"' . RisAIText.EscapeJsonString(options.Model) . '",'
-            . '"input":[{"role":"user","content":[{"type":"input_text","text":"' . escapedPrompt . '"}]}],'
-            . '"reasoning":{"effort":"' . RisAIText.EscapeJsonString(options.ReasoningEffort) . '"},'
-            . '"temperature":' . options.Temperature
-        return payload . '}'
-    }
-
     static _BuildOpenAIRequest(promptText, aiConfig := 0, modelOverride := "") {
         configStart := A_TickCount
         options := this._ResolveOpenAIOptions(aiConfig, modelOverride)
@@ -4628,7 +4593,7 @@ class RisController {
         payloadStart := A_TickCount
         return {
             Url: options.BaseUrl,
-            Payload: this._BuildOpenAIPayload(promptText, options),
+            Payload: RisAIPayload.BuildOpenAIPayload(promptText, options),
             APIKey: options.APIKey,
             APIKeyName: options.APIKeyName,
             Model: options.Model,
