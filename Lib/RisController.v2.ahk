@@ -3427,13 +3427,7 @@ class RisController {
         t0 := A_TickCount
         response := this._CallAI(promptText, aiConfig)
 
-        return {
-            Result: response.Result,
-            ApiTime: A_TickCount - t0,
-            APIKeyName: response.APIKeyName,
-            Model: response.Model,
-            Provider: response.Provider
-        }
+        return RisAIOrchestration.BuildRequestResult(response, A_TickCount - t0)
     }
 
     static _BuildIndicationRequest() {
@@ -3696,19 +3690,11 @@ class RisController {
     }
 
     static _CloneAIConfigWithProvider(aiConfig, providerName) {
-        cloned := {}
-        for key, value in aiConfig.OwnProps() {
-            cloned.%key% := value
-        }
-        cloned.Provider := providerName
-        return cloned
+        return RisAIOrchestration.CloneConfigWithProvider(aiConfig, providerName)
     }
 
     static _BuildRefineRequestForProvider(selectedText, providerName) {
-        conf := this._CloneAIConfigWithProvider(RisConfig.AI.Refine, providerName)
-        prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
-
-        return this._CreateAIRequest(prompt, conf)
+        return RisAIOrchestration.BuildRefineRequest(RisConfig.AI.Refine, selectedText, providerName)
     }
 
     static _TryRunRefineProvider(selectedText, providerName, displayName, trailingNewlines := "") {
@@ -3863,9 +3849,7 @@ class RisController {
     }
 
     static _ShouldRetryRefineProviderTask(task) {
-        return task.HasOwnProp("LastHttpStatus")
-            && RisAIProviderPolicy.ShouldRetryModelStatus(task.LastHttpStatus)
-            && task.ModelIndex < task.Models.Length
+        return RisAIOrchestration.ShouldRetryRefineProviderTask(task)
     }
 
     static _FinalizeRefineProviderTask(task) {

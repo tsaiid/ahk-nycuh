@@ -38,6 +38,38 @@ class RisAIOrchestration {
         return request
     }
 
+    static BuildRequestResult(response, apiTime) {
+        return {
+            Result: response.Result,
+            ApiTime: apiTime,
+            APIKeyName: response.APIKeyName,
+            Model: response.Model,
+            Provider: response.Provider
+        }
+    }
+
+    static CloneConfigWithProvider(aiConfig, providerName) {
+        cloned := {}
+        for key, value in aiConfig.OwnProps() {
+            cloned.%key% := value
+        }
+        cloned.Provider := providerName
+        return cloned
+    }
+
+    static BuildRefineRequest(baseConfig, selectedText, providerName) {
+        conf := this.CloneConfigWithProvider(baseConfig, providerName)
+        prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
+
+        return this.CreateRequest(prompt, conf)
+    }
+
+    static ShouldRetryRefineProviderTask(task) {
+        return task.HasOwnProp("LastHttpStatus")
+            && RisAIProviderPolicy.ShouldRetryModelStatus(task.LastHttpStatus)
+            && task.ModelIndex < task.Models.Length
+    }
+
     static FormatPolishComparisonDebugInfo(response) {
         return {
             APIKeyName: response.APIKeyName,
