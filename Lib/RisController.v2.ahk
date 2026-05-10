@@ -4453,24 +4453,6 @@ class RisController {
         return combinedText
     }
 
-    static _DecodeGoogleAIResponseText(text) {
-        val := text
-
-        ; 1. 還原 JSON 內的跳脫字元
-        val := StrReplace(val, "\n", "`n")
-        val := StrReplace(val, "\r", "`r")
-        val := StrReplace(val, "\t", "`t")
-        val := StrReplace(val, '\"', '"')
-        val := StrReplace(val, "\\", "\")
-
-        ; 2. 解碼 \uXXXX (Unicode)
-        while RegExMatch(val, "i)\\u([0-9a-f]{4})", &m) {
-            val := StrReplace(val, m[0], Chr(Integer("0x" . m[1])))
-        }
-
-        return val
-    }
-
     static _StripMarkdownCodeFence(text) {
         text := Trim(text, " `t`r`n")
 
@@ -4486,7 +4468,7 @@ class RisController {
 
     static _ParseGoogleAIResponse(responseText) {
         text := this._ExtractGoogleAIResponseText(responseText)
-        text := this._DecodeGoogleAIResponseText(text)
+        text := RisAIText.DecodeJsonEscapedText(text)
         return this._StripMarkdownCodeFence(text)
     }
 
@@ -4820,7 +4802,7 @@ class RisController {
 
     static _ParseOpenAIResponse(responseText) {
         text := this._ExtractOpenAIResponseText(responseText)
-        text := this._DecodeGoogleAIResponseText(text)
+        text := RisAIText.DecodeJsonEscapedText(text)
         return this._StripMarkdownCodeFence(text)
     }
 
