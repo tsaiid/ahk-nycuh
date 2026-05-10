@@ -4207,43 +4207,6 @@ class RisController {
         return StrLower(Trim(IniRead("config\private.ini", "AI", "Provider", "google")))
     }
 
-    static _GetAIProviderModels(aiConfig, providerName, fallbackModel := "") {
-        models := []
-        providerName := StrLower(Trim(providerName))
-        providerProp := (providerName == "openai") ? "OpenAIModels" : "GoogleModels"
-
-        if (IsObject(aiConfig) && aiConfig.HasOwnProp(providerProp)) {
-            for _, modelName in aiConfig.%providerProp% {
-                modelName := Trim(modelName)
-                if (modelName != "") {
-                    models.Push(modelName)
-                }
-            }
-        }
-
-        if (models.Length == 0 && IsObject(aiConfig) && aiConfig.HasOwnProp("Models")) {
-            for _, modelName in aiConfig.Models {
-                modelName := Trim(modelName)
-                if (modelName != "") {
-                    models.Push(modelName)
-                }
-            }
-        }
-
-        if (models.Length == 0 && IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) {
-            modelName := Trim(aiConfig.Model)
-            if (modelName != "") {
-                models.Push(modelName)
-            }
-        }
-
-        if (models.Length == 0 && fallbackModel != "") {
-            models.Push(fallbackModel)
-        }
-
-        return models
-    }
-
     static _CallAI(promptText, aiConfig := 0) {
         providerName := this._GetAIProvider(aiConfig)
 
@@ -4323,7 +4286,7 @@ class RisController {
 
     static _ResolveGoogleAIModelList(aiConfig := 0) {
         cfg := this._GetGoogleAIConfig()
-        return this._GetAIProviderModels(aiConfig, "google", cfg.Model)
+        return RisAIProviderPolicy.ResolveModelList(aiConfig, "google", cfg.Model)
     }
 
     static _ResolveGoogleAIOptions(aiConfig := 0, modelOverride := "") {
@@ -4648,7 +4611,7 @@ class RisController {
 
     static _ResolveOpenAIModelList(aiConfig := 0) {
         cfg := this._GetOpenAIConfig()
-        return this._GetAIProviderModels(aiConfig, "openai", cfg.Model)
+        return RisAIProviderPolicy.ResolveModelList(aiConfig, "openai", cfg.Model)
     }
 
     static _ResolveOpenAIOptions(aiConfig := 0, modelOverride := "") {
