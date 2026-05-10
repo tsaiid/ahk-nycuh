@@ -1305,17 +1305,7 @@ class RisController {
         }
         try {
             hFocus := ControlGetFocus("A")
-
-            ; 檢查是否有選取文字
-            sel := this._EditGetSel(hFocus)
-            if (sel.Start == sel.End) {
-                ; 沒有選取：選取目前所在的邏輯行 (準備剪下整行)
-                this._SelectLineForRemoval(hFocus)
-            }
-
-            ; 執行剪下 (包含複製到 Clipboard 與刪除)
-            SendMessage(this.MSG.CUT, 0, 0, hFocus)
-            this._EditScrollCaret(hFocus)
+            RisEditControl.CutLineOrSelection(hFocus)
         }
         return true
     }

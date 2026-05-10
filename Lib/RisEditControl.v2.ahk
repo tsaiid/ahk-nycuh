@@ -13,6 +13,7 @@ class RisEditControl {
         LINEFROMCHAR: 0x00C9,
         SCROLLCARET: 0x00B7,
         GETFIRSTVISIBLELINE: 0x00CE,
+        CUT: 0x0300,
         CLEAR: 0x0303
     }
 
@@ -153,6 +154,16 @@ class RisEditControl {
     static DeleteCurrentLine(hCtrl) {
         this.SelectLineForRemoval(hCtrl)
         SendMessage(this.MSG.CLEAR, 0, 0, hCtrl)
+        this.ScrollCaret(hCtrl)
+    }
+
+    static CutLineOrSelection(hCtrl) {
+        sel := this.GetSel(hCtrl)
+        if (sel.Start == sel.End) {
+            this.SelectLineForRemoval(hCtrl)
+        }
+
+        SendMessage(this.MSG.CUT, 0, 0, hCtrl)
         this.ScrollCaret(hCtrl)
     }
 }
