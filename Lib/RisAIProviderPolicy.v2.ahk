@@ -1,6 +1,14 @@
 #Requires AutoHotkey v2.0
 
 class RisAIProviderPolicy {
+    static ResolveProvider(aiConfig, defaultProvider := "google") {
+        if (IsObject(aiConfig) && aiConfig.HasOwnProp("Provider") && aiConfig.Provider != "") {
+            return StrLower(Trim(aiConfig.Provider))
+        }
+
+        return StrLower(Trim(defaultProvider))
+    }
+
     static ResolveModelList(aiConfig, providerName, fallbackModel := "") {
         models := []
         providerName := StrLower(Trim(providerName))

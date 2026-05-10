@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0
 #Include .\UIA.v2.ahk
 #Include .\RisConfig.v2.ahk
+#Include .\RisAIConfigResolver.v2.ahk
 #Include .\RisAIProviderPolicy.v2.ahk
 #Include .\RisAIText.v2.ahk
 #Include .\RisAIPayload.v2.ahk
@@ -4201,11 +4202,8 @@ class RisController {
     ; request prepare / transport wait / response parse
     ; =================================================================
     static _GetAIProvider(aiConfig := 0) {
-        if (IsObject(aiConfig) && aiConfig.HasOwnProp("Provider") && aiConfig.Provider != "") {
-            return StrLower(Trim(aiConfig.Provider))
-        }
-
-        return StrLower(Trim(IniRead("config\private.ini", "AI", "Provider", "google")))
+        defaultProvider := IniRead("config\private.ini", "AI", "Provider", "google")
+        return RisAIProviderPolicy.ResolveProvider(aiConfig, defaultProvider)
     }
 
     static _CallAI(promptText, aiConfig := 0) {
@@ -4242,27 +4240,7 @@ class RisController {
     }
 
     static _ResolveGoogleAIAPIKey(cfg, aiConfig) {
-        keyName := "APIKey"
-        if (IsObject(aiConfig) && aiConfig.HasOwnProp("APIKeyName") && aiConfig.APIKeyName != "") {
-            keyName := aiConfig.APIKeyName
-        }
-
-        apiKey := IniRead(cfg.ConfigFile, "GoogleAI", keyName, "")
-        if (apiKey != "") {
-            return {
-                Name: keyName,
-                Value: apiKey
-            }
-        }
-
-        if (keyName != "APIKey" && cfg.APIKey != "") {
-            return {
-                Name: "APIKey",
-                Value: cfg.APIKey
-            }
-        }
-
-        throw Error("請在 " . cfg.ConfigFile . " 中設定 [GoogleAI] " . keyName)
+        return RisAIConfigResolver.ResolveAPIKey(cfg, aiConfig, "GoogleAI")
     }
 
     static _ResolveGoogleAIModelList(aiConfig := 0) {
@@ -4541,27 +4519,7 @@ class RisController {
     }
 
     static _ResolveOpenAIAPIKey(cfg, aiConfig) {
-        keyName := "APIKey"
-        if (IsObject(aiConfig) && aiConfig.HasOwnProp("APIKeyName") && aiConfig.APIKeyName != "") {
-            keyName := aiConfig.APIKeyName
-        }
-
-        apiKey := IniRead(cfg.ConfigFile, "OpenAI", keyName, "")
-        if (apiKey != "") {
-            return {
-                Name: keyName,
-                Value: apiKey
-            }
-        }
-
-        if (keyName != "APIKey" && cfg.APIKey != "") {
-            return {
-                Name: "APIKey",
-                Value: cfg.APIKey
-            }
-        }
-
-        throw Error("請在 " . cfg.ConfigFile . " 中設定 [OpenAI] " . keyName)
+        return RisAIConfigResolver.ResolveAPIKey(cfg, aiConfig, "OpenAI")
     }
 
     static _ResolveOpenAIModelList(aiConfig := 0) {
