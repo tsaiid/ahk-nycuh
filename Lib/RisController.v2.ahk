@@ -3924,8 +3924,8 @@ class RisController {
 
         parseStart := A_TickCount
         parsed := (task.Provider == "openai")
-            ? this._ParseOpenAIResponse(response.ResponseText)
-            : this._ParseGoogleAIResponse(response.ResponseText)
+            ? RisAIText.ParseOpenAIResponse(response.ResponseText)
+            : RisAIText.ParseGoogleResponse(response.ResponseText)
         request.Metrics.ResponseParseTime := A_TickCount - parseStart
 
         if (task.Provider == "google") {
@@ -4429,12 +4429,6 @@ class RisController {
         }
     }
 
-    static _ParseGoogleAIResponse(responseText) {
-        text := RisAIText.ExtractGoogleResponseText(responseText)
-        text := RisAIText.DecodeJsonEscapedText(text)
-        return RisAIText.StripMarkdownCodeFence(text)
-    }
-
     static _EscapePowerShellSingleQuotedString(text) {
         return StrReplace(text, "'", "''")
     }
@@ -4618,7 +4612,7 @@ class RisController {
             }
 
             parseStart := A_TickCount
-            parsed := this._ParseGoogleAIResponse(response.ResponseText)
+            parsed := RisAIText.ParseGoogleResponse(response.ResponseText)
             request.Metrics.ResponseParseTime := A_TickCount - parseStart
             this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
             return {
@@ -4739,12 +4733,6 @@ class RisController {
         return req
     }
 
-    static _ParseOpenAIResponse(responseText) {
-        text := RisAIText.ExtractOpenAIResponseText(responseText)
-        text := RisAIText.DecodeJsonEscapedText(text)
-        return RisAIText.StripMarkdownCodeFence(text)
-    }
-
     static _CallOpenAI(promptText, aiConfig := 0) {
         models := this._ResolveOpenAIModelList(aiConfig)
         lastError := ""
@@ -4764,7 +4752,7 @@ class RisController {
                 throw Error(lastError)
             }
 
-            parsed := this._ParseOpenAIResponse(response.ResponseText)
+            parsed := RisAIText.ParseOpenAIResponse(response.ResponseText)
             return {
                 Result: parsed,
                 APIKeyName: request.APIKeyName,

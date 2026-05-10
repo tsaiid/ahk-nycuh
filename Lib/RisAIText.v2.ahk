@@ -88,4 +88,16 @@ class RisAIText {
 
         return combinedText
     }
+
+    static ParseGoogleResponse(responseText) {
+        text := this.ExtractGoogleResponseText(responseText)
+        text := this.DecodeJsonEscapedText(text)
+        return this.StripMarkdownCodeFence(text)
+    }
+
+    static ParseOpenAIResponse(responseText) {
+        text := this.ExtractOpenAIResponseText(responseText)
+        text := this.DecodeJsonEscapedText(text)
+        return this.StripMarkdownCodeFence(text)
+    }
 }
