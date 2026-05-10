@@ -42,6 +42,26 @@ class RisAIProviderPolicy {
         return status == 500 || status == 503
     }
 
+    static ParseConfigBool(value, defaultValue := false) {
+        if (value == "") {
+            return defaultValue
+        }
+
+        if IsNumber(value) {
+            return Number(value) != 0
+        }
+
+        normalized := StrLower(Trim(value))
+        if (normalized == "true" || normalized == "yes" || normalized == "on") {
+            return true
+        }
+        if (normalized == "false" || normalized == "no" || normalized == "off") {
+            return false
+        }
+
+        return defaultValue
+    }
+
     static GoogleModelSupportsThinkingLevel(modelName) {
         unsupportedModels := Map(
             "gemini-2.5-flash-lite", false

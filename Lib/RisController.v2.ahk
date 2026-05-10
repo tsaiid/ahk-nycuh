@@ -4234,30 +4234,10 @@ class RisController {
             Model: IniRead(configFile, "GoogleAI", "Model", "gemma-3-27b-it"),
             Temperature: IniRead(configFile, "GoogleAI", "Temperature", "0.2"),
             TopP: IniRead(configFile, "GoogleAI", "TopP", "0.95"),
-            EnableGoogleSearch: this._ParseConfigBool(IniRead(configFile, "GoogleAI", "EnableGoogleSearch", "false"), false)
+            EnableGoogleSearch: RisAIProviderPolicy.ParseConfigBool(IniRead(configFile, "GoogleAI", "EnableGoogleSearch", "false"), false)
         }
 
         return this._googleAIConfig
-    }
-
-    static _ParseConfigBool(value, defaultValue := false) {
-        if (value == "") {
-            return defaultValue
-        }
-
-        if IsNumber(value) {
-            return Number(value) != 0
-        }
-
-        normalized := StrLower(Trim(value))
-        if (normalized == "true" || normalized == "yes" || normalized == "on") {
-            return true
-        }
-        if (normalized == "false" || normalized == "no" || normalized == "off") {
-            return false
-        }
-
-        return defaultValue
     }
 
     static _ResolveGoogleAIAPIKey(cfg, aiConfig) {
@@ -4309,7 +4289,7 @@ class RisController {
             Temperature: (temperature != "") ? temperature : cfg.Temperature,
             ThinkingLevel: thinkingLevel,
             TopP: (topP != "") ? topP : cfg.TopP,
-            EnableGoogleSearch: this._ParseConfigBool(enableGoogleSearch, false)
+            EnableGoogleSearch: RisAIProviderPolicy.ParseConfigBool(enableGoogleSearch, false)
         }
     }
 
