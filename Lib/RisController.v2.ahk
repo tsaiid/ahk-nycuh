@@ -2,6 +2,7 @@
 #Include .\UIA.v2.ahk
 #Include .\RisConfig.v2.ahk
 #Include .\RisDate.v2.ahk
+#Include .\RisReportText.v2.ahk
 
 class RisController {
     ; =================================================================
@@ -302,7 +303,7 @@ class RisController {
             fullText := this.FindingText
 
             ; 依照您的需求，這裡使用 Advanced (CT/MR) 的邏輯來剖析
-            range := this._FindContentRange(fullText, "Advanced")
+            range := RisReportText.FindContentRange(fullText, "Advanced")
 
             if (!range) {
                 return ""
@@ -317,7 +318,7 @@ class RisController {
 
     static HasFindingContentRange(mode := "Advanced") {
         try {
-            return this._FindContentRange(this.FindingText, mode) ? true : false
+            return RisReportText.FindContentRange(this.FindingText, mode) ? true : false
         } catch {
             return false
         }
@@ -2810,7 +2811,7 @@ class RisController {
 
     static _FormatFindingForBasic(hEdit) {
         fullText := ControlGetText(hEdit)
-        range := this._FindContentRange(fullText, "Basic")
+        range := RisReportText.FindContentRange(fullText, "Basic")
 
         if (range) {
             this._EditSetSel(hEdit, range.Start, range.End)
@@ -2822,7 +2823,7 @@ class RisController {
 
     static _FormatFindingForAdvanced(hEdit) {
         fullText := ControlGetText(hEdit)
-        range := this._FindContentRange(fullText, "Advanced")
+        range := RisReportText.FindContentRange(fullText, "Advanced")
 
         if (range) {
             this._EditSetSel(hEdit, range.Start, range.End)
@@ -3085,38 +3086,6 @@ class RisController {
     static _RestoreCursor() {
         ; SPI_SETCURSORS = 0x0057, 重置系統所有游標回預設值
         DllCall("SystemParametersInfo", "UInt", 0x0057, "UInt", 0, "Ptr", 0, "UInt", 0)
-    }
-
-    ; =================================================================
-    ; [新增] 共用的內容範圍搜尋邏輯
-    ; @param text  全文
-    ; @param mode  "Basic" or "Advanced"
-    ; @return      {Start: index, End: index} or false (if not found)
-    ; =================================================================
-    static _FindContentRange(text, mode) {
-        startPos := 0
-        endPos := -1
-
-        if (mode == "Advanced") {
-            ; CT/MR 的起始關鍵字
-            if RegExMatch(text, "m)FINDINGS:[ \t]*(?:\r?\n)?|The study shows:\r?\n\r?\n|show the following findings:\r?\n\r?\n|which revealed:\r?\n\r?\n", &match) {
-                startPos := match.Pos + match.Len - 1
-
-                ; CT/MR 特有的結尾偵測 (REMARKS/RECOMMENDATION)
-                if RegExMatch(text, "m)(\r\n){1,2}REMARKS?:|RECOMMENDATION:", &endMatch, startPos + 1) {
-                    endPos := endMatch.Pos - 1
-                }
-                return {Start: startPos, End: endPos}
-            }
-        } else {
-            ; Basic (CR/US) 的起始關鍵字
-            if RegExMatch(text, "m)FINDINGS:\r?\n|:\s*\r?\n\s*\r?\n", &match) {
-                startPos := match.Pos + match.Len - 1
-                return {Start: startPos, End: -1} ; Basic 預設選到最後
-            }
-        }
-
-        return false
     }
 
     ; [紅色特效版] 紅色 + 半透明 + 圓形
