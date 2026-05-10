@@ -12,6 +12,7 @@
 #Include .\RisAIService.v2.ahk
 #Include .\RisAIModelHealth.v2.ahk
 #Include .\RisAIOrchestration.v2.ahk
+#Include .\RisEditControl.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -1439,12 +1440,12 @@ class RisController {
             modifierKey := extend ? "+" : ""
 
             ; 取得目前 Scroll 位置 (最上方的行號)
-            prevFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
+            prevFirstLine := RisEditControl.GetFirstVisibleLine(hEdit)
 
             if (direction == "Up") {
                 SendInput(modifierKey "{PgUp}")
                 Sleep 10 ; 等待 UI 更新
-                currFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
+                currFirstLine := RisEditControl.GetFirstVisibleLine(hEdit)
 
                 ; 如果無法再往上捲 (前後行號一樣，且已在第 0 行)，則移到最前
                 if (prevFirstLine == 0 && currFirstLine == 0) {
@@ -1458,7 +1459,7 @@ class RisController {
             } else { ; Down
                 SendInput(modifierKey "{PgDn}")
                 Sleep 10 ; 等待 UI 更新
-                currFirstLine := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, hEdit)
+                currFirstLine := RisEditControl.GetFirstVisibleLine(hEdit)
 
                 ; 如果無法再往下捲 (前後行號一樣)，則移到最後
                 if (prevFirstLine == currFirstLine) {
@@ -2271,8 +2272,8 @@ class RisController {
             return false
         }
 
-        lineIdx := SendMessage(this.MSG.LINEFROMCHAR, -1, 0, hCtrl)
-        lineCount := SendMessage(this.MSG.GETLINECOUNT, 0, 0, hCtrl)
+        lineIdx := RisEditControl.LineFromChar(hCtrl)
+        lineCount := RisEditControl.GetLineCount(hCtrl)
 
         if (direction == "Up") {
             SendInput (lineIdx == 0) ? "+{Home}" : "+{Up}"
@@ -2509,26 +2510,23 @@ class RisController {
     ; --- Edit Control 底層操作 (封裝 SendMessage) ---
 
     static _EditSetSel(hCtrl, startPos, endPos) {
-        SendMessage(this.MSG.SETSEL, startPos, endPos, hCtrl)
+        RisEditControl.SetSel(hCtrl, startPos, endPos)
     }
 
     static _EditReplaceSel(hCtrl, text) {
-        SendMessage(this.MSG.REPLACESEL, 1, StrPtr(text), hCtrl)
+        RisEditControl.ReplaceSel(hCtrl, text)
     }
 
     static _EditScrollCaret(hCtrl) {
-        SendMessage(this.MSG.SCROLLCARET, 0, 0, hCtrl)
+        RisEditControl.ScrollCaret(hCtrl)
     }
 
     static _ReplaceSelectionAndScroll(hCtrl, text) {
-        this._EditReplaceSel(hCtrl, text)
-        this._EditScrollCaret(hCtrl)
+        RisEditControl.ReplaceSelectionAndScroll(hCtrl, text)
     }
 
     static _EditGetSel(hCtrl) {
-        StartBuf := Buffer(4, 0), EndBuf := Buffer(4, 0)
-        SendMessage(this.MSG.GETSEL, StartBuf.Ptr, EndBuf.Ptr, hCtrl)
-        return {Start: NumGet(StartBuf, "UInt"), End: NumGet(EndBuf, "UInt")}
+        return RisEditControl.GetSel(hCtrl)
     }
 
     static _CountNonEmptyLines(hEdit) {
@@ -2800,20 +2798,20 @@ class RisController {
         ; =========================================================
 
         ; 1. 記錄替換前，畫面最上方是第幾行
-        firstVisibleLineBefore := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, targetHwnd)
+        firstVisibleLineBefore := RisEditControl.GetFirstVisibleLine(targetHwnd)
 
         ; 2. 執行文字替換 (這通常會導致 Scroll 跳動以顯示 Caret)
         this._EditReplaceSel(targetHwnd, finalText)
 
         ; 3. 取得替換後，畫面現在最上方是第幾行
-        firstVisibleLineAfter := SendMessage(this.MSG.GETFIRSTVISIBLELINE, 0, 0, targetHwnd)
+        firstVisibleLineAfter := RisEditControl.GetFirstVisibleLine(targetHwnd)
 
         ; 4. 計算差距並滾動回去 (EM_LINESCROLL)
         ; 參數2: 水平滾動字元數 (0)
         ; 參數3: 垂直滾動行數 (負數往上，正數往下)
         linesToScroll := firstVisibleLineBefore - firstVisibleLineAfter
         if (linesToScroll != 0) {
-            SendMessage(this.MSG.LINESCROLL, 0, linesToScroll, targetHwnd)
+            RisEditControl.LineScroll(targetHwnd, linesToScroll)
         }
     }
 
