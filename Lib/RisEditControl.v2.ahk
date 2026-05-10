@@ -242,4 +242,58 @@ class RisEditControl {
     static IsSpace(char) {
         return char == " " || char == "`t" || char == "`r" || char == "`n"
     }
+
+    static MoveCurrentLine(hCtrl, direction) {
+        sel := this.GetSel(hCtrl)
+        if (sel.Start != sel.End) {
+            return
+        }
+
+        fullText := ControlGetText(hCtrl)
+        currLine := this.GetLogicalLineBoundaries(hCtrl, sel.Start)
+
+        if (direction == "Up") {
+            if (currLine.Start == 0) {
+                return
+            }
+
+            searchPos := currLine.Start - 1
+            if (searchPos > 0 && SubStr(fullText, searchPos, 1) == "`r") {
+                searchPos -= 1
+            }
+
+            targetLine := this.GetLogicalLineBoundaries(hCtrl, searchPos)
+            topLine := targetLine
+            btmLine := currLine
+        } else {
+            if (currLine.FullEnd == StrLen(fullText)) {
+                return
+            }
+
+            targetLine := this.GetLogicalLineBoundaries(hCtrl, currLine.FullEnd)
+            topLine := currLine
+            btmLine := targetLine
+        }
+
+        txtTop := SubStr(fullText, topLine.Start + 1, topLine.FullEnd - topLine.Start)
+        txtBtm := SubStr(fullText, btmLine.Start + 1, btmLine.FullEnd - btmLine.Start)
+
+        if (SubStr(txtTop, -1) == "`n" && SubStr(txtBtm, -1) != "`n") {
+            txtTop := SubStr(txtTop, 1, StrLen(txtTop) - 2)
+            txtBtm .= "`r`n"
+        }
+
+        this.SetSel(hCtrl, topLine.Start, btmLine.FullEnd)
+        this.ReplaceSel(hCtrl, txtBtm . txtTop)
+
+        offset := sel.Start - currLine.Start
+        if (direction == "Up") {
+            newPos := topLine.Start + offset
+        } else {
+            newPos := topLine.Start + StrLen(txtBtm) + offset
+        }
+
+        this.SetSel(hCtrl, newPos, newPos)
+        this.ScrollCaret(hCtrl)
+    }
 }

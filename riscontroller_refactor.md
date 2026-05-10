@@ -608,6 +608,7 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
   - `CopyLineOrSelection(hCtrl)`
   - `MoveCaret(hCtrl, mode)`
   - `DeleteWordBackward(hCtrl)`
+  - `MoveCurrentLine(hCtrl, direction)`
 
 `RisController` 目前仍保留 `_EditGetSel()` / `_EditSetSel()` / `_EditReplaceSel()` / `_ReplaceSelectionAndScroll()` / `_GetLogicalLineBoundaries()` / `_SelectLine()` / `_SelectLineForRemoval()` wrappers，目的是維持既有呼叫點穩定，避免同一 commit 同時處理大量 call-site churn。
 
@@ -632,6 +633,6 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 1. **再評估搬高階 editor command**
-   - `MoveCurrentLine(direction)`
+   - 目前高階 editor command 主要已移入 `RisEditControl`，後續可評估移除 controller thin wrappers 或整理 remaining direct call-sites。
 
 高階 command 會碰到 target focus、clipboard、Notify 或 WinActive 行為，建議等 primitive 與 line boundary 穩定後再處理。
