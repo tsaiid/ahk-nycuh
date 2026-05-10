@@ -3282,14 +3282,6 @@ class RisController {
         this._RestoreCursor()
     }
 
-    static _NormalizeAIResult(result) {
-        return RisAIOrchestration.NormalizeResult(result)
-    }
-
-    static _FormatAICompleteNotify(title, apiKeyName, modelName, detail := "") {
-        return RisAIOrchestration.FormatCompleteNotify(title, apiKeyName, modelName, detail)
-    }
-
     ; 10.0.1 Indication
     static _TryInsertCachedIndication(isPreloadOnly) {
         if (!this._aiCache.Has("_AI_Indication") || isPreloadOnly) {
@@ -3300,7 +3292,7 @@ class RisController {
         apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
         modelName := cached.HasOwnProp("modelName") ? cached.modelName : "Model"
         this._InsertAIResult(cached.text)
-        this.Notify(this._FormatAICompleteNotify("已插入 Indication (來自快取)", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
+        this.Notify(RisAIOrchestration.FormatCompleteNotify("已插入 Indication (來自快取)", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
         return true
     }
 
@@ -3337,7 +3329,7 @@ class RisController {
     }
 
     static _NormalizeIndicationResult(result) {
-        result := this._NormalizeAIResult(result)
+        result := RisAIOrchestration.NormalizeResult(result)
 
         if (!InStr(result, "INDICATION:")) {
             result := "INDICATION: " . result
@@ -3375,7 +3367,7 @@ class RisController {
         }
 
         if (!isPreloadOnly) {
-            this.Notify(this._FormatAICompleteNotify("已產生 Indication", apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
+            this.Notify(RisAIOrchestration.FormatCompleteNotify("已產生 Indication", apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
         } else {
             OutputDebug("[RisController] AI Indication 已預載並快取`n")
         }
@@ -3396,7 +3388,7 @@ class RisController {
                 cached := this._aiCache["_AI_Indication"]
                 apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
                 modelName := cached.HasOwnProp("modelName") ? cached.modelName : "Model"
-                this.Notify(this._FormatAICompleteNotify("Indication 已完成並插入", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
+                this.Notify(RisAIOrchestration.FormatCompleteNotify("Indication 已完成並插入", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
             }
         }
 
@@ -3414,13 +3406,9 @@ class RisController {
     }
 
     static _HandleImpressionSuccess(result, extractTime, apiTime, apiKeyName, modelName) {
-        result := this._NormalizeAIResult(result)
+        result := RisAIOrchestration.NormalizeResult(result)
         this._InsertAIResultToImpression(result)
-        this.Notify(this._FormatAICompleteNotify("已插入 Impression", apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
-    }
-
-    static _CreateAIRequest(promptText, aiConfig, extraFields := 0) {
-        return RisAIOrchestration.CreateRequest(promptText, aiConfig, extraFields)
+        this.Notify(RisAIOrchestration.FormatCompleteNotify("已插入 Impression", apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
     }
 
     static _BuildAIRequestResult(promptText, aiConfig) {
@@ -3442,7 +3430,7 @@ class RisController {
         conf := RisConfig.AI.Indication
         fullPrompt := conf.SystemPrompt . clinicalData . conf.Constraint
 
-        return this._CreateAIRequest(fullPrompt, conf, {
+        return RisAIOrchestration.CreateRequest(fullPrompt, conf, {
             ClinicalData: clinicalData,
             ExtractTime: extractTime
         })
@@ -3468,7 +3456,7 @@ class RisController {
         extractTime := A_TickCount - t0
         conf := RisConfig.AI.Impression
 
-        return this._CreateAIRequest(Format(conf.Prompt, findingText), conf, {
+        return RisAIOrchestration.CreateRequest(Format(conf.Prompt, findingText), conf, {
             ExtractTime: extractTime,
             ImpressionHwnd: hImp
         })
@@ -3478,7 +3466,7 @@ class RisController {
         conf := RisConfig.AI.Refine
         prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
 
-        return this._CreateAIRequest(prompt, conf)
+        return RisAIOrchestration.CreateRequest(prompt, conf)
     }
 
     static _RunAIRequest(request) {
@@ -3626,10 +3614,6 @@ class RisController {
         }
     }
 
-    static _NormalizePolishResult(result, trailingNewlines := "") {
-        return RisAIOrchestration.NormalizePolishResult(result, trailingNewlines)
-    }
-
     static PolishSelectionWithAI() {
         try {
             context := this._GetPolishSelectionContext(true)
@@ -3642,12 +3626,12 @@ class RisController {
 
             request := this._BuildRefineRequest(context.SelectedText)
             response := this._RunRefineRequest(request)
-            result := this._NormalizePolishResult(response.Result, context.TrailingNewlines)
+            result := RisAIOrchestration.NormalizePolishResult(response.Result, context.TrailingNewlines)
 
             this._RestoreCursor()
 
             ; 顯示比對視窗
-            debugInfo := this._FormatPolishComparisonDebugInfo(response)
+            debugInfo := RisAIOrchestration.FormatPolishComparisonDebugInfo(response)
             this._ShowPolishComparisonGui(context.Hwnd, context.SelectedText, result, context.Selection, debugInfo)
 
         } catch as err {
@@ -3689,30 +3673,14 @@ class RisController {
         }
     }
 
-    static _CloneAIConfigWithProvider(aiConfig, providerName) {
-        return RisAIOrchestration.CloneConfigWithProvider(aiConfig, providerName)
-    }
-
-    static _BuildRefineRequestForProvider(selectedText, providerName) {
-        return RisAIOrchestration.BuildRefineRequest(RisConfig.AI.Refine, selectedText, providerName)
-    }
-
     static _TryRunRefineProvider(selectedText, providerName, displayName, trailingNewlines := "") {
         try {
-            request := this._BuildRefineRequestForProvider(selectedText, providerName)
+            request := RisAIOrchestration.BuildRefineRequest(RisConfig.AI.Refine, selectedText, providerName)
             response := this._RunRefineRequest(request)
-            return this._BuildRefineProviderSuccessResult(displayName, response, trailingNewlines)
+            return RisAIOrchestration.BuildRefineProviderSuccessResult(displayName, response, trailingNewlines)
         } catch as err {
-            return this._BuildRefineProviderFailureResult(displayName, err.Message)
+            return RisAIOrchestration.BuildRefineProviderFailureResult(displayName, err.Message)
         }
-    }
-
-    static _BuildRefineProviderSuccessResult(displayName, response, trailingNewlines := "") {
-        return RisAIOrchestration.BuildRefineProviderSuccessResult(displayName, response, trailingNewlines)
-    }
-
-    static _BuildRefineProviderFailureResult(displayName, message) {
-        return RisAIOrchestration.BuildRefineProviderFailureResult(displayName, message)
     }
 
     static _RunRefineProvidersParallel(selectedText, providerSpecs, trailingNewlines := "") {
@@ -3723,7 +3691,7 @@ class RisController {
             try {
                 tasks.Push(this._StartRefineProviderTask(selectedText, spec.Provider, spec.DisplayName))
             } catch as err {
-                results[spec.Provider] := this._BuildRefineProviderFailureResult(spec.DisplayName, err.Message)
+                results[spec.Provider] := RisAIOrchestration.BuildRefineProviderFailureResult(spec.DisplayName, err.Message)
             }
         }
 
@@ -3738,7 +3706,7 @@ class RisController {
                 if (A_TickCount - task.TaskStartedAt > this._aiProviderTimeoutMs) {
                     task.Done := true
                     try task.Req.Abort()
-                    results[task.Provider] := this._BuildRefineProviderFailureResult(task.DisplayName, "AI request timeout")
+                    results[task.Provider] := RisAIOrchestration.BuildRefineProviderFailureResult(task.DisplayName, "AI request timeout")
                     continue
                 }
 
@@ -3751,22 +3719,22 @@ class RisController {
                 try {
                     response := this._FinalizeRefineProviderTask(task)
                     task.Done := true
-                    results[task.Provider] := this._BuildRefineProviderSuccessResult(task.DisplayName, response, trailingNewlines)
+                    results[task.Provider] := RisAIOrchestration.BuildRefineProviderSuccessResult(task.DisplayName, response, trailingNewlines)
                 } catch as err {
-                    if (this._ShouldRetryRefineProviderTask(task)) {
+                    if (RisAIOrchestration.ShouldRetryRefineProviderTask(task)) {
                         try {
                             this._StartNextRefineProviderRequest(task)
                             pendingCount += 1
                             continue
                         } catch as retryErr {
                             task.Done := true
-                            results[task.Provider] := this._BuildRefineProviderFailureResult(task.DisplayName, retryErr.Message)
+                            results[task.Provider] := RisAIOrchestration.BuildRefineProviderFailureResult(task.DisplayName, retryErr.Message)
                             continue
                         }
                     }
 
                     task.Done := true
-                    results[task.Provider] := this._BuildRefineProviderFailureResult(task.DisplayName, err.Message)
+                    results[task.Provider] := RisAIOrchestration.BuildRefineProviderFailureResult(task.DisplayName, err.Message)
                 }
             }
 
@@ -3781,7 +3749,7 @@ class RisController {
     }
 
     static _StartRefineProviderTask(selectedText, providerName, displayName) {
-        request := this._BuildRefineRequestForProvider(selectedText, providerName)
+        request := RisAIOrchestration.BuildRefineRequest(RisConfig.AI.Refine, selectedText, providerName)
         providerName := StrLower(Trim(providerName))
 
         switch providerName {
@@ -3848,10 +3816,6 @@ class RisController {
         task.LastError := ""
     }
 
-    static _ShouldRetryRefineProviderTask(task) {
-        return RisAIOrchestration.ShouldRetryRefineProviderTask(task)
-    }
-
     static _FinalizeRefineProviderTask(task) {
         request := task.Request
         response := RisAIOrchestration.BuildTransportResponse(task.Req)
@@ -3883,10 +3847,6 @@ class RisController {
         }
 
         return RisAIOrchestration.BuildProviderResponseResult(parsed, request, providerLatency, task.Provider)
-    }
-
-    static _FormatPolishComparisonDebugInfo(response) {
-        return RisAIOrchestration.FormatPolishComparisonDebugInfo(response)
     }
 
     static _ShowPolishComparisonGui(hEdit, original, refined, sel, debugInfo := "") {
