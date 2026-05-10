@@ -9,6 +9,7 @@
 #Include .\RisAITransport.v2.ahk
 #Include .\RisAIDebug.v2.ahk
 #Include .\RisAIModelHealth.v2.ahk
+#Include .\RisAIOrchestration.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -3282,17 +3283,11 @@ class RisController {
     }
 
     static _NormalizeAIResult(result) {
-        result := StrReplace(result, "`r`n", "`n")
-        result := StrReplace(result, "`n", "`r`n")
-        return result
+        return RisAIOrchestration.NormalizeResult(result)
     }
 
     static _FormatAICompleteNotify(title, apiKeyName, modelName, detail := "") {
-        text := title . "`r`nAPI Key: " . apiKeyName . "`r`nModel: " . modelName
-        if (detail != "") {
-            text .= "`r`n" . detail
-        }
-        return text
+        return RisAIOrchestration.FormatCompleteNotify(title, apiKeyName, modelName, detail)
     }
 
     ; 10.0.1 Indication
@@ -3425,18 +3420,7 @@ class RisController {
     }
 
     static _CreateAIRequest(promptText, aiConfig, extraFields := 0) {
-        request := {
-            Prompt: promptText,
-            Config: aiConfig
-        }
-
-        if IsObject(extraFields) {
-            for key, value in extraFields.OwnProps() {
-                request.%key% := value
-            }
-        }
-
-        return request
+        return RisAIOrchestration.CreateRequest(promptText, aiConfig, extraFields)
     }
 
     static _BuildAIRequestResult(promptText, aiConfig) {
@@ -3649,11 +3633,7 @@ class RisController {
     }
 
     static _NormalizePolishResult(result, trailingNewlines := "") {
-        result := this._NormalizeAIResult(result)
-        if (trailingNewlines != "") {
-            result .= trailingNewlines
-        }
-        return result
+        return RisAIOrchestration.NormalizePolishResult(result, trailingNewlines)
     }
 
     static PolishSelectionWithAI() {
@@ -3742,26 +3722,11 @@ class RisController {
     }
 
     static _BuildRefineProviderSuccessResult(displayName, response, trailingNewlines := "") {
-        response.Result := this._NormalizePolishResult(response.Result, trailingNewlines)
-        return {
-            Success: true,
-            DisplayName: displayName,
-            Text: response.Result,
-            DebugInfo: this._FormatPolishComparisonDebugInfo(response)
-        }
+        return RisAIOrchestration.BuildRefineProviderSuccessResult(displayName, response, trailingNewlines)
     }
 
     static _BuildRefineProviderFailureResult(displayName, message) {
-        return {
-            Success: false,
-            DisplayName: displayName,
-            Text: "[" . displayName . " 失敗]`r`n" . message,
-            DebugInfo: {
-                APIKeyName: "-",
-                Model: "-",
-                ApiTime: "failed"
-            }
-        }
+        return RisAIOrchestration.BuildRefineProviderFailureResult(displayName, message)
     }
 
     static _RunRefineProvidersParallel(selectedText, providerSpecs, trailingNewlines := "") {
@@ -3948,11 +3913,7 @@ class RisController {
     }
 
     static _FormatPolishComparisonDebugInfo(response) {
-        return {
-            APIKeyName: response.APIKeyName,
-            Model: response.Model,
-            ApiTime: response.ApiTime . " ms"
-        }
+        return RisAIOrchestration.FormatPolishComparisonDebugInfo(response)
     }
 
     static _ShowPolishComparisonGui(hEdit, original, refined, sel, debugInfo := "") {
