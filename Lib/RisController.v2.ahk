@@ -8,6 +8,8 @@
 #Include .\RisAIRequestBuilder.v2.ahk
 #Include .\RisAITransport.v2.ahk
 #Include .\RisAIDebug.v2.ahk
+#Include .\RisAIDebugGui.v2.ahk
+#Include .\RisAIService.v2.ahk
 #Include .\RisAIModelHealth.v2.ahk
 #Include .\RisAIOrchestration.v2.ahk
 #Include .\RisDate.v2.ahk
@@ -233,8 +235,6 @@ class RisController {
     static _shellTrackTTL := 15000
     static IsDebug := false            ; [新增] Debug 模式切換
     static ShowGoogleAICurlDebug := false
-    static _aiProviderTimeoutMs := 90000
-    static _aiProviderPollIntervalMs := 25
 
     ; [自動更新相關狀態]
     static _lastUpdateTick := 0           ; 上次更新的時間
@@ -3652,10 +3652,10 @@ class RisController {
             }
 
             this.Notify("OpenAI / Google AI 潤色中...", 3000)
-            results := this._RunRefineProvidersParallel(context.SelectedText, [
+            results := RisAIService.RunRefineProvidersParallel(context.SelectedText, [
                 {Provider: "openai", DisplayName: "OpenAI"},
                 {Provider: "google", DisplayName: "Google"}
-            ], context.TrailingNewlines)
+            ], context.TrailingNewlines, this._GetAIServiceOptions())
             openAIResult := results["openai"]
             googleResult := results["google"]
 
@@ -3673,350 +3673,32 @@ class RisController {
         }
     }
 
-    static _TryRunRefineProvider(selectedText, providerName, displayName, trailingNewlines := "") {
-        try {
-            request := RisAIOrchestration.BuildRefineRequest(RisConfig.AI.Refine, selectedText, providerName)
-            response := this._RunRefineRequest(request)
-            return RisAIOrchestration.BuildRefineProviderSuccessResult(displayName, response, trailingNewlines)
-        } catch as err {
-            return RisAIOrchestration.BuildRefineProviderFailureResult(displayName, err.Message)
-        }
-    }
-
-    static _RunRefineProvidersParallel(selectedText, providerSpecs, trailingNewlines := "") {
-        results := Map()
-        tasks := []
-
-        for _, spec in providerSpecs {
-            try {
-                tasks.Push(this._StartRefineProviderTask(selectedText, spec.Provider, spec.DisplayName))
-            } catch as err {
-                results[spec.Provider] := RisAIOrchestration.BuildRefineProviderFailureResult(spec.DisplayName, err.Message)
-            }
-        }
-
-        loop {
-            pendingCount := 0
-
-            for _, task in tasks {
-                if (task.Done) {
-                    continue
-                }
-
-                if (A_TickCount - task.TaskStartedAt > this._aiProviderTimeoutMs) {
-                    task.Done := true
-                    try task.Req.Abort()
-                    results[task.Provider] := RisAIOrchestration.BuildRefineProviderFailureResult(task.DisplayName, "AI request timeout")
-                    continue
-                }
-
-                if (!task.Req.WaitForResponse(0)) {
-                    pendingCount += 1
-                    continue
-                }
-
-                task.CompletedAt := A_TickCount
-                try {
-                    response := this._FinalizeRefineProviderTask(task)
-                    task.Done := true
-                    results[task.Provider] := RisAIOrchestration.BuildRefineProviderSuccessResult(task.DisplayName, response, trailingNewlines)
-                } catch as err {
-                    if (RisAIOrchestration.ShouldRetryRefineProviderTask(task)) {
-                        try {
-                            this._StartNextRefineProviderRequest(task)
-                            pendingCount += 1
-                            continue
-                        } catch as retryErr {
-                            task.Done := true
-                            results[task.Provider] := RisAIOrchestration.BuildRefineProviderFailureResult(task.DisplayName, retryErr.Message)
-                            continue
-                        }
-                    }
-
-                    task.Done := true
-                    results[task.Provider] := RisAIOrchestration.BuildRefineProviderFailureResult(task.DisplayName, err.Message)
-                }
-            }
-
-            if (pendingCount == 0) {
-                break
-            }
-
-            Sleep(this._aiProviderPollIntervalMs)
-        }
-
-        return results
-    }
-
-    static _StartRefineProviderTask(selectedText, providerName, displayName) {
-        request := RisAIOrchestration.BuildRefineRequest(RisConfig.AI.Refine, selectedText, providerName)
-        providerName := StrLower(Trim(providerName))
-
-        switch providerName {
-            case "google":
-                models := this._ResolveGoogleAIModelList(request.Config)
-                healthPolicy := RisAIModelHealth.GetGooglePolicy()
-                models := RisAIModelHealth.PrioritizeGoogleModels(models, healthPolicy)
-                task := {
-                    Provider: providerName,
-                    DisplayName: displayName,
-                    Prompt: request.Prompt,
-                    Config: request.Config,
-                    Models: models,
-                    ModelIndex: 0,
-                    TaskStartedAt: A_TickCount,
-                    Done: false,
-                    HealthPolicy: healthPolicy
-                }
-                this._StartNextRefineProviderRequest(task)
-                return task
-            case "openai":
-                models := this._ResolveOpenAIModelList(request.Config)
-                task := {
-                    Provider: providerName,
-                    DisplayName: displayName,
-                    Prompt: request.Prompt,
-                    Config: request.Config,
-                    Models: models,
-                    ModelIndex: 0,
-                    TaskStartedAt: A_TickCount,
-                    Done: false
-                }
-                this._StartNextRefineProviderRequest(task)
-                return task
-            default:
-                throw Error("不支援的 AI provider: " . providerName)
-        }
-    }
-
-    static _StartNextRefineProviderRequest(task) {
-        task.ModelIndex += 1
-        if (task.ModelIndex > task.Models.Length) {
-            throw Error("沒有可用的 " . task.DisplayName . " fallback model")
-        }
-
-        modelName := task.Models[task.ModelIndex]
-        if (task.Provider == "google") {
-            providerRequest := this._BuildGoogleAIRequest(task.Prompt, task.Config, modelName)
-            startedAt := A_TickCount
-            req := RisAITransport.SendGoogleAsync(providerRequest.Url, providerRequest.Payload)
-        } else if (task.Provider == "openai") {
-            providerRequest := this._BuildOpenAIRequest(task.Prompt, task.Config, modelName)
-            startedAt := A_TickCount
-            req := RisAITransport.SendOpenAIAsync(providerRequest)
-        } else {
-            throw Error("不支援的 AI provider: " . task.Provider)
-        }
-
-        task.Request := providerRequest
-        task.Req := req
-        task.StartedAt := startedAt
-        task.CompletedAt := 0
-        task.LastHttpStatus := ""
-        task.LastError := ""
-    }
-
-    static _FinalizeRefineProviderTask(task) {
-        request := task.Request
-        response := RisAIOrchestration.BuildTransportResponse(task.Req)
-
-        completedAt := task.HasOwnProp("CompletedAt") ? task.CompletedAt : A_TickCount
-        providerLatency := completedAt - task.StartedAt
-        request.Metrics.WaitForResponseTime := providerLatency
-        if (task.Provider == "google") {
-            this._DebugGoogleAIResponse(request.Url, request.Payload, response, request)
-        }
-
-        if (response.Status != 200) {
-            task.LastHttpStatus := response.Status
-            task.LastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
-            if (task.Provider == "google") {
-                request.Metrics.ResponseParseTime := 0
-                RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
-                RisAIModelHealth.RecordGoogleHttpError(request.Model, task.HealthPolicy)
-            }
-            throw Error(task.LastError)
-        }
-
-        parseStart := A_TickCount
-        parsed := RisAIOrchestration.ParseProviderResponse(task.Provider, response.ResponseText)
-        request.Metrics.ResponseParseTime := A_TickCount - parseStart
-
-        if (task.Provider == "google") {
-            RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
-        }
-
-        return RisAIOrchestration.BuildProviderResponseResult(parsed, request, providerLatency, task.Provider)
-    }
-
     static _ShowPolishComparisonGui(hEdit, original, refined, sel, debugInfo := "") {
-        ; 建立比對 GUI
-        myGui := Gui("+AlwaysOnTop +ToolWindow", "AI 潤色結果比對")
-        myGui.MarginX := 14
-        myGui.MarginY := 12
-        myGui.BackColor := "F4F5F7"
-        myGui.SetFont("s11", "Microsoft JhengHei UI")
-
-        ; --- 第一列：標題對齊 ---
-        myGui.Add("Text", "w400", "原始文字 (Original):")
-        myGui.Add("Text", "x+20 yp w400", "潤色結果 (Refined):")
-
-        ; --- 第二列：內容對齊 ---
-        ; 兩者皆設為 ReadOnly，並加入 -WantReturn 讓 Enter 鍵能觸發 Default 按鈕
-        originalEdit := myGui.Add("Edit", "xm w400 r15 ReadOnly Multi -WantReturn", original)
-        refinedEdit := myGui.Add("Edit", "x+20 yp w400 r15 ReadOnly Multi -WantReturn", refined)
-        this._ApplyCustomFontToControls(originalEdit.Hwnd, refinedEdit.Hwnd)
-
-        if IsObject(debugInfo) {
-            myGui.SetFont("s10", "Consolas")
-            myGui.Add("Text", "xm y+12 w260 Center", "API Key: " . debugInfo.APIKeyName)
-            myGui.Add("Text", "x+20 yp w260 Center", "Model: " . debugInfo.Model)
-            myGui.Add("Text", "x+20 yp w260 Center", "API Time: " . debugInfo.ApiTime)
-            myGui.SetFont("s11", "Microsoft JhengHei UI")
+        options := {
+            Notify: this.Notify.Bind(this),
+            ApplyFont: this._ApplyCustomFontToControls.Bind(this),
+            OnAccept: (hEdit, finalText, sel) => (
+                finalText := StrReplace(finalText, "`r`n", "`n"),
+                finalText := StrReplace(finalText, "`n", "`r`n"),
+                this._EditSetSel(hEdit, sel.Start, sel.End),
+                this._ReplaceSelectionAndScroll(hEdit, finalText)
+            )
         }
-
-        ; --- 第三列：按鈕區 ---
-        btnAccept := myGui.Add("Button", "Default w180 x220 y+20", "✅ Accept (Enter)")
-        btnReject := myGui.Add("Button", "w180 x+20", "❌ Reject (Esc)")
-
-        ; 事件處理函式
-        handleAccept(*) {
-            finalText := refinedEdit.Value
-            finalText := StrReplace(finalText, "`r`n", "`n")
-            finalText := StrReplace(finalText, "`n", "`r`n")
-
-            this._EditSetSel(hEdit, sel.Start, sel.End)
-            this._ReplaceSelectionAndScroll(hEdit, finalText)
-            myGui.Destroy()
-            this.Notify("已更新文字")
-        }
-
-        btnAccept.OnEvent("Click", handleAccept)
-        btnReject.OnEvent("Click", (*) => myGui.Destroy())
-
-        ; 快捷鍵：Esc 關閉
-        myGui.OnEvent("Escape", (*) => myGui.Destroy())
-
-        myGui.Show("Center")
-        this._ApplyPolishComparisonWindowStyle(myGui.Hwnd)
-
-        ; 自動聚焦到結果框（方便按 Enter），並將游標移至開頭（防止自動全選）
-        refinedEdit.Focus()
-        SendMessage(0x00B1, 0, 0, refinedEdit.Hwnd) ; EM_SETSEL: Start=0, End=0
-    }
-
-    static _GetThreeColumnComparisonLayout() {
-        MonitorGetWorkArea(, &left, &top, &right, &bottom)
-        workWidth := right - left
-        maxWindowWidth := Floor(workWidth * 0.9)
-        marginX := 14
-        columnGap := 16
-        minColumnWidth := 280
-        columnWidth := Floor((maxWindowWidth - (marginX * 2) - (columnGap * 2)) / 3)
-
-        if (columnWidth < minColumnWidth) {
-            columnWidth := minColumnWidth
-        }
-
-        return {
-            MarginX: marginX,
-            Gap: columnGap,
-            ColumnWidth: columnWidth,
-            WindowWidth: (columnWidth * 3) + (columnGap * 2) + (marginX * 2)
-        }
+        RisAIDebugGui.ShowPolishComparisonGui(hEdit, original, refined, sel, debugInfo, options)
     }
 
     static _ShowPolishProviderComparisonGui(hEdit, original, openAIResult, googleResult, sel) {
-        layout := this._GetThreeColumnComparisonLayout()
-        colW := layout.ColumnWidth
-        gap := layout.Gap
-
-        myGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "AI 潤色結果三欄比對")
-        myGui.MarginX := layout.MarginX
-        myGui.MarginY := 12
-        myGui.BackColor := "F4F5F7"
-        myGui.SetFont("s11", "Microsoft JhengHei UI")
-
-        myGui.Add("Text", Format("w{}", colW), "原始文字 (Original):")
-        myGui.Add("Text", Format("x+{} yp w{}", gap, colW), "OpenAI:")
-        myGui.Add("Text", Format("x+{} yp w{}", gap, colW), "Google AI:")
-
-        originalEdit := myGui.Add("Edit", Format("xm w{} r18 ReadOnly Multi -WantReturn", colW), original)
-        openAIEdit := myGui.Add("Edit", Format("x+{} yp w{} r18 ReadOnly Multi -WantReturn", gap, colW), openAIResult.Text)
-        googleEdit := myGui.Add("Edit", Format("x+{} yp w{} r18 ReadOnly Multi -WantReturn", gap, colW), googleResult.Text)
-        this._ApplyCustomFontToControls(originalEdit.Hwnd, openAIEdit.Hwnd, googleEdit.Hwnd)
-
-        myGui.SetFont("s9", "Consolas")
-        myGui.Add("Text", Format("xm y+10 w{} Center", colW), "")
-        myGui.Add("Text", Format("x+{} yp w{} Center", gap, colW), this._FormatProviderDebugLine(openAIResult))
-        myGui.Add("Text", Format("x+{} yp w{} Center", gap, colW), this._FormatProviderDebugLine(googleResult))
-        myGui.SetFont("s11", "Microsoft JhengHei UI")
-
-        buttonWidth := Min(160, colW)
-        buttonOffset := Floor((colW - buttonWidth) / 2)
-        openAIButtonX := layout.MarginX + colW + gap + buttonOffset
-        googleButtonX := layout.MarginX + (colW * 2) + (gap * 2) + buttonOffset
-        btnUseOpenAI := myGui.Add("Button", Format("Default w{} x{} y+18", buttonWidth, openAIButtonX), "Use OpenAI")
-        btnUseGoogle := myGui.Add("Button", Format("w{} x{} yp", buttonWidth, googleButtonX), "Use Google")
-
-        if (!openAIResult.Success) {
-            btnUseOpenAI.Enabled := false
+        options := {
+            Notify: this.Notify.Bind(this),
+            ApplyFont: this._ApplyCustomFontToControls.Bind(this),
+            OnAccept: (hEdit, finalText, sel) => (
+                finalText := StrReplace(finalText, "`r`n", "`n"),
+                finalText := StrReplace(finalText, "`n", "`r`n"),
+                this._EditSetSel(hEdit, sel.Start, sel.End),
+                this._ReplaceSelectionAndScroll(hEdit, finalText)
+            )
         }
-        if (!googleResult.Success) {
-            btnUseGoogle.Enabled := false
-        }
-
-        applyResult(editCtrl, label, *) {
-            finalText := editCtrl.Value
-            finalText := StrReplace(finalText, "`r`n", "`n")
-            finalText := StrReplace(finalText, "`n", "`r`n")
-
-            this._EditSetSel(hEdit, sel.Start, sel.End)
-            this._ReplaceSelectionAndScroll(hEdit, finalText)
-            myGui.Destroy()
-            this.Notify("已套用 " . label . " 版本")
-        }
-
-        btnUseOpenAI.OnEvent("Click", applyResult.Bind(openAIEdit, "OpenAI"))
-        btnUseGoogle.OnEvent("Click", applyResult.Bind(googleEdit, "Google AI"))
-        myGui.OnEvent("Escape", (*) => myGui.Destroy())
-
-        myGui.Show(Format("w{} Center", layout.WindowWidth))
-        this._ApplyPolishComparisonWindowStyle(myGui.Hwnd)
-
-        if (openAIResult.Success) {
-            openAIEdit.Focus()
-            SendMessage(0x00B1, 0, 0, openAIEdit.Hwnd)
-        } else if (googleResult.Success) {
-            googleEdit.Focus()
-            SendMessage(0x00B1, 0, 0, googleEdit.Hwnd)
-        }
-    }
-
-    static _FormatProviderDebugLine(result) {
-        if (!IsObject(result) || !result.HasOwnProp("DebugInfo")) {
-            return ""
-        }
-
-        debugInfo := result.DebugInfo
-        return "API Key: " . debugInfo.APIKeyName . " | Model: " . debugInfo.Model . " | Time: " . debugInfo.ApiTime
-    }
-
-    static _ApplyPolishComparisonWindowStyle(hwnd) {
-        try {
-            if (this._GetWindowsBuildNumber() < 22000) {
-                renderingPolicy := 1 ; DWMNCRP_DISABLED: remove Win10 DWM shadow/edge.
-                DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 2, "Int*", renderingPolicy, "UInt", 4)
-                return
-            }
-
-            borderColor := 0xFFFFFFFE ; DWMWA_COLOR_NONE: remove Win11 DWM outline while keeping shadow.
-            DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 34, "UInt*", borderColor, "UInt", 4)
-        }
-    }
-
-    static _GetWindowsBuildNumber() {
-        return RegExMatch(A_OSVersion, "^\d+\.\d+\.(\d+)", &match) ? Integer(match[1]) : 0
+        RisAIDebugGui.ShowPolishProviderComparisonGui(hEdit, original, openAIResult, googleResult, sel, options)
     }
 
     ; [內部 Helper] 專用於插入 Impression 欄位
@@ -4099,16 +3781,16 @@ class RisController {
     ; request prepare / transport wait / response parse
     ; =================================================================
     static _CallAI(promptText, aiConfig := 0) {
-        defaultProvider := IniRead("config\private.ini", "AI", "Provider", "google")
-        providerName := RisAIProviderPolicy.ResolveProvider(aiConfig, defaultProvider)
+        return RisAIService.Call(promptText, aiConfig, this._GetAIServiceOptions())
+    }
 
-        switch providerName {
-            case "google":
-                return this._CallGoogleAI(promptText, aiConfig)
-            case "openai":
-                return this._CallOpenAI(promptText, aiConfig)
-            default:
-                throw Error("不支援的 AI provider: " . providerName)
+    static _GetAIServiceOptions() {
+        return {
+            Notify: this.Notify.Bind(this),
+            ShowCurl: this.ShowGoogleAICurlDebug,
+            ShowGoogleDebugCurl: this._ShowGoogleAIDebugCurl.Bind(this),
+            GetGoogleConfig: this._GetGoogleAIConfig.Bind(this),
+            GetOpenAIConfig: this._GetOpenAIConfig.Bind(this)
         }
     }
 
@@ -4121,177 +3803,32 @@ class RisController {
         return this._googleAIConfig
     }
 
-    static _ResolveGoogleAIModelList(aiConfig := 0) {
-        cfg := this._GetGoogleAIConfig()
-        return RisAIProviderPolicy.ResolveModelList(aiConfig, "google", cfg.Model)
-    }
-
-    static _ResolveGoogleAIOptions(aiConfig := 0, modelOverride := "") {
-        cfg := this._GetGoogleAIConfig()
-        return RisAIConfigResolver.ResolveGoogleOptions(cfg, aiConfig, modelOverride)
-    }
-
-    static _BuildGoogleAIRequest(promptText, aiConfig := 0, modelOverride := "") {
-        configStart := A_TickCount
-        options := this._ResolveGoogleAIOptions(aiConfig, modelOverride)
-        configTime := A_TickCount - configStart
-
-        return RisAIRequestBuilder.BuildGoogleRequest(promptText, options, configTime)
-    }
-
-    static _ShowGoogleAIDebugCurl(url, payload, response, request := 0) {
-        curlCommand := RisAIDebug.BuildGoogleCurlCommand(url, payload)
-        modelText := IsObject(request) && request.HasOwnProp("Model") ? request.Model : "(unknown)"
-        apiKeyName := IsObject(request) && request.HasOwnProp("APIKeyName") ? request.APIKeyName : "(unknown)"
-        waitText := ""
-        if (IsObject(request) && request.HasOwnProp("Metrics") && request.Metrics.HasOwnProp("WaitForResponseTime")) {
-            waitText := "`r`nWaitForResponse: " . request.Metrics.WaitForResponseTime . " ms"
-        }
-
-        debugGui := Gui("+AlwaysOnTop +Resize", "Google AI Debug - curl")
-        debugGui.SetFont("s10", "Microsoft JhengHei UI")
-        debugGui.Add("Text", "w760", "Status: " . response.Status
-            . "`r`nModel: " . modelText
-            . "`r`nAPI Key: " . apiKeyName
-            . waitText
-            . "`r`nPayload: " . StrLen(payload) . " chars"
-            . "`r`nResponse: " . StrLen(response.ResponseText) . " chars")
-        curlEdit := debugGui.Add("Edit", "w760 h360 ReadOnly Multi -Wrap", curlCommand)
-
-        btnCopy := debugGui.Add("Button", "w140 x10 y+12", "複製 curl")
-        btnCopy.OnEvent("Click", (*) => (
-            A_Clipboard := curlCommand,
-            this.Notify("已複製 curl 測試指令", 2000)
-        ))
-
-        btnCopyAll := debugGui.Add("Button", "w180 x+10 yp", "複製完整 debug")
-        btnCopyAll.OnEvent("Click", (*) => (
-            A_Clipboard := "URL: " . url . "`r`n`r`nPayload:`r`n" . payload . "`r`n`r`nResponse:`r`n" . response.ResponseText . "`r`n`r`nCurl:`r`n" . curlCommand,
-            this.Notify("已複製完整 debug 資訊", 2000)
-        ))
-
-        btnClose := debugGui.Add("Button", "w100 x+10 yp", "關閉")
-        btnClose.OnEvent("Click", (*) => debugGui.Destroy())
-        debugGui.Show()
-    }
-
-    static _DebugGoogleAIResponse(url, payload, response, request := 0) {
-        if (!this.ShowGoogleAICurlDebug) {
-            return
-        }
-
-        this._ShowGoogleAIDebugCurl(url, payload, response, request)
-    }
-
-    static _CallGoogleAI(promptText, aiConfig := 0) {
-        models := this._ResolveGoogleAIModelList(aiConfig)
-        healthPolicy := RisAIModelHealth.GetGooglePolicy()
-        models := RisAIModelHealth.PrioritizeGoogleModels(models, healthPolicy)
-        lastError := ""
-
-        for index, modelName in models {
-            request := this._BuildGoogleAIRequest(promptText, aiConfig, modelName)
-            waitStart := A_TickCount
-            response := RisAITransport.SendGoogle(request.Url, request.Payload)
-            request.Metrics.WaitForResponseTime := A_TickCount - waitStart
-            this._DebugGoogleAIResponse(request.Url, request.Payload, response, request)
-
-            if (response.Status != 200) {
-                request.Metrics.ResponseParseTime := 0
-                RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
-                RisAIModelHealth.RecordGoogleHttpError(request.Model, healthPolicy)
-                lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
-                if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status) && index < models.Length) {
-                    this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
-                    OutputDebug("[RisController] GoogleAI retry with fallback model after HTTP " . response.Status . ": " . request.Model . "`n")
-                    continue
-                }
-                throw Error(lastError)
-            }
-
-            parseStart := A_TickCount
-            parsed := RisAIOrchestration.ParseProviderResponse("google", response.ResponseText)
-            request.Metrics.ResponseParseTime := A_TickCount - parseStart
-            RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
-            return RisAIOrchestration.BuildProviderCallResult(parsed, request, "google")
-        }
-
-        throw Error(lastError)
-    }
-
     static _GetOpenAIConfig() {
         return RisAIConfigResolver.GetOpenAIConfig()
     }
 
-    static _ResolveOpenAIModelList(aiConfig := 0) {
-        cfg := this._GetOpenAIConfig()
-        return RisAIProviderPolicy.ResolveModelList(aiConfig, "openai", cfg.Model)
+    static _ResolveGoogleAIModelList(aiConfig := 0) {
+        return RisAIService._ResolveGoogleAIModelList(aiConfig, this._GetAIServiceOptions())
     }
 
-    static _ResolveOpenAIOptions(aiConfig := 0, modelOverride := "") {
-        cfg := this._GetOpenAIConfig()
-        return RisAIConfigResolver.ResolveOpenAIOptions(cfg, aiConfig, modelOverride)
+    static _BuildGoogleAIRequest(promptText, aiConfig := 0, modelOverride := "") {
+        return RisAIService._BuildGoogleAIRequest(promptText, aiConfig, modelOverride, this._GetAIServiceOptions())
+    }
+
+    static _ResolveOpenAIModelList(aiConfig := 0) {
+        return RisAIService._ResolveOpenAIModelList(aiConfig, this._GetAIServiceOptions())
     }
 
     static _BuildOpenAIRequest(promptText, aiConfig := 0, modelOverride := "") {
-        configStart := A_TickCount
-        options := this._ResolveOpenAIOptions(aiConfig, modelOverride)
-        configTime := A_TickCount - configStart
-
-        return RisAIRequestBuilder.BuildOpenAIRequest(promptText, options, configTime)
+        return RisAIService._BuildOpenAIRequest(promptText, aiConfig, modelOverride, this._GetAIServiceOptions())
     }
 
-    static _CallOpenAI(promptText, aiConfig := 0) {
-        models := this._ResolveOpenAIModelList(aiConfig)
-        lastError := ""
-
-        for index, modelName in models {
-            request := this._BuildOpenAIRequest(promptText, aiConfig, modelName)
-            waitStart := A_TickCount
-            response := RisAITransport.SendOpenAI(request)
-            request.Metrics.WaitForResponseTime := A_TickCount - waitStart
-
-            if (response.Status != 200) {
-                lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
-                if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status) && index < models.Length) {
-                    this.Notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
-                    continue
-                }
-                throw Error(lastError)
-            }
-
-            parsed := RisAIOrchestration.ParseProviderResponse("openai", response.ResponseText)
-            return RisAIOrchestration.BuildProviderCallResult(parsed, request, "openai")
-        }
-
-        throw Error(lastError)
+    static _ShowGoogleAIDebugCurl(url, payload, response, request := 0) {
+        RisAIDebugGui.ShowGoogleAIDebugCurl(url, payload, response, request, { Notify: this.Notify.Bind(this) })
     }
 
     ; [新增] 專用於 Debug 的持久化錯誤視窗
     static _ShowDebugError(errMsg) {
-        ; 建立新 GUI：置頂、有標題列、有外框
-        errGui := Gui("+AlwaysOnTop +Resize", "AI Debug - 處理失敗")
-        errGui.SetFont("s10", "Microsoft JhengHei UI")
-
-        errGui.Add("Text", "w500", "API 呼叫或處理過程中發生例外錯誤：")
-
-        ; 使用唯讀的 Edit 控制項來裝載可能很長的錯誤訊息，並啟用垂直捲軸
-        errEdit := errGui.Add("Edit", "w500 h250 ReadOnly Multi vErrText", errMsg)
-
-        ; 一鍵複製按鈕
-        btnCopy := errGui.Add("Button", "w120 x10 y+15", "📋 複製完整訊息")
-        btnCopy.OnEvent("Click", (*) => (
-            A_Clipboard := errMsg,
-            this.Notify("已複製錯誤訊息至剪貼簿！", 2000)
-        ))
-
-        ; 關閉按鈕
-        btnClose := errGui.Add("Button", "w100 x+270", "關閉")
-        btnClose.OnEvent("Click", (*) => errGui.Destroy())
-
-        ; 顯示在畫面中央
-        errGui.Show("AutoSize Center")
-        btnClose.Focus()
-        SendMessage(0x00B1, 0, 0, errEdit.Hwnd) ; 避免唯讀 Edit 在顯示時自動全選
+        RisAIDebugGui.ShowDebugError(errMsg, { Notify: this.Notify.Bind(this) })
     }
 }
