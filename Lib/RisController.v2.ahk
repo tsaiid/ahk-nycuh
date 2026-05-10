@@ -4224,18 +4224,7 @@ class RisController {
             return this._googleAIConfig
         }
 
-        configFile := "config\private.ini"
-        apiKey := IniRead(configFile, "GoogleAI", "APIKey", "")
-
-        this._googleAIConfig := {
-            ConfigFile: configFile,
-            APIKey: apiKey,
-            Model: IniRead(configFile, "GoogleAI", "Model", "gemma-3-27b-it"),
-            Temperature: IniRead(configFile, "GoogleAI", "Temperature", "0.2"),
-            TopP: IniRead(configFile, "GoogleAI", "TopP", "0.95"),
-            EnableGoogleSearch: RisAIProviderPolicy.ParseConfigBool(IniRead(configFile, "GoogleAI", "EnableGoogleSearch", "false"), false)
-        }
-
+        this._googleAIConfig := RisAIConfigResolver.GetGoogleConfig()
         return this._googleAIConfig
     }
 
@@ -4508,14 +4497,7 @@ class RisController {
     }
 
     static _GetOpenAIConfig() {
-        return {
-            ConfigFile: "config\private.ini",
-            APIKey: IniRead("config\private.ini", "OpenAI", "APIKey", ""),
-            BaseUrl: IniRead("config\private.ini", "OpenAI", "BaseUrl", "https://api.openai.com/v1/responses"),
-            Model: IniRead("config\private.ini", "OpenAI", "Model", "gpt-5.4-nano"),
-            Temperature: IniRead("config\private.ini", "OpenAI", "Temperature", "0.2"),
-            ReasoningEffort: IniRead("config\private.ini", "OpenAI", "ReasoningEffort", "none")
-        }
+        return RisAIConfigResolver.GetOpenAIConfig()
     }
 
     static _ResolveOpenAIAPIKey(cfg, aiConfig) {
