@@ -6,6 +6,7 @@
 #Include .\RisAIText.v2.ahk
 #Include .\RisAIPayload.v2.ahk
 #Include .\RisAIRequestBuilder.v2.ahk
+#Include .\RisAITransport.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -3878,11 +3879,11 @@ class RisController {
         if (task.Provider == "google") {
             providerRequest := this._BuildGoogleAIRequest(task.Prompt, task.Config, modelName)
             startedAt := A_TickCount
-            req := this._SendGoogleAIRequestAsync(providerRequest.Url, providerRequest.Payload)
+            req := RisAITransport.SendGoogleAsync(providerRequest.Url, providerRequest.Payload)
         } else if (task.Provider == "openai") {
             providerRequest := this._BuildOpenAIRequest(task.Prompt, task.Config, modelName)
             startedAt := A_TickCount
-            req := this._SendOpenAIRequestAsync(providerRequest)
+            req := RisAITransport.SendOpenAIAsync(providerRequest)
         } else {
             throw Error("不支援的 AI provider: " . task.Provider)
         }
@@ -4247,33 +4248,6 @@ class RisController {
         return RisAIRequestBuilder.BuildGoogleRequest(promptText, options, configTime)
     }
 
-    static _WaitForGoogleAIResponse(req) {
-        ; 保留既有短輪詢行為，先集中在 transport helper 內，方便後續替換。
-        while !req.WaitForResponse(0.01) {
-            Sleep(10)
-        }
-    }
-
-    static _SendGoogleAIRequestAsync(url, payload) {
-        req := ComObject("WinHttp.WinHttpRequest.5.1")
-
-        req.Open("POST", url, True)
-        req.SetRequestHeader("Content-Type", "application/json")
-        req.Send(payload)
-        return req
-    }
-
-    static _SendGoogleAIRequest(url, payload) {
-        ; 目前先保留既有非同步 request + wait 介面，後續可獨立抽成 transport/service。
-        req := this._SendGoogleAIRequestAsync(url, payload)
-        this._WaitForGoogleAIResponse(req)
-
-        return {
-            Status: req.Status,
-            ResponseText: req.ResponseText
-        }
-    }
-
     static _EscapePowerShellSingleQuotedString(text) {
         return StrReplace(text, "'", "''")
     }
@@ -4431,7 +4405,7 @@ class RisController {
         for index, modelName in models {
             request := this._BuildGoogleAIRequest(promptText, aiConfig, modelName)
             waitStart := A_TickCount
-            response := this._SendGoogleAIRequest(request.Url, request.Payload)
+            response := RisAITransport.SendGoogle(request.Url, request.Payload)
             request.Metrics.WaitForResponseTime := A_TickCount - waitStart
             this._DebugGoogleAIResponse(request.Url, request.Payload, response, request)
 
@@ -4485,28 +4459,6 @@ class RisController {
         return RisAIRequestBuilder.BuildOpenAIRequest(promptText, options, configTime)
     }
 
-    static _SendOpenAIRequest(request) {
-        req := this._SendOpenAIRequestAsync(request)
-
-        while !req.WaitForResponse(0.01) {
-            Sleep(10)
-        }
-
-        return {
-            Status: req.Status,
-            ResponseText: req.ResponseText
-        }
-    }
-
-    static _SendOpenAIRequestAsync(request) {
-        req := ComObject("WinHttp.WinHttpRequest.5.1")
-        req.Open("POST", request.Url, True)
-        req.SetRequestHeader("Content-Type", "application/json")
-        req.SetRequestHeader("Authorization", "Bearer " . request.APIKey)
-        req.Send(request.Payload)
-        return req
-    }
-
     static _CallOpenAI(promptText, aiConfig := 0) {
         models := this._ResolveOpenAIModelList(aiConfig)
         lastError := ""
@@ -4514,7 +4466,7 @@ class RisController {
         for index, modelName in models {
             request := this._BuildOpenAIRequest(promptText, aiConfig, modelName)
             waitStart := A_TickCount
-            response := this._SendOpenAIRequest(request)
+            response := RisAITransport.SendOpenAI(request)
             request.Metrics.WaitForResponseTime := A_TickCount - waitStart
 
             if (response.Status != 200) {
