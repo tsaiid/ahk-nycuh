@@ -2984,17 +2984,7 @@ class RisController {
     }
 
     static _GetCurrExamType() {
-        name := this._GetCleanCurrentExamName()
-        if (InStr(name, "CT") || InStr(name, "電腦斷層")) {
-            return "CT"
-        }
-        if (InStr(name, "MR") || InStr(name, "磁振造影")) {
-            return "MR"
-        }
-        if (InStr(name, "US") || InStr(name, "超音波")) {
-            return "US"
-        }
-        return "CR"
+        return RisReportText.GetExamType(this._GetCleanCurrentExamName())
     }
 
     static _IsRelatedReport(prev, curr) {

@@ -57,4 +57,17 @@ class RisReportText {
 
         return text
     }
+
+    static GetExamType(examName) {
+        if (InStr(examName, "CT") || InStr(examName, "電腦斷層")) {
+            return "CT"
+        }
+        if (InStr(examName, "MR") || InStr(examName, "磁振造影")) {
+            return "MR"
+        }
+        if (InStr(examName, "US") || InStr(examName, "超音波")) {
+            return "US"
+        }
+        return "CR"
+    }
 }
