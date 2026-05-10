@@ -197,4 +197,49 @@ class RisEditControl {
         this.SetSel(hCtrl, targetPos, targetPos)
         this.ScrollCaret(hCtrl)
     }
+
+    static DeleteWordBackward(hCtrl) {
+        try {
+            fullText := ControlGetText(hCtrl)
+        } catch {
+            return
+        }
+
+        caretPos := this.GetSel(hCtrl).Start
+        if (caretPos == 0) {
+            return
+        }
+
+        i := caretPos
+
+        GetCharType(char) {
+            if (RisEditControl.IsSpace(char))
+                return 1
+            if (IsAlnum(char) || char == "_")
+                return 2
+            return 3
+        }
+
+        while (i > 0 && this.IsSpace(SubStr(fullText, i, 1))) {
+            i--
+        }
+
+        if (i > 0) {
+            targetType := GetCharType(SubStr(fullText, i, 1))
+
+            while (i > 0) {
+                currentChar := SubStr(fullText, i, 1)
+                if (GetCharType(currentChar) != targetType)
+                    break
+                i--
+            }
+        }
+
+        this.SetSel(hCtrl, i, caretPos)
+        this.ReplaceSel(hCtrl, "")
+    }
+
+    static IsSpace(char) {
+        return char == " " || char == "`t" || char == "`r" || char == "`n"
+    }
 }
