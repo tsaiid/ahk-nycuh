@@ -1295,18 +1295,7 @@ class RisController {
     static KillLine() {
         try {
             hEdit := ControlGetFocus("A")
-
-            sel := this._EditGetSel(hEdit)
-            currentPos := sel.Start
-            text := ControlGetText(hEdit)
-
-            foundPos := InStr(text, "`r", , currentPos + 1)
-            targetPos := (foundPos == 0) ? StrLen(text) : foundPos - 1
-
-            if (targetPos > currentPos) {
-                this._EditSetSel(hEdit, currentPos, targetPos)
-                this._EditReplaceSel(hEdit, "")
-            }
+            RisEditControl.KillLine(hEdit)
         }
     }
 

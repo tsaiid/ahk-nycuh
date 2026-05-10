@@ -134,4 +134,18 @@ class RisEditControl {
 
         this.ScrollCaret(hCtrl)
     }
+
+    static KillLine(hCtrl) {
+        sel := this.GetSel(hCtrl)
+        currentPos := sel.Start
+        text := ControlGetText(hCtrl)
+
+        foundPos := InStr(text, "`r", , currentPos + 1)
+        targetPos := (foundPos == 0) ? StrLen(text) : foundPos - 1
+
+        if (targetPos > currentPos) {
+            this.SetSel(hCtrl, currentPos, targetPos)
+            this.ReplaceSel(hCtrl, "")
+        }
+    }
 }

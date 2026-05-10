@@ -602,6 +602,7 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
   - `SelectLine(hCtrl)`
   - `SelectLineForRemoval(hCtrl)`
   - `InsertNewLine(hCtrl, mode := "Below")`
+  - `KillLine(hCtrl)`
 
 `RisController` 目前仍保留 `_EditGetSel()` / `_EditSetSel()` / `_EditReplaceSel()` / `_ReplaceSelectionAndScroll()` / `_GetLogicalLineBoundaries()` / `_SelectLine()` / `_SelectLineForRemoval()` wrappers，目的是維持既有呼叫點穩定，避免同一 commit 同時處理大量 call-site churn。
 
