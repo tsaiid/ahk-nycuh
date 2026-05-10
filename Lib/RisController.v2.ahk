@@ -5,6 +5,7 @@
 #Include .\RisAIProviderPolicy.v2.ahk
 #Include .\RisAIText.v2.ahk
 #Include .\RisAIPayload.v2.ahk
+#Include .\RisAIRequestBuilder.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -4243,18 +4244,7 @@ class RisController {
         options := this._ResolveGoogleAIOptions(aiConfig, modelOverride)
         configTime := A_TickCount - configStart
 
-        payloadStart := A_TickCount
-
-        return {
-            Url: RisAIPayload.BuildGoogleUrl(options),
-            Payload: RisAIPayload.BuildGooglePayload(promptText, options),
-            APIKeyName: options.APIKeyName,
-            Model: options.Model,
-            Metrics: {
-                ConfigReadTime: configTime,
-                PayloadBuildTime: A_TickCount - payloadStart
-            }
-        }
+        return RisAIRequestBuilder.BuildGoogleRequest(promptText, options, configTime)
     }
 
     static _WaitForGoogleAIResponse(req) {
@@ -4492,18 +4482,7 @@ class RisController {
         options := this._ResolveOpenAIOptions(aiConfig, modelOverride)
         configTime := A_TickCount - configStart
 
-        payloadStart := A_TickCount
-        return {
-            Url: options.BaseUrl,
-            Payload: RisAIPayload.BuildOpenAIPayload(promptText, options),
-            APIKey: options.APIKey,
-            APIKeyName: options.APIKeyName,
-            Model: options.Model,
-            Metrics: {
-                ConfigReadTime: configTime,
-                PayloadBuildTime: A_TickCount - payloadStart
-            }
-        }
+        return RisAIRequestBuilder.BuildOpenAIRequest(promptText, options, configTime)
     }
 
     static _SendOpenAIRequest(request) {
