@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0
 #Include .\UIA.v2.ahk
 #Include .\RisConfig.v2.ahk
+#Include .\RisAIText.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -4361,10 +4362,10 @@ class RisController {
     }
 
     static _BuildGoogleAIPayload(promptText, options) {
-        escapedPrompt := this._EscapeJsonString(promptText)
+        escapedPrompt := RisAIText.EscapeJsonString(promptText)
         generationConfig := '"temperature": ' . options.Temperature . ','
         if (options.ThinkingLevel != "") {
-            generationConfig .= '"thinkingConfig": {"thinkingLevel": "' . this._EscapeJsonString(options.ThinkingLevel) . '"},'
+            generationConfig .= '"thinkingConfig": {"thinkingLevel": "' . RisAIText.EscapeJsonString(options.ThinkingLevel) . '"},'
         }
         generationConfig .= '"topP": ' . options.TopP
 
@@ -4380,15 +4381,6 @@ class RisController {
         }
 
         return payload . '}'
-    }
-
-    static _EscapeJsonString(text) {
-        escaped := StrReplace(text, "\", "\\")
-        escaped := StrReplace(escaped, "`"", "\`"")
-        escaped := StrReplace(escaped, "`n", "\n")
-        escaped := StrReplace(escaped, "`r", "\r")
-        escaped := StrReplace(escaped, "`t", "\t")
-        return escaped
     }
 
     static _BuildGoogleAIRequest(promptText, aiConfig := 0, modelOverride := "") {
@@ -4752,11 +4744,11 @@ class RisController {
     }
 
     static _BuildOpenAIPayload(promptText, options) {
-        escapedPrompt := this._EscapeJsonString(promptText)
+        escapedPrompt := RisAIText.EscapeJsonString(promptText)
         payload := '{'
-            . '"model":"' . this._EscapeJsonString(options.Model) . '",'
+            . '"model":"' . RisAIText.EscapeJsonString(options.Model) . '",'
             . '"input":[{"role":"user","content":[{"type":"input_text","text":"' . escapedPrompt . '"}]}],'
-            . '"reasoning":{"effort":"' . this._EscapeJsonString(options.ReasoningEffort) . '"},'
+            . '"reasoning":{"effort":"' . RisAIText.EscapeJsonString(options.ReasoningEffort) . '"},'
             . '"temperature":' . options.Temperature
         return payload . '}'
     }
