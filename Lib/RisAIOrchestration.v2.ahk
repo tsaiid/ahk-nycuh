@@ -93,6 +93,15 @@ class RisAIOrchestration {
         }
     }
 
+    static BuildProviderCallResult(parsed, request, providerName) {
+        return {
+            Result: parsed,
+            APIKeyName: request.APIKeyName,
+            Model: request.Model,
+            Provider: providerName
+        }
+    }
+
     static FormatPolishComparisonDebugInfo(response) {
         return {
             APIKeyName: response.APIKeyName,

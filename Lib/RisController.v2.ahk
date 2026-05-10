@@ -4218,15 +4218,10 @@ class RisController {
             }
 
             parseStart := A_TickCount
-            parsed := RisAIText.ParseGoogleResponse(response.ResponseText)
+            parsed := RisAIOrchestration.ParseProviderResponse("google", response.ResponseText)
             request.Metrics.ResponseParseTime := A_TickCount - parseStart
             this._LogGoogleAIBlockingMetrics(request.Metrics, response.Status)
-            return {
-                Result: parsed,
-                APIKeyName: request.APIKeyName,
-                Model: request.Model,
-                Provider: "google"
-            }
+            return RisAIOrchestration.BuildProviderCallResult(parsed, request, "google")
         }
 
         throw Error(lastError)
@@ -4273,13 +4268,8 @@ class RisController {
                 throw Error(lastError)
             }
 
-            parsed := RisAIText.ParseOpenAIResponse(response.ResponseText)
-            return {
-                Result: parsed,
-                APIKeyName: request.APIKeyName,
-                Model: request.Model,
-                Provider: "openai"
-            }
+            parsed := RisAIOrchestration.ParseProviderResponse("openai", response.ResponseText)
+            return RisAIOrchestration.BuildProviderCallResult(parsed, request, "openai")
         }
 
         throw Error(lastError)
