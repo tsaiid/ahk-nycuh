@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0
 #Include .\UIA.v2.ahk
 #Include .\RisConfig.v2.ahk
+#Include .\RisDate.v2.ahk
 
 class RisController {
     ; =================================================================
@@ -1179,7 +1180,7 @@ class RisController {
         foundValue := this._GetSelectedRowValue(colIndex)
         if (foundValue != "") {
             if (needDateConvert) {
-                foundValue := this._ConvertRISDate(foundValue)
+                foundValue := RisDate.ConvertRISDate(foundValue)
             }
             SendText foundValue
         }
@@ -2026,7 +2027,7 @@ class RisController {
                 throw Error("找不到病理報告內容")
             }
 
-            reportText := this._ConvertRISDate(dateVal) . ": " . diagVal
+            reportText := RisDate.ConvertRISDate(dateVal) . ": " . diagVal
             A_Clipboard := reportText
             this.Notify("病理報告已複製")
         } catch as err {
@@ -2042,7 +2043,7 @@ class RisController {
                 throw Error("找不到檢查報告內容")
             }
 
-            reportText := this._ConvertRISDate(dateVal) . ": " . repVal
+            reportText := RisDate.ConvertRISDate(dateVal) . ": " . repVal
             A_Clipboard := reportText
             this.Notify("檢查報告已複製")
         } catch as err {
@@ -2642,7 +2643,7 @@ class RisController {
 
     static SetComparisonContext(targetDate) {
         currentReqNo := this._GetCurrentReqNo()
-        formattedDate := this._ConvertRISDate(targetDate)
+        formattedDate := RisDate.ConvertRISDate(targetDate)
         this._compContext.ReqNo := currentReqNo
         this._compContext.Date := formattedDate
     }
@@ -2692,17 +2693,6 @@ class RisController {
             return this.GetText(this.AccessionNoText)
         }
         return ""
-    }
-
-    static _ConvertRISDate(inputString) {
-        cleanString := StrReplace(StrReplace(StrReplace(inputString, "/"), ":"), " ")
-        if RegExMatch(cleanString, "^((?:19|20)\d{2})(\d{2})(\d{2})", &m) {
-            return Format("{:04}-{:02}-{:02}", m[1], m[2], m[3])
-        }
-        if RegExMatch(cleanString, "^(\d{3})(\d{2})(\d{2})", &m) {
-            return Format("{:04}-{:02}-{:02}", Integer(m[1]) + 1911, m[2], m[3])
-        }
-        return inputString
     }
 
     ; --- 表格與文字處理 Helper ---
