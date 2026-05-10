@@ -14,6 +14,7 @@ class RisEditControl {
         SCROLLCARET: 0x00B7,
         GETFIRSTVISIBLELINE: 0x00CE,
         CUT: 0x0300,
+        COPY: 0x0301,
         CLEAR: 0x0303
     }
 
@@ -165,5 +166,21 @@ class RisEditControl {
 
         SendMessage(this.MSG.CUT, 0, 0, hCtrl)
         this.ScrollCaret(hCtrl)
+    }
+
+    static CopyLineOrSelection(hCtrl) {
+        sel := this.GetSel(hCtrl)
+        didAutoSelect := false
+
+        if (sel.Start == sel.End) {
+            this.SelectLine(hCtrl)
+            didAutoSelect := true
+        }
+
+        SendMessage(this.MSG.COPY, 0, 0, hCtrl)
+
+        if (didAutoSelect) {
+            this.SetSel(hCtrl, sel.Start, sel.Start)
+        }
     }
 }
