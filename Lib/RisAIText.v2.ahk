@@ -40,4 +40,52 @@ class RisAIText {
 
         return Trim(text, " `t`r`n")
     }
+
+    static ExtractGoogleResponseText(responseText) {
+        combinedText := ""
+        searchPos := 1
+
+        ; 遍歷所有 "text": "..." 區段
+        while (searchPos := RegExMatch(responseText, 's)"text":\s*"(.*?)(?<!\\)"', &match, searchPos)) {
+            val := match[1]
+
+            ; 如果這段文字不是 thought 區塊，才加入最終結果
+            context := SubStr(responseText, searchPos + match.Len, 100)
+            if !RegExMatch(context, '^\s*,\s*"thought":\s*true') {
+                combinedText .= val
+            }
+
+            searchPos += match.Len
+        }
+
+        if (combinedText == "") {
+            throw Error("無法從 API 回應中提取有效文字。")
+        }
+
+        return combinedText
+    }
+
+    static ExtractOpenAIResponseText(responseText) {
+        combinedText := ""
+        searchPos := 1
+
+        while (searchPos := RegExMatch(responseText, 's)"type"\s*:\s*"output_text".*?"text"\s*:\s*"(.*?)(?<!\\)"', &match, searchPos)) {
+            combinedText .= match[1]
+            searchPos += match.Len
+        }
+
+        if (combinedText == "") {
+            searchPos := 1
+            while (searchPos := RegExMatch(responseText, 's)"output_text"\s*:\s*"(.*?)(?<!\\)"', &match, searchPos)) {
+                combinedText .= match[1]
+                searchPos += match.Len
+            }
+        }
+
+        if (combinedText == "") {
+            throw Error("無法從 OpenAI 回應中提取有效文字。")
+        }
+
+        return combinedText
+    }
 }
