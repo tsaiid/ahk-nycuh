@@ -311,4 +311,42 @@ class RisEditControl {
 
         return true
     }
+
+    static SmartPageMove(hCtrl, direction, extend := false) {
+        modifierKey := extend ? "+" : ""
+        prevFirstLine := this.GetFirstVisibleLine(hCtrl)
+
+        if (direction == "Up") {
+            SendInput(modifierKey "{PgUp}")
+            Sleep 10
+            currFirstLine := this.GetFirstVisibleLine(hCtrl)
+
+            if (prevFirstLine == 0 && currFirstLine == 0) {
+                if (extend) {
+                    SendInput("+^{Home}")
+                } else {
+                    this.SetSel(hCtrl, 0, 0)
+                }
+                this.ScrollCaret(hCtrl)
+            }
+        } else if (direction == "Down") {
+            SendInput(modifierKey "{PgDn}")
+            Sleep 10
+            currFirstLine := this.GetFirstVisibleLine(hCtrl)
+
+            if (prevFirstLine == currFirstLine) {
+                if (extend) {
+                    SendInput("+^{End}")
+                } else {
+                    fullText := ControlGetText(hCtrl)
+                    this.SetSel(hCtrl, StrLen(fullText), StrLen(fullText))
+                }
+                this.ScrollCaret(hCtrl)
+            }
+        } else {
+            return false
+        }
+
+        return true
+    }
 }

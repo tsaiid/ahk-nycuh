@@ -1383,42 +1383,9 @@ class RisController {
         }
         try {
             hEdit := ControlGetFocus("A")
-            modifierKey := extend ? "+" : ""
-
-            ; 取得目前 Scroll 位置 (最上方的行號)
-            prevFirstLine := RisEditControl.GetFirstVisibleLine(hEdit)
-
-            if (direction == "Up") {
-                SendInput(modifierKey "{PgUp}")
-                Sleep 10 ; 等待 UI 更新
-                currFirstLine := RisEditControl.GetFirstVisibleLine(hEdit)
-
-                ; 如果無法再往上捲 (前後行號一樣，且已在第 0 行)，則移到最前
-                if (prevFirstLine == 0 && currFirstLine == 0) {
-                    if (extend) {
-                        SendInput("+^{Home}")
-                    } else {
-                        this._EditSetSel(hEdit, 0, 0)
-                    }
-                    this._EditScrollCaret(hEdit)
-                }
-            } else { ; Down
-                SendInput(modifierKey "{PgDn}")
-                Sleep 10 ; 等待 UI 更新
-                currFirstLine := RisEditControl.GetFirstVisibleLine(hEdit)
-
-                ; 如果無法再往下捲 (前後行號一樣)，則移到最後
-                if (prevFirstLine == currFirstLine) {
-                    if (extend) {
-                        SendInput("+^{End}")
-                    } else {
-                        fullText := ControlGetText(hEdit)
-                        len := StrLen(fullText)
-                        this._EditSetSel(hEdit, len, len)
-                    }
-                    this._EditScrollCaret(hEdit)
-                }
-            }
+            return RisEditControl.SmartPageMove(hEdit, direction, extend)
+        } catch {
+            return false
         }
     }
 

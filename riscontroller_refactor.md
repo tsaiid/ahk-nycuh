@@ -703,3 +703,20 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 下一個最小可 review 步驟是拆 `SmartPageMove(direction, extend := false)`。建議仍保留 controller 負責 target focus / focused hwnd，將 page up/down、首尾 fallback、scroll caret 邏輯下放到 `RisEditControl`。
+
+## 2026-05-11 Editor refactor 第二段接續紀錄
+
+### 本輪新增狀態
+
+- `RisEditControl.SmartPageMove(hCtrl, direction, extend := false)` 接手 Ctrl+Up / Ctrl+Down 與 extend 模式的 page move 行為：
+  - 保留原本 `SendInput` page up/down 與 `Sleep 10` UI 更新等待。
+  - 保留文件首尾 fallback：無法再往上時移到文件開頭，無法再往下時移到文件結尾。
+  - extend 模式仍使用 `+^{Home}` / `+^{End}` 延伸選取。
+- `RisController.SmartPageMove(direction, extend := false)` 目前只保留：
+  - `IsTargetFocused()` 防護。
+  - `ControlGetFocus("A")` 取得目前 edit handle。
+  - 委派到 `RisEditControl.SmartPageMove()`。
+
+### 建議下一步
+
+下一步可開始處理 `_ReorderSelectedText(...)`，但建議先拆純文字重排邏輯到 `RisReportText` 或新的 report text helper，再讓 edit control helper 只負責 selection / replace / scroll restore。
