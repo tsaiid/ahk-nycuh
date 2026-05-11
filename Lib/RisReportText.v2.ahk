@@ -127,4 +127,17 @@ class RisReportText {
 
         return RTrim(finalText, "`r`n")
     }
+
+    static DetectItemChar(text, defaultChar := "-") {
+        for line in StrSplit(text, "`n", "`r") {
+            if (Trim(line, " `t") != "") {
+                if RegExMatch(line, "^\s*([>\-=\+\*])", &match) {
+                    return match[1]
+                }
+                return defaultChar
+            }
+        }
+
+        return defaultChar
+    }
 }

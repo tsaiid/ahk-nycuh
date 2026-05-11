@@ -740,3 +740,21 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 可再把 `_ReorderSelectedText(...)` 的 edit-control replace + scroll restore 下放到 `RisEditControl`，或先抽 `ReorderSelection()` 裡的 auto-detect item char 純文字邏輯到 `RisReportText`。後者風險較低。
+
+## 2026-05-11 Item char detection refactor 接續紀錄
+
+### 本輪新增狀態
+
+- `RisReportText.DetectItemChar(text, defaultChar := "-")` 接手 auto-detect item char 的純文字判斷：
+  - 找出第一行非空白文字。
+  - 若行首為 `>`、`-`、`=`、`+`、`*`，回傳該符號。
+  - 否則回傳預設 `-`。
+- `RisController.ReorderSelection()` 仍負責：
+  - options normalization。
+  - focused edit handle 與 selection 取得。
+  - selected text 擷取。
+  - 呼叫 `_ReorderSelectedText()` 套用結果。
+
+### 建議下一步
+
+可再評估把 `_ReorderSelectedText(...)` 裡的 replace + scroll restore 下放成 `RisEditControl.ReplaceSelectionPreserveFirstVisibleLine(hCtrl, text)`，讓 controller 的 `_ReorderSelectedText(...)` 更接近單純 glue code。

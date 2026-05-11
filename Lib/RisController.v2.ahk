@@ -1473,19 +1473,7 @@ class RisController {
                 if (sel.End > sel.Start) {
                     fullText := ControlGetText(hEdit)
                     selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
-
-                    ; 逐行尋找第一行非空白文字
-                    for line in StrSplit(selectedText, "`n", "`r") {
-                        if (Trim(line, " `t") != "") {
-                            ; 檢查行首是否為指定的常見項目符號 (支援 > - = + *)
-                            if RegExMatch(line, "^\s*([>\-=\+\*])", &match) {
-                                itemChar := match[1]
-                            } else {
-                                itemChar := "-" ; 若無符合的符號，預設使用 '-'
-                            }
-                            break
-                        }
-                    }
+                    itemChar := RisReportText.DetectItemChar(selectedText)
                 }
             }
 
