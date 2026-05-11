@@ -140,4 +140,14 @@ class RisReportText {
 
         return defaultChar
     }
+
+    static GetNormalizedTrailingNewlines(text) {
+        if !RegExMatch(text, "(\R+)$", &match) {
+            return ""
+        }
+
+        trailingNewlines := StrReplace(match[1], "`r`n", "`n")
+        trailingNewlines := StrReplace(trailingNewlines, "`r", "`n")
+        return StrReplace(trailingNewlines, "`n", "`r`n")
+    }
 }

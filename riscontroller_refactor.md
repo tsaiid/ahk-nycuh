@@ -867,3 +867,17 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 Edit-control primitive wrappers 已清完。後續可回到較高階邊界評估，例如 `_GetPolishSelectionContext()` 的純文字 trailing newline normalization 是否適合抽到 `RisReportText`，或先停止 editor refactor 進入 commit/review。
+
+## 2026-05-11 Polish text newline refactor 接續紀錄
+
+### 本輪新增狀態
+
+- `RisReportText.GetNormalizedTrailingNewlines(text)` 接手純文字 trailing newline normalization：
+  - 擷取字串尾端連續 newline。
+  - 將 CRLF / CR / LF 統一轉成 CRLF。
+  - 無 trailing newline 時回傳空字串。
+- `RisController._GetPolishSelectionContext()` 改為呼叫 `RisReportText.GetNormalizedTrailingNewlines(selectedText)`。
+
+### 建議下一步
+
+可繼續檢視 `_GetPolishSelectionContext()`，但剩餘邏輯多牽涉 target focus、line selection、Notify 與 selection mutation，暫時保留在 controller 較合理。

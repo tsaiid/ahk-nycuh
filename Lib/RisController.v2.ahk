@@ -3126,11 +3126,7 @@ class RisController {
             return false
         }
 
-        if RegExMatch(selectedText, "(\R+)$", &match) {
-            trailingNewlines := StrReplace(match[1], "`r`n", "`n")
-            trailingNewlines := StrReplace(trailingNewlines, "`r", "`n")
-            trailingNewlines := StrReplace(trailingNewlines, "`n", "`r`n")
-        }
+        trailingNewlines := RisReportText.GetNormalizedTrailingNewlines(selectedText)
 
         return {
             Hwnd: hEdit,
