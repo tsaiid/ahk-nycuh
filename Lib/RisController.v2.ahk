@@ -14,6 +14,7 @@
 #Include .\RisAIOrchestration.v2.ahk
 #Include .\RisEditControl.v2.ahk
 #Include .\RisNotify.v2.ahk
+#Include .\RisWorklist.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -1839,7 +1840,7 @@ class RisController {
             validDataCount := 0
 
             for i, cat in categories {
-                gridData := this._ExtractGridData(elWindow, this._WorklistCtrls[cat])
+                gridData := RisWorklist.ExtractGridData(elWindow, this._WorklistCtrls[cat])
                 validDataCount += gridData.Count
 
                 if (i > 1)
@@ -1865,7 +1866,7 @@ class RisController {
             }
 
             this._lastUpdateTick := A_TickCount
-            this.PostDataToWebhook(jsonStr, isAuto)
+            RisWorklist.PostDataToWebhook(jsonStr, isAuto, this.Notify.Bind(this))
 
         } catch as err {
             logFn("操作失敗: " . err.Message)
@@ -2247,116 +2248,6 @@ class RisController {
         } catch {
             ; 靜默失敗
         }
-    }
-
-    ; [新增] 通用表格讀取 Helper (回傳 Map 物件)
-    static _ExtractGridData(elWindow, gridSelector) {
-        data := Map()
-        try {
-            ; 1. 尋找表格
-            try {
-                elGrid := elWindow.FindElement(gridSelector)
-            } catch {
-                return data ; 如果找不到該表格(例如該院區無此單位)，回傳空 Map
-            }
-
-            ; 2. 找出所有資料列 (Custom 容器)
-            try {
-                rowElements := elGrid.FindAll({Type: "Custom"})
-            } catch {
-                return data
-            }
-
-            if (rowElements.Length == 0)
-                return data
-
-            ; 3. 遍歷讀取
-            walker := UIA.TreeWalkerTrue
-
-            for row in rowElements {
-                ; 抓 Key (第一個子物件)
-                keyEl := walker.TryGetFirstChildElement(row)
-                if (!keyEl)
-                    continue
-
-                ; 抓 Value (下一個兄弟)
-                valEl := walker.TryGetNextSiblingElement(keyEl)
-                if (!valEl)
-                    continue
-
-                ; 讀取數值
-                k := "", v := "0"
-                try k := keyEl.Value
-                try v := valEl.Value
-
-                if (k != "") {
-                    k := Trim(k)
-                    v := Trim(v)
-                    if (v == "")
-                        v := 0
-                    data[k] := v
-                }
-            }
-        } catch {
-            ; 忽略單一表格的非預期錯誤，避免影響整體流程
-        }
-        return data
-    }
-
-    ; [新增] 發送 JSON 至 Webhook
-    ; [修改] 新增 isSilent 參數
-    static PostDataToWebhook(jsonStr, isSilent := false) {
-        ; 定義內部 Log
-        logFn := (msg) => (isSilent ? OutputDebug("[RisPost] " . msg . "`n") : this.Notify(msg))
-
-        configFile := "config\private.ini"
-        url  := IniRead(configFile, "n8n", "WebhookURL", "")
-        user := IniRead(configFile, "n8n", "Username", "")
-        pass := IniRead(configFile, "n8n", "Password", "")
-
-        if (url == "") {
-            logFn("❌ 錯誤：找不到 WebhookURL 設定")
-            return
-        }
-
-        try {
-            req := ComObject("WinHttp.WinHttpRequest.5.1")
-            req.Open("POST", url, False)
-            req.SetRequestHeader("Content-Type", "application/json")
-
-            if (user != "" && pass != "") {
-                authStr := this._Base64Encode(user . ":" . pass)
-                req.SetRequestHeader("Authorization", "Basic " . authStr)
-            }
-
-            req.Send(jsonStr)
-
-            if (req.Status == 200) {
-                logFn("✅ 資料已上傳至 n8n")
-            } else {
-                logFn("❌ 上傳失敗 (Status: " . req.Status . ")")
-            }
-        } catch as err {
-            logFn("❌ 網路錯誤: " . err.Message)
-        }
-    }
-
-    ; [新增] 用於 Basic Auth 的 Base64 編碼 Helper
-    static _Base64Encode(text) {
-        buf := Buffer(StrPut(text, "UTF-8"))
-        StrPut(text, buf, "UTF-8")
-
-        ; CRYPT_STRING_BASE64 = 0x00000001
-        ; CRYPT_STRING_NOCRLF = 0x40000000 (不換行)
-        flags := 0x40000001
-
-        reqSize := 0
-        DllCall("Crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", buf.Size - 1, "UInt", flags, "Ptr", 0, "UInt*", &reqSize)
-
-        outBuf := Buffer(reqSize * 2)
-        DllCall("Crypt32\CryptBinaryToStringW", "Ptr", buf, "UInt", buf.Size - 1, "UInt", flags, "Ptr", outBuf, "UInt*", &reqSize)
-
-        return StrGet(outBuf)
     }
 
     ; =================================================================

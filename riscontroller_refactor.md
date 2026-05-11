@@ -1072,3 +1072,13 @@ Edit-control primitive wrappers 已清完。後續可回到較高階邊界評估
 - `RisController` 已移除 `_notify*` runtime state 與 Notify GUI 私有 helper。
 
 後續若要繼續拆分，可考慮將 worklist 或 visual feedback 相關 side effect 分批移出 controller。
+
+## Worklist / Webhook 拆分進度
+
+- 新增 `Lib\RisWorklist.v2.ahk`。
+- `RisWorklist.ExtractGridData(elWindow, gridSelector)` 接手工作清單 UIA grid row extraction。
+- `RisWorklist.PostDataToWebhook(jsonStr, isSilent := false, notify := 0)` 接手 n8n webhook upload、Basic Auth header 與 silent/debug logging。
+- `RisWorklist.Base64Encode(text)` 接手 Basic Auth 使用的 Base64 helper。
+- `RisController.GetWorklistJson(isAuto := false)` 保留 RIS worklist 視窗流程、refresh button、JSON 組裝、cursor 與 `_lastUpdateTick` ownership，只委派 grid extraction 與 webhook upload。
+
+後續可再評估是否把 `GetWorklistJson()` 的 JSON 組裝或 auto update timer/state 移入 worklist facade；目前先保留 controller ownership，避免一次搬動 timer 與 cursor side effect。
