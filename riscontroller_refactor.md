@@ -881,3 +881,194 @@ Edit-control primitive wrappers 已清完。後續可回到較高階邊界評估
 ### 建議下一步
 
 可繼續檢視 `_GetPolishSelectionContext()`，但剩餘邏輯多牽涉 target focus、line selection、Notify 與 selection mutation，暫時保留在 controller 較合理。
+
+## 2026-05-11 後續 refactor 計畫
+
+### 目前結論
+
+- `RisEditControl` 低階 primitive / thin wrapper refactor 已完成。
+- `RisController` 仍約 3350 行，主要剩下高階 workflow、GUI state、UIA lifecycle、Notify、Worklist、AI foreground/pending orchestration。
+- 後續不建議再把高階 RIS/editor workflow 直接塞進 `RisEditControl`。若要繼續拆，應另選新的責任邊界。
+
+### 建議優先順序
+
+#### 1. Notify GUI / queue manager
+
+目標：
+
+- 新增 `Lib\RisNotify.v2.ahk` 或 `Lib\RisNotifyManager.v2.ahk`。
+- 將 `Notify()` 到 `_UpdateNotifySweepTimer()` 這段 GUI queue / render / measure / dismiss / timer 邏輯移出 controller。
+- `RisController.Notify(text, duration := 1500)` 可先保留為 facade，委派到 notify manager。
+
+適合移出：
+
+- `_EnsureNotifyGui()`
+- `_RenderNotifyQueue()`
+- `_GetNotifyWindowPosition()`
+- `_GetNotifyContentWidth()`
+- `_MeasureNotifyNaturalWidth()`
+- `_MeasureNotifyTextHeight()`
+- `_MeasureNotifyLinesHeight()`
+- `_MeasureNotifyLineHeight()`
+- `_WrapNotifyText()`
+- `_WrapNotifyLines()`
+- `_GetNotifyLineSlot()`
+- `_HideNotifyLineSlots()`
+- `_AppendWrappedNotifyLine()`
+- `_AppendWrappedNotifyLongToken()`
+- `_MeasureNotifyLineWidth()`
+- `_JoinNotifyLines()`
+- `_BeginNotifyTextMeasure()`
+- `_EndNotifyTextMeasure()`
+- `_ApplyNotifyVisualStyle()`
+- `_HandleNotifySlotClick()`
+- `_RemoveNotifyById()`
+- `_FindRecentNotifyId()`
+- `_RefreshNotifyDuration()`
+- `_PruneExpiredNotifications()`
+- `_SweepNotifications()`
+- `_UpdateNotifySweepTimer()`
+
+風險：
+
+- 中等。牽涉 GUI object、timer、callback binding、slot state。
+- 但和 RIS UIA preload、AI request、editor mutation 的耦合低，是下一個最值得拆的大塊。
+
+建議做法：
+
+1. 先建立獨立 class，保留原 controller `Notify()` public API。
+2. 第一個 commit 只搬 notify state + private helpers，不改呼叫點語意。
+3. compile-check 後再決定是否移除 controller 內殘留 notify fields。
+
+#### 2. Worklist / webhook exporter
+
+目標：
+
+- 新增 `Lib\RisWorklist.v2.ahk` 或 `Lib\RisWorklistExporter.v2.ahk`。
+- 將工作清單讀取、grid extraction、JSON / webhook upload 邏輯移出 controller。
+
+適合移出：
+
+- `EnableAutoWorklistUpdate()`
+- `_CheckAutoUpdate()`
+- `GetWorklistJson(isAuto := false)`
+- `_ExtractGridData(elWindow, gridSelector)`
+- `PostDataToWebhook(jsonStr, isSilent := false)`
+- `_Base64Encode(text)`
+
+風險：
+
+- 中等偏低。主要依賴 Worklist selectors、Notify callback、cursor callback、UIA grid element。
+- 可透過 options/callback 傳入 `Notify`、`ShowWaitCursor`、`RestoreCursor`，避免 service 直接擁有 controller UI state。
+
+建議做法：
+
+1. 先抽純 helper：`Base64Encode()`、grid row extraction data shaping。
+2. 再抽 `PostDataToWebhook()`。
+3. 最後才抽 auto update timer/state。
+
+#### 3. Visual feedback helper
+
+目標：
+
+- 新增 `Lib\RisVisualFeedback.v2.ahk`。
+- 移出 cursor 與 caret highlight 相關 side effects。
+
+適合移出：
+
+- `_ShowWaitCursor()`
+- `_ResolveWorkingCursorPath()`
+- `_RestoreCursor()`
+- `_HighlightCaret(hTargetCtrl := 0)`
+
+風險：
+
+- 中等偏低。GUI / cursor side effect 明確，但需保留 cursor handle lifecycle。
+- 行數收益較小，但可降低 controller 雜訊。
+
+#### 4. Comparison context helper
+
+目標：
+
+- 將比較日期 / MRN / ReqNo context 整理到小型 helper 或 context class。
+
+候選：
+
+- `SetComparisonContext(targetDate)`
+- `GetComparisonSuffix()`
+- `GetComparisonDate()`
+- `_GetCurrentMRN()`
+- `_GetCurrentReqNo()`
+
+風險：
+
+- 中等。依賴目前 UI state、selected row、RIS labels。
+- 行數收益不大，可晚點做。
+
+### 暫時不建議拆
+
+#### UIA cache / preload lifecycle
+
+包含：
+
+- `_GetOrUpdateNode()`
+- `_ResetWindowScopedCaches()`
+- `_PreloadCache()`
+- `_PreloadStep()`
+- `_FinalizeUIPreload()`
+- `_MaybeStartIndicationPreload()`
+
+原因：
+
+- 與 window lifecycle、stale UIA object、timer、AI preload 強耦合。
+- 回歸測試困難。
+
+#### Shell hook / focus / layout / font lifecycle
+
+包含：
+
+- `EnableShellHookFocus()`
+- `_ShellMessage()`
+- `_FocusRisWindow()`
+- `_StartWindowInitialization()`
+- `_ApplyLayout()`
+- `EnableFontEnforcer()`
+
+原因：
+
+- 事件驅動且依賴 RIS 視窗時序。
+- 拆錯容易造成焦點、字體、layout 初始化回歸。
+
+#### AI indication / impression foreground workflow
+
+包含：
+
+- `_BeginForegroundAIRequest()`
+- `_FinishForegroundAIRequest()`
+- `_TryInsertCachedIndication()`
+- `_TryHandlePendingIndication()`
+- `_BeginIndicationRequest()`
+- `_CacheIndicationResult()`
+- `_FinishIndicationRequest()`
+- `_BuildIndicationRequest()`
+- `_BuildImpressionRequest()`
+- `_InsertAIResult()`
+- `_InsertAIResultToImpression()`
+
+原因：
+
+- 目前雖然 AI transport/service 已拆，但這段仍牽涉 UI extraction、pending insert、editor mutation、Notify 與 foreground state。
+- 若要拆，應先設計 workflow facade 與 callback 邊界，不宜直接搬方法。
+
+### 建議下一步
+
+若目標是有效降低 `RisController` 行數，下一步建議從 **Notify GUI / queue manager** 開始；它行數多、邊界相對清楚，且不會碰 UIA cache 或 AI pending state。
+
+## Notify GUI 拆分進度
+
+- 新增 `Lib\RisNotify.v2.ahk`。
+- `RisNotify.Show(text, duration := 1500)` 接手 Notify GUI、queue、dedupe、slot render、click dismiss 與 sweep timer。
+- `RisController.Notify(text, duration := 1500)` 保留原本 public API，改為 thin wrapper 委派到 `RisNotify.Show()`。
+- `RisController` 已移除 `_notify*` runtime state 與 Notify GUI 私有 helper。
+
+後續若要繼續拆分，可考慮將 worklist 或 visual feedback 相關 side effect 分批移出 controller。
