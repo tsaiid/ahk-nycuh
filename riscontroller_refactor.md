@@ -720,3 +720,23 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 下一步可開始處理 `_ReorderSelectedText(...)`，但建議先拆純文字重排邏輯到 `RisReportText` 或新的 report text helper，再讓 edit control helper 只負責 selection / replace / scroll restore。
+
+## 2026-05-11 Report text refactor 接續紀錄
+
+### 本輪新增狀態
+
+- `RisReportText.ReorderSelectedText(selectedText, deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true, forceStartFromOne := false)` 接手純文字重排規則：
+  - CRLF normalization 與逐行處理。
+  - 編號 / bullet prefix 產生。
+  - spine 條列特殊 `-->` 處理。
+  - `(Srs|Ser)/Img`、`Mark L\d+:` 清理。
+  - 句尾標點補全與行首項目符號移除。
+- `RisController._ReorderSelectedText(...)` 目前仍保留 edit-control orchestration：
+  - selection 取得與 selected text 擷取。
+  - 呼叫 `RisReportText.ReorderSelectedText()`。
+  - replace selection。
+  - first visible line scroll restore。
+
+### 建議下一步
+
+可再把 `_ReorderSelectedText(...)` 的 edit-control replace + scroll restore 下放到 `RisEditControl`，或先抽 `ReorderSelection()` 裡的 auto-detect item char 純文字邏輯到 `RisReportText`。後者風險較低。

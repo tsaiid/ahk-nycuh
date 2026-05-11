@@ -2546,64 +2546,7 @@ class RisController {
             return
         }
 
-        selectedText := StrReplace(selectedText, "`r`n", "`n")
-        txtAry := StrSplit(selectedText, "`n")
-        finalText := ""
-        isSpine := false
-        startLineNo := 1
-        if (!forceStartFromOne && RegExMatch(selectedText, "^(\d+)", &existLineNo)) {
-            startLineNo := existLineNo[1]
-        }
-
-        for index, line in txtAry {
-            if (!RegExMatch(line, "^\s*$")) {
-                tmpText := line
-                if (RegExMatch(line, "^\s*[-\+\*]*\s*([Vv]arying degree|[Mm]ild).+causing:")) {
-                    isSpine := true
-                }
-
-                if (!deOrder) {
-                    orderChar := (itemChar != "" ? itemChar : startLineNo++ . ".")
-                    if (isSpine && RegExMatch(line, "^\s*([-\+\*]*|-->)\s*([CcTtLl]\d{1,2}-.+$)", &m)) {
-                        finalText .= "--> "
-                        tmpText := m[2]
-                    } else {
-                        finalText .= orderChar . " "
-                    }
-                }
-                if (itemChar == "" && discardSeIm) {
-                    tmpText := RegExReplace(tmpText, "\s*\((Srs|Ser)\/Img:.+?\)", "")
-                    tmpText := RegExReplace(tmpText, "Mark L\d+:\s*", "")
-                }
-
-                ; =========================================================
-                ; [優化] 句尾標點自動補全機制 (符合正式英語文法)
-                ; =========================================================
-                ; 1. 徹底去除尾部空白與 Tab
-                tmpText := RTrim(tmpText, " `t")
-
-                if (tmpText != "") {
-                    ; 2. 處理因正則刪除資訊而殘留的不合法結尾（逗號或分號），轉換為句號
-                    if RegExMatch(tmpText, "[,;]$") {
-                        tmpText := SubStr(tmpText, 1, -1) . "."
-                    }
-                    ; 3. 確保句尾有合法的斷句符號 (. : ? !)
-                    ;    排除 [:] 以保留 "Liver:" 這類標題的正確性
-                    else if !RegExMatch(tmpText, "[.:?!]$") {
-                        tmpText .= "."
-                    }
-                }
-                ; =========================================================
-
-                finalText .= RegExReplace(tmpText, "^(\s*)((\d+\.)|([-\+\*>=])|(\(?\d+\)))?(\s*)(\w?)(.*)", "$u{7}${8}")
-                finalText .= "`r`n"
-            } else {
-                if (keepEmptyLine) {
-                    finalText .= "`r`n"
-                }
-            }
-        }
-        finalText := RTrim(finalText, "`r`n")
+        finalText := RisReportText.ReorderSelectedText(selectedText, deOrder, keepEmptyLine, itemChar, discardSeIm, forceStartFromOne)
 
         ; =========================================================
         ; 保持 Scroll 位置邏輯

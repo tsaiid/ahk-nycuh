@@ -70,4 +70,61 @@ class RisReportText {
         }
         return "CR"
     }
+
+    static ReorderSelectedText(selectedText, deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true, forceStartFromOne := false) {
+        if (selectedText == "") {
+            return ""
+        }
+
+        selectedText := StrReplace(selectedText, "`r`n", "`n")
+        txtAry := StrSplit(selectedText, "`n")
+        finalText := ""
+        isSpine := false
+        startLineNo := 1
+        if (!forceStartFromOne && RegExMatch(selectedText, "^(\d+)", &existLineNo)) {
+            startLineNo := existLineNo[1]
+        }
+
+        for index, line in txtAry {
+            if (!RegExMatch(line, "^\s*$")) {
+                tmpText := line
+                if (RegExMatch(line, "^\s*[-\+\*]*\s*([Vv]arying degree|[Mm]ild).+causing:")) {
+                    isSpine := true
+                }
+
+                if (!deOrder) {
+                    orderChar := (itemChar != "" ? itemChar : startLineNo++ . ".")
+                    if (isSpine && RegExMatch(line, "^\s*([-\+\*]*|-->)\s*([CcTtLl]\d{1,2}-.+$)", &m)) {
+                        finalText .= "--> "
+                        tmpText := m[2]
+                    } else {
+                        finalText .= orderChar . " "
+                    }
+                }
+                if (itemChar == "" && discardSeIm) {
+                    tmpText := RegExReplace(tmpText, "\s*\((Srs|Ser)\/Img:.+?\)", "")
+                    tmpText := RegExReplace(tmpText, "Mark L\d+:\s*", "")
+                }
+
+                tmpText := RTrim(tmpText, " `t")
+
+                if (tmpText != "") {
+                    if RegExMatch(tmpText, "[,;]$") {
+                        tmpText := SubStr(tmpText, 1, -1) . "."
+                    } else if !RegExMatch(tmpText, "[.:?!]$") {
+                        tmpText .= "."
+                    }
+                }
+
+                finalText .= RegExReplace(tmpText, "^(\s*)((\d+\.)|([-\+\*>=])|(\(?\d+\)))?(\s*)(\w?)(.*)", "$u{7}${8}")
+                finalText .= "`r`n"
+            } else {
+                if (keepEmptyLine) {
+                    finalText .= "`r`n"
+                }
+            }
+        }
+
+        return RTrim(finalText, "`r`n")
+    }
 }
