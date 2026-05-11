@@ -1134,7 +1134,7 @@ class RisController {
             }
 
             ; [紀錄] 紀錄 Finding 目前的 Caret 位置
-            initialFindSel := this._EditGetSel(hFindEdit)
+            initialFindSel := RisEditControl.GetSel(hFindEdit)
 
             rawDate := this._GetSelectedRowValue(1)
             if (rawDate != "") {
@@ -1149,14 +1149,14 @@ class RisController {
                 currentText := ControlGetText(hEdit)
                 currentLen := StrLen(currentText)
 
-                this._EditSetSel(hEdit, currentLen, currentLen)
+                RisEditControl.SetSel(hEdit, currentLen, currentLen)
                 if (currentLen > 0) {
                     textToAppend := "`r`n" . textToAppend
                 }
 
-                this._EditReplaceSel(hEdit, textToAppend)
-                this._EditSetSel(hEdit, -1, -1)
-                this._EditScrollCaret(hEdit)
+                RisEditControl.ReplaceSel(hEdit, textToAppend)
+                RisEditControl.SetSel(hEdit, -1, -1)
+                RisEditControl.ScrollCaret(hEdit)
             }
 
             AppendToEdit(hImpEdit, pastImp)
@@ -1165,8 +1165,8 @@ class RisController {
             try {
                 this.FindingEdit.SetFocus()
                 ; [修改] 不再強制移至 0，而是還原至 initialFindSel.Start
-                this._EditSetSel(hFindEdit, initialFindSel.Start, initialFindSel.Start)
-                this._EditScrollCaret(hFindEdit)
+                RisEditControl.SetSel(hFindEdit, initialFindSel.Start, initialFindSel.Start)
+                RisEditControl.ScrollCaret(hFindEdit)
             }
         } finally {
             this._RestoreCursor()
@@ -1212,7 +1212,7 @@ class RisController {
         }
 
         cleanName := StrReplace(rawName, "檢查項目: ", "")
-        this._ReplaceSelectionAndScroll(hEdit, cleanName . ":`r`n`r`n")
+        RisEditControl.ReplaceSelectionAndScroll(hEdit, cleanName . ":`r`n`r`n")
         return true
     }
 
@@ -1228,7 +1228,7 @@ class RisController {
         }
 
         ; 2. 記錄初始狀態與取得文字
-        initialSel := this._EditGetSel(hFocus)
+        initialSel := RisEditControl.GetSel(hFocus)
         textToCopy := ""
         wasSelectionEmpty := (initialSel.Start == initialSel.End)
 
@@ -1236,15 +1236,15 @@ class RisController {
             ; === 狀況 A: 原本無反白 -> 自動抓整行並還原 ===
             RisEditControl.SelectLine(hFocus)
 
-            newSel := this._EditGetSel(hFocus)
+            newSel := RisEditControl.GetSel(hFocus)
             fullText := this.FindingText
             if (newSel.End > newSel.Start) {
                 textToCopy := SubStr(fullText, newSel.Start + 1, newSel.End - newSel.Start)
             }
 
             ; 還原 Caret 到原本位置
-            this._EditSetSel(hFocus, initialSel.Start, initialSel.Start)
-            this._EditScrollCaret(hFocus)
+            RisEditControl.SetSel(hFocus, initialSel.Start, initialSel.Start)
+            RisEditControl.ScrollCaret(hFocus)
         } else {
             ; === 狀況 B: 原本有反白 -> 保持不動 ===
             fullText := ControlGetText(hFocus)
@@ -1272,8 +1272,8 @@ class RisController {
             impLen := StrLen(currentImpText)
 
             ; 移到 Impression 最後並貼上
-            this._EditSetSel(hImp, impLen, impLen)
-            this._EditReplaceSel(hImp, prefix . textToCopy)
+            RisEditControl.SetSel(hImp, impLen, impLen)
+            RisEditControl.ReplaceSel(hImp, prefix . textToCopy)
 
             this.Notify("已複製至 Impression")
         } catch as err {
@@ -1442,7 +1442,7 @@ class RisController {
             hEdit := this.ImpressionEdit.NativeWindowHandle
             ControlFocus(hEdit)
 
-            this._EditSetSel(hEdit, 0, -1)
+            RisEditControl.SetSel(hEdit, 0, -1)
             lineCount := RisEditControl.CountNonEmptyLines(hEdit)
 
             if (lineCount > 1) {
@@ -2307,26 +2307,6 @@ class RisController {
 
     ; --- Edit Control 底層操作 (封裝 SendMessage) ---
 
-    static _EditSetSel(hCtrl, startPos, endPos) {
-        RisEditControl.SetSel(hCtrl, startPos, endPos)
-    }
-
-    static _EditReplaceSel(hCtrl, text) {
-        RisEditControl.ReplaceSel(hCtrl, text)
-    }
-
-    static _EditScrollCaret(hCtrl) {
-        RisEditControl.ScrollCaret(hCtrl)
-    }
-
-    static _ReplaceSelectionAndScroll(hCtrl, text) {
-        RisEditControl.ReplaceSelectionAndScroll(hCtrl, text)
-    }
-
-    static _EditGetSel(hCtrl) {
-        return RisEditControl.GetSel(hCtrl)
-    }
-
     ; =================================================================
     ; 9.1 UI Cache / Node Resolve
     ; =================================================================
@@ -2513,7 +2493,7 @@ class RisController {
         range := RisReportText.FindContentRange(fullText, "Basic")
 
         if (range) {
-            this._EditSetSel(hEdit, range.Start, range.End)
+            RisEditControl.SetSel(hEdit, range.Start, range.End)
             this._ReorderSelectedText(hEdit, false, true, "-", false)
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
@@ -2525,7 +2505,7 @@ class RisController {
         range := RisReportText.FindContentRange(fullText, "Advanced")
 
         if (range) {
-            this._EditSetSel(hEdit, range.Start, range.End)
+            RisEditControl.SetSel(hEdit, range.Start, range.End)
             this._ReorderSelectedText(hEdit, false, false, "-", true)
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
@@ -3115,7 +3095,7 @@ class RisController {
         }
 
         hEdit := ControlGetFocus("A")
-        sel := this._EditGetSel(hEdit)
+        sel := RisEditControl.GetSel(hEdit)
         fullText := ControlGetText(hEdit)
 
         if (selectCurrentLineIfEmpty && sel.Start == sel.End) {
@@ -3128,7 +3108,7 @@ class RisController {
                 return false
             }
 
-            this._EditSetSel(hEdit, bounds.Start, bounds.FullEnd)
+            RisEditControl.SetSel(hEdit, bounds.Start, bounds.FullEnd)
             sel := {Start: bounds.Start, End: bounds.FullEnd}
         }
 
@@ -3226,8 +3206,8 @@ class RisController {
             OnAccept: (hEdit, finalText, sel) => (
                 finalText := StrReplace(finalText, "`r`n", "`n"),
                 finalText := StrReplace(finalText, "`n", "`r`n"),
-                this._EditSetSel(hEdit, sel.Start, sel.End),
-                this._ReplaceSelectionAndScroll(hEdit, finalText)
+                RisEditControl.SetSel(hEdit, sel.Start, sel.End),
+                RisEditControl.ReplaceSelectionAndScroll(hEdit, finalText)
             )
         }
         RisAIDebugGui.ShowPolishComparisonGui(hEdit, original, refined, sel, debugInfo, options)
@@ -3240,8 +3220,8 @@ class RisController {
             OnAccept: (hEdit, finalText, sel) => (
                 finalText := StrReplace(finalText, "`r`n", "`n"),
                 finalText := StrReplace(finalText, "`n", "`r`n"),
-                this._EditSetSel(hEdit, sel.Start, sel.End),
-                this._ReplaceSelectionAndScroll(hEdit, finalText)
+                RisEditControl.SetSel(hEdit, sel.Start, sel.End),
+                RisEditControl.ReplaceSelectionAndScroll(hEdit, finalText)
             )
         }
         RisAIDebugGui.ShowPolishProviderComparisonGui(hEdit, original, openAIResult, googleResult, sel, options)
@@ -3262,7 +3242,7 @@ class RisController {
 
         ; 插入文字 (清空原本內容還是附加？通常總結是全新的，這裡採附加但在最前面)
         ; 使用者可能希望直接覆蓋，或者在游標處插入。這裡遵循 _InsertAIResult 邏輯：在游標處插入。
-        this._ReplaceSelectionAndScroll(targetHwnd, result)
+        RisEditControl.ReplaceSelectionAndScroll(targetHwnd, result)
     }
 
     ; [內部 Helper] 執行 AI 結果插入 UI
@@ -3285,7 +3265,7 @@ class RisController {
             Sleep(50)
         }
 
-        this._ReplaceSelectionAndScroll(targetHwnd, result . "`r`n`r`n")
+        RisEditControl.ReplaceSelectionAndScroll(targetHwnd, result . "`r`n`r`n")
     }
 
     ; [新增] 極速讀取 Helper：繞過 UIA Fallback，直接調用 Win32 API

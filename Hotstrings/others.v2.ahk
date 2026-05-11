@@ -202,9 +202,9 @@
         ; 取得目前焦點所在的 Edit Control
         hCtrl := ControlGetFocus("A")
 
-        ; 利用 RisController 的 Helper 取得目前游標位置 (0-based)
+        ; 利用 RisEditControl 的 Helper 取得目前游標位置 (0-based)
         ; 注意：此時游標已經在 "FINDINGS:" 之後了
-        sel := RisController._EditGetSel(hCtrl)
+        sel := RisEditControl.GetSel(hCtrl)
         currentPos := sel.End
 
         ; 取得目前 Edit 內的全部文字

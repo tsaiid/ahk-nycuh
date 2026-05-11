@@ -829,3 +829,41 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 可繼續處理 `_ReplaceSelectionAndScroll()` wrapper；它目前只在 controller 內部呼叫，適合改為直接使用 `RisEditControl.ReplaceSelectionAndScroll()`。
+
+## 2026-05-11 Replace selection wrapper removal 接續紀錄
+
+### 本輪新增狀態
+
+- `InsertExamNameAtCaret()`、AI polish comparison accept callback、`_InsertAIResult()`、`_InsertAIResultToImpression()` 改為直接呼叫 `RisEditControl.ReplaceSelectionAndScroll()`。
+- 移除 `RisController._ReplaceSelectionAndScroll()` thin wrapper。
+
+### 建議下一步
+
+可繼續處理 `_EditSetSel()` / `_EditReplaceSel()` / `_EditScrollCaret()` 這組低階 wrapper；它們目前只在 controller 內部呼叫。`_EditGetSel()` 暫留，因為仍有外部 hotstring 呼叫。
+
+## 2026-05-11 Low-level edit wrapper removal 接續紀錄
+
+### 本輪新增狀態
+
+- `RisController` 內部呼叫點改為直接使用：
+  - `RisEditControl.SetSel()`
+  - `RisEditControl.ReplaceSel()`
+  - `RisEditControl.ScrollCaret()`
+- 移除 `RisController._EditSetSel()`、`RisController._EditReplaceSel()`、`RisController._EditScrollCaret()` thin wrappers。
+- `RisController._EditGetSel()` 仍保留，因為 `Hotstrings\others.v2.ahk` 仍直接呼叫。
+
+### 建議下一步
+
+可評估是否更新 `Hotstrings\others.v2.ahk` 以直接 include / 使用 `RisEditControl.GetSel()`，再移除最後的 `_EditGetSel()` wrapper；但這會改到 hotstring 檔案，建議獨立一個小步處理。
+
+## 2026-05-11 Edit get selection wrapper removal 接續紀錄
+
+### 本輪新增狀態
+
+- `Hotstrings\others.v2.ahk` 的 `FINDINGS:` hotstring 改為直接呼叫 `RisEditControl.GetSel(hCtrl)`。
+- `RisController` 內部剩餘 selection 讀取改為直接呼叫 `RisEditControl.GetSel()`。
+- 移除最後的 `RisController._EditGetSel()` wrapper。
+
+### 建議下一步
+
+Edit-control primitive wrappers 已清完。後續可回到較高階邊界評估，例如 `_GetPolishSelectionContext()` 的純文字 trailing newline normalization 是否適合抽到 `RisReportText`，或先停止 editor refactor 進入 commit/review。
