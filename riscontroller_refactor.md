@@ -1082,3 +1082,14 @@ Edit-control primitive wrappers 已清完。後續可回到較高階邊界評估
 - `RisController.GetWorklistJson(isAuto := false)` 保留 RIS worklist 視窗流程、refresh button、JSON 組裝、cursor 與 `_lastUpdateTick` ownership，只委派 grid extraction 與 webhook upload。
 
 後續可再評估是否把 `GetWorklistJson()` 的 JSON 組裝或 auto update timer/state 移入 worklist facade；目前先保留 controller ownership，避免一次搬動 timer 與 cursor side effect。
+
+## Visual Feedback 拆分進度
+
+- 新增 `Lib\RisVisualFeedback.v2.ahk`。
+- `RisVisualFeedback.ShowWaitCursor()` 接手 working cursor replacement。
+- `RisVisualFeedback.ResolveWorkingCursorPath()` 接手 cursor scheme / CursorBaseSize resolution 與 cache。
+- `RisVisualFeedback.RestoreCursor()` 接手 system cursor restore。
+- `RisVisualFeedback.HighlightCaret(hTargetCtrl := 0)` 接手 caret highlight GUI。
+- `RisController` 已移除 `_workingCursorCache`、`_ShowWaitCursor()`、`_ResolveWorkingCursorPath()`、`_RestoreCursor()`、`_HighlightCaret()`，內部呼叫點改為直接使用 `RisVisualFeedback`。
+
+後續可評估 comparison context helper，或先暫停高階 RIS workflow 拆分，避免碰 UIA cache / shell hook / AI pending state。

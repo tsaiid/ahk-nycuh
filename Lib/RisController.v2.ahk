@@ -14,6 +14,7 @@
 #Include .\RisAIOrchestration.v2.ahk
 #Include .\RisEditControl.v2.ahk
 #Include .\RisNotify.v2.ahk
+#Include .\RisVisualFeedback.v2.ahk
 #Include .\RisWorklist.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
@@ -207,7 +208,6 @@ class RisController {
     static _aiCache := Map()
     static _googleAIConfig := 0
     static _compContext := {ReqNo: "", Date: ""}
-    static _workingCursorCache := {AppStarting: "", CursorBaseSize: "", Path: ""}
     static _hCustomFont := 0
     static _targetImpressionHeight := 95
     static _preloadQueue := [] ; [新增] 預載隊列
@@ -558,7 +558,7 @@ class RisController {
             }
 
             try targetHwnd := ControlGetFocus("A")
-            SetTimer( () => this._HighlightCaret(targetHwnd), -10 )
+            SetTimer( () => RisVisualFeedback.HighlightCaret(targetHwnd), -10 )
             return
         }
 
@@ -624,7 +624,7 @@ class RisController {
                 }
             }
 
-            SetTimer( () => this._HighlightCaret(targetHwnd), -10 )
+            SetTimer( () => RisVisualFeedback.HighlightCaret(targetHwnd), -10 )
         } catch as err {
             this.Notify("視窗切換失敗: " err.Message)
         }
@@ -696,7 +696,7 @@ class RisController {
     }
 
     static AppendPreviousReport() {
-        this._ShowWaitCursor()
+        RisVisualFeedback.ShowWaitCursor()
         try {
             try {
                 pastImp := this.GetText(this.PastImpressionText)
@@ -743,7 +743,7 @@ class RisController {
                 RisEditControl.ScrollCaret(hFindEdit)
             }
         } finally {
-            this._RestoreCursor()
+            RisVisualFeedback.RestoreCursor()
         }
     }
 
@@ -1544,7 +1544,7 @@ class RisController {
     }
 
     static FindAndClickSimilarReport() {
-        this._ShowWaitCursor() ; [新增]
+        RisVisualFeedback.ShowWaitCursor() ; [新增]
         try {
             currExamName := this._GetCleanCurrentExamName()
             if (currExamName == "") {
@@ -1582,7 +1582,7 @@ class RisController {
                 this.Notify("搜尋失敗: " err.Message)
             }
         } finally {
-            this._RestoreCursor() ; [新增]
+            RisVisualFeedback.RestoreCursor() ; [新增]
         }
     }
 
@@ -1813,7 +1813,7 @@ class RisController {
             return
         }
 
-        this._ShowWaitCursor()
+        RisVisualFeedback.ShowWaitCursor()
         try {
             hwnd := WinExist(this.WorklistWinTitle)
             elWindow := UIA.ElementFromHandle(hwnd)
@@ -1871,7 +1871,7 @@ class RisController {
         } catch as err {
             logFn("操作失敗: " . err.Message)
         } finally {
-            this._RestoreCursor()
+            RisVisualFeedback.RestoreCursor()
         }
     }
 
@@ -2108,149 +2108,6 @@ class RisController {
     }
 
     ; =================================================================
-    ; 優先依照使用者目前的 cursor scheme 與 CursorBaseSize 選擇 working 游標檔。
-    ; 注意：SetSystemCursor 只會套用靜態游標內容，無法保留 .ani 動畫。
-    ; =================================================================
-    static _ShowWaitCursor() {
-        try {
-            OCR_NORMAL := 32512
-            OCR_IBEAM := 32513
-            cursorPath := this._ResolveWorkingCursorPath()
-
-            if (cursorPath = "")
-                return
-
-            ; SetSystemCursor 會接手並銷毀 handle，因此需各自載入一份複本。
-            hCopyNormal := DllCall("LoadCursorFromFile", "Str", cursorPath, "Ptr")
-            hCopyIBeam  := DllCall("LoadCursorFromFile", "Str", cursorPath, "Ptr")
-
-            if (!hCopyNormal || !hCopyIBeam)
-                return
-
-            DllCall("SetSystemCursor", "Ptr", hCopyNormal, "Int", OCR_NORMAL)
-            DllCall("SetSystemCursor", "Ptr", hCopyIBeam, "Int", OCR_IBEAM)
-        }
-    }
-
-    static _ResolveWorkingCursorPath() {
-        try {
-            appStarting := RegRead("HKCU\Control Panel\Cursors", "AppStarting", "")
-        } catch {
-            appStarting := ""
-        }
-
-        try {
-            cursorBaseSizeRaw := RegRead("HKCU\Control Panel\Cursors", "CursorBaseSize", "32")
-        } catch {
-            cursorBaseSizeRaw := "32"
-        }
-
-        cache := this._workingCursorCache
-        if (cache.AppStarting = appStarting
-            && cache.CursorBaseSize = cursorBaseSizeRaw
-            && cache.Path != ""
-            && FileExist(cache.Path)) {
-            return cache.Path
-        }
-
-        cursorBaseSize := Integer(cursorBaseSizeRaw)
-        cursorPath := appStarting
-
-        if (cursorPath = "" || !FileExist(cursorPath)) {
-            cursorPath := A_WinDir . "\Cursors\aero_working.ani"
-        }
-
-        if (cursorBaseSize >= 64) {
-            sizedPath := RegExReplace(cursorPath, "i)(\.[^\\.]*)$", "_xl$1")
-            if (sizedPath != cursorPath && FileExist(sizedPath)) {
-                this._workingCursorCache := {AppStarting: appStarting, CursorBaseSize: cursorBaseSizeRaw, Path: sizedPath}
-                return sizedPath
-            }
-        }
-
-        if (cursorBaseSize >= 48) {
-            sizedPath := RegExReplace(cursorPath, "i)(\.[^\\.]*)$", "_l$1")
-            if (sizedPath != cursorPath && FileExist(sizedPath)) {
-                this._workingCursorCache := {AppStarting: appStarting, CursorBaseSize: cursorBaseSizeRaw, Path: sizedPath}
-                return sizedPath
-            }
-        }
-
-        resolvedPath := FileExist(cursorPath) ? cursorPath : ""
-        this._workingCursorCache := {AppStarting: appStarting, CursorBaseSize: cursorBaseSizeRaw, Path: resolvedPath}
-        return resolvedPath
-    }
-
-    static _RestoreCursor() {
-        ; SPI_SETCURSORS = 0x0057, 重置系統所有游標回預設值
-        DllCall("SystemParametersInfo", "UInt", 0x0057, "UInt", 0, "Ptr", 0, "UInt", 0)
-    }
-
-    ; [紅色特效版] 紅色 + 半透明 + 圓形
-    ; [最佳化順序版] 先裁切再顯示 (防閃爍)
-    static _HighlightCaret(hTargetCtrl := 0) {
-        try {
-            ; 1. 設定座標模式 & 關閉 DPI 縮放
-            CoordMode "Caret", "Screen"
-            CoordMode "Mouse", "Screen"
-
-            x := 0, y := 0
-            isFound := false
-
-            ; 2. 抓取座標
-            if CaretGetPos(&cx, &cy) {
-                x := cx
-                y := cy
-                isFound := true
-            } else if (hTargetCtrl) {
-                try {
-                    WinGetPos(&wx, &wy, &ww, &wh, "ahk_id " hTargetCtrl)
-                    x := wx + (ww / 2) - 20
-                    y := wy + (wh / 2) - 20
-                    isFound := true
-                }
-            }
-
-            if (!isFound)
-                return
-
-            ; 3. 計算圓心位置
-            if (x == cx) {
-                finalX := x - 20
-                finalY := y - 10
-            } else {
-                finalX := x
-                finalY := y
-            }
-
-            ; 4. 建立 GUI (保留 -DPIScale)
-            g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20 +E0x08000000 -DPIScale")
-            g.BackColor := "Red"
-
-            ; =========================================================
-            ; [優化] 在顯示之前，先設定好形狀與透明度
-            ; 這樣顯示出來的瞬間就已經是完美的圓形，不會有方塊閃爍
-            ; =========================================================
-            try {
-                ; 設定圓形 (注意：這裡的 w40 h40 要跟 Show 裡面的大小一致)
-                WinSetRegion("0-0 w40 h40 E", g.Hwnd)
-
-                ; 設定半透明
-                WinSetTransparent(100, g.Hwnd)
-            }
-
-            ; 5. 最後才顯示 GUI
-            g.Show("NA x" finalX " y" finalY " w40 h40")
-
-            ; 6. 自動銷毀
-            SetTimer () => (IsObject(g) ? g.Destroy() : ""), -400
-
-        } catch {
-            ; 靜默失敗
-        }
-    }
-
-    ; =================================================================
     ; 10. AI 應用功能 (AI & NLP Integration)
     ; controller 保留 orchestration；transport 已整理為單一 facade
     ; =================================================================
@@ -2262,14 +2119,14 @@ class RisController {
             return false
         }
 
-        this._ShowWaitCursor()
+        RisVisualFeedback.ShowWaitCursor()
         this._isAIPending := true
         return true
     }
 
     static _FinishForegroundAIRequest() {
         this._isAIPending := false
-        this._RestoreCursor()
+        RisVisualFeedback.RestoreCursor()
     }
 
     ; 10.0.1 Indication
@@ -2309,7 +2166,7 @@ class RisController {
         }
 
         if (!isPreloadOnly) {
-            this._ShowWaitCursor()
+            RisVisualFeedback.ShowWaitCursor()
             this._pendingIndicationInsert := true
         }
 
@@ -2368,7 +2225,7 @@ class RisController {
         this._isIndicationPending := false
 
         if (!isPreloadOnly) {
-            this._RestoreCursor()
+            RisVisualFeedback.RestoreCursor()
         }
 
         shouldInsert := this._pendingIndicationInsert && this._aiCache.Has("_AI_Indication")
@@ -2607,21 +2464,21 @@ class RisController {
                 return
             }
 
-            this._ShowWaitCursor()
+            RisVisualFeedback.ShowWaitCursor()
             this.Notify("AI 潤色中...", 3000)
 
             request := this._BuildRefineRequest(context.SelectedText)
             response := this._RunRefineRequest(request)
             result := RisAIOrchestration.NormalizePolishResult(response.Result, context.TrailingNewlines)
 
-            this._RestoreCursor()
+            RisVisualFeedback.RestoreCursor()
 
             ; 顯示比對視窗
             debugInfo := RisAIOrchestration.FormatPolishComparisonDebugInfo(response)
             this._ShowPolishComparisonGui(context.Hwnd, context.SelectedText, result, context.Selection, debugInfo)
 
         } catch as err {
-            this._RestoreCursor()
+            RisVisualFeedback.RestoreCursor()
             this.Notify("AI 潤色失敗: " . err.Message)
         }
     }
