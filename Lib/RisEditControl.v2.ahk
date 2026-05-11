@@ -68,6 +68,16 @@ class RisEditControl {
         return {Start: NumGet(startBuf, "UInt"), End: NumGet(endBuf, "UInt")}
     }
 
+    static GetSelectedText(hCtrl) {
+        sel := this.GetSel(hCtrl)
+        if (sel.End <= sel.Start) {
+            return ""
+        }
+
+        fullText := ControlGetText(hCtrl)
+        return SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
+    }
+
     static GetLogicalLineBoundaries(hCtrl, specificPos := -1) {
         try {
             fullText := ControlGetText(hCtrl)

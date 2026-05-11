@@ -776,3 +776,18 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 可評估是否移除 `_ReorderSelectedText(...)` wrapper，讓呼叫點改用一個新的 `RisEditControl.ReorderSelectionText(...)`，但這會把 report text helper 與 edit control helper 串在一起；若要保持責任邊界清楚，暫時保留 controller glue code 也合理。
+
+## 2026-05-11 Selected text primitive refactor 接續紀錄
+
+### 本輪新增狀態
+
+- `RisEditControl.GetSelectedText(hCtrl)` 接手 edit control selection range 與 selected text 擷取：
+  - 使用 `GetSel()` 取得目前 selection。
+  - 無選取範圍時回傳空字串。
+  - 由 `ControlGetText()` 與 `SubStr()` 取出 selected text。
+- `RisController.ReorderSelection()` 的 auto-detect item char 分支改用 `RisEditControl.GetSelectedText()`。
+- `RisController._ReorderSelectedText(...)` 也改用 `RisEditControl.GetSelectedText()`，只保留空字串 guard、report text transformation 與 replace helper 呼叫。
+
+### 建議下一步
+
+可再評估 `_CountNonEmptyLines(hEdit)` 是否下放為 `RisEditControl.CountNonEmptyLines(hCtrl)`；它同樣是 edit-control text read + simple count，風險低。

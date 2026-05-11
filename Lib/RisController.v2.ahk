@@ -1469,10 +1469,8 @@ class RisController {
 
             ; [新增] 自動偵測項目符號模式 (autoDetectItemChar)
             if (options.HasOwnProp("autoDetectItemChar") && options.autoDetectItemChar) {
-                sel := this._EditGetSel(hEdit)
-                if (sel.End > sel.Start) {
-                    fullText := ControlGetText(hEdit)
-                    selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
+                selectedText := RisEditControl.GetSelectedText(hEdit)
+                if (selectedText != "") {
                     itemChar := RisReportText.DetectItemChar(selectedText)
                 }
             }
@@ -2523,13 +2521,7 @@ class RisController {
     }
 
     static _ReorderSelectedText(targetHwnd := 0, deOrder := false, keepEmptyLine := false, itemChar := "", discardSeIm := true, forceStartFromOne := false) {
-        sel := this._EditGetSel(targetHwnd)
-        if (sel.End <= sel.Start) {
-            return
-        }
-
-        fullText := ControlGetText(targetHwnd)
-        selectedText := SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
+        selectedText := RisEditControl.GetSelectedText(targetHwnd)
         if (selectedText == "") {
             return
         }
