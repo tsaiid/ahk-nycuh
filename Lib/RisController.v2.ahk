@@ -2328,25 +2328,7 @@ class RisController {
     }
 
     static _CountNonEmptyLines(hEdit) {
-        try {
-            text := ControlGetText(hEdit)
-        } catch {
-            return 0
-        }
-
-        if (text == "") {
-            return 0
-        }
-
-        lines := StrSplit(text, "`n", "`r")
-        count := 0
-
-        for line in lines {
-            if (Trim(line, " `t") != "") {
-                count++
-            }
-        }
-        return count
+        return RisEditControl.CountNonEmptyLines(hEdit)
     }
 
     ; =================================================================

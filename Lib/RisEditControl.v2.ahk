@@ -78,6 +78,29 @@ class RisEditControl {
         return SubStr(fullText, sel.Start + 1, sel.End - sel.Start)
     }
 
+    static CountNonEmptyLines(hCtrl) {
+        try {
+            text := ControlGetText(hCtrl)
+        } catch {
+            return 0
+        }
+
+        if (text == "") {
+            return 0
+        }
+
+        lines := StrSplit(text, "`n", "`r")
+        count := 0
+
+        for line in lines {
+            if (Trim(line, " `t") != "") {
+                count++
+            }
+        }
+
+        return count
+    }
+
     static GetLogicalLineBoundaries(hCtrl, specificPos := -1) {
         try {
             fullText := ControlGetText(hCtrl)

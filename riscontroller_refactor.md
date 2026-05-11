@@ -791,3 +791,17 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 可再評估 `_CountNonEmptyLines(hEdit)` 是否下放為 `RisEditControl.CountNonEmptyLines(hCtrl)`；它同樣是 edit-control text read + simple count，風險低。
+
+## 2026-05-11 Count non-empty lines refactor 接續紀錄
+
+### 本輪新增狀態
+
+- `RisEditControl.CountNonEmptyLines(hCtrl)` 接手 edit control 文字讀取與非空行計數：
+  - `ControlGetText()` 失敗時維持回傳 `0`。
+  - 空字串回傳 `0`。
+  - 以 `` `n`` 分行並排除 `` `r``，逐行 `Trim(" `t")` 後計數。
+- `RisController._CountNonEmptyLines(hEdit)` 目前只保留 thin wrapper，委派到 `RisEditControl.CountNonEmptyLines()`。
+
+### 建議下一步
+
+可逐步處理 controller 內剩餘的 thin edit wrappers，優先把內部呼叫點改成直接使用 `RisEditControl`，再移除 wrapper；但需注意 `Hotstrings\others.v2.ahk` 目前仍直接呼叫 `RisController._EditGetSel()`。
