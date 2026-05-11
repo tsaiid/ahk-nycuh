@@ -758,3 +758,21 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 可再評估把 `_ReorderSelectedText(...)` 裡的 replace + scroll restore 下放成 `RisEditControl.ReplaceSelectionPreserveFirstVisibleLine(hCtrl, text)`，讓 controller 的 `_ReorderSelectedText(...)` 更接近單純 glue code。
+
+## 2026-05-11 Edit replace scroll refactor 接續紀錄
+
+### 本輪新增狀態
+
+- `RisEditControl.ReplaceSelectionPreserveFirstVisibleLine(hCtrl, text)` 接手 replace selection 後還原 first visible line 的 edit-control 行為：
+  - 替換前記錄 `GetFirstVisibleLine()`。
+  - 使用 `ReplaceSel()` 替換目前 selection。
+  - 替換後重新取得 first visible line，並用 `LineScroll()` 補回差距。
+- `RisController._ReorderSelectedText(...)` 目前只保留：
+  - selection 範圍檢查。
+  - selected text 擷取。
+  - 呼叫 `RisReportText.ReorderSelectedText()`。
+  - 呼叫 `RisEditControl.ReplaceSelectionPreserveFirstVisibleLine()` 套用結果。
+
+### 建議下一步
+
+可評估是否移除 `_ReorderSelectedText(...)` wrapper，讓呼叫點改用一個新的 `RisEditControl.ReorderSelectionText(...)`，但這會把 report text helper 與 edit control helper 串在一起；若要保持責任邊界清楚，暫時保留 controller glue code 也合理。

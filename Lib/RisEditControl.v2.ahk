@@ -51,6 +51,17 @@ class RisEditControl {
         this.ScrollCaret(hCtrl)
     }
 
+    static ReplaceSelectionPreserveFirstVisibleLine(hCtrl, text) {
+        firstVisibleLineBefore := this.GetFirstVisibleLine(hCtrl)
+        this.ReplaceSel(hCtrl, text)
+        firstVisibleLineAfter := this.GetFirstVisibleLine(hCtrl)
+
+        linesToScroll := firstVisibleLineBefore - firstVisibleLineAfter
+        if (linesToScroll != 0) {
+            this.LineScroll(hCtrl, linesToScroll)
+        }
+    }
+
     static GetSel(hCtrl) {
         startBuf := Buffer(4, 0), endBuf := Buffer(4, 0)
         SendMessage(this.MSG.GETSEL, startBuf.Ptr, endBuf.Ptr, hCtrl)

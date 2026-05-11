@@ -2535,27 +2535,7 @@ class RisController {
         }
 
         finalText := RisReportText.ReorderSelectedText(selectedText, deOrder, keepEmptyLine, itemChar, discardSeIm, forceStartFromOne)
-
-        ; =========================================================
-        ; 保持 Scroll 位置邏輯
-        ; =========================================================
-
-        ; 1. 記錄替換前，畫面最上方是第幾行
-        firstVisibleLineBefore := RisEditControl.GetFirstVisibleLine(targetHwnd)
-
-        ; 2. 執行文字替換 (這通常會導致 Scroll 跳動以顯示 Caret)
-        this._EditReplaceSel(targetHwnd, finalText)
-
-        ; 3. 取得替換後，畫面現在最上方是第幾行
-        firstVisibleLineAfter := RisEditControl.GetFirstVisibleLine(targetHwnd)
-
-        ; 4. 計算差距並滾動回去 (EM_LINESCROLL)
-        ; 參數2: 水平滾動字元數 (0)
-        ; 參數3: 垂直滾動行數 (負數往上，正數往下)
-        linesToScroll := firstVisibleLineBefore - firstVisibleLineAfter
-        if (linesToScroll != 0) {
-            RisEditControl.LineScroll(targetHwnd, linesToScroll)
-        }
+        RisEditControl.ReplaceSelectionPreserveFirstVisibleLine(targetHwnd, finalText)
     }
 
     static _FormatFindingForBasic(hEdit) {
