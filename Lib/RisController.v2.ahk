@@ -2123,20 +2123,10 @@ class RisController {
         }
         try {
             hCtrl := ControlGetFocus("A")
+            return RisEditControl.SmartExtendSelection(hCtrl, direction)
         } catch {
             return false
         }
-
-        lineIdx := RisEditControl.LineFromChar(hCtrl)
-        lineCount := RisEditControl.GetLineCount(hCtrl)
-
-        if (direction == "Up") {
-            SendInput (lineIdx == 0) ? "+{Home}" : "+{Up}"
-        } else if (direction == "Down") {
-            SendInput (lineIdx == lineCount - 1) ? "+{End}" : "+{Down}"
-        }
-
-        return true
     }
 
     static HandleTripleClick() {

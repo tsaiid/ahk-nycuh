@@ -630,9 +630,76 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 - clipboard workflow
 - controller foreground/pending state
 
+### 目前仍在 `RisController` 的 editor 相關項目
+
+#### 1. Thin wrappers，可晚點整理
+
+這些 wrapper 目前只轉呼叫 `RisEditControl`，保留它們是為了降低 call-site churn。若後續想繼續瘦身，可分批把呼叫點改成直接呼叫 `RisEditControl`，再移除 wrapper。
+
+- `_EditSetSel(hCtrl, startPos, endPos)`
+- `_EditReplaceSel(hCtrl, text)`
+- `_EditScrollCaret(hCtrl)`
+- `_ReplaceSelectionAndScroll(hCtrl, text)`
+- `_EditGetSel(hCtrl)`
+- `_GetLogicalLineBoundaries(hCtrl, specificPos := -1)`
+- `_SelectLine(hCtrl)`
+- `_SelectLineForRemoval(hCtrl)`
+
+#### 2. 可繼續拆的 editor command
+
+這些仍有 edit-control 行為，但還保留在 controller。建議依序小步拆：
+
+1. `SmartExtendSelection(direction)`
+   - 目前只依賴 target focus、focused hwnd、`LineFromChar()`、`GetLineCount()` 與 `SendInput`。
+   - 可考慮新增 `RisEditControl.SmartExtendSelection(hCtrl, direction, sendInputCallback := 0)`，或保守一點先讓 controller 保留 `SendInput`。
+
+2. `SmartPageMove(direction, extend := false)`
+   - 依賴 `GetFirstVisibleLine()`、`SendInput`、`Sleep`、文件頭尾 fallback。
+   - 可拆，但因為牽涉鍵盤輸入與 UI 更新 timing，建議在 `SmartExtendSelection` 之後再做。
+
+3. `_ReorderSelectedText(...)`
+   - 牽涉 selected text parsing、編號重排、selection replacement、scroll restore。
+   - 建議不要直接放進 `RisEditControl`。較好的方向是拆成：
+     - `RisReportText` 或新 helper 負責純文字重排。
+     - `RisEditControl` 只負責 selection / replace / scroll restore。
+
+4. `_FormatFindingForBasic(hEdit)` / `_FormatFindingForCT(hEdit)`
+   - 介於 report formatting 與 edit mutation 之間。
+   - 建議優先把純文字 formatting 規則移到 `RisReportText` 或新 helper，再讓 controller 負責套用到 edit control。
+
+5. `ClearCurrentEdit()`
+   - 很小，可下放為 `RisEditControl.Clear(hCtrl)`，但維護收益低，可等其他較大項目完成後再處理。
+
+#### 3. 暫時不要拆進 `RisEditControl`
+
+以下雖然使用 edit control，但和 RIS/AI workflow 或 UIA ownership 綁得深，不適合放進低階 editor helper：
+
+- `_GetPolishSelectionContext(selectCurrentLineIfEmpty := false)`
+- `_InsertAIResult(result)`
+- `_InsertAIResultToImpression(result)`
+- 診斷名稱插入、Finding/Impression 欄位組裝
+- 任何需要 RIS UIA control lookup、Notify、foreground AI state、pending insert state 的流程
+
 ### 建議下一步
 
-1. **再評估搬高階 editor command**
-   - 目前高階 editor command 主要已移入 `RisEditControl`，後續可評估移除 controller thin wrappers 或整理 remaining direct call-sites。
+下一個最小可 review 步驟：
 
-高階 command 會碰到 target focus、clipboard、Notify 或 WinActive 行為，建議等 primitive 與 line boundary 穩定後再處理。
+1. 先拆 `SmartExtendSelection(direction)`。
+2. 再拆 `SmartPageMove(direction, extend := false)`。
+3. 之後處理 `_ReorderSelectedText(...)`，但應先分離純文字重排，不要整段搬進 `RisEditControl`。
+
+## 2026-05-11 Editor refactor 接續紀錄
+
+### 本輪新增狀態
+
+- `RisEditControl.SmartExtendSelection(hCtrl, direction)` 接手 Shift+Up / Shift+Down 的 edit-control 行為：
+  - 依據目前行號與總行數，在文件首尾改送 `+{Home}` / `+{End}`。
+  - 非首尾時維持原本 `+{Up}` / `+{Down}` 行為。
+- `RisController.SmartExtendSelection(direction)` 目前只保留：
+  - `IsTargetFocused()` 防護。
+  - `ControlGetFocus("A")` 取得目前 edit handle。
+  - 委派到 `RisEditControl.SmartExtendSelection()`。
+
+### 建議下一步
+
+下一個最小可 review 步驟是拆 `SmartPageMove(direction, extend := false)`。建議仍保留 controller 負責 target focus / focused hwnd，將 page up/down、首尾 fallback、scroll caret 邏輯下放到 `RisEditControl`。

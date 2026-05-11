@@ -296,4 +296,19 @@ class RisEditControl {
         this.SetSel(hCtrl, newPos, newPos)
         this.ScrollCaret(hCtrl)
     }
+
+    static SmartExtendSelection(hCtrl, direction) {
+        lineIdx := this.LineFromChar(hCtrl)
+        lineCount := this.GetLineCount(hCtrl)
+
+        if (direction == "Up") {
+            SendInput (lineIdx == 0) ? "+{Home}" : "+{Up}"
+        } else if (direction == "Down") {
+            SendInput (lineIdx == lineCount - 1) ? "+{End}" : "+{Down}"
+        } else {
+            return false
+        }
+
+        return true
+    }
 }
