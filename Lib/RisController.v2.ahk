@@ -1234,7 +1234,7 @@ class RisController {
 
         if (wasSelectionEmpty) {
             ; === 狀況 A: 原本無反白 -> 自動抓整行並還原 ===
-            this._SelectLine(hFocus)
+            RisEditControl.SelectLine(hFocus)
 
             newSel := this._EditGetSel(hFocus)
             fullText := this.FindingText
@@ -1443,7 +1443,7 @@ class RisController {
             ControlFocus(hEdit)
 
             this._EditSetSel(hEdit, 0, -1)
-            lineCount := this._CountNonEmptyLines(hEdit)
+            lineCount := RisEditControl.CountNonEmptyLines(hEdit)
 
             if (lineCount > 1) {
                 this._ReorderSelectedText(hEdit, , , , , true)
@@ -2124,7 +2124,7 @@ class RisController {
         ; 5. 觸發三擊全選
         if (clickCount == 3) {
             clickCount := 0
-            this._SelectLine(hMouseCtrl)
+            RisEditControl.SelectLine(hMouseCtrl)
         }
     }
 
@@ -2325,10 +2325,6 @@ class RisController {
 
     static _EditGetSel(hCtrl) {
         return RisEditControl.GetSel(hCtrl)
-    }
-
-    static _CountNonEmptyLines(hEdit) {
-        return RisEditControl.CountNonEmptyLines(hEdit)
     }
 
     ; =================================================================
@@ -2534,24 +2530,6 @@ class RisController {
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
         }
-    }
-
-    ; ----------------------------------------------------------------------------------
-    ; [新增] 邏輯行邊界計算 Helper
-    ; 回傳 Map: {Start: 0-based索引, ContentEnd: 不含換行, FullEnd: 含換行}
-    ; ----------------------------------------------------------------------------------
-    ; [修改] 增加 specificPos 參數以支援查詢任意位置的行邊界
-    static _GetLogicalLineBoundaries(hCtrl, specificPos := -1) {
-        return RisEditControl.GetLogicalLineBoundaries(hCtrl, specificPos)
-    }
-
-    static _SelectLine(hCtrl) {
-        RisEditControl.SelectLine(hCtrl)
-    }
-
-    ; [新增] 用於刪除整行時的選取邏輯 (共用於 CutLineOrSelection 與 DeleteCurrentLine)
-    static _SelectLineForRemoval(hCtrl) {
-        RisEditControl.SelectLineForRemoval(hCtrl)
     }
 
     static _GetCleanCurrentExamName() {
@@ -3141,7 +3119,7 @@ class RisController {
         fullText := ControlGetText(hEdit)
 
         if (selectCurrentLineIfEmpty && sel.Start == sel.End) {
-            bounds := this._GetLogicalLineBoundaries(hEdit)
+            bounds := RisEditControl.GetLogicalLineBoundaries(hEdit)
             lineText := (bounds.ContentEnd > bounds.Start)
                 ? SubStr(fullText, bounds.Start + 1, bounds.ContentEnd - bounds.Start)
                 : ""

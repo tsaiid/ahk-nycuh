@@ -805,3 +805,27 @@ AI 主要責任已拆到 helper/service 後，下一個降低 `RisController` �
 ### 建議下一步
 
 可逐步處理 controller 內剩餘的 thin edit wrappers，優先把內部呼叫點改成直接使用 `RisEditControl`，再移除 wrapper；但需注意 `Hotstrings\others.v2.ahk` 目前仍直接呼叫 `RisController._EditGetSel()`。
+
+## 2026-05-11 Count wrapper removal 接續紀錄
+
+### 本輪新增狀態
+
+- `FormatImpressionText()` 改為直接呼叫 `RisEditControl.CountNonEmptyLines(hEdit)`。
+- 移除 `RisController._CountNonEmptyLines(hEdit)` thin wrapper。
+
+### 建議下一步
+
+可繼續分批移除只由 `RisController` 內部使用的 edit wrappers，例如 `_ReplaceSelectionAndScroll()` 或 `_SelectLine()`；`_EditGetSel()` 需暫留，因為 `Hotstrings\others.v2.ahk` 仍有外部呼叫。
+
+## 2026-05-11 Line selection wrapper removal 接續紀錄
+
+### 本輪新增狀態
+
+- `CopyFindingToImpression()` 改為直接呼叫 `RisEditControl.SelectLine(hFocus)`。
+- `HandleTripleClick()` 改為直接呼叫 `RisEditControl.SelectLine(hMouseCtrl)`。
+- `_GetPolishSelectionContext()` 改為直接呼叫 `RisEditControl.GetLogicalLineBoundaries(hEdit)`。
+- 移除 `RisController._GetLogicalLineBoundaries()`、`RisController._SelectLine()`、`RisController._SelectLineForRemoval()` wrappers。
+
+### 建議下一步
+
+可繼續處理 `_ReplaceSelectionAndScroll()` wrapper；它目前只在 controller 內部呼叫，適合改為直接使用 `RisEditControl.ReplaceSelectionAndScroll()`。
