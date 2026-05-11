@@ -1,6 +1,37 @@
 #Requires AutoHotkey v2.0
 
 class RisWorklist {
+    static BuildJson(categories, categoryData) {
+        jsonStr := "{"
+        validDataCount := 0
+
+        for i, cat in categories {
+            gridData := categoryData.Has(cat) ? categoryData[cat] : Map()
+            validDataCount += gridData.Count
+
+            if (i > 1)
+                jsonStr .= ", "
+            jsonStr .= '"' . cat . '": {'
+
+            isFirstProp := true
+            for k, v in gridData {
+                if (!isFirstProp)
+                    jsonStr .= ", "
+                safeKey := StrReplace(k, "-", "_")
+                valStr := IsNumber(v) ? v : '"' . v . '"'
+                jsonStr .= Format('"{1}": {2}', safeKey, valStr)
+                isFirstProp := false
+            }
+            jsonStr .= "}"
+        }
+        jsonStr .= "}"
+
+        return {
+            Json: jsonStr,
+            ValidDataCount: validDataCount
+        }
+    }
+
     static ExtractGridData(elWindow, gridSelector) {
         data := Map()
         try {

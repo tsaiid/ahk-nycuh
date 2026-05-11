@@ -1836,37 +1836,20 @@ class RisController {
 
             ; 讀取表格資料
             categories := ["ER", "ADM", "OPD"]
-            jsonStr := "{"
-            validDataCount := 0
+            categoryData := Map()
 
-            for i, cat in categories {
-                gridData := RisWorklist.ExtractGridData(elWindow, this._WorklistCtrls[cat])
-                validDataCount += gridData.Count
-
-                if (i > 1)
-                    jsonStr .= ", "
-                jsonStr .= '"' . cat . '": {'
-
-                isFirstProp := true
-                for k, v in gridData {
-                    if (!isFirstProp)
-                        jsonStr .= ", "
-                    safeKey := StrReplace(k, "-", "_")
-                    valStr := IsNumber(v) ? v : '"' . v . '"'
-                    jsonStr .= Format('"{1}": {2}', safeKey, valStr)
-                    isFirstProp := false
-                }
-                jsonStr .= "}"
+            for cat in categories {
+                categoryData[cat] := RisWorklist.ExtractGridData(elWindow, this._WorklistCtrls[cat])
             }
-            jsonStr .= "}"
 
-            if (validDataCount == 0) {
+            payload := RisWorklist.BuildJson(categories, categoryData)
+            if (payload.ValidDataCount == 0) {
                 logFn("⚠️ 統計資料為空，略過上傳")
                 return
             }
 
             this._lastUpdateTick := A_TickCount
-            RisWorklist.PostDataToWebhook(jsonStr, isAuto, this.Notify.Bind(this))
+            RisWorklist.PostDataToWebhook(payload.Json, isAuto, this.Notify.Bind(this))
 
         } catch as err {
             logFn("操作失敗: " . err.Message)

@@ -1093,3 +1093,11 @@ Edit-control primitive wrappers 已清完。後續可回到較高階邊界評估
 - `RisController` 已移除 `_workingCursorCache`、`_ShowWaitCursor()`、`_ResolveWorkingCursorPath()`、`_RestoreCursor()`、`_HighlightCaret()`，內部呼叫點改為直接使用 `RisVisualFeedback`。
 
 後續可評估 comparison context helper，或先暫停高階 RIS workflow 拆分，避免碰 UIA cache / shell hook / AI pending state。
+
+## Worklist JSON 組裝拆分進度
+
+- `RisWorklist.BuildJson(categories, categoryData)` 接手工作清單分類資料到 JSON payload 的組裝。
+- 回傳 `{ Json, ValidDataCount }`，讓 controller 保留空資料 guard 與 upload timing ownership。
+- `RisController.GetWorklistJson(isAuto := false)` 目前只負責 refresh、extract 各分類 grid data、判斷是否上傳與呼叫 webhook helper。
+
+後續若還要推進 Worklist，可再評估 auto update timer/state 是否值得搬出；目前仍建議保留在 controller，因為它和使用者 idle、視窗存在、更新冷卻時間有行為耦合。
