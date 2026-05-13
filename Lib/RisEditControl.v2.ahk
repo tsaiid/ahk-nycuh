@@ -192,23 +192,31 @@ class RisEditControl {
             return false
         }
 
-        if (this._RemoveEmptyListMarker(hCtrl, lineInfo)) {
+        if (this._RemoveEmptySmartPrefix(hCtrl, lineInfo)) {
             return true
         }
 
-        if !RegExMatch(lineInfo.Text, "^([ \t]*)(-->|[-*+>]|\d+([.)]))[ \t]+(.+)$", &match) {
+        parsedLine := this._ParseSmartLine(lineInfo.Text)
+        if (!parsedLine) {
             return false
         }
 
-        if (Trim(match[4], " `t") == "") {
+        if (Trim(parsedLine.Body, " `t") == "") {
             return false
         }
 
-        marker := match[2]
-        if RegExMatch(marker, "^(\d+)([.)])$", &numberMatch) {
-            nextPrefix := match[1] . (Integer(numberMatch[1]) + 1) . numberMatch[2] . " "
+        nextMarker := ""
+        if (parsedLine.HasMarker) {
+            nextMarker := this._GetNextListMarker(parsedLine.Marker)
+        }
+
+        nextSpineSegment := this._GetNextSpineSegmentPrefix(parsedLine.Body)
+        if (nextSpineSegment != "") {
+            nextPrefix := parsedLine.Indent . nextMarker . nextSpineSegment
+        } else if (parsedLine.HasMarker) {
+            nextPrefix := parsedLine.Indent . nextMarker
         } else {
-            nextPrefix := match[1] . marker . " "
+            return false
         }
 
         this.ReplaceSel(hCtrl, "`r`n" . nextPrefix)
@@ -226,7 +234,7 @@ class RisEditControl {
             return false
         }
 
-        return this._RemoveEmptyListMarker(hCtrl, lineInfo)
+        return this._RemoveEmptySmartPrefix(hCtrl, lineInfo)
     }
 
     static _GetCurrentLineInfo(hCtrl) {
@@ -242,8 +250,18 @@ class RisEditControl {
         return {Sel: sel, Bounds: bounds, Text: lineText}
     }
 
-    static _RemoveEmptyListMarker(hCtrl, lineInfo) {
-        if !RegExMatch(lineInfo.Text, "^[ \t]*(?:-->|[-*+>]|\d+[.)])[ \t]*$") {
+    static _RemoveEmptySmartPrefix(hCtrl, lineInfo) {
+        parsedLine := this._ParseSmartLine(lineInfo.Text)
+        if (!parsedLine) {
+            return false
+        }
+
+        body := Trim(parsedLine.Body, " `t")
+        if (body != "") {
+            if !this._IsEmptySpineSegmentPrefix(body) {
+                return false
+            }
+        } else if (!parsedLine.HasMarker) {
             return false
         }
 
@@ -251,6 +269,102 @@ class RisEditControl {
         this.ReplaceSel(hCtrl, "")
         this.ScrollCaret(hCtrl)
         return true
+    }
+
+    static _ParseSmartLine(lineText) {
+        if !RegExMatch(lineText, "^([ \t]*)(?:(-->|[-*+>]|\d+[.)])[ \t]+)?(.*)$", &match) {
+            return false
+        }
+
+        return {
+            Indent: match[1],
+            HasMarker: match[2] != "",
+            Marker: match[2],
+            Body: match[3]
+        }
+    }
+
+    static _GetNextListMarker(marker) {
+        if RegExMatch(marker, "^(\d+)([.)])$", &numberMatch) {
+            return (Integer(numberMatch[1]) + 1) . numberMatch[2] . " "
+        }
+
+        return marker . " "
+    }
+
+    static _GetNextSpineSegmentPrefix(text) {
+        segmentInfo := this._ParseSpineSegmentPrefix(text)
+        if (!segmentInfo || Trim(segmentInfo.TrailingText, " `t") == "") {
+            return ""
+        }
+
+        nextStart := segmentInfo.LastEnd
+        nextEnd := this._GetNextVertebra(nextStart.Region, nextStart.Number)
+        if (!nextEnd) {
+            return ""
+        }
+
+        return nextStart.Region . nextStart.Number . "-" . nextEnd.Region . nextEnd.Number . ": "
+    }
+
+    static _IsEmptySpineSegmentPrefix(text) {
+        segmentInfo := this._ParseSpineSegmentPrefix(text)
+        return segmentInfo && Trim(segmentInfo.TrailingText, " `t") == ""
+    }
+
+    static _ParseSpineSegmentPrefix(text) {
+        if !RegExMatch(text, "^(.+):([ \t]*.*)$", &prefixMatch) {
+            return false
+        }
+
+        segmentItems := StrSplit(prefixMatch[1], ",")
+        previousEnd := false
+        lastEnd := false
+
+        for segmentText in segmentItems {
+            segmentText := Trim(segmentText, " `t")
+            if !RegExMatch(segmentText, "i)^([CTLS])(\d+)-([CTLS])(\d+)$", &segmentMatch) {
+                return false
+            }
+
+            start := {Region: StrUpper(segmentMatch[1]), Number: Integer(segmentMatch[2])}
+            end := {Region: StrUpper(segmentMatch[3]), Number: Integer(segmentMatch[4])}
+            expectedEnd := this._GetNextVertebra(start.Region, start.Number)
+
+            if (!expectedEnd || expectedEnd.Region != end.Region || expectedEnd.Number != end.Number) {
+                return false
+            }
+
+            if (previousEnd && (previousEnd.Region != start.Region || previousEnd.Number != start.Number)) {
+                return false
+            }
+
+            previousEnd := end
+            lastEnd := end
+        }
+
+        return {LastEnd: lastEnd, TrailingText: prefixMatch[2]}
+    }
+
+    static _GetNextVertebra(region, number) {
+        switch StrUpper(region) {
+            case "C":
+                return (number < 7)
+                    ? {Region: "C", Number: number + 1}
+                    : (number == 7 ? {Region: "T", Number: 1} : false)
+            case "T":
+                return (number < 12)
+                    ? {Region: "T", Number: number + 1}
+                    : (number == 12 ? {Region: "L", Number: 1} : false)
+            case "L":
+                return (number < 5)
+                    ? {Region: "L", Number: number + 1}
+                    : (number == 5 ? {Region: "S", Number: 1} : false)
+            case "S":
+                return false
+        }
+
+        return false
     }
 
     static KillLine(hCtrl) {
