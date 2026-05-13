@@ -20,7 +20,7 @@ class RisConfig {
             GoogleModels: [
                 "gemma-4-31b-it",
                 "gemma-4-26b-a4b-it",
-                "gemini-3.1-flash-lite-preview"
+                "gemini-3.1-flash-lite"
             ],
             OpenAIModels: [
                 "gpt-5.4-nano"
@@ -66,7 +66,7 @@ class RisConfig {
             GoogleModels: [
                 "gemma-4-31b-it",
                 "gemma-4-26b-a4b-it",
-                "gemini-3.1-flash-lite-preview"
+                "gemini-3.1-flash-lite"
             ],
             OpenAIModels: [
                 "gpt-5.4-mini"
@@ -115,7 +115,7 @@ class RisConfig {
             GoogleModels: [
                 "gemma-4-31b-it",
                 "gemma-4-26b-a4b-it",
-                "gemini-3.1-flash-lite-preview"
+                "gemini-3.1-flash-lite"
             ],
             OpenAIModels: [
                 "gpt-5.4-mini"
