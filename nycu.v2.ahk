@@ -263,6 +263,24 @@ RisController.EnableShellHookFocus()
         WithImeGuard(() => RisController.SmartPageMove("Down", true))
     }
 
+    $Enter:: {
+        if !RisController.SmartListEnter() {
+            Send "{Enter}"
+        }
+    }
+
+    $NumpadEnter:: {
+        if !RisController.SmartListEnter() {
+            Send "{Enter}"
+        }
+    }
+
+    $Backspace:: {
+        if !RisController.SmartListBackspace() {
+            Send "{Backspace}"
+        }
+    }
+
     ^Enter::RisController.InsertNewLine("Below") ; Ctrl+Enter: 下方插入
     +Enter::RisController.InsertNewLine("Above") ; Shift+Enter: 上方插入
 

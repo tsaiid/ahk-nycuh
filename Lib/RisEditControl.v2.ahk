@@ -182,6 +182,77 @@ class RisEditControl {
         this.ScrollCaret(hCtrl)
     }
 
+    static SmartListEnter(hCtrl) {
+        lineInfo := this._GetCurrentLineInfo(hCtrl)
+        if (!lineInfo || lineInfo.Sel.Start != lineInfo.Sel.End) {
+            return false
+        }
+
+        if (lineInfo.Sel.Start != lineInfo.Bounds.ContentEnd) {
+            return false
+        }
+
+        if (this._RemoveEmptyListMarker(hCtrl, lineInfo)) {
+            return true
+        }
+
+        if !RegExMatch(lineInfo.Text, "^([ \t]*)(-->|[-*+>]|\d+([.)]))[ \t]+(.+)$", &match) {
+            return false
+        }
+
+        if (Trim(match[4], " `t") == "") {
+            return false
+        }
+
+        marker := match[2]
+        if RegExMatch(marker, "^(\d+)([.)])$", &numberMatch) {
+            nextPrefix := match[1] . (Integer(numberMatch[1]) + 1) . numberMatch[2] . " "
+        } else {
+            nextPrefix := match[1] . marker . " "
+        }
+
+        this.ReplaceSel(hCtrl, "`r`n" . nextPrefix)
+        this.ScrollCaret(hCtrl)
+        return true
+    }
+
+    static SmartListBackspace(hCtrl) {
+        lineInfo := this._GetCurrentLineInfo(hCtrl)
+        if (!lineInfo || lineInfo.Sel.Start != lineInfo.Sel.End) {
+            return false
+        }
+
+        if (lineInfo.Sel.Start != lineInfo.Bounds.ContentEnd) {
+            return false
+        }
+
+        return this._RemoveEmptyListMarker(hCtrl, lineInfo)
+    }
+
+    static _GetCurrentLineInfo(hCtrl) {
+        try {
+            fullText := ControlGetText(hCtrl)
+            sel := this.GetSel(hCtrl)
+            bounds := this.GetLogicalLineBoundaries(hCtrl, sel.Start)
+        } catch {
+            return false
+        }
+
+        lineText := SubStr(fullText, bounds.Start + 1, bounds.ContentEnd - bounds.Start)
+        return {Sel: sel, Bounds: bounds, Text: lineText}
+    }
+
+    static _RemoveEmptyListMarker(hCtrl, lineInfo) {
+        if !RegExMatch(lineInfo.Text, "^[ \t]*(?:-->|[-*+>]|\d+[.)])[ \t]*$") {
+            return false
+        }
+
+        this.SetSel(hCtrl, lineInfo.Bounds.Start, lineInfo.Bounds.ContentEnd)
+        this.ReplaceSel(hCtrl, "")
+        this.ScrollCaret(hCtrl)
+        return true
+    }
+
     static KillLine(hCtrl) {
         sel := this.GetSel(hCtrl)
         currentPos := sel.Start
