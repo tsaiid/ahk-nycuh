@@ -167,11 +167,6 @@ Left peritonsillar abscesses.
 {
     MyForm := "
   (
-HRCT of the temporal bone with axial and coronal section 1 mm showed:
-
-Previous HRCT of the temporal bone: none
-
-FINDINGS:
 Presence of soft tissue density at bilateral mastoid sinuses noted, c/w otitis media and mastoiditis with fluid accumulation.
 
 Presence of soft tissue density in the left middle ear, left mastoid antrum, and poor pneumatization of the left mastoid air sinus, R/O COM with mastoiditis.
@@ -208,11 +203,6 @@ Clinical correlation and follow up are suggested.
 {
     MyForm := "
   (
-HRCT of the temporal bone with axial and coronal section 1 mm showed:
-
-Previous HRCT of the temporal bone: none
-
-FINDINGS:
 No evidence of soft tissue density in the bilateral middle ear, aditus, or mastoid antrum, with intact ossicle chain.
 
 No evidence of soft tissue opacification in bilateral mastoid air sinuses.
@@ -239,11 +229,6 @@ No CT imaging evidence of cholesteatoma or otosclerosis noted.
 {
     MyForm := "
   (
-HRCT of the temporal bone with axial and coronal section 1 mm showed:
-
-Previous HRCT of the temporal bone: none
-
-FINDINGS:
 No evidence of soft tissue density in the bilateral middle ear, aditus, or mastoid antrum, with intact ossicle chain.
 
 No evidence of soft tissue opacification in bilateral mastoid air sinuses.
