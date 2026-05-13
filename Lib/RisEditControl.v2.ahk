@@ -192,36 +192,32 @@ class RisEditControl {
             return false
         }
 
-        if (this._RemoveEmptySmartPrefix(hCtrl, lineInfo)) {
+        if (this._CanRemoveEmptySmartPrefix(lineInfo)) {
+            this._RemoveLineContent(hCtrl, lineInfo)
             return true
         }
 
-        parsedLine := this._ParseSmartLine(lineInfo.Text)
-        if (!parsedLine) {
-            return false
-        }
-
-        if (Trim(parsedLine.Body, " `t") == "") {
-            return false
-        }
-
-        nextMarker := ""
-        if (parsedLine.HasMarker) {
-            nextMarker := this._GetNextListMarker(parsedLine.Marker)
-        }
-
-        nextSpineSegment := this._GetNextSpineSegmentPrefix(parsedLine.Body)
-        if (nextSpineSegment != "") {
-            nextPrefix := parsedLine.Indent . nextMarker . nextSpineSegment
-        } else if (parsedLine.HasMarker) {
-            nextPrefix := parsedLine.Indent . nextMarker
-        } else {
+        nextPrefix := this._GetSmartListNextPrefix(lineInfo)
+        if (nextPrefix == "") {
             return false
         }
 
         this.ReplaceSel(hCtrl, "`r`n" . nextPrefix)
         this.ScrollCaret(hCtrl)
         return true
+    }
+
+    static ShouldSmartListEnter(hCtrl) {
+        lineInfo := this._GetCurrentLineInfo(hCtrl)
+        if (!lineInfo || lineInfo.Sel.Start != lineInfo.Sel.End) {
+            return false
+        }
+
+        if (lineInfo.Sel.Start != lineInfo.Bounds.ContentEnd) {
+            return false
+        }
+
+        return this._CanRemoveEmptySmartPrefix(lineInfo) || this._GetSmartListNextPrefix(lineInfo) != ""
     }
 
     static SmartListBackspace(hCtrl) {
@@ -234,7 +230,25 @@ class RisEditControl {
             return false
         }
 
-        return this._RemoveEmptySmartPrefix(hCtrl, lineInfo)
+        if !this._CanRemoveEmptySmartPrefix(lineInfo) {
+            return false
+        }
+
+        this._RemoveLineContent(hCtrl, lineInfo)
+        return true
+    }
+
+    static ShouldSmartListBackspace(hCtrl) {
+        lineInfo := this._GetCurrentLineInfo(hCtrl)
+        if (!lineInfo || lineInfo.Sel.Start != lineInfo.Sel.End) {
+            return false
+        }
+
+        if (lineInfo.Sel.Start != lineInfo.Bounds.ContentEnd) {
+            return false
+        }
+
+        return this._CanRemoveEmptySmartPrefix(lineInfo)
     }
 
     static _GetCurrentLineInfo(hCtrl) {
@@ -250,7 +264,34 @@ class RisEditControl {
         return {Sel: sel, Bounds: bounds, Text: lineText}
     }
 
-    static _RemoveEmptySmartPrefix(hCtrl, lineInfo) {
+    static _GetSmartListNextPrefix(lineInfo) {
+        parsedLine := this._ParseSmartLine(lineInfo.Text)
+        if (!parsedLine) {
+            return ""
+        }
+
+        if (Trim(parsedLine.Body, " `t") == "") {
+            return ""
+        }
+
+        nextMarker := ""
+        if (parsedLine.HasMarker) {
+            nextMarker := this._GetNextListMarker(parsedLine.Marker)
+        }
+
+        nextSpineSegment := this._GetNextSpineSegmentPrefix(parsedLine.Body)
+        if (nextSpineSegment != "") {
+            return parsedLine.Indent . nextMarker . nextSpineSegment
+        }
+
+        if (parsedLine.HasMarker) {
+            return parsedLine.Indent . nextMarker
+        }
+
+        return ""
+    }
+
+    static _CanRemoveEmptySmartPrefix(lineInfo) {
         parsedLine := this._ParseSmartLine(lineInfo.Text)
         if (!parsedLine) {
             return false
@@ -265,10 +306,13 @@ class RisEditControl {
             return false
         }
 
+        return true
+    }
+
+    static _RemoveLineContent(hCtrl, lineInfo) {
         this.SetSel(hCtrl, lineInfo.Bounds.Start, lineInfo.Bounds.ContentEnd)
         this.ReplaceSel(hCtrl, "")
         this.ScrollCaret(hCtrl)
-        return true
     }
 
     static _ParseSmartLine(lineText) {

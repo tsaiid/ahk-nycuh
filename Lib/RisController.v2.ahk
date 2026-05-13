@@ -1001,6 +1001,19 @@ class RisController {
         }
     }
 
+    static ShouldSmartListEnter() {
+        if !this.IsTargetFocused() {
+            return false
+        }
+
+        try {
+            hEdit := ControlGetFocus("A")
+            return RisEditControl.ShouldSmartListEnter(hEdit)
+        } catch {
+            return false
+        }
+    }
+
     static SmartListBackspace() {
         if !this.IsTargetFocused() {
             return false
@@ -1009,6 +1022,19 @@ class RisController {
         try {
             hEdit := ControlGetFocus("A")
             return RisEditControl.SmartListBackspace(hEdit)
+        } catch {
+            return false
+        }
+    }
+
+    static ShouldSmartListBackspace() {
+        if !this.IsTargetFocused() {
+            return false
+        }
+
+        try {
+            hEdit := ControlGetFocus("A")
+            return RisEditControl.ShouldSmartListBackspace(hEdit)
         } catch {
             return false
         }
