@@ -168,15 +168,17 @@ class RisEditControl {
     }
 
     static InsertNewLine(hCtrl, mode := "Below") {
-        bounds := this.GetLogicalLineBoundaries(hCtrl)
+        lineInfo := this._GetCurrentLineInfo(hCtrl)
+        bounds := lineInfo ? lineInfo.Bounds : this.GetLogicalLineBoundaries(hCtrl)
+        smartPrefix := lineInfo ? this._GetSmartListInsertPrefix(lineInfo, mode) : ""
 
         if (mode = "Above") {
             this.SetSel(hCtrl, bounds.Start, bounds.Start)
-            this.ReplaceSel(hCtrl, "`r`n")
-            this.SetSel(hCtrl, bounds.Start, bounds.Start)
+            this.ReplaceSel(hCtrl, smartPrefix . "`r`n")
+            this.SetSel(hCtrl, bounds.Start + StrLen(smartPrefix), bounds.Start + StrLen(smartPrefix))
         } else {
             this.SetSel(hCtrl, bounds.ContentEnd, bounds.ContentEnd)
-            this.ReplaceSel(hCtrl, "`r`n")
+            this.ReplaceSel(hCtrl, "`r`n" . smartPrefix)
         }
 
         this.ScrollCaret(hCtrl)
@@ -291,6 +293,57 @@ class RisEditControl {
         return ""
     }
 
+    static _GetSmartListInsertPrefix(lineInfo, mode) {
+        if (!lineInfo || lineInfo.Sel.Start != lineInfo.Sel.End) {
+            return ""
+        }
+
+        return (mode = "Above")
+            ? this._GetSmartListPreviousPrefix(lineInfo)
+            : this._GetSmartListNextInsertPrefix(lineInfo)
+    }
+
+    static _GetSmartListNextInsertPrefix(lineInfo) {
+        parsedLine := this._ParseSmartLine(lineInfo.Text)
+        if (!parsedLine) {
+            return ""
+        }
+
+        nextMarker := ""
+        if (parsedLine.HasMarker) {
+            nextMarker := this._GetNextListMarker(parsedLine.Marker)
+        }
+
+        nextSpineSegment := this._GetNextSpineSegmentPrefix(parsedLine.Body, false)
+        if (nextSpineSegment != "") {
+            return parsedLine.Indent . nextMarker . nextSpineSegment
+        }
+
+        if (parsedLine.HasMarker) {
+            return parsedLine.Indent . nextMarker
+        }
+
+        return ""
+    }
+
+    static _GetSmartListPreviousPrefix(lineInfo) {
+        parsedLine := this._ParseSmartLine(lineInfo.Text)
+        if (!parsedLine) {
+            return ""
+        }
+
+        previousSpineSegment := this._GetPreviousSpineSegmentPrefix(parsedLine.Body)
+        if (previousSpineSegment != "") {
+            return parsedLine.Indent . (parsedLine.HasMarker ? parsedLine.Marker . " " : "") . previousSpineSegment
+        }
+
+        if (parsedLine.HasMarker) {
+            return parsedLine.Indent . parsedLine.Marker . " "
+        }
+
+        return ""
+    }
+
     static _CanRemoveEmptySmartPrefix(lineInfo) {
         parsedLine := this._ParseSmartLine(lineInfo.Text)
         if (!parsedLine) {
@@ -336,9 +389,9 @@ class RisEditControl {
         return marker . " "
     }
 
-    static _GetNextSpineSegmentPrefix(text) {
+    static _GetNextSpineSegmentPrefix(text, requireTrailingText := true) {
         segmentInfo := this._ParseSpineSegmentPrefix(text)
-        if (!segmentInfo || Trim(segmentInfo.TrailingText, " `t") == "") {
+        if (!segmentInfo || (requireTrailingText && Trim(segmentInfo.TrailingText, " `t") == "")) {
             return ""
         }
 
@@ -349,6 +402,21 @@ class RisEditControl {
         }
 
         return nextStart.Region . nextStart.Number . "-" . nextEnd.Region . nextEnd.Number . ": "
+    }
+
+    static _GetPreviousSpineSegmentPrefix(text) {
+        segmentInfo := this._ParseSpineSegmentPrefix(text)
+        if (!segmentInfo) {
+            return ""
+        }
+
+        previousStart := this._GetPreviousVertebra(segmentInfo.FirstStart.Region, segmentInfo.FirstStart.Number)
+        if (!previousStart) {
+            return ""
+        }
+
+        currentStart := segmentInfo.FirstStart
+        return previousStart.Region . previousStart.Number . "-" . currentStart.Region . currentStart.Number . ": "
     }
 
     static _IsEmptySpineSegmentPrefix(text) {
@@ -362,6 +430,7 @@ class RisEditControl {
         }
 
         segmentItems := StrSplit(prefixMatch[1], ",")
+        firstStart := false
         previousEnd := false
         lastEnd := false
 
@@ -373,6 +442,9 @@ class RisEditControl {
 
             start := {Region: StrUpper(segmentMatch[1]), Number: Integer(segmentMatch[2])}
             end := {Region: StrUpper(segmentMatch[3]), Number: Integer(segmentMatch[4])}
+            if (!firstStart) {
+                firstStart := start
+            }
             expectedEnd := this._GetNextVertebra(start.Region, start.Number)
 
             if (!expectedEnd || expectedEnd.Region != end.Region || expectedEnd.Number != end.Number) {
@@ -387,7 +459,7 @@ class RisEditControl {
             lastEnd := end
         }
 
-        return {LastEnd: lastEnd, TrailingText: prefixMatch[2]}
+        return {FirstStart: firstStart, LastEnd: lastEnd, TrailingText: prefixMatch[2]}
     }
 
     static _GetNextVertebra(region, number) {
@@ -406,6 +478,27 @@ class RisEditControl {
                     : (number == 5 ? {Region: "S", Number: 1} : false)
             case "S":
                 return false
+        }
+
+        return false
+    }
+
+    static _GetPreviousVertebra(region, number) {
+        switch StrUpper(region) {
+            case "C":
+                return (number > 1) ? {Region: "C", Number: number - 1} : false
+            case "T":
+                return (number > 1)
+                    ? {Region: "T", Number: number - 1}
+                    : {Region: "C", Number: 7}
+            case "L":
+                return (number > 1)
+                    ? {Region: "L", Number: number - 1}
+                    : {Region: "T", Number: 12}
+            case "S":
+                return (number > 1)
+                    ? {Region: "S", Number: number - 1}
+                    : {Region: "L", Number: 5}
         }
 
         return false
