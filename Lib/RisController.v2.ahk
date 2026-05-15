@@ -1709,6 +1709,7 @@ class RisController {
                 {Label: "endometrium / endometrial", Pattern: "\b(endometrium|endometrial)\b"},
                 {Label: "myometrium / myometrial", Pattern: "\b(myometrium|myometrial)\b"},
                 {Label: "cervix / gynecologic cervical", Pattern: "\b(cervix|uterine\s+cervix|cervical\s+(canal|os|mass|cancer|carcinoma|lesion))\b"},
+                {Label: "hysterectomy", Pattern: "\b(hysterectomy|hysterectomies)\b"},
                 {Label: "vagina / vaginal", Pattern: "\b(vagina|vaginal)\b"},
                 {Label: "vulva / vulvar", Pattern: "\b(vulva|vulvar)\b"}
             ]
@@ -1717,6 +1718,7 @@ class RisController {
         if (sex == "F") {
             return [
                 {Label: "prostate / prostatic", Pattern: "\b(prostate|prostatic)\b"},
+                {Label: "prostatectomy", Pattern: "\b(prostatectomy|prostatectomies)\b"},
                 {Label: "seminal vesicle", Pattern: "\b(seminal\s+vesicles?)\b"},
                 {Label: "testis / testicular", Pattern: "\b(testis|testes|testicular)\b"},
                 {Label: "scrotum / scrotal", Pattern: "\b(scrotum|scrotal)\b"},
