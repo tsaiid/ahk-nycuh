@@ -11,8 +11,20 @@ class RisReportText {
                 startPos := match.Pos + match.Len - 1
 
                 ; CT/MR 特有的結尾偵測 (REMARKS/RECOMMENDATION)
-                if RegExMatch(text, "m)(\r\n){1,2}REMARKS?:|RECOMMENDATION:", &endMatch, startPos + 1) {
+                if RegExMatch(text, "im)^[ \t]*(REMARKS?:|RECOMMENDATION:)", &endMatch, startPos + 1) {
                     endPos := endMatch.Pos - 1
+                    return {Start: startPos, End: endPos, TrailingNewlines: "`r`n`r`n"}
+                }
+                return {Start: startPos, End: endPos}
+            }
+
+            ; HCC staging form: format only the free-text Other findings section.
+            if RegExMatch(text, "im)^\s*\d+\.\s*Other findings\s*:?[ \t]*(?:\r?\n)?", &match) {
+                startPos := match.Pos + match.Len - 1
+
+                if RegExMatch(text, "m)^[ \t]*=+[ \t]*$", &endMatch, startPos + 1) {
+                    endPos := endMatch.Pos - 1
+                    return {Start: startPos, End: endPos, TrailingNewlines: "`r`n`r`n"}
                 }
                 return {Start: startPos, End: endPos}
             }

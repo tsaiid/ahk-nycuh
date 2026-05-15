@@ -2115,7 +2115,18 @@ class RisController {
 
         if (range) {
             RisEditControl.SetSel(hEdit, range.Start, range.End)
-            this._ReorderSelectedText(hEdit, false, false, "-", true)
+            if (range.HasOwnProp("TrailingNewlines")) {
+                selectedText := RisEditControl.GetSelectedText(hEdit)
+                if (selectedText == "") {
+                    return
+                }
+
+                finalText := RisReportText.ReorderSelectedText(selectedText, false, false, "-", true)
+                finalText := RTrim(finalText, "`r`n") . range.TrailingNewlines
+                RisEditControl.ReplaceSelectionPreserveFirstVisibleLine(hEdit, finalText)
+            } else {
+                this._ReorderSelectedText(hEdit, false, false, "-", true)
+            }
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
         }
