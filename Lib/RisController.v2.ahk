@@ -1687,9 +1687,121 @@ class RisController {
         }
     }
 
+    static _NormalizePatientSex(sexText) {
+        sexText := Trim(sexText)
+
+        if (InStr(sexText, "男") || RegExMatch(sexText, "i)\b(M|Male)\b")) {
+            return "M"
+        }
+        if (InStr(sexText, "女") || RegExMatch(sexText, "i)\b(F|Female)\b")) {
+            return "F"
+        }
+        return ""
+    }
+
+    static _GetSexSpecificTermRules(sex) {
+        if (sex == "M") {
+            return [
+                {Label: "uterus / uterine", Pattern: "\b(uterus|uteri|uterine)\b"},
+                {Label: "ovary / ovarian", Pattern: "\b(ovary|ovaries|ovarian)\b"},
+                {Label: "fallopian tube", Pattern: "\b(fallopian\s+tubes?)\b"},
+                {Label: "adnexa / adnexal", Pattern: "\b(adnexa|adnexae|adnexal)\b"},
+                {Label: "endometrium / endometrial", Pattern: "\b(endometrium|endometrial)\b"},
+                {Label: "myometrium / myometrial", Pattern: "\b(myometrium|myometrial)\b"},
+                {Label: "cervix / gynecologic cervical", Pattern: "\b(cervix|uterine\s+cervix|cervical\s+(canal|os|mass|cancer|carcinoma|lesion))\b"},
+                {Label: "vagina / vaginal", Pattern: "\b(vagina|vaginal)\b"},
+                {Label: "vulva / vulvar", Pattern: "\b(vulva|vulvar)\b"}
+            ]
+        }
+
+        if (sex == "F") {
+            return [
+                {Label: "prostate / prostatic", Pattern: "\b(prostate|prostatic)\b"},
+                {Label: "seminal vesicle", Pattern: "\b(seminal\s+vesicles?)\b"},
+                {Label: "testis / testicular", Pattern: "\b(testis|testes|testicular)\b"},
+                {Label: "scrotum / scrotal", Pattern: "\b(scrotum|scrotal)\b"},
+                {Label: "penis / penile", Pattern: "\b(penis|penile)\b"},
+                {Label: "epididymis / epididymal", Pattern: "\b(epididymis|epididymal)\b"},
+                {Label: "vas deferens", Pattern: "\b(vas\s+deferens|deferential\s+ducts?)\b"},
+                {Label: "spermatic cord", Pattern: "\b(spermatic\s+cords?)\b"}
+            ]
+        }
+
+        return []
+    }
+
+    static _FindFirstSexSpecificReportConflict(sex) {
+        rules := this._GetSexSpecificTermRules(sex)
+        targets := [
+            {Name: "Finding", Hwnd: this.FindingEdit.NativeWindowHandle, Text: this.FindingText},
+            {Name: "Impression", Hwnd: this.ImpressionEdit.NativeWindowHandle, Text: this.ImpressionText}
+        ]
+
+        for target in targets {
+            firstMatch := 0
+
+            for rule in rules {
+                if RegExMatch(target.Text, "i)" . rule.Pattern, &match) {
+                    matchPos := match.Pos - 1
+                    if (!firstMatch || matchPos < firstMatch.Pos) {
+                        firstMatch := {
+                            Field: target.Name,
+                            Hwnd: target.Hwnd,
+                            Pos: matchPos,
+                            Term: match[0],
+                            Label: rule.Label
+                        }
+                    }
+                }
+            }
+
+            if (firstMatch) {
+                return firstMatch
+            }
+        }
+
+        return 0
+    }
+
+    static _SelectReportLineAt(hCtrl, charPos) {
+        try {
+            ControlFocus(hCtrl)
+            RisEditControl.SetSel(hCtrl, charPos, charPos)
+            RisEditControl.SelectLine(hCtrl)
+            RisEditControl.ScrollCaret(hCtrl)
+        }
+    }
+
+    static ValidateReportSexSpecificTerms() {
+        try {
+            sex := this._NormalizePatientSex(this._FastGetCtrlText("GenderText"))
+
+            if (sex == "") {
+                this.Notify("無法判讀病人性別，已取消存檔。請確認性別欄位後再存檔。")
+                return false
+            }
+
+            conflict := this._FindFirstSexSpecificReportConflict(sex)
+            if (!conflict) {
+                return true
+            }
+
+            sexName := (sex == "M") ? "男性" : "女性"
+            this._SelectReportLineAt(conflict.Hwnd, conflict.Pos)
+            this.Notify(Format("病人性別為 {1}，{2} 含不符性別字詞: {3}`n已取消存檔，請修正後再存檔。", sexName, conflict.Field, conflict.Term))
+            return false
+        } catch as err {
+            this.Notify("報告安全檢查失敗，已取消存檔: " . err.Message)
+            return false
+        }
+    }
+
     static SaveReport() {
         try {
             this.EnsureImpressionNotEmpty()
+            if (!this.ValidateReportSexSpecificTerms()) {
+                return
+            }
             this.ReportSaveButton.ControlClick()
         } catch as err {
             this.Notify("存檔失敗: " err.Message)
