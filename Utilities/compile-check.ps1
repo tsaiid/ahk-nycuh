@@ -15,8 +15,7 @@ Set-Location $repoRoot
 $entryList = @(
     "nycu.v2.ahk",
     "NoduleTracker.ahk",
-    "ShuttlePROv2.v2.ahk",
-    "AiPolish.ahk"
+    "ShuttlePROv2.v2.ahk"
 )
 
 function Resolve-AbsolutePath {

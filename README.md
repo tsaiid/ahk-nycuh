@@ -8,7 +8,6 @@
 - INFINITT PACS 操作輔助
 - ShuttlePRO v2 控制器按鍵映射
 - 肺結節追蹤 GUI 工具
-- 選取文字的 AI 潤稿工具
 
 ## 主要入口
 
@@ -37,14 +36,6 @@ ShuttlePRO v2 控制器整合腳本。
 - 依目前作用中的應用程式切換按鍵映射
 - 目前內建 EBM Web Viewer、RDP、INFINITT PACS、GE AWS、報告系統等情境
 - 用於滾輪、同步、歷史切換與常用操作
-
-### `AiPolish.ahk`
-
-獨立的 AI 潤稿 PoC 工具。
-
-- 讀取目前選取文字
-- 呼叫 AI provider 產生潤飾結果
-- 顯示比對視窗後回貼原應用程式
 
 ## 目錄概覽
 
@@ -80,7 +71,6 @@ OpenAI API key 請放在 `config/private.ini` 的 `[OpenAI]` 區段，可共用 
 - `nycu.v2.ahk`
 - `NoduleTracker.ahk`
 - `ShuttlePROv2.v2.ahk`
-- `AiPolish.ahk`
 
 若要做個人化調整，優先修改相鄰的設定區或 `config/` 內檔案，先沿用既有模式，不建議另外拆新架構。
 
@@ -103,10 +93,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps
 - `nycu.v2.ahk`
 - `NoduleTracker.ahk`
 - `ShuttlePROv2.v2.ahk`
-- `AiPolish.ahk`
 
 ## 注意事項
 
 - 這些腳本高度依賴實際視窗標題、控制項名稱與院內工作流程。
 - 修改 `Lib/RisController.v2.ahk`、`Hotstrings/` 或 `Hotkeys/` 後，通常會影響 `nycu.v2.ahk`。
-- `AiPolish.ahk` 目前是 PoC 風格，provider 支援與金鑰設定仍偏手動。
