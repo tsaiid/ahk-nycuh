@@ -32,6 +32,8 @@
 ::ifch::from the imaging findings and clinical history,
 ::mrmast::Increased signal intensity in the -------------, mastoid air sinus on T2WI, in favor of mastoiditis or fluid collection in the mastoid.
 ::ctmast::Presence of soft tissue density in the ---- mastoid air sinus, R/O mastoiditis or fluid collection in the mastoid.
+::lmast::Presence of soft tissue density in the left mastoid air sinus, R/O mastoiditis or fluid collection in the mastoid.
+::rmast::Presence of soft tissue density in the right mastoid air sinus, R/O mastoiditis or fluid collection in the mastoid.
 ::ctcmast::Underdeveloped pneumatization and sclerotic changes of right/left/bilateral mastoid air cells, suspicious chronic mastoiditis.
 ::atrv::Diffuse atrophy of bilateral cerebral hemispheres, with compensatory dilatation of bilateral lateral ventricles, deepening and widening of cortical sulci.
 ::matrv::Mild enlargement of the ventricular system, in favor of mild brain atrophy.
