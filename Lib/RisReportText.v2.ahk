@@ -98,7 +98,7 @@ class RisReportText {
         }
 
         for index, line in txtAry {
-            if (!RegExMatch(line, "^\s*$")) {
+            if (!RisReportText._IsEmptyReorderLine(line)) {
                 tmpText := line
                 if (RegExMatch(line, "^\s*[-\+\*]*\s*([Vv]arying degree|[Mm]ild).+causing:")) {
                     isSpine := true
@@ -138,6 +138,10 @@ class RisReportText {
         }
 
         return RTrim(finalText, "`r`n")
+    }
+
+    static _IsEmptyReorderLine(line) {
+        return RegExMatch(line, "^\s*(?:\d+\.|\(?\d+\)|[-\+\*>=]|-->)?\s*$")
     }
 
     static DetectItemChar(text, defaultChar := "-") {
