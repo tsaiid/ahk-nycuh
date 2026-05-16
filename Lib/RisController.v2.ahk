@@ -558,7 +558,7 @@ class RisController {
             }
 
             try targetHwnd := ControlGetFocus("A")
-            SetTimer( () => RisVisualFeedback.HighlightCaret(targetHwnd), -10 )
+            SetTimer( () => RisController._ScrollAndHighlightCaret(targetHwnd), -10 )
             return
         }
 
@@ -624,10 +624,19 @@ class RisController {
                 }
             }
 
-            SetTimer( () => RisVisualFeedback.HighlightCaret(targetHwnd), -10 )
+            SetTimer( () => RisController._ScrollAndHighlightCaret(targetHwnd), -10 )
         } catch as err {
             this.Notify("視窗切換失敗: " err.Message)
         }
+    }
+
+    static _ScrollAndHighlightCaret(targetHwnd) {
+        if (targetHwnd) {
+            try RisEditControl.ScrollCaret(targetHwnd)
+            Sleep 30
+        }
+
+        RisVisualFeedback.HighlightCaret(targetHwnd)
     }
 
     ; =================================================================
