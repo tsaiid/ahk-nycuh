@@ -966,7 +966,11 @@ class RisController {
         }
         try {
             hEdit := ControlGetFocus("A")
-            return RisEditControl.SmartPageMove(hEdit, direction, extend)
+            moved := RisEditControl.SmartPageMove(hEdit, direction, extend)
+            if (moved) {
+                SetTimer( () => RisVisualFeedback.HighlightCaret(hEdit), -10 )
+            }
+            return moved
         } catch {
             return false
         }
