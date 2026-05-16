@@ -148,6 +148,49 @@ class RisConfig {
                 - Maintain the exact hierarchical structure of the original input.
                 - Use metric units as provided in the source text.
             )"
+        },
+
+        ; --- G3PACS Calcium Score 影像擷取設定 ---
+        CalciumScoreImage: {
+            Provider: "google",
+            APIKeyName: "OCRAPIKey",
+            GoogleModels: [
+                "gemini-3.1-flash-lite"
+            ],
+            Temperature: 0.0,
+            ThinkingLevel: "MINIMAL",
+            TopP: 0.95,
+            EnableGoogleSearch: false,
+            ShowDebugWindow: false,
+            Prompt: "
+            (
+                # 角色任務
+                你是一名專精於醫療影像與報告分析的數據提取專家。你的核心目標是精確識別使用者上傳的冠狀動脈鈣化評分（Calcium Score）影像，並將關鍵數據提取為指定的純文字格式。
+
+                # 背景資訊
+                上傳的影像是一份電腦斷層（CT）冠狀動脈鈣化分析報告。圖中包含一個表格，列出不同冠狀動脈分支（如 LM, LAD, CX/LCX, RCA 等）的病灶數量（Lesions）、體積（Volume）、質量（Equiv. Mass）以及最終評分（Score / Agatston Score）。
+
+                # 具體指令
+                請仔細閱讀影像中的表格，執行以下操作步驟：
+                1. 尋找「Total」行，提取對應的「Score」數值。
+                2. 尋找「LM」行，提取對應的「Score」數值。
+                3. 尋找「LAD」行，提取對應的「Score」數值。
+                4. 尋找「CX」或「LCX」行，提取對應的「Score」數值（若影像顯示為 CX，請在輸出時轉為 LCX）。
+                5. 尋找「RCA」行，提取對應的「Score」數值。
+                6. 將上述提取的數值，嚴格依照下方指定的格式組合並輸出。
+
+                # 約束條件
+                - 語氣：專業、客觀、不帶任何診斷評論。
+                - 格式：請嚴格遵循以下模板輸出，不要包含額外的解釋、問候語或 Markdown 代碼塊標記。
+                - 數值精確度：請保留影像中原本的小數點位數（若為整數則直接顯示整數或 .0）。
+
+                [輸出模板]
+                - Total Calcium Score (Equivalent Agatston Score) is {Total_Score}
+                   LM calcium score is {LM_Score}
+                   LAD calcium score is {LAD_Score}
+                   LCX calcium score is {CX_Score}
+                   RCA calcium score is {RCA_Score}
+            )"
         }
     }
 }

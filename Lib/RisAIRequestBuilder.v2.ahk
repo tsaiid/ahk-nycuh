@@ -1,12 +1,12 @@
 #Requires AutoHotkey v2.0
 
 class RisAIRequestBuilder {
-    static BuildGoogleRequest(promptText, options, configTime) {
+    static BuildGoogleRequest(promptText, options, configTime, inlineImage := 0) {
         payloadStart := A_TickCount
 
         return {
             Url: RisAIPayload.BuildGoogleUrl(options),
-            Payload: RisAIPayload.BuildGooglePayload(promptText, options),
+            Payload: RisAIPayload.BuildGooglePayload(promptText, options, inlineImage),
             APIKeyName: options.APIKeyName,
             Model: options.Model,
             Metrics: {

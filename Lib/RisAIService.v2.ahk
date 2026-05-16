@@ -28,6 +28,10 @@ class RisAIService {
     }
 
     static CallGoogle(promptText, aiConfig := 0, options := 0) {
+        return this.CallGoogleWithInlineImage(promptText, 0, aiConfig, options)
+    }
+
+    static CallGoogleWithInlineImage(promptText, inlineImage := 0, aiConfig := 0, options := 0) {
         notify := (IsObject(options) && options.HasOwnProp("Notify")) ? options.Notify : (*) => 0
         showCurl := (IsObject(options) && options.HasOwnProp("ShowCurl")) ? options.ShowCurl : false
 
@@ -37,7 +41,7 @@ class RisAIService {
         lastError := ""
 
         for index, modelName in models {
-            request := this._BuildGoogleAIRequest(promptText, aiConfig, modelName)
+            request := this._BuildGoogleAIRequest(promptText, aiConfig, modelName, options, inlineImage)
             waitStart := A_TickCount
             response := RisAITransport.SendGoogle(request.Url, request.Payload)
             request.Metrics.WaitForResponseTime := A_TickCount - waitStart
@@ -300,12 +304,12 @@ class RisAIService {
         return RisAIConfigResolver.ResolveGoogleOptions(cfg, aiConfig, modelOverride)
     }
 
-    static _BuildGoogleAIRequest(promptText, aiConfig := 0, modelOverride := "", optionsSource := 0) {
+    static _BuildGoogleAIRequest(promptText, aiConfig := 0, modelOverride := "", optionsSource := 0, inlineImage := 0) {
         configStart := A_TickCount
         options := this._ResolveGoogleAIOptions(aiConfig, modelOverride, optionsSource)
         configTime := A_TickCount - configStart
 
-        return RisAIRequestBuilder.BuildGoogleRequest(promptText, options, configTime)
+        return RisAIRequestBuilder.BuildGoogleRequest(promptText, options, configTime, inlineImage)
     }
 
     static _GetOpenAIConfig(options := 0) {

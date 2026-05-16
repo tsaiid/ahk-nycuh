@@ -5,7 +5,7 @@ class RisAIPayload {
         return "https://generativelanguage.googleapis.com/v1beta/models/" . options.Model . ":generateContent?key=" . options.APIKey
     }
 
-    static BuildGooglePayload(promptText, options) {
+    static BuildGooglePayload(promptText, options, inlineImage := 0) {
         escapedPrompt := RisAIText.EscapeJsonString(promptText)
         generationConfig := '"temperature": ' . options.Temperature . ','
         if (options.ThinkingLevel != "") {
@@ -13,10 +13,16 @@ class RisAIPayload {
         }
         generationConfig .= '"topP": ' . options.TopP
 
+        parts := '[{"text": "' . escapedPrompt . '"}'
+        if IsObject(inlineImage) {
+            parts .= ',{"inline_data": {"mime_type": "' . RisAIText.EscapeJsonString(inlineImage.MimeType) . '","data": "' . inlineImage.Base64 . '"}}'
+        }
+        parts .= ']'
+
         payload := '{'
             . '"contents": [{'
                 . '"role": "user",'
-                . '"parts": [{"text": "' . escapedPrompt . '"}]'
+                . '"parts": ' . parts
             . '}],'
             . '"generationConfig": {' . generationConfig . '}'
 

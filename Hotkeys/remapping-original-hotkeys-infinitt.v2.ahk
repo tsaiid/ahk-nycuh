@@ -9,6 +9,7 @@ $WheelDown::FocusG3PacsUnderMouseAndScroll("WheelDown")
 
 #HotIf IsG3PacsHotkeyContext()
 ^s::SelectG3PacsSortBySliceLocationDesc()
+!c::AnalyzeG3PacsCalciumScoreFromClipboard()
 #HotIf
 
 MouseIsOverG3Pacs() {
@@ -200,6 +201,324 @@ NotifyG3PacsHotkeyError(message, hMenu := 0) {
         A_Clipboard := message "`n`nMenu items:`n" DumpMenuItems(hMenu)
     ToolTip(message)
     SetTimer(() => ToolTip(), -3000)
+}
+
+AnalyzeG3PacsCalciumScoreFromClipboard() {
+    static isRunning := false
+
+    if isRunning {
+        NotifyG3PacsAIStatus("Calcium Score AI 仍在處理中", 2500)
+        return
+    }
+
+    isRunning := true
+    startedAt := A_TickCount
+    pngPath := ""
+    showDebugWindow := RisConfig.AI.CalciumScoreImage.HasOwnProp("ShowDebugWindow")
+        ? RisConfig.AI.CalciumScoreImage.ShowDebugWindow
+        : false
+
+    try {
+        NotifyG3PacsAIStatus("G3PACS: 複製影像到 clipboard...", 2500)
+        ClearClipboardAllFormats()
+        KeyWait("Alt")
+        Sleep(80)
+        SendEvent("{Ctrl down}c{Ctrl up}")
+
+        if !WaitForG3PacsClipboardImage(5000) {
+            throw Error("未偵測到 clipboard 影像。請確認目前 G3PACS 畫面可用 Ctrl+C 複製影像。")
+        }
+
+        copyTime := A_TickCount - startedAt
+        saveResult := SaveClipboardImageToPng()
+        pngPath := saveResult.Path
+        imageInfo := showDebugWindow ? GetImageFileInfo(pngPath) : ""
+        imageBytes := FileGetSize(pngPath)
+        imageBase64 := Base64EncodeFile(pngPath)
+        encodeTime := A_TickCount - startedAt - copyTime
+
+        NotifyG3PacsAIStatus("Gemini 分析 Calcium Score 影像中...", 4000)
+        promptText := RisConfig.AI.CalciumScoreImage.Prompt
+        apiStart := A_TickCount
+        response := RisAIService.CallGoogleWithInlineImage(
+            promptText,
+            { MimeType: "image/png", Base64: imageBase64 },
+            RisConfig.AI.CalciumScoreImage,
+            { Notify: NotifyG3PacsAIStatus }
+        )
+        apiTime := A_TickCount - apiStart
+
+        resultText := RisAIOrchestration.NormalizeResult(response.Result)
+        tempFileStatus := DeleteTempImageFile(pngPath)
+        debugInfo := {
+            APIKeyName: response.APIKeyName,
+            Model: response.Model,
+            Provider: response.Provider,
+            CopyTime: copyTime,
+            EncodeTime: encodeTime,
+            ApiTime: apiTime,
+            TotalTime: A_TickCount - startedAt,
+            PromptChars: StrLen(promptText),
+            ImagePath: pngPath,
+            ImageBytes: imageBytes,
+            ImageBase64Chars: StrLen(imageBase64),
+            ImageInfo: imageInfo,
+            SaveMethod: saveResult.Method,
+            TempFileStatus: tempFileStatus,
+            ClipboardFormats: showDebugWindow ? GetClipboardFormatDebug() : ""
+        }
+
+        A_Clipboard := resultText
+        if showDebugWindow {
+            ShowG3PacsCalciumScoreResult(resultText, debugInfo, true)
+            NotifyG3PacsAIStatus("Calcium Score AI 完成，結果已複製並顯示 debug", 2500)
+        } else {
+            NotifyG3PacsAIStatus("Calcium Score AI 完成，結果已複製到剪貼簿", 2500)
+        }
+    } catch as err {
+        errMsg := "G3PACS Calcium Score AI 失敗：" . err.Message
+        if (pngPath != "" && FileExist(pngPath)) {
+            errMsg .= "`r`n`r`nTemp image retained:`r`n" . pngPath
+        }
+        RisAIDebugGui.ShowDebugError(errMsg, { Notify: NotifyG3PacsAIStatus })
+    } finally {
+        isRunning := false
+    }
+}
+
+WaitForG3PacsClipboardImage(timeoutMs := 2500) {
+    deadline := A_TickCount + timeoutMs
+    while A_TickCount < deadline {
+        if HasClipboardImageFormat()
+            return true
+        Sleep(50)
+    }
+    return false
+}
+
+HasClipboardImageFormat() {
+    return DllCall("IsClipboardFormatAvailable", "UInt", 2, "Int") ; CF_BITMAP
+        || DllCall("IsClipboardFormatAvailable", "UInt", 8, "Int") ; CF_DIB
+        || DllCall("IsClipboardFormatAvailable", "UInt", 17, "Int") ; CF_DIBV5
+}
+
+ClearClipboardAllFormats() {
+    if !DllCall("OpenClipboard", "Ptr", A_ScriptHwnd, "Int")
+        return false
+
+    DllCall("EmptyClipboard", "Int")
+    DllCall("CloseClipboard", "Int")
+    return true
+}
+
+SaveClipboardImageToPng() {
+    pngPath := A_Temp "\G3PacsCalciumScore_" A_Now "_" A_TickCount ".png"
+    return { Path: SaveClipboardImageToPngWithPowerShell(pngPath), Method: "PowerShell System.Windows.Forms" }
+}
+
+DeleteTempImageFile(filePath) {
+    if !FileExist(filePath) {
+        return "not found: " . filePath
+    }
+
+    try {
+        FileDelete(filePath)
+        return "deleted: " . filePath
+    } catch as err {
+        return "delete failed: " . err.Message . " | " . filePath
+    }
+}
+
+SaveClipboardImageToPngWithPowerShell(pngPath) {
+    psPath := A_Temp "\G3PacsClipboardImageToPng.ps1"
+    psScript := "
+    (
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+$targetPath = $args[0]
+$image = [System.Windows.Forms.Clipboard]::GetImage()
+if ($null -eq $image) { exit 2 }
+try {
+    $image.Save($targetPath, [System.Drawing.Imaging.ImageFormat]::Png)
+} finally {
+    $image.Dispose()
+}
+    )"
+
+    if FileExist(psPath)
+        FileDelete(psPath)
+    FileAppend(psScript, psPath, "UTF-8")
+
+    exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -STA -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(pngPath), , "Hide")
+    if (exitCode != 0 || !FileExist(pngPath)) {
+        throw Error("clipboard 影像轉 PNG 失敗 (PowerShell exit code: " . exitCode . ")")
+    }
+
+    return pngPath
+}
+
+GetImageFileInfo(filePath) {
+    psPath := A_Temp "\G3PacsImageInfo.ps1"
+    outputPath := A_Temp "\G3PacsImageInfo_" A_TickCount ".txt"
+    psScript := "
+    (
+Add-Type -AssemblyName System.Drawing
+$image = [System.Drawing.Image]::FromFile($args[0])
+try {
+    $lines = @('Width=' + $image.Width, 'Height=' + $image.Height, 'PixelFormat=' + $image.PixelFormat)
+    Set-Content -LiteralPath $args[1] -Value $lines -Encoding UTF8
+} finally {
+    $image.Dispose()
+}
+    )"
+
+    if FileExist(psPath)
+        FileDelete(psPath)
+    FileAppend(psScript, psPath, "UTF-8")
+
+    exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(filePath) " " QuoteCmdArg(outputPath), , "Hide")
+    if (exitCode != 0 || !FileExist(outputPath)) {
+        return "Image info unavailable (PowerShell exit code: " . exitCode . ")"
+    }
+
+    try {
+        return Trim(FileRead(outputPath, "UTF-8"), "`r`n `t")
+    } finally {
+        try FileDelete(outputPath)
+    }
+}
+
+GetClipboardFormatDebug() {
+    formatNames := Map(
+        1, "CF_TEXT",
+        2, "CF_BITMAP",
+        3, "CF_METAFILEPICT",
+        8, "CF_DIB",
+        13, "CF_UNICODETEXT",
+        14, "CF_ENHMETAFILE",
+        17, "CF_DIBV5"
+    )
+
+    if !DllCall("OpenClipboard", "Ptr", A_ScriptHwnd, "Int")
+        return "OpenClipboard failed"
+
+    try {
+        lines := ""
+        currentFormat := 0
+        while (currentFormat := DllCall("EnumClipboardFormats", "UInt", currentFormat, "UInt")) {
+            formatName := formatNames.Has(currentFormat) ? formatNames[currentFormat] : GetRegisteredClipboardFormatName(currentFormat)
+            lines .= currentFormat . ": " . formatName . "`r`n"
+        }
+        return RTrim(lines, "`r`n")
+    } finally {
+        DllCall("CloseClipboard", "Int")
+    }
+}
+
+GetRegisteredClipboardFormatName(formatId) {
+    nameBuffer := Buffer(256 * 2, 0)
+    length := DllCall("GetClipboardFormatNameW", "UInt", formatId, "Ptr", nameBuffer.Ptr, "Int", 256, "Int")
+    if (length > 0)
+        return StrGet(nameBuffer, length, "UTF-16")
+    return "(registered/unknown)"
+}
+
+Base64EncodeFile(filePath) {
+    imageFile := FileOpen(filePath, "r")
+    if !imageFile {
+        throw Error("無法讀取影像檔: " . filePath)
+    }
+
+    fileSize := imageFile.Length
+    if (fileSize < 1) {
+        imageFile.Close()
+        throw Error("影像檔為空: " . filePath)
+    }
+
+    bytes := Buffer(fileSize, 0)
+    bytesRead := imageFile.RawRead(bytes, fileSize)
+    imageFile.Close()
+
+    chars := 0
+    flags := 0x40000001 ; CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF
+    if !DllCall("Crypt32\CryptBinaryToStringW", "Ptr", bytes.Ptr, "UInt", bytesRead, "UInt", flags, "Ptr", 0, "UInt*", &chars) {
+        throw Error("計算 base64 長度失敗")
+    }
+
+    output := Buffer(chars * 2, 0)
+    if !DllCall("Crypt32\CryptBinaryToStringW", "Ptr", bytes.Ptr, "UInt", bytesRead, "UInt", flags, "Ptr", output.Ptr, "UInt*", &chars) {
+        throw Error("影像 base64 編碼失敗")
+    }
+
+    return StrGet(output, chars, "UTF-16")
+}
+
+QuoteCmdArg(value) {
+    return '"' StrReplace(value, '"', '\"') '"'
+}
+
+NotifyG3PacsAIStatus(message, duration := 1800) {
+    ToolTip(message)
+    SetTimer(() => ToolTip(), -duration)
+}
+
+ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
+    resultGui := Gui("+AlwaysOnTop +Resize", "G3PACS Calcium Score AI")
+    resultGui.MarginX := 14
+    resultGui.MarginY := 12
+    resultGui.SetFont("s10", "Microsoft JhengHei UI")
+
+    resultGui.Add("Text", "w760", "Result:")
+    resultEditHeight := showDebugWindow ? 110 : 180
+    resultEdit := resultGui.Add("Edit", "w760 h" . resultEditHeight . " ReadOnly Multi -Wrap", resultText)
+
+    if showDebugWindow {
+        debugText := Format(
+            "Provider: {1}`r`nModel: {2}`r`nAPI Key: {3}`r`nCopy: {4} ms | Encode: {5} ms | API: {6} | Total: {7} ms`r`nPrompt: {8} chars | Image: {9} bytes | Base64: {10}`r`nSave method: {11}`r`nTemp file: {12}`r`n{13}`r`n`r`nClipboard formats:`r`n{14}",
+            debugInfo.Provider,
+            debugInfo.Model,
+            debugInfo.APIKeyName,
+            debugInfo.CopyTime,
+            debugInfo.EncodeTime,
+            debugInfo.ApiTime,
+            debugInfo.TotalTime,
+            debugInfo.PromptChars,
+            debugInfo.ImageBytes,
+            debugInfo.ImageBase64Chars,
+            debugInfo.SaveMethod,
+            debugInfo.TempFileStatus,
+            debugInfo.ImageInfo,
+            debugInfo.ClipboardFormats
+        )
+
+        resultGui.Add("Text", "xm y+12 w760", "Debug:")
+        debugEdit := resultGui.Add("Edit", "w760 h220 ReadOnly Multi -Wrap", debugText)
+    }
+
+    btnCopyResult := resultGui.Add("Button", "Default w140 xm y+12", "複製結果")
+    btnCopyResult.OnEvent("Click", (*) => (
+        A_Clipboard := resultText,
+        NotifyG3PacsAIStatus("已複製結果", 1500)
+    ))
+
+    if showDebugWindow {
+        btnCopyDebug := resultGui.Add("Button", "w140 x+10 yp", "複製 debug")
+        btnCopyDebug.OnEvent("Click", (*) => (
+            A_Clipboard := debugText,
+            NotifyG3PacsAIStatus("已複製 debug", 1500)
+        ))
+    }
+
+    btnClose := resultGui.Add("Button", "w100 x+10 yp", "關閉")
+    btnClose.OnEvent("Click", (*) => resultGui.Destroy())
+    resultGui.OnEvent("Escape", (*) => resultGui.Destroy())
+
+    resultGui.Show("AutoSize Center")
+    SendMessage(0x00B1, 0, 0, resultEdit.Hwnd)
+    if showDebugWindow {
+        SendMessage(0x00B1, 0, 0, debugEdit.Hwnd)
+    }
+    btnCopyResult.Focus()
 }
 
 #HotIf WinActive("ahk_exe G3PACS.exe")
