@@ -207,7 +207,7 @@ GetUnremarkableNeckFindings(searchText) {
     }
 
     ; 4. Sinuses/Mastoid
-    if (!HasPositiveFinding(searchText, ["sinus", "maxillary", "frontal", "ethmoid", "sphenoid", "mastoid"])) {
+    if (!HasPositiveFinding(searchText, ["sinus", "sinuses", "sinusitis", "maxillary", "frontal", "ethmoid", "sphenoid", "mastoid"])) {
         findings.Push("The paranasal sinuses and mastoid air cells are clear.")
     }
 
