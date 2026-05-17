@@ -171,54 +171,6 @@ function Get-ChangedRepoFiles {
     return @($changedFiles)
 }
 
-function Convert-TextFileToCrlf {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Path
-    )
-
-    $absolutePath = Resolve-AbsolutePath $Path
-    $bytes = [System.IO.File]::ReadAllBytes($absolutePath)
-    $hasUtf8Bom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
-    $text = [System.IO.File]::ReadAllText($absolutePath)
-    $normalizedText = $text -replace "`r?`n", "`r`n"
-
-    if ($normalizedText -eq $text) {
-        return $false
-    }
-
-    $encoding = [System.Text.UTF8Encoding]::new($hasUtf8Bom)
-    [System.IO.File]::WriteAllText($absolutePath, $normalizedText, $encoding)
-    return $true
-}
-
-function Normalize-ChangedScriptLineEndings {
-    $changedFiles = Get-ChangedRepoFiles
-    $normalizedFiles = [System.Collections.Generic.List[string]]::new()
-
-    foreach ($changedFile in $changedFiles) {
-        if ($changedFile -notmatch '\.(ahk|ps1)$') {
-            continue
-        }
-
-        $absolutePath = Resolve-AbsolutePath $changedFile
-        if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
-            continue
-        }
-
-        if (Convert-TextFileToCrlf -Path $absolutePath) {
-            $normalizedFiles.Add($changedFile)
-        }
-    }
-
-    if ($normalizedFiles.Count -gt 0) {
-        Write-Host "Normalized CRLF line endings:"
-        foreach ($normalizedFile in $normalizedFiles) {
-            Write-Host "  - $normalizedFile"
-        }
-    }
-}
-
 function Get-SelectedEntries {
     param(
         [string]$RequestedEntry
@@ -394,8 +346,6 @@ function Invoke-Compile {
 if (-not (Test-Path -LiteralPath $AhkExe)) {
     Write-Error "AutoHotkey executable not found: $AhkExe"
 }
-
-Normalize-ChangedScriptLineEndings
 
 $selectedEntries = Get-SelectedEntries -RequestedEntry $Entry
 Write-Host "Selected entries:"
