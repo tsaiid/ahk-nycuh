@@ -63,8 +63,8 @@
 {
     MyForm := "
   (
-- No pneumothorax or hemothorax.
-- No lung contusion, pneumothorax, or hemothorax.
+No pneumothorax or hemothorax.
+No lung contusion, pneumothorax, or hemothorax.
   )"
     Paste(MyForm)
 }
@@ -72,10 +72,10 @@
 {
     MyForm := "
   (
-- No pneumothorax or hemothorax.
-- No lung contusion, pneumothorax, or hemothorax.
-- The heart and great vessels appear unremarkable.
-- The thoracic cage and bones appear intact.
+No pneumothorax or hemothorax.
+No lung contusion, pneumothorax, or hemothorax.
+The heart and great vessels appear unremarkable.
+The thoracic cage and bones appear intact.
   )"
     Paste(MyForm)
 }
@@ -84,8 +84,8 @@
 {
     MyForm := "
   (
-- No mediastinal or pulmonary hilar lymphadenopathy.
-- No axillary, supraclavicular, mediastinal or pulmonary hilar lymphadenopathy.
+No mediastinal or pulmonary hilar lymphadenopathy.
+No axillary, supraclavicular, mediastinal or pulmonary hilar lymphadenopathy.
   )"
     Paste(MyForm)
 }
@@ -160,13 +160,13 @@ GetUnremarkableChestFindings(searchText) {
 {
     MyForm := "
   (
-- No suspicious pulmonary nodule or consolidation.
-- The central airways are patent.
-- No significant mediastinal or axillary lymphadenopathy.
-- The heart size and great vessels are normal in caliber.
-- No pleural effusion or pneumothorax.
-- No suspicious bone lesion in the visualized skeleton.
-- Visualized upper abdominal organs are unremarkable.
+No suspicious pulmonary nodule or consolidation.
+The central airways are patent.
+No significant mediastinal or axillary lymphadenopathy.
+The heart size and great vessels are normal in caliber.
+No pleural effusion or pneumothorax.
+No suspicious bone lesion in the visualized skeleton.
+Visualized upper abdominal organs are unremarkable.
   )"
     Paste(MyForm)
 }

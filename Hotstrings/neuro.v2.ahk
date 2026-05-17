@@ -323,14 +323,14 @@ No significant vascular stenosis in the major intracranial arteries or aneurysm 
 {
     MyForm := "
   (
-- Mild mucoperiosteal thickening and soft tissue density in the bilateral frontal, bilateral ethmoid, bilateral maxillary, and bilateral sphenoid sinuses, in favor of mild sinusitis.
-- Mild nasal septum deviation to left side.
-- Bilateral nasal turbinate hypertrophy.
-- Bilateral palatine tonsil enlargement.
-- Tiny calcifications in the bilateral palatine tonsils.
-- The bony structure is unremarkable.
-- The mastoid air cells are well-aerated.
-- Symmetric nasopharynx without mass lesion.
+Mild mucoperiosteal thickening and soft tissue density in the bilateral frontal, bilateral ethmoid, bilateral maxillary, and bilateral sphenoid sinuses, in favor of mild sinusitis.
+Mild nasal septum deviation to left side.
+Bilateral nasal turbinate hypertrophy.
+Bilateral palatine tonsil enlargement.
+Tiny calcifications in the bilateral palatine tonsils.
+The bony structure is unremarkable.
+The mastoid air cells are well-aerated.
+Symmetric nasopharynx without mass lesion.
   )"
     RisController.PasteToFinding(MyForm)
 
@@ -345,11 +345,11 @@ C/W chronic paranasal sinusitis.
 {
     MyForm := "
   (
-- The bilateral frontal, bilateral ethmoid, bilateral maxillary, and bilateral sphenoid sinuses are clear.
-- Mild nasal septum deviation to right side.
-- Bilateral nasal turbinate hypertrophy.
-- The bony structure is unremarkable.
-- The mastoid air cells are well-aerated.
+The bilateral frontal, bilateral ethmoid, bilateral maxillary, and bilateral sphenoid sinuses are clear.
+Mild nasal septum deviation to right side.
+Bilateral nasal turbinate hypertrophy.
+The bony structure is unremarkable.
+The mastoid air cells are well-aerated.
   )"
     RisController.PasteToFinding(MyForm)
 

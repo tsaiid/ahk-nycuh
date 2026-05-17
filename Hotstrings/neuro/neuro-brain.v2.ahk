@@ -170,12 +170,12 @@ No significant intracranial organic lesion.
 {
     MyForm := "
   (
-- No definite area of obvious abnormal density in the brain noted.
-- No definite abnormal mass lesion in the brain noted.
-- No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
-- The bilateral lateral ventricles show no dilatation, and no midline shift is noted.
-- No definite bony lesion in the skull.
-- The visible paranasal sinuses and mastoids are unremarkable.
+No definite area of obvious abnormal density in the brain noted.
+No definite abnormal mass lesion in the brain noted.
+No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
+The bilateral lateral ventricles show no dilatation, and no midline shift is noted.
+No definite bony lesion in the skull.
+The visible paranasal sinuses and mastoids are unremarkable.
   )"
     RisController.PasteToFinding(MyForm)
 
@@ -204,7 +204,7 @@ Mild mucoperiosteal thickening and soft tissue density in the paranasal sinuses,
 The mastoids are unremarkable.
 
 Mild spondylosis of the C-spine.
-- No obvious fracture or dislocation of the cervical spine.
+No obvious fracture or dislocation of the cervical spine.
   )"
     RisController.PasteToFinding(MyForm)
 
@@ -220,17 +220,17 @@ Mild spondylosis of the C-spine.
 {
     MyForm := "
   (
-- No definite area of obvious abnormal density in the brain noted.
-- No definite abnormal mass lesion in the brain noted.
-- No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
-- The bilateral lateral ventricles are symmetrical without dilatation.
+No definite area of obvious abnormal density in the brain noted.
+No definite abnormal mass lesion in the brain noted.
+No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
+The bilateral lateral ventricles are symmetrical without dilatation.
 
-- No obvious fracture of the skull.
-- No obvious fracture of the skull and facial bones.
+No obvious fracture of the skull.
+No obvious fracture of the skull and facial bones.
 
-- The visible paranasal sinuses and mastoids are unremarkable.
+The visible paranasal sinuses and mastoids are unremarkable.
 
-- No obvious fracture or dislocation of the cervical spine.
+No obvious fracture or dislocation of the cervical spine.
   )"
     RisController.PasteToFinding(MyForm)
 
@@ -248,9 +248,9 @@ Mild spondylosis of the C-spine.
     MyForm := "
   (
 Low density and loss of gray and white matter differentiation at right middle cerebral artery territory:
-- M2: "MCA cortex lateral to insular ribbon" corresponding to anterior temporal lobe
-- M5: "lateral MCA territory immediately superior to M2"
-- M6: "posterior MCA territory immediately superior to M3"
+M2: "MCA cortex lateral to insular ribbon" corresponding to anterior temporal lobe
+M5: "lateral MCA territory immediately superior to M2"
+M6: "posterior MCA territory immediately superior to M3"
 Suggestive of acute ischemic stroke.
 
 The right cerebrum shows edematous changes, and mild midline shift to left is noted.
@@ -313,14 +313,14 @@ Mild brain atrophy; leukoaraiosis.
 {
     MyForm := "
   (
-- Acute intracranial hemorrhage in the right lentiform nucleus, size about 2.7 x 2.4 x 3 cm, suspicious hypertensive ICH.
-- Mild mass effect compressing the right lateral ventricle.
-- The bilateral lateral ventricles show symmetrical without dilatation.
-- No obvious midline shift.
-- The suprasellar cistern is preserved.
+Acute intracranial hemorrhage in the right lentiform nucleus, size about 2.7 x 2.4 x 3 cm, suspicious hypertensive ICH.
+Mild mass effect compressing the right lateral ventricle.
+The bilateral lateral ventricles show symmetrical without dilatation.
+No obvious midline shift.
+The suprasellar cistern is preserved.
 
-- No definite bony lesion in the skull.
-- The visible paranasal sinuses, mastoids and skull base are unremarkable.
+No definite bony lesion in the skull.
+The visible paranasal sinuses, mastoids and skull base are unremarkable.
   )"
     RisController.PasteToFinding(MyForm)
 
@@ -336,12 +336,12 @@ Hypertensive ICH in the left lentiform nucleus.
 {
     MyForm := "
   (
-- Acute intracranial hemorrhage in the right basal ganglion and thalamus, size about 4.3 x 2.8 x 3.6 cm, suspicious hypertensive ICH.
-- The ICH ruptured into the ventricular system, causing intraventricular hemorrhage in both lateral ventricles, the third and fourth ventricles.
-- Mild mass effect compressing the right lateral ventricle, and mild midline shift to left.
+Acute intracranial hemorrhage in the right basal ganglion and thalamus, size about 4.3 x 2.8 x 3.6 cm, suspicious hypertensive ICH.
+The ICH ruptured into the ventricular system, causing intraventricular hemorrhage in both lateral ventricles, the third and fourth ventricles.
+Mild mass effect compressing the right lateral ventricle, and mild midline shift to left.
 
-- No obvious fracture of the skull base and the skull.
-- The visible paranasal sinuses, mastoids and skull base are unremarkable.
+No obvious fracture of the skull base and the skull.
+The visible paranasal sinuses, mastoids and skull base are unremarkable.
 
 REMARKS:
 * Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
@@ -488,16 +488,16 @@ FINDINGS:
 {
     MyForm := "
   (
-- No definite abnormal enhancing mass lesion in the brain noted.
-- No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
-- Presence of bilateral periventricular low density noted. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
-- The bilateral lateral ventricles showed symmetrical without dilatation.
-- The major dural venous sinuses are patent.
-- No obvious fracture of the skull base and the skull.
+No definite abnormal enhancing mass lesion in the brain noted.
+No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
+Presence of bilateral periventricular low density noted. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
+The bilateral lateral ventricles showed symmetrical without dilatation.
+The major dural venous sinuses are patent.
+No obvious fracture of the skull base and the skull.
 
-- No evidence of aneurysm, arterial-venous malformation (AVM), or other vascular lesion.
-- No significant vascular stenosis in the major intracranial arteries.
-- Right fetal type posterior cerebral artery.
+No evidence of aneurysm, arterial-venous malformation (AVM), or other vascular lesion.
+No significant vascular stenosis in the major intracranial arteries.
+Right fetal type posterior cerebral artery.
   )"
     RisController.PasteToFinding(MyForm)
 
@@ -1091,7 +1091,7 @@ A high-attenuation thrombus is noted at the M1 level of right MCA.
 No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
 
 The multiphase CTA shows:
-- Long segment of occlusion from right extracranial ICA at C3 level up to M1 of right MCA.
+Long segment of occlusion from right extracranial ICA at C3 level up to M1 of right MCA.
 
 Compared to asymptomatic contralateral hemisphere there are just a few vessels visible in any phase within the occluded vascular territory. University of Calgary classification score 1 (poor collateral).
 

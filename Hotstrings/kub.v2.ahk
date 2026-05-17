@@ -96,8 +96,8 @@ Mottled gas pattern along colon course is noted, implying fecal residues retenti
 ::ks2:: {
     MyForm := "
 (
-- Mottled gas pattern along colon course is noted, implying fecal residues retention. Otherwise, the bowel gas pattern is unremarkable.
-- Bilateral kidney shadows and psoas muscle contours are unremarkable.
+Mottled gas pattern along colon course is noted, implying fecal residues retention. Otherwise, the bowel gas pattern is unremarkable.
+Bilateral kidney shadows and psoas muscle contours are unremarkable.
 )"
     Paste(MyForm)
 }
@@ -105,8 +105,8 @@ Mottled gas pattern along colon course is noted, implying fecal residues retenti
 ::kss:: {
     MyForm := "
 (
-- Mottled gas pattern along colon course is noted, implying fecal residues retention.
-- The stone evaluation is limited.
+Mottled gas pattern along colon course is noted, implying fecal residues retention.
+The stone evaluation is limited.
 )"
     Paste(MyForm)
 }
@@ -114,8 +114,8 @@ Mottled gas pattern along colon course is noted, implying fecal residues retenti
 ::ksi:: {
     MyForm := "
 (
-- Mottled gas pattern along colon course is noted, implying fecal residues retention.
-- Obvious small bowel gas, c/w stool impaction.
+Mottled gas pattern along colon course is noted, implying fecal residues retention.
+Obvious small bowel gas, c/w stool impaction.
 )"
     Paste(MyForm)
 }
@@ -123,9 +123,9 @@ Mottled gas pattern along colon course is noted, implying fecal residues retenti
 ::sk:: {
     MyForm := "
 (
-- The bowel gas pattern, bilateral kidney shadows and psoas muscle contours are unremarkable.
-- No evidence of subphrenic free air.
-- No obvious air-fluid level in the bowel.
+The bowel gas pattern, bilateral kidney shadows and psoas muscle contours are unremarkable.
+No evidence of subphrenic free air.
+No obvious air-fluid level in the bowel.
 )"
     Paste(MyForm)
 }

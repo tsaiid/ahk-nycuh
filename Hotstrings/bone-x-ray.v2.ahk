@@ -405,12 +405,12 @@ Findings include extensive destruction of the femoral head and joint.
 ::csp:: {
     MyForm := "
 (
-- Osteophyte formation:
-- Disk space narrowing:
-- Prominent uncovertebral joint:
-- Encroachment of neuroforamen:
-- Anterolisthesis: nil
-- Retrolisthesis: nil
+Osteophyte formation:
+Disk space narrowing:
+Prominent uncovertebral joint:
+Encroachment of neuroforamen:
+Anterolisthesis: nil
+Retrolisthesis: nil
 
 IMPRESSION:
 DJD of C-spine.
@@ -482,9 +482,9 @@ Lumbosacral Transitional Vertebrae, type IV.
 ::wvok:: {
     MyForm := "
 (
-- The paranasal sinuses are clear.
-- The bony structures are unremarkable.
-- The mastoid air cells are well-aerated.
+The paranasal sinuses are clear.
+The bony structures are unremarkable.
+The mastoid air cells are well-aerated.
 )"
     Paste(MyForm)
 }

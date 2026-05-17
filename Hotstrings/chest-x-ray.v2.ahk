@@ -43,10 +43,10 @@ Normal heart and lungs. 胸部X光判讀正常.
 ::1::{
     MyForm := "
 (
-- The heart size is normal.
-- No specific findings in both lung fields.
-- The bilateral costophrenic angles are clear and well-defined.
-- The thoracic cage and bones appear intact.
+The heart size is normal.
+No specific findings in both lung fields.
+The bilateral costophrenic angles are clear and well-defined.
+The thoracic cage and bones appear intact.
 
 )"
     Paste(MyForm)
@@ -55,9 +55,9 @@ Normal heart and lungs. 胸部X光判讀正常.
 ::11::{
     MyForm := "
 (
-- The heart size is normal.
-- No specific findings in both lung fields.
-- The bilateral costophrenic angles are clear and well-defined.
+The heart size is normal.
+No specific findings in both lung fields.
+The bilateral costophrenic angles are clear and well-defined.
 
 )"
     Paste(MyForm)

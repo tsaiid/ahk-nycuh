@@ -108,9 +108,9 @@
 {
     MyForm := "
   (
-- No liver, spleen, or kidney traumatic injury.
-- No evidence of intraperitoneal free air.
-- No obvious ascites.
+No liver, spleen, or kidney traumatic injury.
+No evidence of intraperitoneal free air.
+No obvious ascites.
   )"
     Paste(MyForm)
 }
@@ -119,9 +119,9 @@
 {
     MyForm := "
   (
-- No abnormal enhanced lesion or washout pattern noted.
-- No definite abnormal enhanced hepatic mass lesion with washout pattern noted.
-- No definite abnormal enhanced hepatic mass lesion with/without washout pattern noted.
+No abnormal enhanced lesion or washout pattern noted.
+No definite abnormal enhanced hepatic mass lesion with washout pattern noted.
+No definite abnormal enhanced hepatic mass lesion with/without washout pattern noted.
   )"
     Paste(MyForm)
 }
@@ -365,8 +365,8 @@ GetAbdomenExtraFindings(searchText, includeFreeAir := false, includeAscites := f
 {
     MyForm := "
   (
-- No evidence of intraperitoneal free air.
-- No obvious ascites.
+No evidence of intraperitoneal free air.
+No obvious ascites.
   )"
     Paste(MyForm)
 }
@@ -491,16 +491,16 @@ Hollow organ perforation. Perforated peptic ulcer may be suspected.
 {
     MyForm := "
   (
-- Mild wall thickening and submucosal edema in the the ascending colon, with mesocolic fat stranding, most likely diverticulitis.
-- Small amount of ascites in the pelvis and right paracolic gutter.
-- No obvious ascites.
-- No evidence of intraperitoneal free air.
+Mild wall thickening and submucosal edema in the the ascending colon, with mesocolic fat stranding, most likely diverticulitis.
+Small amount of ascites in the pelvis and right paracolic gutter.
+No obvious ascites.
+No evidence of intraperitoneal free air.
 
-- The appendix is normal.
+The appendix is normal.
 
-- The liver, gallbladder, spleen, pancreas, kidneys are unremarkable.
-- No retroperitoneal or mesenteric lymphadenopathy.
-- The lungs covered in the scanning range are unremarkable.
+The liver, gallbladder, spleen, pancreas, kidneys are unremarkable.
+No retroperitoneal or mesenteric lymphadenopathy.
+The lungs covered in the scanning range are unremarkable.
   )"
     Paste(MyForm)
 
