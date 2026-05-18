@@ -379,11 +379,16 @@ GenerateSpineImpression(isMild := false)
     }
 
     ; (3) Spondylolisthesis
-    if (HasPositiveFinding(searchText, ["spondylolisthesis", "retrolisthesis", "anterolisthesis", "listhesis"])) {
+    if (HasPositiveFinding(searchText, ["spondylolisthesis", "anterolisthesis", "listhesis"])) {
         positiveFindings.Push("spondylolisthesis")
     }
 
-    ; (4) Disc Disease
+    ; (4) Retrolisthesis
+    if (HasPositiveFinding(searchText, ["retrolisthesis"])) {
+        positiveFindings.Push("retrolisthesis")
+    }
+
+    ; (5) Disc Disease
     if (HasPositiveFinding(searchText, ["herniation", "extrusion", "sequestration", "hivd"])) {
         positiveFindings.Push("HIVD")
     } else if (HasPositiveFinding(searchText, ["narrowing", "bulging", "protrusion", "desiccation", "vacum", "hypertrophy"])) {
