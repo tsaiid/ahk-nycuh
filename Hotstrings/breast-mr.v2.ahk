@@ -1,9 +1,9 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
 ; Breast MRI Hotstrings
-::bmrlapok::No definite lymphadenopathy at the both axillae or internal mammary regions noted.
+::bmrlapok::No definite lymphadenopathy at both axillae or internal mammary regions noted.
 
 ::bmr::
 {

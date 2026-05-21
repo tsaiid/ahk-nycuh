@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 #Include lib\ris-common.v2.ahk
@@ -277,7 +277,7 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
 ::rdia0::Elevation of the right hemidiaphragm.
 ::ldia::Elevation of the left hemidiaphragm. Phrenic nerve palsy, diaphragmatic eventration, or intraabdominal process is considered.
 ::ldia0::Elevation of the left hemidiaphragm.
-::copd::Hyperinflation with flattening of both hemidiaphragms, suggestive the possibility of COPD.
+::copd::Hyperinflation with flattening of both hemidiaphragms, suggestive of the possibility of COPD.
 ::tta::Tortuous thoracic descending aorta.
 ::mtta::Mild tortuous thoracic descending aorta.
 ::bronchio::Increased linear opacity and peribronchial thickening over both lung fields, r/o bronchiolitis.

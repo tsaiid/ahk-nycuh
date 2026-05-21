@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
@@ -28,7 +28,7 @@
 ::pclct::Edematous changes and increased signal intensity over the posterior cruciate ligament (PCL) with incontinuous fiber. Complete tear is considered.
 ::aclpt::Edematous changes and increased signal intensity over the anterior cruciate ligament (ACL) with focally incontinuous fiber. Partial tear is considered.
 ::pclpt::Edematous changes and increased signal intensity over the posterior cruciate ligament (PCL) with focally incontinuous fiber. Partial tear is considered.
-::mrsab::Presence of Hill Sachs deformity manifesting an impaction lesion of the posterolateral aspect of the humeral head, and under MR-arthrogram, the anteroinferior labrum is frayed and absence that considered Bankart lesion, the findings c/w secondary to anterior glenohumeral dislocation.
+::mrsab::Presence of Hill Sachs deformity manifesting as an impaction lesion of the posterolateral aspect of the humeral head, and under MR-arthrogram, the anteroinferior labrum is frayed and absent, consistent with a Bankart lesion; the findings are c/w secondary to anterior glenohumeral dislocation.
 ::ssftt::full-thickness tear of the supraspinatus.
 ::isftt::full-thickness tear of the infraspinatus.
 ::ssptt::partial-thickness tear of the supraspinatus.

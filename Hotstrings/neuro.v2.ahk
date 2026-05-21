@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
@@ -22,8 +22,8 @@
 ::mathv::Mild atherosclerotic changes with calcification of intracranial portion of vertebrobasilar arteries.
 ;--- Subcortical Arteriosclerotic Encephalopathy (SAE) / Leukoaraiosis / CSVD ---
 ; 舊版保留與優化
-::sae::Bilateral periventricular low density presents. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
-::msae::Mild bilateral periventricular low density presents. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
+::sae::Bilateral periventricular low densities are present. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
+::msae::Mild bilateral periventricular low densities are present. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
 ::sae2::Presence of mild/moderate/severe confluent symmetric periventricular hyperintensity on T2WI and FLAIR suggests subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 ::msae2::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR suggests mild subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 ::sae3::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, the subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered. Several tiny hyperintensities in the bilateral subcortical and deep white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
@@ -53,15 +53,15 @@
 ::ctcmast::Underdeveloped pneumatization and sclerotic changes of right/left/bilateral mastoid air cells, suspicious chronic mastoiditis.
 ::atrv::Diffuse atrophy of bilateral cerebral hemispheres, with compensatory dilatation of bilateral lateral ventricles, deepening and widening of cortical sulci.
 ::matrv::Mild enlargement of the ventricular system, in favor of mild brain atrophy.
-::atrvs::Enlargement of the ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of brain atrophy.
-::matrvs::Mild enlargement of the ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of mild brain atrophy.
-::atrssa::Sulcal widening of bilateral cerebral hemispheres and enlargement of the subarachnoid space noted, in favor of mild brain atrophy.
+::atrvs::Enlargement of the ventricular system and sulcal widening of bilateral cerebral hemispheres are noted, in favor of brain atrophy.
+::matrvs::Mild enlargement of the ventricular system and sulcal widening of bilateral cerebral hemispheres are noted, in favor of mild brain atrophy.
+::atrssa::Sulcal widening of bilateral cerebral hemispheres and enlargement of the subarachnoid space are noted, in favor of mild brain atrophy.
 ::atrvsa::Mild enlargement of the intraventricular system with widening of the subarachnoid space of bilateral cerebral hemispheres, in favor of aging process and mild brain atrophy.
 ::atrs::Atrophy of bilateral cerebral cortices, with deepening and widening of fissures and cortical sulci.
 ::matrs::Mild atrophy of bilateral cerebral cortices, with deepening and widening of fissures and cortical sulci.
 ::matrs2::Mild brain atrophy with enlarged subarachnoid spaces of bilateral cerebral convexities.
 ::ctabi::A small ill-defined low density in the left frontal subcortical white matter, could be old or recent ischemic infarction. Clinical correlation is suggested.
-::ctpbi::Presence of tiny/small low density involved ___ basal ganglion, ___ thalamus, and ___ periventricular white matter, previous brain ischemic insult, such as old tiny ischemic infarction considered.
+::ctpbi::Presence of tiny/small low densities involving ___ basal ganglion, ___ thalamus, and ___ periventricular white matter; previous brain ischemic insult, such as an old tiny ischemic infarction, is considered.
 ::ctpbi2::Presence of brain tissue loss changes involving right temporal, right parietal, and left frontal regions, with compensatory dilatation of left lateral ventricle, in favor of previous brain insult, such as old ischemic infarction.
 ::mrpbi::Presence of several tiny hyperintensities in the periventricular white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
 ::ctepvs::Small low density near right/left side of anterior commissure, in favor of enlarged perivascular space.
@@ -69,11 +69,11 @@
 ::necsprt::Diffuse thickening and enhancement over the epiglottis, arytenoepiglottic folds, and posterior pharyngeal wall over the oropharynx and hypopharynx, c/w post-radiation changes.
 ::mrnecsprt::Presence of high signal intensity on T1WI over the C-spine, compatible with post radiation changes.
 ::mrnecspc::Mild mucosal and submucosal soft tissue thickening over the nasopharyngeal and oropharyngeal regions, in favor of post-treatment changes. Follow-up is suggested.
-::mrns::No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+::mrns::No evidence of high signal intensity on DWI or low apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem is noted.
 ::rtpaok::No focal hypodensity or early ischemic change is identified. ASPECTS: 10.
 ::noaa::No evidence of aneurysm or arterial-venous malformation (AVM) noted near the circle of Willis regions.
 ::sdsa::Suggest correlate with DSA if clinically indicated.
-::bbgt1h::Symmetrical T1-hyperintensity involving the bilateral globus pallidus, cerebral peduncles, and the dorsal aspect of pons. These areas show no obvious abnormal signal intensity on T2WI. Chronic hepatic encephalopathy is suspected. Suggest clinical correlation if chronic liver disease presents. DDx (less likely): hyperalimentation, Wilson disease, hyper-/hypoparathyroidism.
+::bbgt1h::Symmetrical T1-hyperintensity involving the bilateral globus pallidus, cerebral peduncles, and the dorsal aspect of pons. These areas show no obvious abnormal signal intensity on T2WI. Chronic hepatic encephalopathy is suspected. Suggest clinical correlation if chronic liver disease is present. DDx (less likely): hyperalimentation, Wilson disease, hyper-/hypoparathyroidism.
 ::pfsdh::Presence of fusiform high-attenuation lesion extending over the right anterior falx cerebri, suggestive of an acute parafalcine subdural hematoma.
 ::lfpca::left fetal type posterior cerebral artery
 ::rfpca::right fetal type posterior cerebral artery
@@ -98,7 +98,7 @@ The visible paranasal sinuses and mastoids are unremarkable.
 ::bnth::Bilateral nasal turbinate hypertrophy.
 ::ctmcm::Prominent retrocerebellar cerebrospinal fluid space with normal vermis, 4th ventricle, and cerebellar hemispheres, in favor of mega cisterna magna.
 ::epc::endplate changes
-::ctnph::Enlarged lateral and third ventricles, with relatively normal 4th ventricle. Ventricular enlargement out of proportion to cortical sulcal enlargement, and presence of bilateral periventricular low density. Normal pressure hydrocephalus may be suspected. DDx: normal aging brain.
+::ctnph::Enlarged lateral and third ventricles, with relatively normal 4th ventricle. Ventricular enlargement is out of proportion to cortical sulcal enlargement, and presence of bilateral periventricular low density is noted. Normal pressure hydrocephalus may be suspected. DDx: normal aging brain.
 ::ctnph1::However, as the ventricular enlargement is slightly out of proportion to cortical sulcal enlargement, superimposed communicating hydrocephalus cannot be excluded. Clinical correlation is suggested.
 ::rposts::Soft tissue swelling in the right periorbital region.
 ::mrposts::Mild soft tissue swelling in the right periorbital region.
@@ -130,9 +130,9 @@ The visible paranasal sinuses and mastoids are unremarkable.
 ::fjh::facet joint hypertrophy
 ::uvjh::uncovertebral joint hypertrophy
 ::retr::retrolisthesis
-::dwiok::No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+::dwiok::No evidence of high signal intensity on DWI or low apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem is noted.
 ::dvsok::The major dural venous sinuses are patent.
-::mrnocva::No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+::mrnocva::No evidence of high signal intensity on DWI or low apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem is noted.
 ::ctnocva::No definite low density or loss of gray-white matter differentiation in the brain parenchyma.
 ::nocva::No evidence of acute ischemia infarction in the brain and brainstem noted.
 ::noich::No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
@@ -171,11 +171,11 @@ The visible paranasal sinuses and mastoids are unremarkable.
 ::nacf::No definite acute intracranial findings.
 ::csptrok::No obvious fracture or dislocation of the cervical spine.
 ::icr::intracranial
-::mritumorcpok::No evidence of abnormal tumor mass lesion over the skull base, bilateral CP angle cistern, and bilateral pre-pontine cistern region noted.
+::mritumorcpok::No evidence of abnormal tumor mass lesion over the skull base, bilateral CP angle cisterns, or bilateral pre-pontine cistern regions is noted.
 ::riol::Status post right intraocular lens (IOL) implantation.
 ::liol::Status post left intraocular lens (IOL) implantation.
 ::biol::Status post bilateral intraocular lens (IOL) implantations.
-::sba::Presence of skull base artifact with superimpose of bil. frontal base, bil. temporal base, and posterior fossa.
+::sba::Presence of skull base artifact with superimposition on bilateral frontal base, bilateral temporal base, and posterior fossa.
 ::lioso::Hyperdense material in the left vitreous chamber, highly suggestive of status post vitrectomy with silicone oil injection.
 ::rioso::Hyperdense material in the right vitreous chamber, highly suggestive of status post vitrectomy with silicone oil injection.
 

@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
@@ -23,8 +23,8 @@ No vesicoureteral reflux or fistula.
 ::vur1::Reflux limited to ureter. Grade 1 vesicoureteric reflux is considered.
 ::vur2::Reflux up to the renal pelvis. Grade 2 vesicoureteric reflux is considered.
 ::vur3::Reflux with mild dilatation of ureter and pelvicalyceal system. Grade 3 vesicoureteric reflux is considered.
-::vur4::Reflux with moderate dilated tortuous ureter and blunting of fornices but preserved papillary impressions. Grade 4 vesicoureteric reflux is considered.
-::vur5::Reflux with severe dilated tortuous ureter, dilatation of pelvicalyceal system, and loss of fornices and papillary impressions. Grade 5 vesicoureteric reflux is considered.
+::vur4::Reflux with moderately dilated, tortuous ureter and blunting of fornices but preserved papillary impressions. Grade 4 vesicoureteric reflux is considered.
+::vur5::Reflux with severely dilated, tortuous ureter, dilatation of pelvicalyceal system, and loss of fornices and papillary impressions. Grade 5 vesicoureteric reflux is considered.
 
 ::hsg::
 {

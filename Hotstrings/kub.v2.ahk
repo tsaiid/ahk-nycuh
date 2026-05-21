@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
@@ -21,16 +21,16 @@
 ::kob::The other bowel gas pattern is unremarkable.
 ::kbok::No abnormal bowel dilatation.
 ::ks::Mottled gas pattern along the course of the colon is noted, suggestive of fecal residue retention.
-::kp::Several small calcified nodules in the pelvic cavity are mostly due to phleboliths of the vein.
+::kp::Several small calcified nodules in the pelvic cavity are mostly pelvic phleboliths.
 ::kfn::Small oval nodules with egg-shell calcification in the pelvis, in favor of old fat necrosis.
-::kgbs::A round opacity in the RUQ of abdomen, suspicious a gallstone. Correlation with sonography is suggested.
-::kgbss::Round opacities in the RUQ of abdomen, suspicious gallstones. Correlation with sonography is suggested.
+::kgbs::A round opacity in the RUQ of abdomen, suspicious for a gallstone. Correlation with sonography is suggested.
+::kgbss::Round opacities in the RUQ of abdomen, suspicious for gallstones. Correlation with sonography is suggested.
 ::lpcn::Status post left side percutaneous nephrostomy.
 ::rpcn::Status post right side percutaneous nephrostomy.
 ::bpcn::Status post bilateral percutaneous nephrostomies.
 ::rfcvp::Central venous catheter is in place via the right femoral vein.
 ::lfcvp::Central venous catheter is in place via the left femoral vein.
-::bfcvp::Central venous catheters are in place via both femoral vein.
+::bfcvp::Central venous catheters are in place via both femoral veins.
 ::ki::Obvious small bowel gas, may be due to paralytic ileus.
 ::ki2::Focal dilated bowel loops, probably ileus or partial bowel obstruction.
 ::kiafl::Mildly dilated bowel loops with several air-fluid levels, probably partial bowel obstruction or ileus.
@@ -51,23 +51,23 @@
 ::sphaic::Coils at the upper abdomen, may be due to previous hepatic arterial infusion chemotherapy.
 ::maacal::Mild calcification of abdominal aortic wall.
 ::aacal::Calcification of abdominal aortic wall.
-::aacal1::Calcification of abdominal aortic and branches wall.
+::aacal1::Calcification of the abdominal aorta and its branches.
 ::ka::Increased opacity of the abdomen with centralization of the bowel gas, probably due to ascites.
 ::kc::Contrast medium retention in the urinary tract, may be due to recent imaging study.
 ::kns::No definite stone-like radiopacity along the urinary tract.
 ::kbrs::Several tiny radiopacities superimposed on bilateral renal shadows, suspicious renal stones.
 ::kbrss::Several small radiopacities superimposed on bilateral renal shadows, suspicious renal stones.
-::klrs::A tiny radiopacity superimposed on left renal shadow, suspicious a renal stone.
+::klrs::A tiny radiopacity superimposed on left renal shadow, suspicious for a renal stone.
 ::klrss::Small radiopacities superimposed on left renal shadow, suspicious renal stones.
-::krrs::A tiny radiopacity superimposed on right renal shadow, suspicious a renal stone.
-::krrss::Small radiopacities superimposed on right renal shadow, suspicious renal stones.
+::krrs::A tiny radiopacity superimposed on right renal shadow, suspicious for a renal stone.
+::krrss::Small radiopacities superimposed on right renal shadow, suspicious for renal stones.
 ::klus::A small stone-like opacity at left paraspinal region at L3 level, possibly a ureter stone.
 ::krus::A small stone-like opacity at right paraspinal region at L3 level, possibly a ureter stone.
-::kllus::A small stone-like opacity superimposed on left sacral ala region, suspicious a lower ureter stone.
+::kllus::A small stone-like opacity superimposed on left sacral ala region, suspicious for a lower ureter stone.
 ::krlus::A small stone-like opacity superimposed on right sacral ala region, possibly a lower ureter stone.
 ::kluvjs::A small stone-like opacity at left side of pelvis, possibly a UVJ stone.
 ::kruvjs::A small stone-like opacity at right side of pelvis, possibly a UVJ stone.
-::kuf::Calcified nodules in the pelvis, suspicious degenerated uterine fibroids.
+::kuf::Calcified nodules in the pelvis, suspicious for degenerated uterine fibroids.
 ::lptcd::status post PTCD via left side approach.
 ::rptcd::status post PTCD via right side approach.
 ::bptcd::status post PTCD via left and right side approach.

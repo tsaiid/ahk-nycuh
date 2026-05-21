@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
@@ -255,7 +255,7 @@
 ::cpes::Correlation with panendoscopy is suggested.
 ::cegd::Correlation with esophagogastroduodenoscopy is suggested.
 ::csono::Correlation with sonography is suggested.
-::ccsono::Clinical and sonographic correlation are suggested.
+::ccsono::Clinical and sonographic correlation is suggested.
 ::ctrus::Correlate with transrectal ultrasonography is suggested.
 ::cdsa::Correlation with DSA is suggested.
 ::clab::Correlation with Lab data is suggested.
@@ -266,8 +266,8 @@
 ::cmri::Correlation with MRI is suggested.
 ::sgyn::GYN check-up is suggested.
 ::cgynsono::GYN check-up and sonographic correlation are suggested.
-::scmp::Suggest compare with previous images if available.
-::slr3::Suggest repeat or alternative diagnostic imaging 3-6 months later.
+::scmp::Suggest comparing with previous images if available.
+::slr3::Suggest repeating or alternative diagnostic imaging 3-6 months later.
 ::slr4::Suggest multidisciplinary discussion for tailored workup (may include biopsy).
 ::sop::Correlation with OP history is suggested.
 ::sfna::FNA is suggested.

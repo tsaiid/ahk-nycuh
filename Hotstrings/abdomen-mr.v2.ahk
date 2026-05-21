@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 #Include ..\Lib\ShowGUIatCurrScreenCenter.v2.ahk
@@ -8,9 +8,9 @@
 
 ;; Hotstrings
 ::amrhcc::A _ cm nodule in the S of liver, shows mild T2 hyperintensity, T1 hypointensity, signal drop on out-of-phase images, mild restricted diffusion, arterial phase hyperenhancement, washout and enhancing capsule in portal venous phase, suggestive of hepatocellular carcinoma.
-::amrfnh::A _ cm mass lesion at the S of liver, with arterial enhancement, mild persistent enhancement into delayed phase, fading toward background liver intensity on the delayed hepatobiliary phase, suggest focal nodular hyperplasia.
+::amrfnh::A _ cm mass lesion at the S of liver, with arterial enhancement, mild persistent enhancement into delayed phase, fading toward background liver intensity on the delayed hepatobiliary phase, suggests focal nodular hyperplasia.
 ::amrhh::A _ cm nodule in the S of liver, shows hyperintensity on T2WI, and the dynamic study shows discontinuous, nodular, peripheral enhancement, with progressive peripheral enhancement with centripetal fill in. Hepatic hemangioma is considered.
-::amraps::A small wedge-shaped subcapsular arterial enhancement at S_ of liver with isointense in the portal venous and delay phases, in favor of AP shunting.
+::amraps::A small wedge-shaped subcapsular arterial enhancement at S_ of liver with isoenhancement in the portal venous and delayed phases, in favor of AP shunting.
 ::amrfl::Marked diffuse signal drop of the liver parenchyma in the opposed-phase images, suggestive of hepatic steatosis.
 ::amrmfl::Mild diffuse signal drop of the liver parenchyma in the opposed-phase images, suggestive of mild hepatic steatosis.
 ::amrgbsg::T1 hyperintensity material in the gallbladder with layering, in favor of GB sludge.

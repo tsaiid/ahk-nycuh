@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 ;; Chest
 ::ggo::ground-glass opacity `
@@ -337,7 +337,7 @@
 ::sec::secondary `
 ::ned::no evidence of disease.
 ::ner::no evidence of local recurrence.
-::ner0::no evident of recurrence.
+::ner0::no evidence of recurrence.
 ::ner1::no evidence of local recurrence or lymphadenopathy.
 ::nerm::No evidence of recurrence or metastasis.
 ::nerv::No evidence of recurrent or viable tumor.

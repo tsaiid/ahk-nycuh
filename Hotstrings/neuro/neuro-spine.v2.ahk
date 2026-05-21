@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\..\Lib\RisController.v2.ahk
 #Include ..\..\Lib\Paste.v2.ahk
@@ -15,7 +15,7 @@
 ::mrspsmn::Schmorl's node (vertical intravertebral disc herniation) over the
 ::mrspma::Presence of metallic artifact may limit the evaluation in this area.
 ::mrspnom::No evidence of abnormal signal intensity within the visible spinal cord.
-::mrsppnc::Presence of several perineural cysts over the spinal canal of the upper sacrum level, the biggest one about 2cm.
+::mrsppnc::Presence of several perineural cysts over the spinal canal of the upper sacrum level is noted, with the largest one measuring about 2 cm.
 ::amlf::at multiple levels from `
 ::scin::spinal cord indentation
 ::sccp::spinal cord compression

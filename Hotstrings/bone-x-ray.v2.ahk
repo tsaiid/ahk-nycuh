@@ -178,7 +178,7 @@
 ::ldhs::Status post left dynamic hip screw fixation.
 ::ldhsl::Status post left dynamic hip screw fixation. The evaluation of pelvic cavity may be limited due to its beam hardening artifacts.
 ::bdhs::Status post bilateral dynamic hip screw fixation.
-::bdhsl::Status post bilateral dynamic hip screw fixation. The evaluation of pelvic cavity may be limited because of the beam hardening artifacts from hip prosthesis.
+::bdhsl::Status post bilateral dynamic hip screw fixation. The evaluation of pelvic cavity may be limited because of the beam hardening artifacts from hip prostheses.
 ::rthr::Status post right total hip replacement.
 ::rthrr::Status post recent right total hip replacement.{Enter}A drain in place in the right hip region.{Enter}Soft tissue swelling in the right hip region.
 ::lthr::Status post left total hip replacement.
@@ -186,10 +186,10 @@
 ::bthr::Status post bilateral total hip replacements.
 ::rhba::Status post right hip bipolar hemiarthroplasty.
 ::rhbar::Status post right hip bipolar hemiarthroplasty.{Enter}A drain in place in the right hip region.
-::rhbal::Status post right hip bipolar hemiarthroplasty. The evaluation of pelvic cavity may be limited because of the beam hardening artifacts from right hip prosthesis.
+::rhbal::Status post right hip bipolar hemiarthroplasty. The evaluation of pelvic cavity may be limited because of the beam hardening artifacts from the right hip prosthesis.
 ::lhba::Status post left hip bipolar hemiarthroplasty.
 ::lhbar::Status post left hip bipolar hemiarthroplasty.{Enter}A drain in place in the left hip region.
-::lhbal::Status post left hip bipolar hemiarthroplasty. The evaluation of pelvic cavity may be limited because of the beam hardening artifacts from left hip prosthesis.
+::lhbal::Status post left hip bipolar hemiarthroplasty. The evaluation of pelvic cavity may be limited because of the beam hardening artifacts from the left hip prosthesis.
 ::bhba::Status post bilateral hip bipolar hemiarthroplasties.
 ::bhbal::Status post bilateral hip bipolar hemiarthroplasties. The evaluation of pelvic cavity may be limited due to its beam hardening artifacts.
 ::rtka::Status post right total knee arthroplasty.
@@ -391,7 +391,7 @@ Findings include extensive destruction of the femoral head and joint.
 
 ; sacroiliitis
 ::sii0::The sacroiliac margin is clear, and there is uniform joint space of normal width. There is no sclerosis. The sacroiliac joints are normal.
-::sii1::No specific abnormality except “suspecious” changes. (some blurring of the joint margins - suspicious). Grade I (suspecious) sacroiliitis.
+::sii1::No specific abnormality except "suspicious" changes. (some blurring of the joint margins - suspicious). Grade I (suspicious) sacroiliitis.
 ::sii2::Loss of definition at the edge of the sacroiliac joints. There is some sclerosis and perhaps minimal erosions. There may be some joint space narrowing. Grade II (minimal) sacroiliitis.
 ::sii3::There is definite sclerosis on both sides of the sacroiliac joints, blurring and indistinct margins, and erosive changes with loss of joint space. Grade III (moderate) sacroiliitis.
 ::sii4::Complete fusion or ankylosis of the joint with or withoutsome residual sclerosis. Grade IV (ankylosis) sacroiliitis.

@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
@@ -12,7 +12,7 @@
 ;; Sono, Upper Abdomen
 ::slcpd::Heterogeneous hyperechoic liver parenchyma echo pattern, suspicious chronic parenchymal disease.
 ::slfl::Coarsening and hyperechoic echo pattern of the liver parenchyma, suggestive of fatty liver changes.
-::slfll::Coarsening and hyperechoic liver parenchyma echo pattern without focal lesion noted, in favor of fatty liver changes. It may mask lesions, especially in the deep region.
+::slfll::Coarsening and hyperechoic liver parenchyma echo pattern, without focal lesion noted, is in favor of fatty liver changes. It may mask lesions, especially in the deep region.
 ::slmfl::Slightly increased hyperechoic changes in the liver parenchyma, suggestive of mild fatty liver changes.
 ::slc::Irregular surface of the liver and coarsening changes of the parenchyma, indicating cirrhosis.
 ::slmc::Mildly irregular surface of the liver and coarsening changes of the parenchyma, indicating mild cirrhosis.
@@ -25,9 +25,9 @@
 ::sgbsp::Absence of gallbladder, probably post cholecystectomy.
 ::sgbp::A tiny echogenic polyp, __ cm in size, in the gallbladder noted. Cholesterol polyp is considered.
 ::sgbps::Several tiny echogenic polyps, size up to __ cm, in the gallbladder noted. Cholesterol polyps are considered.
-::sgbs::A __-cm echogenic lesion in GB with acoustic shadow, in favor gallstone.
-::sgbss::Several echogenic lesions in GB with acoustic shadow, in favor gallstones.
-::sgbss1::Several echogenic lesions in GB with postural changes and acoustic shadow, in favor gallstones.
+::sgbs::A __-cm echogenic lesion in GB with acoustic shadow, in favor of a gallstone.
+::sgbss::Several echogenic lesions in GB with acoustic shadow, in favor of gallstones.
+::sgbss1::Several echogenic lesions in GB with postural changes and acoustic shadow, in favor of gallstones.
 ::sgba::Comet tail artifacts from the gallbladder wall, adenomyomatosis should be considered.
 ::sgba1::Presence of tiny GB adenomyomatoses with RA (Rokitanski-Aschoff) sinus noted.
 ::sgbcc::Mild gallbladder wall thickening, suspicious chronic cholecystitis.
@@ -70,7 +70,7 @@
 ::stwnl::The sizes of thyroid gland are within normal limits.
 ::stlok::The left thyroid lobe is unremarkable.
 ::strok::The right thyroid lobe is unremarkable.
-::stblnok::Bilateral neck lymph nodes noted with hila, favored benign lymph nodes.
+::stblnok::Bilateral neck lymph nodes with preserved hila are noted, favoring benign lymph nodes.
 ::stblnok1::No definite bulky neck lymphadenopathy is noted.
 ::stbrln::Some slightly enlarged lymph nodes with preserved hilar structure at both neck regions are noted, probably reactive lymph nodes.
 ::tr1::TI-RADS TR1, benign.
@@ -193,7 +193,7 @@ Small bilateral neck lymph nodes noted with hila, favored benign lymph nodes.
 ::sbrlnok::Some right axillary lymph nodes with preserved hilar structure and no cortical thickening, in favor of benign nature.
 ::sbllnok::Some left axillary lymph nodes with preserved hilar structure and no cortical thickening, in favor of benign nature.
 ::sbblnok::Some bilateral axillary lymph nodes with preserved hilar structure and no cortical thickening, in favor of benign nature.
-::sbblnok1::No bulky hilum absent lymph node noted in both axillae.
+::sbblnok1::No bulky, hilum-absent lymph nodes are noted in both axillae.
 ::sbblnok2::No definite lymphadenopathy in both axillae.
 ::sbrs::A scar at the right breast.
 ::sbls::A scar at the left breast.
