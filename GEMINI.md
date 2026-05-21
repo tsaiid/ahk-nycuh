@@ -61,3 +61,4 @@
 - 在 AutoHotkey v2 中，箭頭函式 (Arrow Functions) `=>` 僅支援單一表達式 (Expression)，不支援大括號 `{}` 包裝的陳述句區塊 (Block-body)。
 - Use `rg` instead of `grep`.
 - 每次修改程式碼後，必須執行 `powershell -NoProfile -ExecutionPolicy Bypass -File Utilities\compile-check.ps1` 進行語法驗證。
+- 除非使用者主動要求 Commit，否則在修改程式碼後不要自動進行 Commit 提交。
