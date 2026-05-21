@@ -20,12 +20,28 @@
 ::math::Mild atherosclerotic changes with calcification of intracranial portion of vertebrobasilar arteries and bilateral internal carotid arteries.
 ::mathc::Mild atherosclerotic changes with calcification of intracranial portion of bilateral internal carotid arteries.
 ::mathv::Mild atherosclerotic changes with calcification of intracranial portion of vertebrobasilar arteries.
+;--- Subcortical Arteriosclerotic Encephalopathy (SAE) / Leukoaraiosis / CSVD ---
+; 舊版保留與優化
 ::sae::Bilateral periventricular low density presents. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
 ::msae::Mild bilateral periventricular low density presents. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
 ::sae2::Presence of mild/moderate/severe confluent symmetric periventricular hyperintensity on T2WI and FLAIR suggests subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 ::msae2::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR suggests mild subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 ::sae3::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, the subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered. Several tiny hyperintensities in the bilateral subcortical and deep white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
-::sae4::Presence of bilateral confluent periventricular, and several small deep and subcortical white matter and pons hyperintensities on T2WI and FLAIR suggests subcortical arteriosclerotic encephalopathy (leukoaraiosis).
+
+; 方案一：依檢查類別 (CT/MRI) 與嚴重度區分
+::saect::Bilateral periventricular hypodensities are noted, compatible with leukoaraiosis (subcortical arteriosclerotic encephalopathy).
+::msaect::Mild bilateral periventricular hypodensities are noted, compatible with mild leukoaraiosis (subcortical arteriosclerotic encephalopathy).
+::saemr::Bilateral periventricular and subcortical white matter hyperintensities on T2WI and FLAIR, compatible with subcortical arteriosclerotic encephalopathy (leukoaraiosis).
+::msaemr::Mild bilateral periventricular and subcortical white matter hyperintensities on T2WI and FLAIR, compatible with mild subcortical arteriosclerotic encephalopathy (leukoaraiosis).
+
+; 方案二：Fazekas Scale MRI 描述
+::faz1::Bilateral periventricular caps and punctate deep white matter hyperintensities on T2WI/FLAIR, compatible with mild chronic microvascular ischemic changes (Fazekas grade 1).
+::faz2::Bilateral smooth periventricular halos and beginning confluence of deep white matter hyperintensities on T2WI/FLAIR, compatible with moderate chronic microvascular ischemic changes (Fazekas grade 2).
+::faz3::Bilateral irregular periventricular and large confluent deep white matter hyperintensities on T2WI/FLAIR, compatible with severe chronic microvascular ischemic changes (Fazekas grade 3).
+
+; 方案三：現代化診斷詞彙 (CSVD / 腦幹合併描述)
+::csvd::Bilateral periventricular and subcortical white matter hyperintensities on T2WI/FLAIR, suggesting cerebral small vessel disease (CSVD) with chronic microvascular ischemic changes.
+::sae4::Bilateral periventricular and subcortical white matter hyperintensities on T2WI and FLAIR, suggesting chronic microvascular ischemic changes. Tiny patchy hyperintensities in the pons are also noted.
 ::ubo::Several nonspecific tiny hyperintensities in the bilateral subcortical and deep white matter regions on T2WI and FLAIR (unidentified bright objects).
 ::ubo1::Presence of several tiny hyperintensities in the periventricular white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
 ::ubo2::Leukoaraiosis (some tiny/small hyperintensities on T2WI and FLAIR image in the periventricular and subcortical white matter regions) are mostly due to aging process and/or small vessel ischemic disease.
