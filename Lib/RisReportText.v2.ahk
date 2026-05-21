@@ -128,7 +128,7 @@ class RisReportText {
                     }
                 }
 
-                finalText .= RegExReplace(tmpText, "^(\s*)((\d+\.)|([-\+\*>=])|(\(?\d+\)))?(\s*)(\w?)(.*)", "$u{7}${8}")
+                finalText .= RegExReplace(tmpText, "^([ \t\x{00a0}\x{3000}]*)((\d+\.)|([-+*>=•·▪—–])|(\(?\d+\)))?([ \t\x{00a0}\x{3000}]*)(\w?)(.*)", "$u{7}${8}")
                 finalText .= "`r`n"
             } else {
                 if (keepEmptyLine) {
@@ -141,7 +141,7 @@ class RisReportText {
     }
 
     static _IsEmptyReorderLine(line) {
-        return RegExMatch(line, "^\s*(?:\d+\.|\(?\d+\)|[-\+\*>=]|-->)?\s*$")
+        return RegExMatch(line, "^[ \t\x{00a0}\x{3000}]*(?:\d+\.|\(?\d+\)|[-+*>=•·▪—–]|-->)?[ \t\x{00a0}\x{3000}]*$")
     }
 
     static DetectItemChar(text, defaultChar := "-") {
