@@ -302,6 +302,7 @@ Multiphase CTA:
 }
 
 ::mraok0::MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
+::mraath::MRA demonstrates irregular lumens and focal aneurysmal dilatation/ectasia, particularly involving the siphon bends of the bilateral ICAs, likely representing atherosclerotic changes.
 ::mraok::
 {
     MyForm := "
