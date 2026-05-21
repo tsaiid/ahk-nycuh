@@ -1922,15 +1922,11 @@ class RisController {
         }
     }
 
-    ; [新增] 啟動背景自動更新機制 (請在腳本啟動時呼叫此方法)
+    ; [已廢棄 Deprecated] 啟動背景自動更新機制 (建議改用 Utilities\AutoWorklistUpdate.v2.ahk 搭配工作排程器)
     static EnableAutoWorklistUpdate() {
-        ; 檢查頻率: 每 5 分鐘偵測一次 (300,000 ms)
-        checkFrequency := 300000
-
-        OutputDebug("[RisAuto] >>> 自動更新機制已啟動 <<<`n")
-        OutputDebug("[RisAuto] 設定：每 " . (checkFrequency/60000) . " 分鐘偵測一次閒置狀況`n")
-
-        SetTimer(ObjBindMethod(this, "_CheckAutoUpdate"), checkFrequency)
+        ; 此常駐排程機制已廢棄，避免與獨立的排程更新腳本衝突
+        OutputDebug("[RisAuto] ⚠️ EnableAutoWorklistUpdate 已經廢棄，請使用 Utilities\AutoWorklistUpdate.v2.ahk 排程執行。`n")
+        return
     }
 
     static _CheckAutoUpdate() {
@@ -1996,6 +1992,32 @@ class RisController {
         try {
             hwnd := WinExist(this.WorklistWinTitle)
             elWindow := UIA.ElementFromHandle(hwnd)
+
+            ; [新增] 嘗試抓取控制項並寫入快取以供獨立排程腳本使用
+            try {
+                elBtn := elWindow.FindElement(this._WorklistCtrls["RefreshButton"])
+                elEr := elWindow.FindElement(this._WorklistCtrls["ER"])
+                elAdm := elWindow.FindElement(this._WorklistCtrls["ADM"])
+                elOpd := elWindow.FindElement(this._WorklistCtrls["OPD"])
+                
+                cacheFile := "config\worklist-controls.ini"
+                IniWrite(Format("0x{:X}", hwnd), cacheFile, "Window", "Hwnd")
+                IniWrite(Format("0x{:X}", elBtn.NativeWindowHandle), cacheFile, "Controls", "RefreshButton")
+                IniWrite(Format("0x{:X}", elEr.NativeWindowHandle), cacheFile, "Controls", "ER")
+                IniWrite(Format("0x{:X}", elAdm.NativeWindowHandle), cacheFile, "Controls", "ADM")
+                IniWrite(Format("0x{:X}", elOpd.NativeWindowHandle), cacheFile, "Controls", "OPD")
+                
+                ; 同步寫入座標 Positions
+                for key, el in Map("RefreshButton", elBtn, "ER", elEr, "ADM", elAdm, "OPD", elOpd) {
+                    ControlGetPos(&x, &y, &w, &h, el.NativeWindowHandle)
+                    IniWrite(x, cacheFile, "Positions", key . "_X")
+                    IniWrite(y, cacheFile, "Positions", key . "_Y")
+                    IniWrite(w, cacheFile, "Positions", key . "_W")
+                    IniWrite(h, cacheFile, "Positions", key . "_H")
+                }
+            } catch {
+                ; 忽略快取寫入失敗 (可能控制項未完全加載)
+            }
 
             ; 點擊更新按鈕
             try {
