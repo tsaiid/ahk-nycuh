@@ -988,6 +988,7 @@ Patent major left lower extremity arteries.
 Percutaneous Transhepatic Cholangiography and Drainage
 
 Devices: 8 Fr Cholangio-Entero-Tube
+Devices: 8 Fr x 25 cm pigtail drain withoug string lock
 Devices: 8 Fr x 35 cm pigtail drain
 Devices: 8 Fr x 35 cm pigtail drain with string lock
 Devices: 8 Fr x 35 cm pigtail drain with string lock and homemade side holes
@@ -998,7 +999,7 @@ Medication: Pethidine 25 mg IV
 Procedure and Findings:
 - Under sonography and fluoroscopy guidance, right/left IHD was approached with 21G needle.
 - PTC shows severe dilated IHD with obstruction level at the distal CBD.
-- By Seldinger technique, a 8-Fr pigtail drain with string lock was placed with the tip in the CBD.
+- By Seldinger technique, a 8-Fr pigtail drain was placed with the tip in the CBD.
 - The drain was fixed at the 22-cm mark.
 
 - The guidewire successfully passed through the obstruction level, and then a 8-Fr pigtail with home-made side holes was placed with the tip in the duodenum.
@@ -1012,9 +1013,8 @@ Procedure and Findings:
     MyForm := "
 (
 PTCD was done.
-Left PTCD (8F pigtail with string lock, tip in the CBD) was done.
-Right PTCD (8F pigtail with string lock, tip in the CBD) was done.
-Right PTCD (8F pigtail with string lock and homemade side holes, tip in the duodenum) was done.
+Left PTCD (8F pigtail without string lock, tip in the CBD) was done.
+Right PTCD (8F pigtail without string lock, tip in the CBD) was done.
 )"
     RisController.PasteToImpression(MyForm)
 }
