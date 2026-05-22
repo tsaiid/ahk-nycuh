@@ -293,10 +293,6 @@ RisController.EnableShellHookFocus()
     }
 #HotIf
 
-#w:: {
-    RisController.GetWorklistJson()
-}
-
 ;; for JIS keyboard
 ; 取得目前活動視窗的輸入法語言 ID
 GetKeyboardHKL() {

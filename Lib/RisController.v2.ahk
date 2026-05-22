@@ -15,7 +15,6 @@
 #Include .\RisEditControl.v2.ahk
 #Include .\RisNotify.v2.ahk
 #Include .\RisVisualFeedback.v2.ahk
-#Include .\RisWorklist.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 
@@ -52,7 +51,6 @@ class RisController {
     ; [新增] 環境判定：是否為標準 RIS 報告視窗
     static IsStandardRis => WinActive(this.WinTitle)
 
-    static WorklistWinTitle := "工作清單(frmRIS)"
     static _layoutShiftProp := "RisLayoutShiftApplied"
     static _bottomCtrlShiftProp := "RisBottomCtrlShiftApplied"
 
@@ -107,13 +105,6 @@ class RisController {
     static _ConsultationCtrls := Map(
         "SourceTime", "WindowsForms10.EDIT.app.0.2780b98_r24_ad116", ; 原始時間 (國曆)
         "TargetTime", "WindowsForms10.EDIT.app.0.2780b98_r24_ad114"  ; 目標填入欄位
-    )
-
-    static _WorklistCtrls := Map(
-        "RefreshButton", {AutomationId: "btnRefresh"},
-        "ER",            {AutomationId: "dgvClassifyOPDE"}, ; 急診
-        "ADM",           {AutomationId: "dgvClassifyADM"},  ; 住院
-        "OPD",           {AutomationId: "dgvClassifyOPDR"}  ; 門診
     )
 
     ; =================================================================
@@ -221,12 +212,6 @@ class RisController {
     static _shellTrackTTL := 15000
     static IsDebug := false            ; [新增] Debug 模式切換
     static ShowGoogleAICurlDebug := false
-
-    ; [自動更新相關狀態]
-    static _lastUpdateTick := 0           ; 上次更新的時間
-    static _updateInterval := 1800000     ; 30 分鐘 (標準生產環境設定)
-    static _idleThreshold  := 300000      ; 5 分鐘
-    static _isUpdating     := false       ; 防卡死旗標
 
     ; =================================================================
     ; 2.1 責任邊界總覽 (Current Ownership)
@@ -1919,143 +1904,6 @@ class RisController {
 
         } catch as err {
             this.Notify("補時失敗: " . err.Message)
-        }
-    }
-
-    ; [已廢棄 Deprecated] 啟動背景自動更新機制 (建議改用 Utilities\AutoWorklistUpdate.v2.ahk 搭配工作排程器)
-    static EnableAutoWorklistUpdate() {
-        ; 此常駐排程機制已廢棄，避免與獨立的排程更新腳本衝突
-        OutputDebug("[RisAuto] ⚠️ EnableAutoWorklistUpdate 已經廢棄，請使用 Utilities\AutoWorklistUpdate.v2.ahk 排程執行。`n")
-        return
-    }
-
-    static _CheckAutoUpdate() {
-        OutputDebug("[RisAuto] --- Timer 心跳檢查 (" . A_Hour . ":" . A_Min . ") ---`n")
-
-        ; A. 防重疊鎖 (Mutex)
-        if (this._isUpdating) {
-            OutputDebug("[RisAuto] ⚠️ 跳過：上一次更新尚未完成 (可能卡住)`n")
-            return
-        }
-
-        ; B. 環境預檢：檢查 RDP/Session 是否鎖定
-        ; 如果 User32\OpenInputDesktop 失敗，代表畫面被鎖定 (RDP斷線 或 Win+L)
-        ; 此時 UIA 必死無疑，直接跳過，等待下次連線恢復
-        if !DllCall("User32\OpenInputDesktop", "uint", 0, "int", 0, "uint", 0, "ptr") {
-            OutputDebug("[RisAuto] 💤 狀態：Session 已鎖定或無畫面 (RDP 斷線中)，暫停動作`n")
-            return
-        }
-
-        ; C. 視窗存在檢查
-        if !WinExist(this.WorklistWinTitle) {
-            OutputDebug("[RisAuto] ℹ️ 狀態：找不到工作清單視窗`n")
-            return
-        }
-
-        ; D. 冷卻時間檢查
-        timeSinceLast := A_TickCount - this._lastUpdateTick
-        if (this._lastUpdateTick != 0 && timeSinceLast < this._updateInterval) {
-            minutesLeft := Round((this._updateInterval - timeSinceLast) / 60000, 1)
-            OutputDebug("[RisAuto] ⏳ 狀態：冷卻中 (尚需 " . minutesLeft . " 分鐘)`n")
-            return
-        }
-
-        ; E. 閒置檢查
-        if (A_TimeIdle < this._idleThreshold) {
-            idleSec := Round(A_TimeIdle / 1000, 1)
-            OutputDebug("[RisAuto] ✋ 狀態：使用者活動中 (閒置 " . idleSec . "s < 門檻)`n")
-            return
-        }
-
-        OutputDebug("[RisAuto] 🚀 條件全數吻合，開始執行更新...`n")
-
-        ; F. 執行更新 (使用 Try-Finally 確保鎖定解除)
-        this._isUpdating := true
-        try {
-            this.GetWorklistJson(true)
-        } catch as err {
-            OutputDebug("[RisAuto] ❌ 更新發生錯誤: " . err.Message . "`n")
-        } finally {
-            this._isUpdating := false
-        }
-    }
-
-    ; 3. 讀取與上傳主程式 (回復為 UIA 版本)
-    static GetWorklistJson(isAuto := false) {
-        logFn := (msg) => (isAuto ? OutputDebug("[RisAuto] " . msg . "`n") : this.Notify(msg))
-
-        if !WinExist(this.WorklistWinTitle) {
-            return
-        }
-
-        RisVisualFeedback.ShowWaitCursor()
-        try {
-            hwnd := WinExist(this.WorklistWinTitle)
-            elWindow := UIA.ElementFromHandle(hwnd)
-
-            ; [新增] 嘗試抓取控制項並寫入快取以供獨立排程腳本使用
-            try {
-                elBtn := elWindow.FindElement(this._WorklistCtrls["RefreshButton"])
-                elEr := elWindow.FindElement(this._WorklistCtrls["ER"])
-                elAdm := elWindow.FindElement(this._WorklistCtrls["ADM"])
-                elOpd := elWindow.FindElement(this._WorklistCtrls["OPD"])
-                
-                cacheFile := "config\worklist-controls.ini"
-                IniWrite(Format("0x{:X}", hwnd), cacheFile, "Window", "Hwnd")
-                IniWrite(Format("0x{:X}", elBtn.NativeWindowHandle), cacheFile, "Controls", "RefreshButton")
-                IniWrite(Format("0x{:X}", elEr.NativeWindowHandle), cacheFile, "Controls", "ER")
-                IniWrite(Format("0x{:X}", elAdm.NativeWindowHandle), cacheFile, "Controls", "ADM")
-                IniWrite(Format("0x{:X}", elOpd.NativeWindowHandle), cacheFile, "Controls", "OPD")
-                
-                ; 同步寫入座標 Positions
-                for key, el in Map("RefreshButton", elBtn, "ER", elEr, "ADM", elAdm, "OPD", elOpd) {
-                    ControlGetPos(&x, &y, &w, &h, el.NativeWindowHandle)
-                    IniWrite(x, cacheFile, "Positions", key . "_X")
-                    IniWrite(y, cacheFile, "Positions", key . "_Y")
-                    IniWrite(w, cacheFile, "Positions", key . "_W")
-                    IniWrite(h, cacheFile, "Positions", key . "_H")
-                }
-            } catch {
-                ; 忽略快取寫入失敗 (可能控制項未完全加載)
-            }
-
-            ; 點擊更新按鈕
-            try {
-                btnSelector := this._WorklistCtrls["RefreshButton"]
-                elBtn := elWindow.FindElement(btnSelector)
-                try {
-                    elBtn.Invoke()
-                } catch {
-                    elBtn.Click()
-                }
-            } catch {
-                logFn("⚠️ 無法點擊更新按鈕")
-                return
-            }
-
-            Sleep(1500) ; 等待重新整理
-
-            ; 讀取表格資料
-            categories := ["ER", "ADM", "OPD"]
-            categoryData := Map()
-
-            for cat in categories {
-                categoryData[cat] := RisWorklist.ExtractGridData(elWindow, this._WorklistCtrls[cat])
-            }
-
-            payload := RisWorklist.BuildJson(categories, categoryData)
-            if (payload.ValidDataCount == 0) {
-                logFn("⚠️ 統計資料為空，略過上傳")
-                return
-            }
-
-            this._lastUpdateTick := A_TickCount
-            RisWorklist.PostDataToWebhook(payload.Json, isAuto, this.Notify.Bind(this))
-
-        } catch as err {
-            logFn("操作失敗: " . err.Message)
-        } finally {
-            RisVisualFeedback.RestoreCursor()
         }
     }
 
