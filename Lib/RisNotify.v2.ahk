@@ -18,11 +18,31 @@ class RisNotify {
     static _slotHeight := 36
     static _textPaddingY := 5
     static _lineSpacingScale := 1.2
+    
+    ; DPI 縮放與位置暫存變數
+    static _scale := 1.0
+    static _mouseX := 0
+    static _mouseY := 0
 
     static Show(text, duration := 1500) {
         text := Trim(text)
         if (text == "")
             return
+
+        ; 偵測滑鼠所在點的 DPI
+        MouseGetPos(&mouseX, &mouseY)
+        dpi := this._GetDpiAtPoint(mouseX, mouseY)
+        currentScale := dpi / 96
+
+        ; 如果縮放比例改變了，就銷毀重建 GUI
+        if (this._gui && this._scale != currentScale) {
+            this._gui.Destroy()
+            this._gui := 0
+        }
+        
+        this._scale := currentScale
+        this._mouseX := mouseX
+        this._mouseY := mouseY
 
         this._PruneExpired()
 
@@ -54,18 +74,27 @@ class RisNotify {
         if this._gui
             return this._gui
 
-        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000000")
+        ; 使用 -DPIScale 停用 AHK 預設的主螢幕 DPI 縮放，完全由我們手動計算以適配多螢幕 DPI
+        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000000 -DPIScale")
         g.BackColor := "202020"
-        g.SetFont("s12 cWhite bold", "Microsoft JhengHei UI")
-        g.MarginX := this._paddingX
-        g.MarginY := this._paddingY
+        
+        fontSize := Round(12 * this._scale)
+        g.SetFont("s" fontSize " cWhite bold", "Microsoft JhengHei UI")
+        
+        g.MarginX := Round(this._paddingX * this._scale)
+        g.MarginY := Round(this._paddingY * this._scale)
 
         this._gui := g
         this._slots := []
         this._slotItemIds := []
 
         loop this._maxVisible {
-            slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", this._paddingX, this._paddingY, this._width, this._slotHeight), "")
+            px := Round(this._paddingX * this._scale)
+            py := Round(this._paddingY * this._scale)
+            w := Round(this._width * this._scale)
+            sh := Round(this._slotHeight * this._scale)
+            
+            slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", px, py, w, sh), "")
             slot.OnEvent("Click", ObjBindMethod(this, "_HandleSlotClick", A_Index))
             this._slots.Push([slot])
             this._slotItemIds.Push(0)
@@ -79,15 +108,22 @@ class RisNotify {
         g := this._EnsureGui()
         visibleCount := this._queue.Length
         innerWidth := this._GetContentWidth()
-        height := this._paddingY * 2
-        y := this._paddingY
+        
+        paddingY_scaled := Round(this._paddingY * this._scale)
+        paddingX_scaled := Round(this._paddingX * this._scale)
+        slotGap_scaled := Round(this._slotGap * this._scale)
+        slotHeight_scaled := Round(this._slotHeight * this._scale)
+        textPaddingY_scaled := Round(this._textPaddingY * this._scale)
+        
+        height := paddingY_scaled * 2
+        y := paddingY_scaled
 
         for index, slotLines in this._slots {
             if (index <= visibleCount) {
                 item := this._queue[index]
                 displayLines := this._WrapLines(item.text, innerWidth)
                 textHeight := this._MeasureLinesHeight(displayLines)
-                slotHeight := Max(this._slotHeight, textHeight + this._textPaddingY * 2)
+                slotHeight := Max(slotHeight_scaled, textHeight + textPaddingY_scaled * 2)
                 textY := y + Floor((slotHeight - textHeight) / 2)
                 lineHeight := this._MeasureLineHeight()
                 lineAdvance := Ceil(lineHeight * this._lineSpacingScale)
@@ -95,14 +131,14 @@ class RisNotify {
                 for lineIndex, lineText in displayLines {
                     lineSlot := this._GetLineSlot(index, lineIndex)
                     lineSlot.Text := lineText
-                    lineSlot.Move(this._paddingX, textY + (lineIndex - 1) * lineAdvance, innerWidth, lineHeight)
+                    lineSlot.Move(paddingX_scaled, textY + (lineIndex - 1) * lineAdvance, innerWidth, lineHeight)
                     lineSlot.Opt("-Hidden")
                 }
 
                 this._HideLineSlots(index, displayLines.Length + 1)
                 this._slotItemIds[index] := item.id
-                height := y + slotHeight + this._paddingY
-                y += slotHeight + this._slotGap
+                height := y + slotHeight + paddingY_scaled
+                y += slotHeight + slotGap_scaled
             } else {
                 this._HideLineSlots(index)
                 this._slotItemIds[index] := 0
@@ -114,38 +150,40 @@ class RisNotify {
             return
         }
 
-        totalWidth := innerWidth + this._paddingX * 2
-        position := this._GetWindowPosition(totalWidth, height)
+        totalWidth := innerWidth + paddingX_scaled * 2
+        position := this._GetWindowPosition(totalWidth, height, this._mouseX, this._mouseY)
         g.Show(Format("NoActivate x{1} y{2} w{3} h{4}", position.x, position.y, totalWidth, height))
         this._ApplyVisualStyle()
     }
 
-    static _GetWindowPosition(width, height) {
-        MonitorGetWorkArea(, &left, &top, &right, &bottom)
-        workWidth := right - left
-        workHeight := bottom - top
-        x := left + Floor((workWidth - width) / 2)
-        y := top + Floor((workHeight * 2 / 5) - (height / 2))
+    static _GetWindowPosition(width, height, mouseX, mouseY) {
+        workArea := this._GetMonitorWorkAreaAtPoint(mouseX, mouseY)
+        workWidth := workArea.right - workArea.left
+        workHeight := workArea.bottom - workArea.top
+        x := workArea.left + Floor((workWidth - width) / 2)
+        y := workArea.top + Floor((workHeight * 2 / 5) - (height / 2))
 
         return {
-            x: Max(left, x),
-            y: Max(top, y)
+            x: Max(workArea.left, x),
+            y: Max(workArea.top, y)
         }
     }
 
     static _GetContentWidth() {
-        width := this._minWidth
+        minW := Round(this._minWidth * this._scale)
+        maxW := Round(this._maxWidth * this._scale)
+        width := minW
 
         for item in this._queue
             width := Max(width, this._MeasureNaturalWidth(item.text))
 
-        return Min(this._maxWidth, width)
+        return Min(maxW, width)
     }
 
     static _MeasureNaturalWidth(text) {
         hdcState := this._BeginTextMeasure()
         if !hdcState.hdc
-            return this._width
+            return Round(this._width * this._scale)
 
         width := 0
         sizeBuffer := Buffer(8, 0)
@@ -157,7 +195,7 @@ class RisNotify {
         }
 
         this._EndTextMeasure(hdcState)
-        return Max(this._minWidth, width + 20)
+        return Max(Round(this._minWidth * this._scale), width + Round(20 * this._scale))
     }
 
     static _MeasureLinesHeight(lines) {
@@ -173,7 +211,7 @@ class RisNotify {
     static _MeasureLineHeight() {
         hdcState := this._BeginTextMeasure()
         if !hdcState.hdc
-            return this._slotHeight - this._textPaddingY * 2
+            return Round(this._slotHeight * this._scale) - Round(this._textPaddingY * this._scale) * 2
 
         lineHeight := 0
         sizeBuffer := Buffer(8, 0)
@@ -194,7 +232,12 @@ class RisNotify {
 
     static _GetLineSlot(slotIndex, lineIndex) {
         while (this._slots[slotIndex].Length < lineIndex) {
-            lineSlot := this._gui.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", this._paddingX, this._paddingY, this._width, this._slotHeight), "")
+            px := Round(this._paddingX * this._scale)
+            py := Round(this._paddingY * this._scale)
+            w := Round(this._width * this._scale)
+            sh := Round(this._slotHeight * this._scale)
+            
+            lineSlot := this._gui.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", px, py, w, sh), "")
             lineSlot.OnEvent("Click", ObjBindMethod(this, "_HandleSlotClick", slotIndex))
             this._slots[slotIndex].Push(lineSlot)
         }
@@ -282,7 +325,7 @@ class RisNotify {
 
         hdcState := this._BeginTextMeasure()
         if !hdcState.hdc
-            return this._width
+            return Round(this._width * this._scale)
 
         sizeBuffer := Buffer(8, 0)
         width := 0
@@ -302,7 +345,7 @@ class RisNotify {
         hwnd := this._slots[1][1].Hwnd
         hdc := DllCall("GetDC", "Ptr", hwnd, "Ptr")
         if !hdc
-            return {hdc: 0, hwnd: hwnd, oldFont: 0}
+            return {hdc: 0, hwnd: hwnd, oldFont: oldFont}
 
         hFont := SendMessage(0x0031, 0, 0, hwnd)
         oldFont := hFont ? DllCall("SelectObject", "Ptr", hdc, "Ptr", hFont, "Ptr") : 0
@@ -327,7 +370,9 @@ class RisNotify {
         WinGetPos(&x, &y, &w, &h, hwnd)
 
         try {
-            WinSetRegion("0-0 w" w " h" h " r12-12", hwnd)
+            ; 圓角半徑也根據 DPI 比例進行縮放
+            r := Round(12 * this._scale)
+            WinSetRegion("0-0 w" w " h" h " r" r "-" r, hwnd)
 
             style := DllCall("GetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr")
             DllCall("SetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr", style | 0x00020000)
@@ -412,5 +457,38 @@ class RisNotify {
                 return
             }
         }
+    }
+
+    static _GetDpiAtPoint(x, y) {
+        hMonitor := 0
+        if (A_PtrSize == 8) {
+            hMonitor := DllCall("MonitorFromPoint", "Int64", (x & 0xFFFFFFFF) | (y << 32), "UInt", 2, "Ptr")
+        } else {
+            hMonitor := DllCall("MonitorFromPoint", "Int", x, "Int", y, "UInt", 2, "Ptr")
+        }
+        if (hMonitor) {
+            dpiX := 0, dpiY := 0
+            try {
+                ; MDT_EFFECTIVE_DPI = 0
+                DllCall("Shcore\GetDpiForMonitor", "Ptr", hMonitor, "Int", 0, "UInt*", &dpiX, "UInt*", &dpiY)
+                if (dpiX > 0)
+                    return dpiX
+            }
+        }
+        return 96 ; 預設 96 DPI (100% 縮放)
+    }
+
+    static _GetMonitorWorkAreaAtPoint(x, y) {
+        monitorCount := MonitorGetCount()
+        loop monitorCount {
+            MonitorGet(A_Index, &left, &top, &right, &bottom)
+            if (x >= left && x < right && y >= top && y < bottom) {
+                MonitorGetWorkArea(A_Index, &workLeft, &workTop, &workRight, &workBottom)
+                return {left: workLeft, top: workTop, right: workRight, bottom: workBottom}
+            }
+        }
+
+        MonitorGetWorkArea(, &workLeft, &workTop, &workRight, &workBottom)
+        return {left: workLeft, top: workTop, right: workRight, bottom: workBottom}
     }
 }
