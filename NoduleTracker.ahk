@@ -79,9 +79,9 @@ class NoduleTracker {
     }
 
     InitGUI() {
-        this.MyGui := Gui("+AlwaysOnTop +ToolWindow +Caption +Border", "Nodule Tracker")
+        this.MyGui := Gui("+AlwaysOnTop +ToolWindow", "Nodule Tracker")
         this.MyGui.SetFont("s10", "Segoe UI")
-        this.MyGui.BackColor := "FFFFE0"
+        this.MyGui.BackColor := "F8FAFC"
         this.MyGui.OnEvent("Close", this.WindowClosed.Bind(this))
 
         ; --- 標題區 (靜態) ---
@@ -1003,6 +1003,24 @@ class NoduleTracker {
         chkOCR.OnEvent("Click", (ctrl, *) => this.DebugOCR := ctrl.Value)
 
         this.MyGui.Show("x" this.GuiX " y" this.GuiY " NoActivate AutoSize")
+        this.ApplyWindowStyle(this.MyGui.Hwnd)
+    }
+
+    ApplyWindowStyle(hwnd) {
+        try {
+            if (this.GetWindowsBuildNumber() < 22000) {
+                renderingPolicy := 1 ; DWMNCRP_DISABLED: remove Win10 DWM shadow/edge.
+                DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 2, "Int*", renderingPolicy, "UInt", 4)
+                return
+            }
+
+            borderColor := 0xFFFFFFFE ; DWMWA_COLOR_NONE: remove Win11 DWM outline while keeping shadow.
+            DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 34, "UInt*", borderColor, "UInt", 4)
+        }
+    }
+
+    GetWindowsBuildNumber() {
+        return RegExMatch(A_OSVersion, "^\d+\.\d+\.(\d+)", &match) ? Integer(match[1]) : 0
     }
 
     RenderSection(label, xPos) {
