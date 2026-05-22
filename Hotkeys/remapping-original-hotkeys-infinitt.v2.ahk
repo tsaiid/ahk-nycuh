@@ -458,8 +458,68 @@ QuoteCmdArg(value) {
 }
 
 NotifyG3PacsAIStatus(message, duration := 1800) {
-    ToolTip(message)
-    SetTimer(() => ToolTip(), -duration)
+    static statusGui := 0
+    static statusText := 0
+    static hideTimer := 0
+
+    message := Trim(message)
+    if (message = "")
+        return
+
+    if !statusGui {
+        statusGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000000")
+        statusGui.BackColor := "F8FAFC"
+        statusGui.MarginX := 32
+        statusGui.MarginY := 20
+        statusGui.SetFont("s18 c111827 bold", "Microsoft JhengHei UI")
+        statusText := statusGui.Add("Text", "w680 Center", "")
+        hideTimer := () => statusGui.Hide()
+    }
+
+    SetTimer(hideTimer, 0)
+    statusText.Text := message
+    statusGui.Show("AutoSize Hide")
+
+    WinGetPos(, , &width, &height, statusGui.Hwnd)
+    MouseGetPos(&mouseX, &mouseY)
+    workArea := GetG3PacsMonitorWorkAreaAtPoint(mouseX, mouseY)
+    x := workArea.left + Floor(((workArea.right - workArea.left) - width) / 2)
+    y := workArea.top + Floor(((workArea.bottom - workArea.top) - height) / 2)
+
+    statusGui.Show(Format("NoActivate x{1} y{2}", Max(workArea.left, x), Max(workArea.top, y)))
+    ApplyG3PacsAIStatusStyle(statusGui.Hwnd)
+
+    if (duration > 0)
+        SetTimer(hideTimer, -duration)
+}
+
+GetG3PacsMonitorWorkAreaAtPoint(x, y) {
+    monitorCount := MonitorGetCount()
+    loop monitorCount {
+        MonitorGet(A_Index, &left, &top, &right, &bottom)
+        if (x >= left && x < right && y >= top && y < bottom) {
+            MonitorGetWorkArea(A_Index, &workLeft, &workTop, &workRight, &workBottom)
+            return {left: workLeft, top: workTop, right: workRight, bottom: workBottom}
+        }
+    }
+
+    MonitorGetWorkArea(, &workLeft, &workTop, &workRight, &workBottom)
+    return {left: workLeft, top: workTop, right: workRight, bottom: workBottom}
+}
+
+ApplyG3PacsAIStatusStyle(hwnd) {
+    if !hwnd
+        return
+
+    WinGetPos(, , &width, &height, hwnd)
+    try {
+        WinSetRegion("0-0 w" width " h" height " r14-14", hwnd)
+
+        style := DllCall("GetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr")
+        DllCall("SetClassLongPtr", "Ptr", hwnd, "Int", -26, "Ptr", style | 0x00020000)
+
+        WinSetTransparent(245, hwnd)
+    }
 }
 
 ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
