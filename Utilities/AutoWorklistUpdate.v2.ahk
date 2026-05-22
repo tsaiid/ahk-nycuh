@@ -157,46 +157,45 @@ ResolveWorklistControls(winHwnd) {
     
     LogMessage("⚠️ 快取無效或不存在，啟動動態控制項定位流程...", true)
     
-    ; 2. 檢測 Session 是否有畫面
-    isSessionActive := DllCall("User32\OpenInputDesktop", "uint", 0, "int", 0, "uint", 0, "ptr")
-    if (isSessionActive) {
-        DllCall("CloseDesktop", "ptr", isSessionActive)
-        
-        ; 使用 UIA 定位並更新快取
-        try {
-            LogMessage("Session 處於 Active 狀態，嘗試使用 UI Automation (UIA) 進行定位 (第二防線)...", true)
-            elWindow := UIA.ElementFromHandle(winHwnd)
-            
-            btnHwnd := elWindow.FindElement({AutomationId: "btnRefresh"}).NativeWindowHandle
-            erHwnd := elWindow.FindElement({AutomationId: "dgvClassifyOPDE"}).NativeWindowHandle
-            admHwnd := elWindow.FindElement({AutomationId: "dgvClassifyADM"}).NativeWindowHandle
-            opdHwnd := elWindow.FindElement({AutomationId: "dgvClassifyOPDR"}).NativeWindowHandle
-            
-            resMap := Map(
-                "RefreshButton", btnHwnd,
-                "ER", erHwnd,
-                "ADM", admHwnd,
-                "OPD", opdHwnd
-            )
-            
-            ; 寫入快取
-            IniWrite(Format("0x{:X}", winHwnd), cacheFile, "Window", "Hwnd")
-            for key, hwnd in resMap {
-                IniWrite(Format("0x{:X}", hwnd), cacheFile, "Controls", key)
-                ; 同步寫入相對座標供 Fallback 比對
-                ControlGetPos(&x, &y, &w, &h, hwnd)
-                IniWrite(x, cacheFile, "Positions", key . "_X")
-                IniWrite(y, cacheFile, "Positions", key . "_Y")
-                IniWrite(w, cacheFile, "Positions", key . "_W")
-                IniWrite(h, cacheFile, "Positions", key . "_H")
-            }
-            LogMessage("✅ [機制 - UIA] UIA 定位成功，快取已更新 (第二防線)", true)
-            return resMap
-        } catch as err {
-            LogMessage("⚠️ [機制] UIA 定位失敗: " . err.Message . "，轉用座標 Fallback 定位演算法 (第三防線)...", true)
+    ; 2. 嘗試使用 UIA 定位並更新快取 (不論 Session 是否鎖定，因為 UIA 在後台與鎖定狀態下依然高度可用)
+    try {
+        isSessionActive := DllCall("User32\OpenInputDesktop", "uint", 0, "int", 0, "uint", 0, "ptr")
+        sessionStatus := "Locked"
+        if (isSessionActive) {
+            DllCall("CloseDesktop", "ptr", isSessionActive)
+            sessionStatus := "Active"
         }
-    } else {
-        LogMessage("💤 [機制] Session 鎖定中 (RDP 斷線)，使用座標 Fallback 定位演算法 (第三防線)...", true)
+        
+        LogMessage("嘗試使用 UI Automation (UIA) 進行定位 (Session: " . sessionStatus . ") (第二防線)...", true)
+        elWindow := UIA.ElementFromHandle(winHwnd)
+        
+        btnHwnd := elWindow.FindElement({AutomationId: "btnRefresh"}).NativeWindowHandle
+        erHwnd := elWindow.FindElement({AutomationId: "dgvClassifyOPDE"}).NativeWindowHandle
+        admHwnd := elWindow.FindElement({AutomationId: "dgvClassifyADM"}).NativeWindowHandle
+        opdHwnd := elWindow.FindElement({AutomationId: "dgvClassifyOPDR"}).NativeWindowHandle
+        
+        resMap := Map(
+            "RefreshButton", btnHwnd,
+            "ER", erHwnd,
+            "ADM", admHwnd,
+            "OPD", opdHwnd
+        )
+        
+        ; 寫入快取
+        IniWrite(Format("0x{:X}", winHwnd), cacheFile, "Window", "Hwnd")
+        for key, hwnd in resMap {
+            IniWrite(Format("0x{:X}", hwnd), cacheFile, "Controls", key)
+            ; 同步寫入相對座標供 Fallback 比對
+            ControlGetPos(&x, &y, &w, &h, hwnd)
+            IniWrite(x, cacheFile, "Positions", key . "_X")
+            IniWrite(y, cacheFile, "Positions", key . "_Y")
+            IniWrite(w, cacheFile, "Positions", key . "_W")
+            IniWrite(h, cacheFile, "Positions", key . "_H")
+        }
+        LogMessage("✅ [機制 - UIA] UIA 定位成功，快取已更新 (第二防線)", true)
+        return resMap
+    } catch as err {
+        LogMessage("⚠️ [機制] UIA 定位失敗: " . err.Message . "，轉用座標 Fallback 定位演算法 (第三防線)...", true)
     }
     
     ; 3. Fallback 座標排序與尺寸匹配定位 (在 Locked Session / 無 UIA 時觸發)
