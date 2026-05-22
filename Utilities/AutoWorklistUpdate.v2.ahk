@@ -1,11 +1,11 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 
-; 解析命令列參數，預設關閉 debug info
-global isDebug := false
+; 解析命令列參數，預設開啟 debug info
+global isDebug := true
 for arg in A_Args {
-    if (arg = "/debug" || arg = "--debug" || arg = "-d") {
-        isDebug := true
+    if (arg = "/nodebug" || arg = "--nodebug" || arg = "-nd") {
+        isDebug := false
         break
     }
 }
@@ -151,7 +151,7 @@ ResolveWorklistControls(winHwnd) {
     }
     
     if (cacheValid) {
-        LogMessage("-> 讀取到有效的控制項 HWND 快取檔", true)
+        LogMessage("-> [機制 - 快取] 讀取並驗證到有效的控制項 HWND 快取檔 (第一防線)", true)
         return cachedHwndMap
     }
     
@@ -164,7 +164,7 @@ ResolveWorklistControls(winHwnd) {
         
         ; 使用 UIA 定位並更新快取
         try {
-            LogMessage("Session 處於 Active 狀態，嘗試使用 UI Automation (UIA) 進行定位...", true)
+            LogMessage("Session 處於 Active 狀態，嘗試使用 UI Automation (UIA) 進行定位 (第二防線)...", true)
             elWindow := UIA.ElementFromHandle(winHwnd)
             
             btnHwnd := elWindow.FindElement({AutomationId: "btnRefresh"}).NativeWindowHandle
@@ -190,16 +190,17 @@ ResolveWorklistControls(winHwnd) {
                 IniWrite(w, cacheFile, "Positions", key . "_W")
                 IniWrite(h, cacheFile, "Positions", key . "_H")
             }
-            LogMessage("✅ UIA 定位成功，快取已更新", true)
+            LogMessage("✅ [機制 - UIA] UIA 定位成功，快取已更新 (第二防線)", true)
             return resMap
         } catch as err {
-            LogMessage("⚠️ UIA 定位失敗: " . err.Message . "，轉用座標 Fallback 定位演算法...", true)
+            LogMessage("⚠️ [機制] UIA 定位失敗: " . err.Message . "，轉用座標 Fallback 定位演算法 (第三防線)...", true)
         }
     } else {
-        LogMessage("💤 Session 鎖定中 (RDP 斷線)，使用座標 Fallback 定位演算法...", true)
+        LogMessage("💤 [機制] Session 鎖定中 (RDP 斷線)，使用座標 Fallback 定位演算法 (第三防線)...", true)
     }
     
     ; 3. Fallback 座標排序與尺寸匹配定位 (在 Locked Session / 無 UIA 時觸發)
+    LogMessage("[機制 - Fallback] 正在啟動座標與尺寸排序定位流程 (第三防線)...", true)
     resMap := Map()
     allCtrls := WinGetControls(winHwnd)
     dgvCandidates := []
@@ -242,7 +243,7 @@ ResolveWorklistControls(winHwnd) {
         resMap["ADM"] := dgvCandidates[2].hwnd
         resMap["OPD"] := dgvCandidates[3].hwnd
         
-        LogMessage(Format("DGV 排序結果 - ER: 0x{1:X} (x:{2}), ADM: 0x{3:X} (x:{4}), OPD: 0x{5:X} (x:{6})", resMap["ER"], dgvCandidates[1].x, resMap["ADM"], dgvCandidates[2].x, resMap["OPD"], dgvCandidates[3].x), true)
+        LogMessage(Format("[機制 - Fallback] DataGridView 排序成功 - ER: 0x{1:X} (x:{2}), ADM: 0x{3:X} (x:{4}), OPD: 0x{5:X} (x:{6})", resMap["ER"], dgvCandidates[1].x, resMap["ADM"], dgvCandidates[2].x, resMap["OPD"], dgvCandidates[3].x), true)
     } else {
         throw Error("找不到足夠的 DataGridView 控制項 (僅找到 " . dgvCandidates.Length . " 個)")
     }
@@ -288,6 +289,7 @@ ResolveWorklistControls(winHwnd) {
         }
         
         resMap["RefreshButton"] := foundBtn
+        LogMessage(Format("[機制 - Fallback] 成功定位所有控制項，RefreshButton: 0x{1:X}", foundBtn), true)
     } else {
         throw Error("找不到任何 Button 控制項")
     }
@@ -306,7 +308,7 @@ ExtractGridData(hwnd, cat := "") {
     
     ; 1. 優先使用 UIA 直接從 HWND 讀取 (免剪貼簿，且支援背景與鎖定 session)
     try {
-        LogMessage(Format("  [{1}] 嘗試使用 UIA 從 HWND (0x{2:X}) 讀取資料...", cat, hwnd), true)
+        LogMessage(Format("  [{1}] [機制 - UIA] 嘗試使用 UIA 從 HWND (0x{2:X}) 讀取資料...", cat, hwnd), true)
         elGrid := UIA.ElementFromHandle(hwnd)
         if (elGrid) {
             rowElements := elGrid.FindAll({Type: "Custom"})
@@ -339,17 +341,17 @@ ExtractGridData(hwnd, cat := "") {
                 }
                 
                 if (data.Count > 0) {
-                    LogMessage(Format("  [{1}] ✅ UIA 讀取成功，共 {2} 筆資料", cat, data.Count), true)
+                    LogMessage(Format("  [{1}] ✅ [機制 - UIA] UIA 讀取成功，共 {2} 筆資料", cat, data.Count), true)
                     return data
                 }
             }
         }
     } catch as err {
-        LogMessage(Format("  [{1}] ⚠️ UIA 讀取失敗 (可能處於鎖定狀態且未渲染 UIA 節點): {2}", cat, err.Message), true)
+        LogMessage(Format("  [{1}] ⚠️ [機制 - UIA] UIA 讀取失敗 (可能處於鎖定狀態且未渲染 UIA 節點): {2}", cat, err.Message), true)
     }
     
     ; 2. Fallback: 使用剪貼簿複製
-    LogMessage(Format("  [{1}] 轉用剪貼簿複製 Fallback 流程...", cat), true)
+    LogMessage(Format("  [{1}] [機制 - 剪貼簿] 轉用剪貼簿複製 Fallback 流程 (ControlSend)...", cat), true)
     return ExtractGridDataFromClipboard(hwnd, cat)
 }
 
@@ -380,7 +382,7 @@ ExtractGridDataFromClipboard(hwnd, cat := "") {
         }
         
         clipText := A_Clipboard
-        LogMessage(Format("  [{1}] 剪貼簿讀取字元數: {2}", cat, StrLen(clipText)), true)
+        LogMessage(Format("  [{1}] [機制 - 剪貼簿] 成功由剪貼簿讀取，字元數: {2}", cat, StrLen(clipText)), true)
         
         ; 還原剪貼簿
         A_Clipboard := savedClip
