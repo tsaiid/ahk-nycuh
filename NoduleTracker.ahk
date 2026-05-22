@@ -451,8 +451,8 @@ class NoduleTracker {
             } else {
                 this.GuiStatusMsg := ""
                 this.UpdateGUI()
-                methodTag := (info.HasOwnProp("method")) ? "[" info.method "] " : ""
-                G3PacsNotify.Show("✅ " methodTag location ": " info.srs "/" info.img, 1000)
+                ; 移除命中的 probe 資訊，只顯示 location 與影像編號
+                G3PacsNotify.Show("✅ " location ": " info.srs "/" info.img, 1000)
             }
         } catch Error as e {
             this.GuiStatusMsg := "❌ Critical: " e.Message
