@@ -797,7 +797,7 @@ Chest Wall and low neck: within normal limits.
 {
     finding := "
   (
-Cardiac dual-source CT was performed without intravenous contrast administration and under ECG-gating.
+Non-contrast ECG-gated cardiac CT for coronary artery calcium scoring was performed.
 
 Findings:
 - Total Calcium Score (Equivalent Agatston Score) is 0
