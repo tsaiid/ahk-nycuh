@@ -1,4 +1,4 @@
-﻿; ==============================================================================
+; ==============================================================================
 ; ★ Nodule Tracker (PACS Workflow Optimizer)
 ; ==============================================================================
 ; Description : 自動抓取 PACS 影像中的 Series 與 Image 編號並分類肺葉。
@@ -34,6 +34,7 @@
 #Requires AutoHotkey v2.0
 #Include <Acc.v2>
 #Include <OCR.v2>
+#Include <G3PacsNotify.v2>
 
 ; ==============================================================================
 ; ★ 類別定義 (階段一：架構與狀態遷移)
@@ -439,7 +440,7 @@ class NoduleTracker {
             }
             For existingItem in this.NoduleData[location] {
                 if (existingItem.srs == info.srs && existingItem.img == info.img) {
-                    this.ShowTip("⚠️ 已存在 (忽略)", 1000)
+                    G3PacsNotify.Show("⚠️ 已存在 (忽略)", 1000)
                     return
                 }
             }
@@ -451,7 +452,7 @@ class NoduleTracker {
                 this.GuiStatusMsg := ""
                 this.UpdateGUI()
                 methodTag := (info.HasOwnProp("method")) ? "[" info.method "] " : ""
-                this.ShowTip("✅ " methodTag location ": " info.srs "/" info.img, 1000)
+                G3PacsNotify.Show("✅ " methodTag location ": " info.srs "/" info.img, 1000)
             }
         } catch Error as e {
             this.GuiStatusMsg := "❌ Critical: " e.Message
@@ -462,19 +463,19 @@ class NoduleTracker {
     DirectCopy(location) {
         info := this.GetSmartInfo()
         if (!info.valid) {
-            this.ShowTip("⚠️ 複製失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2500)
+            G3PacsNotify.Show("⚠️ 複製失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2500)
             return
         }
         reportStr := location . " of lung (Srs/Img: " . info.srs . "/" . info.img . ")"
         A_Clipboard := reportStr
-        this.ShowTip("📋 Copied:`n" reportStr, 2000)
+        G3PacsNotify.Show("📋 Copied:`n" reportStr, 2000)
     }
 
     SimpleDirectCopy() {
         try {
             info := this.GetSmartInfo()
             if (!info.valid) {
-                this.ShowTip("⚠️ 抓取失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2000)
+                G3PacsNotify.Show("⚠️ 抓取失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2000)
                 return
             }
             clipStr := A_Clipboard
@@ -529,9 +530,9 @@ class NoduleTracker {
             }
             reportStr := "(Srs/Img: " . groupedStr . ")"
             A_Clipboard := reportStr
-            this.ShowTip("📋 Copied:`n" reportStr, 2000)
+            G3PacsNotify.Show("📋 Copied:`n" reportStr, 2000)
         } catch Error as e {
-            this.ShowTip("❌ " e.Message, 2000)
+            G3PacsNotify.Show("❌ " e.Message, 2000)
         }
     }
 
@@ -772,7 +773,7 @@ class NoduleTracker {
             try targetFocusHwnd := ControlGetHwnd(mCtrlNN, "ahk_id " targetHwnd)
         }
         if (!targetFocusHwnd) {
-            this.ShowTip("❌ 無法鎖定目標控制項", 1500)
+            G3PacsNotify.Show("❌ 無法鎖定目標控制項", 1500)
             return
         }
         inputGui := Gui("+AlwaysOnTop -Caption +Border", "Jump to Image")
@@ -808,7 +809,7 @@ class NoduleTracker {
             targetNum := Integer(val)
             if (targetNum < 1) {
                 inputGui.Destroy()
-                this.ShowTip("❌ 影像編號需大於 0", 1500)
+                G3PacsNotify.Show("❌ 影像編號需大於 0", 1500)
                 return
             }
             inputGui.Destroy()
@@ -884,13 +885,13 @@ class NoduleTracker {
                     if (selectedIndex != targetNum - 1) {
                         throw Error("寫入後驗證失敗，目前選取: " (selectedIndex + 1))
                     }
-                    this.ShowTip("✅ 跳至影像: " targetNum, 1000)
+                    G3PacsNotify.Show("✅ 跳至影像: " targetNum, 1000)
                 } else {
                     throw Error("所有寫入方法皆失敗")
                 }
             } catch Error as e {
                 msg .= "❌ 錯誤: " e.Message "`n"
-                this.ShowTip("❌ 設定失敗", 2000)
+                G3PacsNotify.Show("❌ 設定失敗", 2000)
             }
             if (this.ShowDebugQuickSet) {
                 this.ShowDebugWindow(msg, "Ctrl+G 除錯資訊")
@@ -1046,7 +1047,7 @@ class NoduleTracker {
         }
 
         if (imgList.Length == 0) {
-            this.ShowTip("! 無資料可複製", 2000)
+            G3PacsNotify.Show("! 無資料可複製", 2000)
             return
         }
 
@@ -1060,7 +1061,7 @@ class NoduleTracker {
         finalStr := Trim(finalStr, ";")
 
         A_Clipboard := finalStr
-        this.ShowTip("📋 Copied Img No:`n" finalStr, 3000)
+        G3PacsNotify.Show("📋 Copied Img No:`n" finalStr, 3000)
     }
 
     CopyLocImg(*) {
@@ -1090,7 +1091,7 @@ class NoduleTracker {
             }
         }
         if (lobeParts.Length == 0) {
-            this.ShowTip("! 無資料可複製", 2000)
+            G3PacsNotify.Show("! 無資料可複製", 2000)
             return
         }
         finalStr := ""
@@ -1099,7 +1100,7 @@ class NoduleTracker {
         }
         finalStr := Trim(finalStr, ";")
         A_Clipboard := finalStr
-        this.ShowTip("📋 Copied Lobe:Img:`n" finalStr, 3000)
+        G3PacsNotify.Show("📋 Copied Lobe:Img:`n" finalStr, 3000)
     }
 
     ClearAll(*) {
@@ -1155,7 +1156,7 @@ class NoduleTracker {
             }
         }
         if (reportParts.Length == 0) {
-            this.ShowTip("! 無資料可複製", 2000)
+            G3PacsNotify.Show("! 無資料可複製", 2000)
             return
         }
         finalStr := ""
@@ -1170,7 +1171,7 @@ class NoduleTracker {
             finalStr .= "and " . reportParts[reportParts.Length]
         }
         A_Clipboard := finalStr
-        this.ShowTip("Copied:`n" finalStr, 3000)
+        G3PacsNotify.Show("Copied:`n" finalStr, 3000)
     }
 
     SortNoduleData(arr) {
@@ -1498,10 +1499,6 @@ class NoduleTracker {
         return patternName
     }
 
-    ShowTip(msg, duration) {
-        ToolTip(msg)
-        SetTimer(() => ToolTip(), -duration)
-    }
 
     WindowFromPoint(x, y) {
         return DllCall("WindowFromPoint", "int64", (x & 0xFFFFFFFF) | (y << 32), "ptr")

@@ -459,7 +459,7 @@ QuoteCmdArg(value) {
 }
 
 NotifyG3PacsAIStatus(message, duration := 1800) {
-    G3PacsNotify.ShowAIStatus(message, duration)
+    G3PacsNotify.Show(message, duration)
 }
 
 ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {

@@ -6,14 +6,17 @@ class G3PacsNotify {
     static _hideTimer := 0
     static _width := 680
 
-    static ShowAIStatus(message, duration := 1800) {
+    static Show(message, duration := 1800) {
         message := Trim(message)
         if (message = "")
             return
 
-        this._EnsureGui()
+        if this._gui {
+            this._gui.Destroy()
+            this._gui := 0
+        }
+        this._EnsureGui(message)
         SetTimer(this._hideTimer, 0)
-        this._text.Text := message
         this._gui.Show("AutoSize Hide")
 
         WinGetPos(, , &width, &height, this._gui.Hwnd)
@@ -29,7 +32,7 @@ class G3PacsNotify {
             SetTimer(this._hideTimer, -duration)
     }
 
-    static _EnsureGui() {
+    static _EnsureGui(message := "") {
         if this._gui
             return
 
@@ -40,7 +43,7 @@ class G3PacsNotify {
         g.SetFont("s18 c111827 bold", "Microsoft JhengHei UI")
 
         this._gui := g
-        this._text := g.Add("Text", "w" this._width " Center", "")
+        this._text := g.Add("Text", "w" this._width " Center", message)
         this._hideTimer := ObjBindMethod(this, "_Hide")
     }
 
