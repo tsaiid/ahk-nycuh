@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0
 
 class RisNotify {
+    static TargetTitles := []
     static _gui := 0
     static _queue := []
     static _slots := []
@@ -19,19 +20,57 @@ class RisNotify {
     static _textPaddingY := 5
     static _lineSpacingScale := 1.2
     
-    ; DPI 縮放與位置暫存變數
+    ; DPI 縮放與基準點位置暫存變數
     static _scale := 1.0
-    static _mouseX := 0
-    static _mouseY := 0
+    static _refX := 0
+    static _refY := 0
 
     static Show(text, duration := 1500) {
         text := Trim(text)
         if (text == "")
             return
 
-        ; 偵測滑鼠所在點的 DPI
-        MouseGetPos(&mouseX, &mouseY)
-        dpi := this._GetDpiAtPoint(mouseX, mouseY)
+        ; 決定基準點座標 (refX, refY)，優先使用未最小化的 ris window 中心點，次之使用 active window，最後使用滑鼠位置
+        refX := 0
+        refY := 0
+        hwnd := 0
+
+        for title in this.TargetTitles {
+            if (h := WinExist(title)) {
+                try {
+                    if (WinGetMinMax(h) != -1) {
+                        hwnd := h
+                        break
+                    }
+                }
+            }
+        }
+
+        if (!hwnd) {
+            if (h := WinActive("A")) {
+                try {
+                    if (WinGetMinMax(h) != -1) {
+                        hwnd := h
+                    }
+                }
+            }
+        }
+
+        if (hwnd) {
+            try {
+                WinGetPos(&wx, &wy, &ww, &wh, hwnd)
+                refX := wx + Floor(ww / 2)
+                refY := wy + Floor(wh / 2)
+            } catch {
+                hwnd := 0
+            }
+        }
+
+        if (!hwnd) {
+            MouseGetPos(&refX, &refY)
+        }
+
+        dpi := this._GetDpiAtPoint(refX, refY)
         currentScale := dpi / 96
 
         ; 如果縮放比例改變了，就銷毀重建 GUI
@@ -41,8 +80,8 @@ class RisNotify {
         }
         
         this._scale := currentScale
-        this._mouseX := mouseX
-        this._mouseY := mouseY
+        this._refX := refX
+        this._refY := refY
 
         this._PruneExpired()
 
@@ -151,7 +190,7 @@ class RisNotify {
         }
 
         totalWidth := innerWidth + paddingX_scaled * 2
-        position := this._GetWindowPosition(totalWidth, height, this._mouseX, this._mouseY)
+        position := this._GetWindowPosition(totalWidth, height, this._refX, this._refY)
         g.Show(Format("NoActivate x{1} y{2} w{3} h{4}", position.x, position.y, totalWidth, height))
         this._ApplyVisualStyle()
     }

@@ -116,6 +116,13 @@ class RisController {
         this.LoadSimGroups()
         GroupAdd "RisReportGroup", "報告作業(frmRISReport)"
         GroupAdd "RisReportGroup", "肺癌篩檢底劑量電腦斷層掃瞄結果報告  (frmLDCTReport)"
+
+        ; 設定 RisNotify 偵測的目標視窗
+        RisNotify.TargetTitles := [
+            this.WinTitle,
+            this.LdctReportWinTitle,
+            this.AbnormalWinTitle
+        ]
     }
 
     /**
