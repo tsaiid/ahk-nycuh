@@ -52,6 +52,7 @@ class NoduleTracker {
 
     ; --- 配置屬性 (Config Properties) ---
     EnableAccFallback := true
+    EnableMprImgOffset := true
     DebugOCR := false
     ShowDebugQuickSet := false
     StatsFile := A_ScriptDir "\PatternStats.ini"
@@ -67,6 +68,7 @@ class NoduleTracker {
     __New() {
         ; [新增] 設定工作列 (Tray) 上的 Icon
         TraySetIcon(A_ScriptDir "\assets\NoduleTracker_icon.png")
+        this.InitTrayMenu()
 
         DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")
         CoordMode("Mouse", "Screen")
@@ -100,6 +102,27 @@ class NoduleTracker {
 
         ; --- 上分隔線 (靜態) ---
         this.MyGui.Add("Text", "x10 y+15 w300 h1 0x10")
+    }
+
+    InitTrayMenu() {
+        A_TrayMenu.Add()
+        A_TrayMenu.Add("啟用 MPR/MIP/COR/SAG Img +1 補償", this.ToggleMprImgOffset.Bind(this))
+        this.UpdateTrayMenu()
+    }
+
+    ToggleMprImgOffset(*) {
+        this.EnableMprImgOffset := !this.EnableMprImgOffset
+        this.UpdateTrayMenu()
+        this.UpdateGUI()
+    }
+
+    UpdateTrayMenu() {
+        itemName := "啟用 MPR/MIP/COR/SAG Img +1 補償"
+        if (this.EnableMprImgOffset) {
+            A_TrayMenu.Check(itemName)
+        } else {
+            A_TrayMenu.Uncheck(itemName)
+        }
     }
 
     GenerateMaps() {
@@ -314,7 +337,7 @@ class NoduleTracker {
                 descVal := match.desc
 
                 if (srsVal != "") {
-                    if (descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+                    if (this.EnableMprImgOffset && descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                         if (IsNumber(imgVal)) {
                             imgVal := String(Integer(imgVal) + 1)
                         }
@@ -418,7 +441,7 @@ class NoduleTracker {
                     }
                 }
             }
-            if (descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+            if (this.EnableMprImgOffset && descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
                 if (IsNumber(imgVal)) {
                     imgVal := String(Integer(imgVal) + 1)
                 }
@@ -1001,6 +1024,9 @@ class NoduleTracker {
 
         chkOCR := this.MyGui.Add("Checkbox", "x10 y+2 Checked" (this.DebugOCR ? "1" : "0"), "顯示 OCR 除錯資訊")
         chkOCR.OnEvent("Click", (ctrl, *) => this.DebugOCR := ctrl.Value)
+
+        chkMprOffset := this.MyGui.Add("Checkbox", "x10 y+2 Checked" (this.EnableMprImgOffset ? "1" : "0"), "啟用 MPR/MIP/COR/SAG Img +1 補償")
+        chkMprOffset.OnEvent("Click", (ctrl, *) => (this.EnableMprImgOffset := ctrl.Value, this.UpdateTrayMenu()))
 
         this.MyGui.Show("x" this.GuiX " y" this.GuiY " NoActivate AutoSize")
         this.ApplyWindowStyle(this.MyGui.Hwnd)
