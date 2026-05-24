@@ -128,7 +128,7 @@ class RisReportText {
                     }
                 }
 
-                finalText .= RegExReplace(tmpText, "^([ \t\x{00a0}\x{3000}]*)((\d+\.)|([-+*>=•·▪—–])|(\(?\d+\)))?([ \t\x{00a0}\x{3000}]*)(\w?)(.*)", "$u{7}${8}")
+                finalText .= RegExReplace(tmpText, "^[ \t\x{00a0}\x{3000}]*(?:(?:(?:\d+\.)|(?:[-+*>=•·▪—–])|(?:\(?\d+\)))[ \t\x{00a0}\x{3000}]*)*(\w?)(.*)", "$u{1}${2}")
                 finalText .= "`r`n"
             } else {
                 if (keepEmptyLine) {
