@@ -1060,6 +1060,7 @@ class RisController {
                 case "CT", "MR": this._FormatFindingForAdvanced(hEdit)
                 case "CR", "US": this._FormatFindingForBasic(hEdit)
             }
+            SetTimer( () => RisController._ScrollAndHighlightCaret(hEdit), -10 )
         } catch as err {
             this.Notify("格式化失敗: " err.Message)
         }
@@ -1081,6 +1082,7 @@ class RisController {
             } else {
                 this._ReorderSelectedText(hEdit, true, , , , true)
             }
+            SetTimer( () => RisController._ScrollAndHighlightCaret(hEdit), -10 )
         } catch as err {
             this.Notify("Impression 格式化失敗: " err.Message)
         }
