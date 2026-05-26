@@ -136,6 +136,14 @@ RisController.EnableShellHookFocus()
     ; Alt+E: 在游標處插入檢查名稱
     !e:: RisController.InsertExamNameAtCaret()
 
+    ; Alt+Shift+E: 插入檢查名稱後，再產生並插入 AI Indication
+    !+e:: {
+        WithImeGuard(() => (
+            RisController.InsertExamNameAtCaret(),
+            RisController.GenerateAndInsertIndication()
+        ))
+    }
+
     ; Alt+Shift+D: 插入目前選取的歷史報告日期 (自動轉西元)
     !+d:: {
         WithImeGuard(() => RisController.InsertSelectedHistoryDate())
