@@ -398,6 +398,13 @@ Benchmark(funcObj, times := 1) {
 ; Global Remap
 ;
 ^!r:: Reload
+RWin:: {
+    if !WinExist("ahk_exe G3PACS.exe") {
+        RisController.Notify("找不到 G3PACS 視窗")
+        return
+    }
+    WinActivate("ahk_exe G3PACS.exe")
+}
 
 ; [新增] 全域快速鍵：Win+Ctrl+R 重新載入相似檢查分組設定
 #^r:: {
