@@ -11,6 +11,9 @@
 - `Utilities\compile-check.ps1` does not normalize line endings; run normalize first, then run compile-check before delivery.
 - Before delivery, check `git ls-files --eol` and ensure touched AHK or PowerShell files are not `w/mixed`.
 
+## Hotkey Rule
+- Any hotkey combination containing `Alt+Shift` or `Ctrl+Shift` must protect IME state, using `WithImeGuard(...)` where available or the equivalent paired IME toggle in standalone scripts.
+
 ## Commit Rule
 - Always use **Traditional Chinese**.
 - Commit message follows Conventional Commits.

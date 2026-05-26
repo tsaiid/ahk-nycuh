@@ -191,7 +191,9 @@ RisController.EnableShellHookFocus()
     !r:: RisController.CompareSelectionWithAI()
 
     ; Polish selection by AI
-    !+r:: RisController.PolishSelectionWithAI()
+    !+r:: {
+        WithImeGuard(() => RisController.PolishSelectionWithAI())
+    }
 
     ; --- Emacs Word Movement ---
     ; Ctrl+A: Emacs 行首 (若不在目標框則為全選)
