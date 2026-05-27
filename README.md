@@ -5,7 +5,7 @@
 目前內容不只是單一報告系統腳本，而是由多個可獨立執行的入口組成，涵蓋：
 
 - RIS 報告視窗快捷鍵與 hotstrings
-- INFINITT PACS 操作輔助
+- INFINITT PACS 操作輔助與肺結節追蹤
 - ShuttlePRO v2 控制器按鍵映射
 - 肺結節追蹤 GUI 工具
 
@@ -20,9 +20,19 @@
 - 提供 RIS 視窗內的編輯、格式整理、歷史報告操作、相似檢查切換等快捷鍵
 - 整合 AI 相關功能，例如 indication / impression 生成與選取文字潤稿
 
+### `G3PacsTools.v2.ahk`
+
+INFINITT PACS 整合入口，可獨立編譯發布。
+
+- 載入 PACS 閱片快捷鍵與 Calcium Score 影像 AI 功能
+- 整合 `NoduleTracker.ahk` 的肺結節定位與整理工具
+- 提供切換至 PACS 與關閉 PACS 的全域快捷鍵
+
+編譯後的一般 PACS 與 NoduleTracker 功能可直接使用；Calcium Score AI 只有在目標電腦存在 `config/private.ini` 時才啟用，API key 不會包入 EXE。
+
 ### `NoduleTracker.ahk`
 
-PACS 肺結節定位與整理工具。
+可獨立執行、亦可由 PACS 整合入口載入的肺結節定位與整理工具。
 
 - 從 PACS 畫面抓取 Series / Image 編號
 - 依肺葉分類整理
@@ -69,6 +79,7 @@ OpenAI API key 請放在 `config/private.ini` 的 `[OpenAI]` 區段，可共用 
 依需求執行對應入口腳本即可，例如：
 
 - `nycu.v2.ahk`
+- `G3PacsTools.v2.ahk`
 - `NoduleTracker.ahk`
 - `ShuttlePROv2.v2.ahk`
 
@@ -91,6 +102,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps
 目前預設驗證的入口為：
 
 - `nycu.v2.ahk`
+- `G3PacsTools.v2.ahk`
 - `NoduleTracker.ahk`
 - `ShuttlePROv2.v2.ahk`
 

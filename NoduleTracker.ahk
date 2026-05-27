@@ -67,7 +67,10 @@ class NoduleTracker {
 
     __New() {
         ; [新增] 設定工作列 (Tray) 上的 Icon
-        TraySetIcon(A_ScriptDir "\assets\NoduleTracker_icon.png")
+        iconPath := A_ScriptDir "\assets\NoduleTracker_icon.png"
+        if FileExist(iconPath) {
+            TraySetIcon(iconPath)
+        }
         this.InitTrayMenu()
 
         DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")

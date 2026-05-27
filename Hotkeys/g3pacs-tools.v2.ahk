@@ -1,5 +1,4 @@
 #Requires AutoHotkey v2.0
-#Include ..\Lib\G3PacsNotify.v2.ahk
 A_MaxHotkeysPerInterval := 200
 
 ;; for INFINITT PACS
@@ -10,6 +9,9 @@ $WheelDown::FocusG3PacsUnderMouseAndScroll("WheelDown")
 
 #HotIf IsG3PacsHotkeyContext()
 ^s::SelectG3PacsSortBySliceLocationDesc()
+#HotIf
+
+#HotIf IsG3PacsCalciumScoreContext()
 !c::AnalyzeG3PacsCalciumScoreFromClipboard()
 #HotIf
 
@@ -21,6 +23,10 @@ MouseIsOverG3Pacs() {
 
 IsG3PacsHotkeyContext() {
     return WinActive("ahk_exe G3PACS.exe") && MouseIsOverG3Pacs()
+}
+
+IsG3PacsCalciumScoreContext() {
+    return IsG3PacsHotkeyContext() && FileExist(A_ScriptDir "\config\private.ini")
 }
 
 FocusG3PacsUnderMouseAndScroll(direction) {

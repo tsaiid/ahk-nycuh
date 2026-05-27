@@ -14,6 +14,7 @@ Set-Location $repoRoot
 
 $entryList = @(
     "nycu.v2.ahk",
+    "G3PacsTools.v2.ahk",
     "NoduleTracker.ahk",
     "ShuttlePROv2.v2.ahk",
     "Utilities\AutoWorklistUpdate.v2.ahk"
@@ -330,9 +331,12 @@ function Invoke-Compile {
     )
 
     $outputExe = Join-Path $OutputDir (([System.IO.Path]::GetFileNameWithoutExtension($EntryPath)) + ".exe")
+    $quotedEntryPath = '"' + $EntryPath + '"'
+    $quotedOutputExe = '"' + $outputExe + '"'
+    $quotedAhkExe = '"' + $AhkExe + '"'
 
     Write-Host "Compiling to $outputExe"
-    $compileProcess = Start-Process -FilePath $AhkCompiler -ArgumentList "/in", $EntryPath, "/out", $outputExe -Wait -PassThru
+    $compileProcess = Start-Process -FilePath $AhkCompiler -ArgumentList "/in", $quotedEntryPath, "/out", $quotedOutputExe, "/base", $quotedAhkExe -Wait -PassThru
     $compileExitCode = $compileProcess.ExitCode
 
     if ($compileExitCode -ne 0) {

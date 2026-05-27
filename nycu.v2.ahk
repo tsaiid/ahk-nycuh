@@ -29,7 +29,6 @@ global PRESERVE_CLIPBOARD := 0
 ;#Include <Edit.v2>
 
 ;#Include MyScripts\hotkey\reorder-selected-text.v2.ahk
-#Include Hotkeys\remapping-original-hotkeys-infinitt.v2.ahk
 
 ; 腳本啟動時執行，設定為 Fira Code, 大小 14 (根據您的螢幕解析度調整)
 ;RisController.EnableFontEnforcer("Fira Code", 12)
@@ -398,13 +397,6 @@ Benchmark(funcObj, times := 1) {
 ; Global Remap
 ;
 ^!r:: Reload
-RWin:: {
-    if !WinExist("ahk_exe G3PACS.exe") {
-        RisController.Notify("找不到 G3PACS 視窗")
-        return
-    }
-    WinActivate("ahk_exe G3PACS.exe")
-}
 
 ; [新增] 全域快速鍵：Win+Ctrl+R 重新載入相似檢查分組設定
 #^r:: {
@@ -414,10 +406,6 @@ RWin:: {
 ReloadSimGroups(*) {
     RisController.LoadSimGroups()
     RisController.Notify("相似分組對應表已更新！")
-}
-
-#^p:: {
-    ProcessClose("G3PACS.exe")
 }
 
 SC07B::LButton
