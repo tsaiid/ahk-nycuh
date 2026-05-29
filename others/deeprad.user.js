@@ -4,12 +4,12 @@
 // @version      20260529.1
 // @description  Add reporting helpers to DeepRad.AI.
 // @author       I-Ta Tsai
-// @match        http://172.17.15.97:17000/LungRADS/
-// @match        http://172.17.15.97:17000/LungRADS/*
-// @match        http://172.17.15.97:17000/LungRADS*
+// @match        http://172.17.15.97:17000/
+// @match        http://172.17.15.97:17000/*
 // @run-at       document-start
 // @grant        GM_registerMenuCommand
 // @grant        GM_setClipboard
+// @grant        unsafeWindow
 // ==/UserScript==
 
 (function() {
@@ -22,6 +22,148 @@
         healthCheck: '2'
     };
     const KEEP_ALIVE_INTERVAL_MS = 5 * 60 * 1000;
+    const TOKEN_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+    const TOKEN_BACKUP_KEY = 'deepradHelperTokenBackup';
+    const LAST_PATH_KEY = 'deepradHelperLastPath';
+    const MANUAL_LOGOUT_KEY = 'deepradHelperManualLogoutAt';
+
+    function getLatestAuthHeader() {
+        const token = localStorage.getItem('token');
+        return token ? `Bearer ${token}` : '';
+    }
+
+    function isManualLogoutRecent() {
+        const logoutAt = Number(sessionStorage.getItem(MANUAL_LOGOUT_KEY) || 0);
+        return logoutAt && Date.now() - logoutAt < 60 * 1000;
+    }
+
+    function rememberToken(token) {
+        if (token) {
+            sessionStorage.setItem(TOKEN_BACKUP_KEY, token);
+        }
+    }
+
+    function rememberCurrentPath() {
+        if (location.pathname !== '/login') {
+            sessionStorage.setItem(LAST_PATH_KEY, location.href);
+        }
+    }
+
+    function restoreTokenIfNeeded() {
+        if (localStorage.getItem('token') || isManualLogoutRecent()) {
+            return false;
+        }
+
+        const backupToken = sessionStorage.getItem(TOKEN_BACKUP_KEY);
+        if (!backupToken) {
+            return false;
+        }
+
+        localStorage.setItem('token', backupToken);
+        console.warn('[DeepRad helpers] restored token cleared by frontend timer.');
+        return true;
+    }
+
+    function isLoginUrl(url) {
+        try {
+            return new URL(url, location.href).pathname === '/login';
+        } catch {
+            return String(url).includes('/login');
+        }
+    }
+
+    function patchPageAuthHeaders() {
+        const pageWindow = typeof unsafeWindow === 'object' ? unsafeWindow : window;
+
+        if (pageWindow.fetch && !pageWindow.fetch._deepradPatched) {
+            const originalFetch = pageWindow.fetch.bind(pageWindow);
+            const patchedFetch = (input, init = {}) => {
+                const authHeader = getLatestAuthHeader();
+                if (!authHeader) {
+                    return originalFetch(input, init);
+                }
+
+                if (input instanceof Request) {
+                    const headers = new Headers(init.headers || input.headers);
+                    headers.set('Authorization', authHeader);
+                    return originalFetch(input, { ...init, headers });
+                }
+
+                const headers = new Headers(init.headers || {});
+                headers.set('Authorization', authHeader);
+                return originalFetch(input, { ...init, headers });
+            };
+            patchedFetch._deepradPatched = true;
+            pageWindow.fetch = patchedFetch;
+        }
+
+        const xhrPrototype = pageWindow.XMLHttpRequest?.prototype;
+        if (xhrPrototype && !xhrPrototype.setRequestHeader._deepradPatched) {
+            const originalSetRequestHeader = xhrPrototype.setRequestHeader;
+            xhrPrototype.setRequestHeader = function(name, value) {
+                if (String(name).toLowerCase() === 'authorization') {
+                    const authHeader = getLatestAuthHeader();
+                    return originalSetRequestHeader.call(this, name, authHeader || value);
+                }
+
+                return originalSetRequestHeader.call(this, name, value);
+            };
+            xhrPrototype.setRequestHeader._deepradPatched = true;
+        }
+    }
+
+    function patchFrontendLogoutTimer() {
+        const pageWindow = typeof unsafeWindow === 'object' ? unsafeWindow : window;
+        const storagePrototype = pageWindow.Storage?.prototype;
+
+        if (storagePrototype && !storagePrototype.removeItem._deepradPatched) {
+            const originalRemoveItem = storagePrototype.removeItem;
+            storagePrototype.removeItem = function(key) {
+                if (this === pageWindow.localStorage && key === 'token' && restoreTokenIfNeeded()) {
+                    return undefined;
+                }
+                return originalRemoveItem.call(this, key);
+            };
+            storagePrototype.removeItem._deepradPatched = true;
+        }
+
+        if (storagePrototype && !storagePrototype.clear._deepradPatched) {
+            const originalClear = storagePrototype.clear;
+            storagePrototype.clear = function() {
+                const backupToken = this === pageWindow.localStorage ? sessionStorage.getItem(TOKEN_BACKUP_KEY) : '';
+                const result = originalClear.call(this);
+                if (backupToken && !isManualLogoutRecent()) {
+                    pageWindow.localStorage.setItem('token', backupToken);
+                    console.warn('[DeepRad helpers] restored token after localStorage.clear().');
+                }
+                return result;
+            };
+            storagePrototype.clear._deepradPatched = true;
+        }
+
+        for (const methodName of ['pushState', 'replaceState']) {
+            if (!pageWindow.history?.[methodName] || pageWindow.history[methodName]._deepradPatched) {
+                continue;
+            }
+
+            const originalHistoryMethod = pageWindow.history[methodName];
+            pageWindow.history[methodName] = function(state, title, url) {
+                if (url && isLoginUrl(url) && restoreTokenIfNeeded()) {
+                    console.warn(`[DeepRad helpers] blocked frontend ${methodName} to /login.`);
+                    return undefined;
+                }
+                return originalHistoryMethod.call(this, state, title, url);
+            };
+            pageWindow.history[methodName]._deepradPatched = true;
+        }
+
+        document.addEventListener('click', (ev) => {
+            const logoutButton = ev.target?.closest?.('.logout, button.logout');
+            if (logoutButton) {
+                sessionStorage.setItem(MANUAL_LOGOUT_KEY, String(Date.now()));
+            }
+        }, true);
+    }
 
     function getCleanText(element) {
         return element?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
@@ -121,6 +263,89 @@
         return Promise.resolve();
     }
 
+    function findTokenFromRefreshResponse(data) {
+        if (!data || typeof data !== 'object') {
+            return '';
+        }
+
+        return data.token ||
+            data.access_token ||
+            data.accessToken ||
+            data?.data?.token ||
+            data?.data?.access_token ||
+            data?.data?.accessToken ||
+            '';
+    }
+
+    function getResponseKeys(data) {
+        if (!data || typeof data !== 'object') {
+            return [];
+        }
+
+        const keys = Object.keys(data);
+        if (data.data && typeof data.data === 'object') {
+            return keys.concat(Object.keys(data.data).map((key) => `data.${key}`));
+        }
+
+        return keys;
+    }
+
+    function updateStoredToken(token) {
+        const oldToken = localStorage.getItem('token');
+        localStorage.setItem('token', token);
+        rememberToken(token);
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: 'token',
+            oldValue: oldToken,
+            newValue: token,
+            storageArea: localStorage,
+            url: location.href
+        }));
+        window.dispatchEvent(new CustomEvent('deeprad-token-refreshed'));
+    }
+
+    async function refreshToken() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.warn('[DeepRad helpers] token refresh skipped: localStorage token not found.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/refresh_token', {
+                method: 'POST',
+                credentials: 'include',
+                cache: 'no-store',
+                headers: {
+                    Accept: 'application/json, text/plain, */*',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                console.warn(`[DeepRad helpers] token refresh failed: HTTP ${response.status}.`);
+                if (response.status === 401 || response.status === 403) {
+                    sessionStorage.removeItem(TOKEN_BACKUP_KEY);
+                }
+                return;
+            }
+
+            const text = await response.text();
+            const data = text ? JSON.parse(text) : null;
+            const refreshedToken = findTokenFromRefreshResponse(data);
+            if (refreshedToken) {
+                updateStoredToken(refreshedToken);
+                console.info('[DeepRad helpers] token refreshed.');
+            } else {
+                rememberToken(token);
+                console.info('[DeepRad helpers] token refresh request succeeded without token field:', getResponseKeys(data));
+            }
+        } catch (err) {
+            console.warn('[DeepRad helpers] token refresh failed:', err);
+        }
+    }
+
     function copyNoduleTable() {
         const series = getReportSeries();
         const rows = getNoduleRows().filter(isNoduleRowSelected);
@@ -153,6 +378,19 @@
 
     if (typeof GM_registerMenuCommand === 'function') {
         GM_registerMenuCommand('Copy nodule table', copyNoduleTable);
+        GM_registerMenuCommand('Refresh token now', refreshToken);
+    }
+
+    rememberToken(localStorage.getItem('token'));
+    rememberCurrentPath();
+    patchPageAuthHeaders();
+    patchFrontendLogoutTimer();
+
+    if (location.pathname === '/login' && restoreTokenIfNeeded()) {
+        const lastPath = sessionStorage.getItem(LAST_PATH_KEY);
+        if (lastPath) {
+            location.replace(lastPath);
+        }
     }
 
     setInterval(() => {
@@ -161,4 +399,8 @@
         window.dispatchEvent(new Event('focus'));
         console.info('[DeepRad helpers] frontend keep alive event sent.');
     }, KEEP_ALIVE_INTERVAL_MS);
+
+    setInterval(rememberCurrentPath, 30 * 1000);
+    setTimeout(refreshToken, 30 * 1000);
+    setInterval(refreshToken, TOKEN_REFRESH_INTERVAL_MS);
 })();
