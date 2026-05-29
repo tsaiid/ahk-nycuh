@@ -1486,6 +1486,57 @@ class RisController {
         }
     }
 
+    static CopyPathologyReportOrMRN() {
+        if (this.IsPathologyOnlineDataPage()) {
+            this.CopyPathologyReport()
+        } else {
+            this.CopyCurrentMRN()
+        }
+    }
+
+    static CopyCurrentMRN() {
+        try {
+            mrn := this._NormalizeMRN(this._GetCurrentMRN())
+            if (mrn == "") {
+                throw Error("找不到病歷號")
+            }
+
+            A_Clipboard := mrn
+            this.Notify("病歷號已複製")
+        } catch as err {
+            this.Notify("複製失敗: " err.Message)
+        }
+    }
+
+    static _NormalizeMRN(mrn) {
+        normalized := RegExReplace(mrn, "^0+")
+        return normalized != "" ? normalized : mrn
+    }
+
+    static IsPathologyOnlineDataPage() {
+        return this.GetSelectedRightTabIndex() == 3
+    }
+
+    static GetSelectedRightTabIndex() {
+        try {
+            tabEle := this.RightTabControl
+            hTab := tabEle.NativeWindowHandle
+            if (hTab) {
+                return ControlGetIndex(hTab)
+            }
+
+            tabs := tabEle.FindAll({ Type: "TabItem" })
+            for index, tab in tabs {
+                try {
+                    if (tab.IsSelected) {
+                        return index
+                    }
+                }
+            }
+        }
+        return 0
+    }
+
     static CopyPhExamReport() {
         try {
             dateVal := this.PhExamDateText.Value

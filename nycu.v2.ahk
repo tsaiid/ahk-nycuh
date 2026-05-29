@@ -154,9 +154,9 @@ RisController.EnableShellHookFocus()
     ; Ctrl+Alt+E: 插入目前選取的歷史報告名稱
     ^!e:: RisController.InsertSelectedHistoryName()
 
-    ; --- Ph Exam or Pathology Copy ---
+    ; --- Pathology Or MRN Copy ---
     ^+c:: {
-        WithImeGuard(() => RisController.CopyOtherReport())
+        WithImeGuard(() => RisController.CopyPathologyReportOrMRN())
     }
 
     ; Alt+Esc: 根據目前的檢查名稱，自動搜尋並選取歷史報告中的相似項目
