@@ -122,42 +122,10 @@ RunUpdate() {
 ResolveWorklistControls(winHwnd) {
     cacheFile := "config\worklist-controls.ini"
     
-    ; 1. 嘗試驗證現有快取
-    cacheValid := false
-    cachedHwndMap := Map()
-    try {
-        cachedWinHwnd := IniRead(cacheFile, "Window", "Hwnd", "")
-        if (cachedWinHwnd != "" && Format("0x{:X}", winHwnd) == Format("0x{:X}", cachedWinHwnd)) {
-            ctrlKeys := ["RefreshButton", "ER", "ADM", "OPD"]
-            allExist := true
-            for key in ctrlKeys {
-                hCtrl := IniRead(cacheFile, "Controls", key, "")
-                if (hCtrl == "" || !DllCall("IsWindow", "Ptr", hCtrl, "int")) {
-                    allExist := false
-                    break
-                }
-                ; 驗證是否同屬此視窗
-                hRoot := DllCall("GetAncestor", "Ptr", hCtrl, "UInt", 3, "Ptr") ; GA_ROOTOWNER = 3
-                if (hRoot != winHwnd) {
-                    allExist := false
-                    break
-                }
-                cachedHwndMap[key] := Number(hCtrl)
-            }
-            if (allExist) {
-                cacheValid := true
-            }
-        }
-    }
+    ; HWND 只在目前視窗生命週期可靠，跨程式重開或重開機後可能被系統重用。
+    LogMessage("略過持久化 HWND 快取，啟動動態控制項定位流程...", true)
     
-    if (cacheValid) {
-        LogMessage("-> [機制 - 快取] 讀取並驗證到有效的控制項 HWND 快取檔 (第一防線)", true)
-        return cachedHwndMap
-    }
-    
-    LogMessage("⚠️ 快取無效或不存在，啟動動態控制項定位流程...", true)
-    
-    ; 2. 嘗試使用 UIA 定位並更新快取 (不論 Session 是否鎖定，因為 UIA 在後台與鎖定狀態下依然高度可用)
+    ; 1. 嘗試使用 UIA 定位並更新座標快取 (不論 Session 是否鎖定，因為 UIA 在後台與鎖定狀態下依然高度可用)
     try {
         isSessionActive := DllCall("User32\OpenInputDesktop", "uint", 0, "int", 0, "uint", 0, "ptr")
         sessionStatus := "Locked"
@@ -181,25 +149,24 @@ ResolveWorklistControls(winHwnd) {
             "OPD", opdHwnd
         )
         
-        ; 寫入快取
-        IniWrite(Format("0x{:X}", winHwnd), cacheFile, "Window", "Hwnd")
+        ; 只保存可跨執行參考的座標，不保存易失效的 HWND。
+        try IniDelete(cacheFile, "Window")
+        try IniDelete(cacheFile, "Controls")
         for key, hwnd in resMap {
-            IniWrite(Format("0x{:X}", hwnd), cacheFile, "Controls", key)
-            ; 同步寫入相對座標供 Fallback 比對
             ControlGetPos(&x, &y, &w, &h, hwnd)
             IniWrite(x, cacheFile, "Positions", key . "_X")
             IniWrite(y, cacheFile, "Positions", key . "_Y")
             IniWrite(w, cacheFile, "Positions", key . "_W")
             IniWrite(h, cacheFile, "Positions", key . "_H")
         }
-        LogMessage("✅ [機制 - UIA] UIA 定位成功，快取已更新 (第二防線)", true)
+        LogMessage("✅ [機制 - UIA] UIA 定位成功，座標快取已更新 (第一防線)", true)
         return resMap
     } catch as err {
-        LogMessage("⚠️ [機制] UIA 定位失敗: " . err.Message . "，轉用座標 Fallback 定位演算法 (第三防線)...", true)
+        LogMessage("⚠️ [機制] UIA 定位失敗: " . err.Message . "，轉用座標 Fallback 定位演算法 (第二防線)...", true)
     }
     
-    ; 3. Fallback 座標排序與尺寸匹配定位 (在 Locked Session / 無 UIA 時觸發)
-    LogMessage("[機制 - Fallback] 正在啟動座標與尺寸排序定位流程 (第三防線)...", true)
+    ; 2. Fallback 座標排序與尺寸匹配定位 (在 Locked Session / 無 UIA 時觸發)
+    LogMessage("[機制 - Fallback] 正在啟動座標與尺寸排序定位流程 (第二防線)...", true)
     resMap := Map()
     allCtrls := WinGetControls(winHwnd)
     dgvCandidates := []
@@ -212,7 +179,7 @@ ResolveWorklistControls(winHwnd) {
             
             ; 篩選 DataGridView 候選
             if (InStr(ctrlName, "WindowsForms10.Window") == 1) {
-                if (w > 150 && h > 100) {
+                if (w > 100 && h > 100) {
                     dgvCandidates.Push({hwnd: hwnd, x: x, y: y, w: w, h: h, name: ctrlName})
                 }
             }
@@ -225,24 +192,70 @@ ResolveWorklistControls(winHwnd) {
     
     LogMessage(Format("Fallback 掃描完成。找到 {1} 個 DataGridView 候選, {2} 個 Button 候選", dgvCandidates.Length, btnCandidates.Length), true)
     
-    ; 定位三個 DataGridView (按 X 座標排序: ER -> ADM -> OPD)
+    ; 定位三個 DataGridView，優先用上次 UIA 成功保存的位置比對。
     if (dgvCandidates.Length >= 3) {
-        Loop dgvCandidates.Length - 1 {
-            i := A_Index
-            Loop dgvCandidates.Length - i {
-                j := A_Index
-                if (dgvCandidates[j].x > dgvCandidates[j+1].x) {
-                    temp := dgvCandidates[j]
-                    dgvCandidates[j] := dgvCandidates[j+1]
-                    dgvCandidates[j+1] := temp
+        gridKeys := ["ER", "ADM", "OPD"]
+        usedDgv := Map()
+        matchedByPosition := true
+        
+        for key in gridKeys {
+            cachedX := IniRead(cacheFile, "Positions", key . "_X", "")
+            cachedY := IniRead(cacheFile, "Positions", key . "_Y", "")
+            cachedW := IniRead(cacheFile, "Positions", key . "_W", "")
+            cachedH := IniRead(cacheFile, "Positions", key . "_H", "")
+            
+            if (cachedX == "" || cachedY == "" || cachedW == "" || cachedH == "") {
+                matchedByPosition := false
+                break
+            }
+            
+            bestIndex := 0
+            bestScore := 999999
+            for index, dgv in dgvCandidates {
+                if (usedDgv.Has(dgv.hwnd)) {
+                    continue
+                }
+                
+                score := Abs(dgv.x - Number(cachedX)) * 3
+                    + Abs(dgv.y - Number(cachedY)) * 3
+                    + Abs(dgv.w - Number(cachedW))
+                    + Abs(dgv.h - Number(cachedH))
+                if (score < bestScore) {
+                    bestScore := score
+                    bestIndex := index
                 }
             }
+            
+            if (!bestIndex) {
+                matchedByPosition := false
+                break
+            }
+            
+            dgv := dgvCandidates[bestIndex]
+            resMap[key] := dgv.hwnd
+            usedDgv[dgv.hwnd] := true
+            LogMessage(Format("[機制 - Fallback] {1} 位置匹配成功 - HWND: 0x{2:X}, score:{3}, pos:{4},{5},{6},{7}", key, dgv.hwnd, bestScore, dgv.x, dgv.y, dgv.w, dgv.h), true)
         }
-        resMap["ER"] := dgvCandidates[1].hwnd
-        resMap["ADM"] := dgvCandidates[2].hwnd
-        resMap["OPD"] := dgvCandidates[3].hwnd
         
-        LogMessage(Format("[機制 - Fallback] DataGridView 排序成功 - ER: 0x{1:X} (x:{2}), ADM: 0x{3:X} (x:{4}), OPD: 0x{5:X} (x:{6})", resMap["ER"], dgvCandidates[1].x, resMap["ADM"], dgvCandidates[2].x, resMap["OPD"], dgvCandidates[3].x), true)
+        if (!matchedByPosition) {
+            resMap := Map()
+            Loop dgvCandidates.Length - 1 {
+                i := A_Index
+                Loop dgvCandidates.Length - i {
+                    j := A_Index
+                    if (dgvCandidates[j].x > dgvCandidates[j+1].x) {
+                        temp := dgvCandidates[j]
+                        dgvCandidates[j] := dgvCandidates[j+1]
+                        dgvCandidates[j+1] := temp
+                    }
+                }
+            }
+            resMap["ER"] := dgvCandidates[1].hwnd
+            resMap["ADM"] := dgvCandidates[2].hwnd
+            resMap["OPD"] := dgvCandidates[3].hwnd
+            
+            LogMessage(Format("[機制 - Fallback] DataGridView 排序成功 - ER: 0x{1:X} (x:{2}), ADM: 0x{3:X} (x:{4}), OPD: 0x{5:X} (x:{6})", resMap["ER"], dgvCandidates[1].x, resMap["ADM"], dgvCandidates[2].x, resMap["OPD"], dgvCandidates[3].x), true)
+        }
     } else {
         throw Error("找不到足夠的 DataGridView 控制項 (僅找到 " . dgvCandidates.Length . " 個)")
     }
