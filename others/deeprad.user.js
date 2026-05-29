@@ -21,6 +21,7 @@
         HPA: '4',
         healthCheck: '2'
     };
+    const KEEP_ALIVE_INTERVAL_MS = 5 * 60 * 1000;
 
     function getCleanText(element) {
         return element?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
@@ -153,4 +154,11 @@
     if (typeof GM_registerMenuCommand === 'function') {
         GM_registerMenuCommand('Copy nodule table', copyNoduleTable);
     }
+
+    setInterval(() => {
+        document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+        document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Shift', code: 'ShiftLeft' }));
+        window.dispatchEvent(new Event('focus'));
+        console.info('[DeepRad helpers] frontend keep alive event sent.');
+    }, KEEP_ALIVE_INTERVAL_MS);
 })();
