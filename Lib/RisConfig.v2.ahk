@@ -53,6 +53,7 @@ class RisConfig {
                 4. Output in professional medical English.
                 5. Dates and specific identifiers in the text have been replaced with privacy placeholders like [DATE], ([DATE]), [PATIENT_NAME], or [ID_REDACTED]. Do not copy, mention, paraphrase, or preserve any placeholder token in the output.
                 6. If a placeholder appears in the source text, omit it entirely and write only the clinically relevant reason for the requested imaging study.
+                7. If the requested imaging study is "CT BRAIN (急診TRAUMA 專用)", understand that the exam coverage includes not only the brain but also the neck and C-spine; include clinically relevant neck or cervical spine trauma concerns when present.
 
                 [Output]
                 INDICATION:
