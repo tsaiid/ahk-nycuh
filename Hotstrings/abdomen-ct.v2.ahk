@@ -272,7 +272,7 @@ REMARKS:
 GetUnremarkableOrgans(searchText) {
     ; 定義器官與關鍵字
     organRules := Map()
-    organRules["liver"]           := ["hepatic", "liver", "hcc", "hemangioma"]
+    organRules["liver"]           := ["hepatic", "liver", "hcc", "hemangioma", "ihd"]
     organRules["gallbladder"]     := ["gallbladder", "gallstone", "cholecystitis", "cholecystectomy"]
     organRules["spleen"]          := ["spleen", "splenic", "splenomegaly"]
     organRules["pancreas"]        := ["pancreas", "pancreatic"]
