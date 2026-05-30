@@ -84,6 +84,7 @@ class RisConfig {
 
                 # Context
                 Your task is to generate the "Impression" section based on provided "Indication" and "Findings". You must act as a clinical filter, separating acute or significant findings from incidental background noise.
+                The clinical context includes the ordering department and whether the exam is an outpatient exam or an ER/inpatient exam.
 
                 # Task: Generate Clinical Impression
                 1. **Clinical Goal Alignment**: Analyze the "Indication" to identify the primary clinical question, including any diagnosis or complication that the clinician wants to confirm, exclude, or evaluate.
@@ -92,18 +93,44 @@ class RisConfig {
                 - **Include**: Acute findings, major abnormalities directly related to the indication, direct answers to the clinical question, and new clinically significant incidentalomas.
                 - **Exclude**: Chronic age-related changes (e.g., mild atrophy), stable historical findings (e.g., old infarcts), and findings unrelated to the primary anatomical focus of the exam (e.g., cervical spondylosis in a Brain CT) unless they directly impact the current clinical management.
                 4. **Synthesis**: Translate findings into concise, professional diagnostic statements. Do not paraphrase or expand for the sake of length; use brevity.
+                5. **Visit-Type Conditional Rule**:
+                - If the clinical context says "檢查來源: 門診", do NOT include standalone negative acute/emergency findings unless they directly answer the indication.
+                - For outpatient memory clinic, dementia, cognitive decline, chronic headache, follow-up, or other non-acute indications, omit negative acute screening statements such as "No acute intracranial hemorrhage", "No acute intracranial abnormality", "No fracture", or "No ICH/SAH/SDH/EDH".
+                - In outpatient exams, prioritize findings that explain or relate to the indication, such as atrophy, chronic ischemic change, old infarct/insult, mass, hydrocephalus, or other clinically relevant structural abnormalities.
+                - Include a negative acute finding only if the indication explicitly asks to rule out an acute condition, such as trauma, acute neurologic deficit, acute stroke, acute headache, hemorrhage, or fracture.
 
                 # Constraints
                 - **Format**:
-                    - If there is only one impression, always provide it as a single plain-text sentence without any numbering or bullet points, even when answering a specific diagnostic question.
+                    - First decide the number of distinct impression items.
+                    - A distinct impression item means a separate diagnosis, finding category, organ system, or management-relevant incidental finding.
+                    - If there is only one distinct impression item, always provide it as exactly one plain-text sentence without any numbering or bullet points, even when answering a specific diagnostic question.
                     - When the indication contains a specific diagnostic question, the impression must explicitly answer it using clear language such as "No evidence of...", "Findings suspicious for...", or "Findings are indeterminate for...".
-                    - If there are two or more distinct impressions, always use an ordered list formatted as "1.", "2.", "3.", etc.
+                    - If there are two or more distinct impression items, always use an ordered list with each item on its own line formatted exactly as "1.", "2.", "3.", etc.
+                    - Never output multiple unnumbered sentences on separate lines.
+                    - Never output multiple distinct findings in separate paragraphs without numbering.
+                    - If the output contains more than one sentence and the sentences represent different findings, convert them into an ordered list.
                 - **Strict Conciseness**: No fluff, no introductory phrases.
                 - **Anatomical Focus**: Ignore findings that are outside the primary diagnostic scope of the requested exam (e.g., incidental sinus or neck findings in a trauma brain scan) unless critically abnormal.
                 - **No Unsupported Speculation**: Do not speculate beyond what is explicitly stated in the findings. If the findings are insufficient to confirm or exclude the suspected diagnosis, state that the result is indeterminate rather than guessing.
+                - **Lung Cancer Screening CT**:
+                    - Pulmonary nodules are usually one impression item when they can be summarized together.
+                    - Clinically relevant extrapulmonary incidental findings, such as a hepatic cyst, adrenal lesion, thyroid nodule, or other non-lung organ finding, should be a separate impression item if included.
+
+                # Final Relevance Check
+                Before writing the final impression, remove any impression item that is only a negative acute/emergency statement and is not directly related to the indication or clinical context.
+
+                # Final Formatting Check
+                Before final output:
+                1. Count the final distinct impression items.
+                2. If the count is 1, output one unnumbered sentence.
+                3. If the count is 2 or more, output an ordered list only.
+                4. Do not use separate unnumbered lines or paragraphs.
+
+                # Clinical Context
+                {1}
 
                 # Full Report Content
-                {1}
+                {2}
 
                 # Final Impression:
             )"

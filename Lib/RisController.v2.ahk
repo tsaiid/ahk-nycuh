@@ -93,6 +93,7 @@ class RisController {
         "AssessmentText",   { AutomationId: "rtxtICD10" },
         "PlanText",         { AutomationId: "rtxtAdmInICD" },
         "OrderDeptText",    { AutomationId: "txtAppSecName" },
+        "BedInfoText",      { AutomationId: "txtBid" },
         "GenderText",       { AutomationId: "txtGender" },
         "AgeText",          { AutomationId: "txtPtAge" },
         "RightTabControl",  { AutomationId: "tbRightList" },
@@ -273,6 +274,7 @@ class RisController {
     static AssessmentText => this._GetOrUpdateNode("AssessmentText")
     static PlanText       => this._GetOrUpdateNode("PlanText")
     static OrderDeptText  => this._GetOrUpdateNode("OrderDeptText")
+    static BedInfoText    => this._GetOrUpdateNode("BedInfoText")
     static GenderText     => this._GetOrUpdateNode("GenderText")
     static AgeText        => this._GetOrUpdateNode("AgeText")
     static RightTabControl => this._GetOrUpdateNode("RightTabControl")
@@ -2351,8 +2353,10 @@ class RisController {
         }
 
         A_Clipboard := fullPrompt
-        ans := MsgBox("Prompt 已複製。是否繼續？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
-        return ans != "No"
+        return RisAIDebugGui.ShowPromptConfirm("AI Debug - Impression Prompt", fullPrompt, {
+            Notify: this.Notify.Bind(this),
+            Header: "Prompt 已複製到剪貼簿。確認後才會繼續呼叫 API。"
+        })
     }
 
     static _HandleImpressionSuccess(result, extractTime, apiTime, apiKeyName, modelName) {
@@ -2403,10 +2407,11 @@ class RisController {
         }
 
         findingText := RisReportText.DeidentifyText(findingText)
+        clinicalContext := this._GetImpressionClinicalContext()
         extractTime := A_TickCount - t0
         conf := RisConfig.AI.Impression
 
-        return RisAIOrchestration.CreateRequest(Format(conf.Prompt, findingText), conf, {
+        return RisAIOrchestration.CreateRequest(Format(conf.Prompt, clinicalContext, findingText), conf, {
             ExtractTime: extractTime,
             ImpressionHwnd: hImp
         })
@@ -2697,6 +2702,21 @@ class RisController {
         } catch {
             return "" ; 欄位不存在或發生例外時，安全回傳空字串
         }
+    }
+
+    static _GetImpressionClinicalContext() {
+        dept := this._FastGetCtrlText("OrderDeptText")
+        bedInfo := this._FastGetCtrlText("BedInfoText")
+        visitType := this._HasBedNumber(bedInfo) ? "急診/住院" : "門診"
+
+        rawText := Format("{1}`n檢查來源: {2}", dept, visitType)
+        return RisReportText.DeidentifyText(rawText)
+    }
+
+    static _HasBedNumber(bedInfo) {
+        bedInfo := StrReplace(bedInfo, "病床號:", "")
+        bedInfo := Trim(StrReplace(bedInfo, "病床號：", ""), " `t`r`n")
+        return bedInfo != ""
     }
 
     ; [修改] 使用 _FastGetCtrlText 取代原本的 this.GetText()

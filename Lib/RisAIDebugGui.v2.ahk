@@ -5,6 +5,47 @@
  */
 class RisAIDebugGui {
     /**
+     * 顯示完整 AI Prompt，並讓使用者確認是否繼續呼叫 API
+     * @param title 視窗標題
+     * @param promptText 完整 prompt
+     * @param options 選項 { Notify: func, Header: string }
+     */
+    static ShowPromptConfirm(title, promptText, options := 0) {
+        notify := (IsObject(options) && options.HasOwnProp("Notify")) ? options.Notify : (*) => 0
+        header := (IsObject(options) && options.HasOwnProp("Header")) ? options.Header : "Prompt 已複製到剪貼簿。"
+        result := false
+
+        promptGui := Gui("+AlwaysOnTop +Resize", title)
+        promptGui.SetFont("s10", "Microsoft JhengHei UI")
+        promptGui.Add("Text", "w860", header . "`r`n字元數: " . StrLen(promptText))
+        promptEdit := promptGui.Add("Edit", "w860 h520 ReadOnly Multi -Wrap -WantReturn", promptText)
+
+        btnContinue := promptGui.Add("Button", "Default w140 x10 y+12", "繼續呼叫 API")
+        btnContinue.OnEvent("Click", (*) => (
+            result := true,
+            promptGui.Destroy()
+        ))
+
+        btnCopy := promptGui.Add("Button", "w120 x+10 yp", "複製 Prompt")
+        btnCopy.OnEvent("Click", (*) => (
+            A_Clipboard := promptText,
+            notify("已複製 Prompt", 1800)
+        ))
+
+        btnCancel := promptGui.Add("Button", "w100 x+10 yp", "取消")
+        btnCancel.OnEvent("Click", (*) => promptGui.Destroy())
+        promptGui.OnEvent("Close", (*) => promptGui.Destroy())
+        promptGui.OnEvent("Escape", (*) => promptGui.Destroy())
+
+        promptGui.Show("Center")
+        btnContinue.Focus()
+        SendMessage(0x00B1, 0, 0, promptEdit.Hwnd)
+        WinWaitClose("ahk_id " . promptGui.Hwnd)
+
+        return result
+    }
+
+    /**
      * 顯示 Google AI Debug curl 視窗
      * @param url API URL
      * @param payload 請求內容
