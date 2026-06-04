@@ -1267,7 +1267,7 @@ class NoduleTracker {
     ParseSrs(text) {
         splitText := StrSplit(text, ",")
         if (splitText.Length > 0) {
-            if (RegExMatch(splitText[1], "(\d+)", &match)) {
+            if (RegExMatch(Trim(splitText[1]), "^(\d+)", &match)) {
                 return match[1]
             }
         }
@@ -1293,7 +1293,13 @@ class NoduleTracker {
     CaptureSrsOcr(x, y, w, h) {
         variants := [
             {method: "scale=3", opts: {scale: 3}},
-            {method: "scale=3 invert", opts: {scale: 3, invertcolors: true}}
+            {method: "scale=3 invert", opts: {scale: 3, invertcolors: true}},
+            {method: "scale=2", opts: {scale: 2}},
+            {method: "scale=4", opts: {scale: 4}},
+            {method: "scale=3 grayscale", opts: {scale: 3, grayscale: true}},
+            {method: "scale=4 grayscale", opts: {scale: 4, grayscale: true}},
+            {method: "scale=4 invert", opts: {scale: 4, invertcolors: true}},
+            {method: "scale=4 gray+invert", opts: {scale: 4, grayscale: true, invertcolors: true}}
         ]
         fallback := {Text: "", srs: "", method: variants[1].method}
         for variant in variants {
