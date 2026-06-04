@@ -2,6 +2,7 @@
 
 ## Validation Rule
 - 只有修改 `*.ahk` 檔後，才必須通過 `powershell -NoProfile -ExecutionPolicy Bypass -File Utilities\compile-check.ps1` 驗證。
+- 只要修改 `*.ahk` 檔，也必須通過 `powershell -NoProfile -ExecutionPolicy Bypass -File Utilities\test.ps1` 單元測試。
 - 未修改 `*.ahk` 檔時，使用與變更範圍相符的最小驗證即可，不必執行 `Utilities\compile-check.ps1`。
 - 若驗證失敗，先修正再提交結果，不可略過。
 
