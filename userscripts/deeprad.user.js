@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepRad helpers
 // @namespace    http://tsai.it/
-// @version      20260529.1
+// @version      20260604.1
 // @description  Add reporting helpers to DeepRad.AI.
 // @author       I-Ta Tsai
 // @match        http://172.17.15.97:17000/
@@ -21,6 +21,7 @@
         HPA: '4',
         healthCheck: '2'
     };
+    const LOBE_ORDER = ['RUL', 'RML', 'RLL', 'LUL', 'LLL'];
     const KEEP_ALIVE_INTERVAL_MS = 5 * 60 * 1000;
     const TOKEN_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
     const TOKEN_BACKUP_KEY = 'deepradHelperTokenBackup';
@@ -169,8 +170,12 @@
         return element?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
     }
 
+    function getReportFormat() {
+        return document.querySelector('.report-selector select')?.value;
+    }
+
     function getReportSeries() {
-        const reportFormat = document.querySelector('.report-selector select')?.value;
+        const reportFormat = getReportFormat();
         return SERIES_BY_REPORT_FORMAT[reportFormat] ?? SERIES_BY_REPORT_FORMAT.healthCheck;
     }
 
@@ -236,6 +241,36 @@
         }
 
         return `A ${diameter} mm ${type} nodule in the ${lobe} of lung (Srs/Img: ${series}/${image}).`;
+    }
+
+    function formatHpaNoduleRows(rows) {
+        const imagesByLobe = new Map();
+
+        for (const row of rows) {
+            const lobe = getCleanText(row.cells[1]);
+            const imageText = getCleanText(row.cells[2]);
+            const image = Number(imageText);
+            if (!lobe || !imageText || !Number.isInteger(image)) {
+                continue;
+            }
+
+            if (!imagesByLobe.has(lobe)) {
+                imagesByLobe.set(lobe, new Set());
+            }
+            imagesByLobe.get(lobe).add(image);
+        }
+
+        const orderedLobes = LOBE_ORDER.concat(
+            Array.from(imagesByLobe.keys()).filter((lobe) => !LOBE_ORDER.includes(lobe))
+        );
+
+        return orderedLobes
+            .filter((lobe) => imagesByLobe.has(lobe))
+            .map((lobe) => {
+                const images = Array.from(imagesByLobe.get(lobe)).sort((a, b) => a - b);
+                return `${lobe}:${images.join(';')}`;
+            })
+            .join(';');
     }
 
     function copyText(text) {
@@ -347,14 +382,17 @@
     }
 
     function copyNoduleTable() {
+        const reportFormat = getReportFormat();
         const series = getReportSeries();
         const rows = getNoduleRows().filter(isNoduleRowSelected);
         console.info(`[DeepRad helpers] selected ${rows.length} nodule row(s).`);
 
-        const report = rows
-            .map((row) => formatNoduleRow(row, series))
-            .filter(Boolean)
-            .join('\r\n');
+        const report = reportFormat === 'HPA'
+            ? formatHpaNoduleRows(rows)
+            : rows
+                .map((row) => formatNoduleRow(row, series))
+                .filter(Boolean)
+                .join('\r\n');
 
         if (report) {
             copyText(report).then(() => {
