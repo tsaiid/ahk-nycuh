@@ -6,11 +6,15 @@ class G3PacsNotify {
     static _hideTimer := 0
     static _width := 360
     static _scale := 1.0
+    static _theme := "light"
+    static DebugBenchmark := false
 
     static Show(message, duration := 1800) {
+        notifyStart := A_TickCount
         message := Trim(message)
         if (message = "")
             return
+        displayMessage := this.DebugBenchmark ? (message . "`nbench: pending") : message
 
         ; 在建立 GUI 之前，先獲取滑鼠所在點的座標
         MouseGetPos(&mouseX, &mouseY)
@@ -19,7 +23,7 @@ class G3PacsNotify {
             this._gui.Destroy()
             this._gui := 0
         }
-        this._EnsureGui(message, mouseX, mouseY)
+        this._EnsureGui(displayMessage, mouseX, mouseY)
         SetTimer(this._hideTimer, 0)
         this._gui.Show("AutoSize Hide")
 
@@ -27,8 +31,25 @@ class G3PacsNotify {
         workArea := this._GetMonitorWorkAreaAtPoint(mouseX, mouseY)
         x := workArea.left + Floor(((workArea.right - workArea.left) - width) / 2)
         y := workArea.top + Floor(((workArea.bottom - workArea.top) - height) / 2)
+        x := Max(workArea.left, x)
+        y := Max(workArea.top, y)
 
-        this._gui.Show(Format("NoActivate x{1} y{2}", Max(workArea.left, x), Max(workArea.top, y)))
+        themeStart := A_TickCount
+        theme := this._ChooseThemeForRegion(x, y, width, height)
+        themeMs := A_TickCount - themeStart
+        preShowMs := A_TickCount - notifyStart
+        this._text.Text := this.DebugBenchmark
+            ? Format("{1}`nbench: p{2} t{3} ms", message, preShowMs, themeMs)
+            : message
+        this._ApplyTheme(theme)
+        this._gui.Show("AutoSize Hide")
+        WinGetPos(, , &width, &height, this._gui.Hwnd)
+        x := workArea.left + Floor(((workArea.right - workArea.left) - width) / 2)
+        y := workArea.top + Floor(((workArea.bottom - workArea.top) - height) / 2)
+        x := Max(workArea.left, x)
+        y := Max(workArea.top, y)
+
+        this._gui.Show(Format("NoActivate x{1} y{2}", x, y))
         this._ApplyVisualStyle()
 
         if (duration > 0)
@@ -61,6 +82,93 @@ class G3PacsNotify {
         ctrlWidth := Round(this._width * this._scale)
         this._text := g.Add("Text", "w" ctrlWidth " Center", message)
         this._hideTimer := ObjBindMethod(this, "_Hide")
+    }
+
+    static _ApplyTheme(theme) {
+        if !this._gui
+            return
+
+        this._theme := theme
+        fontSize := Round(12 * this._scale)
+        if (theme = "dark") {
+            this._gui.BackColor := "202020"
+            this._text.SetFont("s" fontSize " cWhite bold", "Microsoft JhengHei UI")
+        } else {
+            this._gui.BackColor := "F8FAFC"
+            this._text.SetFont("s" fontSize " c111827 bold", "Microsoft JhengHei UI")
+        }
+    }
+
+    static _ChooseThemeForRegion(x, y, width, height) {
+        brightness := this._GetAverageScreenBrightness(x, y, width, height)
+        if (brightness = "")
+            return this._theme
+
+        return (brightness >= 128) ? "dark" : "light"
+    }
+
+    static _GetAverageScreenBrightness(x, y, width, height) {
+        columns := 11
+        rows := 7
+        hdcScreen := DllCall("GetDC", "Ptr", 0, "Ptr")
+        if !hdcScreen
+            return ""
+
+        hdcMem := DllCall("CreateCompatibleDC", "Ptr", hdcScreen, "Ptr")
+        if !hdcMem {
+            DllCall("ReleaseDC", "Ptr", 0, "Ptr", hdcScreen)
+            return ""
+        }
+
+        hbm := DllCall("CreateCompatibleBitmap", "Ptr", hdcScreen, "Int", columns, "Int", rows, "Ptr")
+        if !hbm {
+            DllCall("DeleteDC", "Ptr", hdcMem)
+            DllCall("ReleaseDC", "Ptr", 0, "Ptr", hdcScreen)
+            return ""
+        }
+
+        oldBitmap := DllCall("SelectObject", "Ptr", hdcMem, "Ptr", hbm, "Ptr")
+        DllCall("SetStretchBltMode", "Ptr", hdcMem, "Int", 3)
+        copied := DllCall(
+            "StretchBlt",
+            "Ptr", hdcMem, "Int", 0, "Int", 0, "Int", columns, "Int", rows,
+            "Ptr", hdcScreen, "Int", x, "Int", y, "Int", width, "Int", height,
+            "UInt", 0x00CC0020,
+            "Int"
+        )
+
+        brightness := ""
+        if copied {
+            bmi := Buffer(40, 0)
+            NumPut("UInt", 40, bmi, 0)
+            NumPut("Int", columns, bmi, 4)
+            NumPut("Int", -rows, bmi, 8)
+            NumPut("UShort", 1, bmi, 12)
+            NumPut("UShort", 32, bmi, 14)
+            pixels := Buffer(columns * rows * 4, 0)
+
+            if DllCall("GetDIBits", "Ptr", hdcMem, "Ptr", hbm, "UInt", 0, "UInt", rows, "Ptr", pixels.Ptr, "Ptr", bmi.Ptr, "UInt", 0, "Int") {
+                total := 0
+                count := columns * rows
+
+                loop count {
+                    offset := (A_Index - 1) * 4
+                    blue := NumGet(pixels, offset, "UChar")
+                    green := NumGet(pixels, offset + 1, "UChar")
+                    red := NumGet(pixels, offset + 2, "UChar")
+                    total += (red * 299 + green * 587 + blue * 114) / 1000
+                }
+
+                brightness := total / count
+            }
+        }
+
+        if oldBitmap
+            DllCall("SelectObject", "Ptr", hdcMem, "Ptr", oldBitmap, "Ptr")
+        DllCall("DeleteObject", "Ptr", hbm)
+        DllCall("DeleteDC", "Ptr", hdcMem)
+        DllCall("ReleaseDC", "Ptr", 0, "Ptr", hdcScreen)
+        return brightness
     }
 
     static _Hide() {
