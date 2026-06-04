@@ -3,6 +3,7 @@ A_MaxHotkeysPerInterval := 200
 
 ;; for INFINITT PACS
 #HotIf MouseIsOverG3Pacs()
+$LButton::HandleG3PacsLeftClick()
 $WheelUp::FocusG3PacsUnderMouseAndScroll("WheelUp")
 $WheelDown::FocusG3PacsUnderMouseAndScroll("WheelDown")
 #HotIf
@@ -35,6 +36,44 @@ FocusG3PacsUnderMouseAndScroll(direction) {
         WinActivate("ahk_id " hwnd)
     }
     Click(direction)
+}
+
+HandleG3PacsLeftClick() {
+    static lastClickTime := 0
+    static lastClickX := 0
+    static lastClickY := 0
+
+    MouseGetPos(&mouseX, &mouseY,, &controlClassNN)
+
+    if lastClickTime && IsWithinG3PacsDoubleClick(mouseX, mouseY, lastClickX, lastClickY, A_TickCount - lastClickTime) {
+        lastClickTime := 0
+        if IsG3PacsImageClassNN(controlClassNN) {
+            KeyWait("LButton")
+            Send("{Space}")
+            return
+        }
+    }
+
+    lastClickTime := A_TickCount
+    lastClickX := mouseX
+    lastClickY := mouseY
+    Click("Down")
+    KeyWait("LButton")
+    Click("Up")
+}
+
+IsWithinG3PacsDoubleClick(mouseX, mouseY, lastClickX, lastClickY, elapsedMs) {
+    static doubleClickTime := DllCall("GetDoubleClickTime", "UInt")
+    static doubleClickWidth := DllCall("GetSystemMetrics", "Int", 36, "Int") ; SM_CXDOUBLECLK
+    static doubleClickHeight := DllCall("GetSystemMetrics", "Int", 37, "Int") ; SM_CYDOUBLECLK
+
+    return elapsedMs <= doubleClickTime
+        && Abs(mouseX - lastClickX) <= doubleClickWidth
+        && Abs(mouseY - lastClickY) <= doubleClickHeight
+}
+
+IsG3PacsImageClassNN(controlClassNN) {
+    return RegExMatch(controlClassNN, "^Afx:[0-9A-Fa-f]{8}:[0-9A-Fa-f]+:[0-9A-Fa-f]{8}:[0-9A-Fa-f]{8}:[0-9A-Fa-f]+$")
 }
 
 SelectG3PacsSortBySliceLocationDesc() {
