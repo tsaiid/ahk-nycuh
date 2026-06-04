@@ -89,6 +89,12 @@ OpenAI API key 請放在 `config/private.ini` 的 `[OpenAI]` 區段，可共用 
 
 此 repo 內建固定的 compile check，會依目前 git 變更自動挑選受影響的入口；若無法可靠判定，則會退回驗證全部入口。
 
+若要執行 AHK unit tests：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\test.ps1
+```
+
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps1
 ```
