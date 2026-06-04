@@ -26,6 +26,7 @@
 ;    - Full        : 整合所有記錄並按肺葉順序自動排序複製 (標準報告格式)。
 ;    - Lobe:Img    : 依肺葉分類複製影像編號 (e.g., RUL:15;22;LUL:10)。
 ;    - Img No      : 提取所有 Image Number，排序並以分號分隔複製。
+;    - Import Clipboard : 從剪貼簿匯入 Lobe:Img 格式，未知 Series 預設為 4。
 ; 6. 特殊邏輯：
 ;    - 自動補償：偵測到 MPR/MIP/COR/SAG 序列時，影像編號自動 +1 (適配 PACS)。
 ;    - 動態排序：依據歷史命中率自動調整探針順序，提升抓取速度。
@@ -102,6 +103,8 @@ class NoduleTracker {
         btnCopyLocImg.OnEvent("Click", this.CopyLocImg.Bind(this))
         btnCopyImg := this.MyGui.Add("Button", "x+10 w85 h30", "Img No")
         btnCopyImg.OnEvent("Click", this.CopyImgNo.Bind(this))
+        btnImport := this.MyGui.Add("Button", "x" btnX " y+5 w280 h28", "Import Clipboard")
+        btnImport.OnEvent("Click", this.ImportLobeImgFromClipboard.Bind(this))
 
         ; --- 上分隔線 (靜態) ---
         this.MyGui.Add("Text", "x10 y+15 w300 h1 0x10")
@@ -1148,6 +1151,72 @@ class NoduleTracker {
         finalStr := Trim(finalStr, ";")
         A_Clipboard := finalStr
         G3PacsNotify.Show("📋 Copied Lobe:Img:`n" finalStr, 3000)
+    }
+
+    ImportLobeImgFromClipboard(*) {
+        importedData := this.ParseLobeImgText(A_Clipboard, "4")
+        importedCount := 0
+        skippedCount := 0
+
+        For label in this.LobeOrder {
+            For item in importedData[label] {
+                if (this.HasNodule(label, item.srs, item.img)) {
+                    skippedCount += 1
+                    continue
+                }
+                this.NoduleData[label].Push(item)
+                importedCount += 1
+            }
+        }
+
+        if (importedCount == 0) {
+            this.GuiStatusMsg := skippedCount > 0 ? "⚠️ 剪貼簿資料已存在" : "⚠️ 剪貼簿無可匯入資料"
+            this.UpdateGUI()
+            G3PacsNotify.Show(this.GuiStatusMsg, 2000)
+            return
+        }
+
+        this.GuiStatusMsg := "✅ 匯入 " importedCount " 筆剪貼簿資料"
+        this.UpdateGUI()
+        G3PacsNotify.Show(this.GuiStatusMsg, 2000)
+    }
+
+    ParseLobeImgText(text, defaultSrs := "4") {
+        importedData := Map()
+        For label in this.LobeOrder {
+            importedData[label] := []
+        }
+
+        currentLobe := ""
+        For token in StrSplit(StrReplace(text, "`r", ""), ";") {
+            token := Trim(token, " `t`n")
+            if (token == "") {
+                continue
+            }
+
+            imageText := token
+            if (RegExMatch(token, "i)^(RUL|RML|RLL|LUL|LLL)\s*:\s*(.*)$", &match)) {
+                currentLobe := StrUpper(match[1])
+                imageText := Trim(match[2], " `t`n")
+            }
+
+            if (currentLobe == "" || imageText == "" || !RegExMatch(imageText, "^\d+$")) {
+                continue
+            }
+
+            importedData[currentLobe].Push({srs: defaultSrs, img: imageText})
+        }
+
+        return importedData
+    }
+
+    HasNodule(location, srs, img) {
+        For existingItem in this.NoduleData[location] {
+            if (existingItem.srs == srs && existingItem.img == img) {
+                return true
+            }
+        }
+        return false
     }
 
     ClearAll(*) {
