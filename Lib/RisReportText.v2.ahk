@@ -128,7 +128,7 @@ class RisReportText {
                     }
                 }
 
-                finalText .= RegExReplace(tmpText, "^[ \t\x{00a0}\x{3000}]*(?:(?:(?:\d+\.)|(?:[-+*>=•·▪—–])|(?:\(?\d+\)))[ \t\x{00a0}\x{3000}]*)*(\w?)(.*)", "$u{1}${2}")
+                finalText .= RisReportText._StripReorderPrefix(tmpText)
                 finalText .= "`r`n"
             } else {
                 if (keepEmptyLine) {
@@ -138,6 +138,14 @@ class RisReportText {
         }
 
         return RTrim(finalText, "`r`n")
+    }
+
+    static _StripReorderPrefix(text) {
+        text := RegExReplace(text, "^[ \t\x{00a0}\x{3000}]*", "")
+        text := RegExReplace(text, "^(?:(?:[-+*>=•·▪—–]|-->)[ \t\x{00a0}\x{3000}]*)+", "")
+        text := RegExReplace(text, "^(?:(?:\d+\.)|(?:\(?\d+\)))[ \t\x{00a0}\x{3000}]+", "")
+        text := RegExReplace(text, "^(?:(?:[-+*>=•·▪—–]|-->)[ \t\x{00a0}\x{3000}]*)+", "")
+        return RegExReplace(text, "^(\w?)(.*)", "$u{1}${2}")
     }
 
     static _IsEmptyReorderLine(line) {
