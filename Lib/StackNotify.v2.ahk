@@ -15,6 +15,7 @@ class StackNotify {
         currentScale := dpi / 96
 
         if (this._gui && this._scale != currentScale) {
+            this._DestroyAllItemGuis(true)
             this._gui.Destroy()
             this._gui := 0
         }
@@ -42,7 +43,7 @@ class StackNotify {
         })
 
         if (this._queue.Length > this.MaxVisible)
-            this._queue.RemoveAt(1, this._queue.Length - this.MaxVisible)
+            this._RemoveOldest(this._queue.Length - this.MaxVisible)
 
         this._EnsureGui()
         this._Render(startedAt, true)
@@ -76,18 +77,13 @@ class StackNotify {
         this._slots := []
         this._slotItemIds := []
 
-        loop this.MaxVisible {
-            px := Round(this.PaddingX * this._scale)
-            py := Round(this.PaddingY * this._scale)
-            w := Round(this.Width * this._scale)
-            sh := Round(this.SlotHeight * this._scale)
-
-            slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", px, py, w, sh), "")
-            if this.ClickToDismiss
-                slot.OnEvent("Click", ObjBindMethod(this, "_HandleSlotClick", A_Index))
-            this._slots.Push([slot])
-            this._slotItemIds.Push(0)
-        }
+        px := Round(this.PaddingX * this._scale)
+        py := Round(this.PaddingY * this._scale)
+        w := Round(this.Width * this._scale)
+        sh := Round(this.SlotHeight * this._scale)
+        slot := g.Add("Text", Format("x{1} y{2} w{3} h{4} Center Hidden", px, py, w, sh), "")
+        this._slots.Push([slot])
+        this._slotItemIds.Push(0)
 
         this._sweepTimer := ObjBindMethod(this, "_Sweep")
         this._ApplyTheme(this.Theme)
@@ -95,72 +91,152 @@ class StackNotify {
     }
 
     static _Render(startedAt := 0, updateTheme := false) {
-        g := this._EnsureGui()
+        this._EnsureGui()
         visibleCount := this._queue.Length
-        innerWidth := this._GetContentWidth()
 
         paddingY := Round(this.PaddingY * this._scale)
         paddingX := Round(this.PaddingX * this._scale)
-        slotGap := Round(this.SlotGap * this._scale)
         minSlotHeight := Round(this.SlotHeight * this._scale)
         textPaddingY := Round(this.TextPaddingY * this._scale)
 
-        height := paddingY * 2
-        y := paddingY
-
-        for index, slotLines in this._slots {
-            if (index <= visibleCount) {
-                item := this._queue[index]
-                displayLines := this._WrapLines(item.displayText, innerWidth)
-                textHeight := this._MeasureLinesHeight(displayLines)
-                slotHeight := Max(minSlotHeight, textHeight + textPaddingY * 2)
-                textY := y + Floor((slotHeight - textHeight) / 2)
-                lineHeight := this._MeasureLineHeight()
-                lineAdvance := Ceil(lineHeight * this.LineSpacingScale)
-
-                for lineIndex, lineText in displayLines {
-                    lineSlot := this._GetLineSlot(index, lineIndex)
-                    lineSlot.Text := lineText
-                    lineSlot.Move(paddingX, textY + (lineIndex - 1) * lineAdvance, innerWidth, lineHeight)
-                    lineSlot.Opt("-Hidden")
-                }
-
-                this._HideLineSlots(index, displayLines.Length + 1)
-                this._slotItemIds[index] := item.id
-                height := y + slotHeight + paddingY
-                y += slotHeight + slotGap
-            } else {
-                this._HideLineSlots(index)
-                this._slotItemIds[index] := 0
-            }
-        }
-
         if (visibleCount = 0) {
-            try g.Hide()
             this._visible := false
             return
         }
 
-        totalWidth := innerWidth + paddingX * 2
-        position := this._GetWindowPosition(totalWidth, height, this._refX, this._refY)
-
         themeMs := 0
-        theme := this._theme
-        if (updateTheme && !this._visible) {
-            themeStart := A_TickCount
-            theme := this._ChooseThemeForRegion(position.x, position.y, totalWidth, height)
-            themeMs := A_TickCount - themeStart
-        }
-        if (this.HasOwnProp("DebugBenchmark") && this.DebugBenchmark && visibleCount > 0) {
-            item := this._queue[visibleCount]
-            item.displayText := this._BuildDisplayText(item.text, startedAt, themeMs)
-            this._queue[visibleCount] := item
-        }
-        this._ApplyTheme(theme)
+        for index, item in this._queue {
+            itemInnerWidth := item.HasOwnProp("innerWidth") ? item.innerWidth : Min(Round(this.MaxWidth * this._scale), Max(Round(this.MinWidth * this._scale), this._MeasureNaturalWidth(item.displayText)))
+            displayLines := this._WrapLines(item.displayText, itemInnerWidth)
+            textHeight := this._MeasureLinesHeight(displayLines)
+            slotHeight := Max(minSlotHeight, textHeight + textPaddingY * 2)
+            itemHeight := paddingY * 2 + slotHeight
+            itemTotalWidth := itemInnerWidth + paddingX * 2
 
-        g.Show(Format("NoActivate x{1} y{2} w{3} h{4}", position.x, position.y, totalWidth, height))
+            if !(item.HasOwnProp("stackIndex"))
+                item.stackIndex := this._ReserveStackIndex()
+
+            if !(item.HasOwnProp("x")) {
+                position := this._GetWindowPosition(itemTotalWidth, itemHeight, this._refX, this._refY)
+                item.x := position.x
+                item.y := this._GetItemY(item.stackIndex, position.y, itemHeight)
+                item.innerWidth := itemInnerWidth
+                item.totalWidth := itemTotalWidth
+                item.height := itemHeight
+            }
+
+            theme := item.HasOwnProp("theme") ? item.theme : this._theme
+            if (updateTheme && !(item.HasOwnProp("gui"))) {
+                themeStart := A_TickCount
+                theme := this._ChooseThemeForRegion(item.x, item.y, item.totalWidth, item.height)
+                themeMs := A_TickCount - themeStart
+            }
+            item.theme := theme
+            if (this.HasOwnProp("DebugBenchmark") && this.DebugBenchmark && startedAt && index = visibleCount)
+                item.displayText := this._BuildDisplayText(item.text, startedAt, themeMs)
+
+            this._RenderItem(item, displayLines, item.innerWidth, item.totalWidth, item.height, slotHeight, textHeight)
+            this._queue[index] := item
+        }
         this._visible := true
-        this._ApplyVisualStyle()
+    }
+
+    static _RenderItem(item, displayLines, innerWidth, totalWidth, height, slotHeight, textHeight) {
+        paddingY := Round(this.PaddingY * this._scale)
+        paddingX := Round(this.PaddingX * this._scale)
+        textY := paddingY + Floor((slotHeight - textHeight) / 2)
+        lineHeight := this._MeasureLineHeight()
+        lineAdvance := Ceil(lineHeight * this.LineSpacingScale)
+
+        if !(item.HasOwnProp("gui")) {
+            item.gui := this._CreateItemGui(item)
+            item.slots := []
+        }
+
+        item.gui.BackColor := this._GetBackColor(item.theme)
+        this._EnsureItemLineSlots(item, displayLines.Length)
+
+        for lineIndex, lineText in displayLines {
+            lineSlot := item.slots[lineIndex]
+            lineSlot.Text := lineText
+            lineSlot.Move(paddingX, textY + (lineIndex - 1) * lineAdvance, innerWidth, lineHeight)
+            lineSlot.Opt("-Hidden")
+        }
+        this._HideItemLineSlots(item, displayLines.Length + 1)
+
+        item.gui.Show(Format("NoActivate x{1} y{2} w{3} h{4}", item.x, item.y, totalWidth, height))
+        this._ApplyVisualStyle(item.gui.Hwnd)
+    }
+
+    static _CreateItemGui(item) {
+        g := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000000 -DPIScale")
+        g.BackColor := this._GetBackColor(item.theme)
+        g.MarginX := Round(this.PaddingX * this._scale)
+        g.MarginY := Round(this.PaddingY * this._scale)
+        g.SetFont(this._GetFontOptions(item.theme), this.FontName)
+        return g
+    }
+
+    static _EnsureItemLineSlots(item, lineCount) {
+        while (item.slots.Length < lineCount) {
+            lineSlot := item.gui.Add("Text", "x0 y0 w1 h1 Center Hidden", "")
+            lineSlot.SetFont(this._GetFontOptions(item.theme), this.FontName)
+            if this.ClickToDismiss
+                lineSlot.OnEvent("Click", ObjBindMethod(this, "_HandleItemClick", item.id))
+            item.slots.Push(lineSlot)
+        }
+    }
+
+    static _HideItemLineSlots(item, startIndex := 1) {
+        for lineIndex, lineSlot in item.slots {
+            if (lineIndex >= startIndex) {
+                lineSlot.Text := ""
+                lineSlot.Opt("Hidden")
+            }
+        }
+    }
+
+    static _ReserveStackIndex() {
+        used := Map()
+        for item in this._queue {
+            if (item.HasOwnProp("stackIndex"))
+                used[item.stackIndex] := true
+        }
+
+        loop this.MaxVisible {
+            if !used.Has(A_Index)
+                return A_Index
+        }
+        return this.MaxVisible
+    }
+
+    static _GetStackHeight(stackIndex, itemHeight) {
+        return this._GetStackOffset(stackIndex, itemHeight) + itemHeight
+    }
+
+    static _GetStackOffset(stackIndex, itemHeight) {
+        slotGap := Round(this.SlotGap * this._scale)
+        return (stackIndex - 1) * (itemHeight + slotGap)
+    }
+
+    static _GetItemY(stackIndex, defaultY, itemHeight) {
+        slotGap := Round(this.SlotGap * this._scale)
+        previousBottom := ""
+
+        for item in this._queue {
+            if !(item.HasOwnProp("stackIndex") && item.HasOwnProp("y") && item.HasOwnProp("height"))
+                continue
+            if (item.stackIndex >= stackIndex)
+                continue
+
+            bottom := item.y + item.height
+            previousBottom := (previousBottom = "") ? bottom : Max(previousBottom, bottom)
+        }
+
+        if (previousBottom != "")
+            return previousBottom + slotGap
+
+        return defaultY + this._GetStackOffset(stackIndex, itemHeight)
     }
 
     static _GetWindowPosition(width, height, refX, refY) {
@@ -467,11 +543,15 @@ class StackNotify {
         return brightness
     }
 
-    static _ApplyVisualStyle() {
-        if !this._gui
+    static _ApplyVisualStyle(hwnd := 0) {
+        if !hwnd {
+            if !this._gui
+                return
+            hwnd := this._gui.Hwnd
+        }
+        if !hwnd
             return
 
-        hwnd := this._gui.Hwnd
         WinGetPos(, , &w, &h, hwnd)
 
         try {
@@ -496,14 +576,29 @@ class StackNotify {
         this._RemoveById(itemId)
     }
 
+    static _HandleItemClick(itemId, *) {
+        this._RemoveById(itemId)
+    }
+
     static _RemoveById(itemId) {
         for index, item in this._queue {
             if (item.id = itemId) {
+                this._DestroyItemGui(item)
                 this._queue.RemoveAt(index)
                 this._Render(0, true)
                 this._UpdateSweepTimer()
                 return
             }
+        }
+    }
+
+    static _RemoveOldest(count) {
+        loop count {
+            if !this._queue.Length
+                return
+
+            item := this._queue.RemoveAt(1)
+            this._DestroyItemGui(item)
         }
     }
 
@@ -527,6 +622,8 @@ class StackNotify {
             item.duration := duration
             item.expiresAt := (duration > 0) ? (A_TickCount + duration) : 0
             item.displayText := this._BuildDisplayText(item.text)
+            if (item.HasOwnProp("gui"))
+                this._DestroyItemGui(item)
             this._queue[index] := item
             this._Render(0, true)
             this._UpdateSweepTimer()
@@ -540,6 +637,7 @@ class StackNotify {
             removed := false
             for index, item in this._queue {
                 if (item.expiresAt > 0 && A_TickCount >= item.expiresAt) {
+                    this._DestroyItemGui(item)
                     this._queue.RemoveAt(index)
                     removed := true
                     removedAny := true
@@ -548,6 +646,29 @@ class StackNotify {
             }
         } until !removed
         return removedAny
+    }
+
+    static _DestroyItemGui(item, clearState := false) {
+        if !(item.HasOwnProp("gui"))
+            return
+
+        try {
+            item.gui.Destroy()
+        }
+        if item.HasOwnProp("gui")
+            item.DeleteProp("gui")
+        if item.HasOwnProp("slots")
+            item.DeleteProp("slots")
+        if clearState {
+            for propName in ["x", "y", "innerWidth", "totalWidth", "height", "theme"]
+                if item.HasOwnProp(propName)
+                    item.DeleteProp(propName)
+        }
+    }
+
+    static _DestroyAllItemGuis(clearState := false) {
+        for item in this._queue
+            this._DestroyItemGui(item, clearState)
     }
 
     static _Sweep() {
