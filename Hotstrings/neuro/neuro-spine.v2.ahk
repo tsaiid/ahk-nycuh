@@ -73,15 +73,13 @@ No evidence of the C1-C2 anterior and lateral subluxation.
 No obvious hyperdense hematoma in the prevertebral region and epidural space.
 The lung fields within the scanning range appear normal.
   )"
-  Paste(MyForm)
-
-  SleepThenTab()
+  RisController.PasteToFinding(MyForm)
 
   MyForm := "
   (
 No obvious fracture or dislocation of the cervical spine.
   )"
-  Paste(MyForm)
+  RisController.PasteToImpression(MyForm)
 }
 
 ::ctts2::

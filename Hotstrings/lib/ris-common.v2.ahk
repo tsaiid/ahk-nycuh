@@ -55,17 +55,6 @@ HasPositiveFinding(text, keywords) {
     return false
 }
 
-SleepThenTab(sleepTime := 400, shiftTab := false)
-{
-  Sleep sleepTime
-  if (shiftTab) {
-    Send "+{Tab}"
-  } else {
-    Send "{Tab}"
-  }
-  Sleep sleepTime
-}
-
 ; --- 輔助函式：處理 Oxford Comma 格式 ---
 FormatList(arr) {
     if (arr.Length == 0)

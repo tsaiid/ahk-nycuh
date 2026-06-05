@@ -511,15 +511,13 @@ Parametrial, obturator, internal iliac, external iliac, common iliac, sacral.
 - Kidneys and ureters: Unremarkable
 - Urinary bladder: Unremarkable
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Cervical cancer,
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::amrcx::
@@ -569,15 +567,13 @@ Others:
 - Kidneys and ureters: Unremarkable
 - Urinary bladder: Unremarkable
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Cervical cancer,
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::amrrec::
@@ -662,16 +658,14 @@ Pancreas: Unremarkable
 Lymphadenopathy: No
 Lower lungs: Unremarkable
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 C/W renal artery stenosis, bilateral, mild.
 No obvious renal artery stenosis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::pirads::
@@ -742,16 +736,14 @@ Key imaging features of normal placentation
 - Triple-layered sandwich appearance of myometrium
 - Pear-shape of normal gravid uterus with smooth contour.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 C/W complete placenta previa, with placenta accreta. Correlation with placental sonography and clinical history is suggested.
 No obvious fetal anomaly.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::amremca::
@@ -804,15 +796,13 @@ Others:
 - Kidneys and ureters: Unremarkable
 - Urinary bladder: Unremarkable
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Endometrial cancer, FIGO Stage II.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ; Acute appendicitis
@@ -849,15 +839,13 @@ No retroperitoneal or mesenteric lymphadenopathy.
 No obvious ascites.
 The lungs covered in the scanning range are unremarkable.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No strong evidence of acute appendicitis.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ; PCU Abd Tumor Screening

@@ -150,16 +150,14 @@ Parotid gland: normal
 Submandibular gland: normal
 Thyroid gland: normal
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 Acute tonsillitis with abscess formation.
 Left peritonsillar abscesses.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; CTNECHRCT
@@ -213,15 +211,13 @@ No osteolytic foci around the cochlear noted, and thus no CT imaging evidence of
 
 Presence of mucoperiosteal thickening in the bilateral ethmoid and maxillary sinuses, mild sinusitis considered.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No CT imaging evidence of cholesteatoma or otosclerosis noted.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ;; CTNECHRCT - Superior semicircular canal dehiscence syndrome

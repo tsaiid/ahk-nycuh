@@ -31,13 +31,12 @@ Normal hili.
 Normal bony thorax.
 
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
     MyForm := "
 (
 Normal heart and lungs. 胸部X光判讀正常.
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::1::{
@@ -72,14 +71,13 @@ The heart size is normal.
 The thoracic cage and bones are generally intact.
 
 )"
-    Paste(MyForm)
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
     MyForm := "
 (
 As the above descriptions.
 
 )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
 
 ::ii1::{

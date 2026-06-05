@@ -26,13 +26,11 @@ FINDINGS:
 - No obviously increased pericardial effusion.
 - LV ejection fraction: 70%.
   )"
-    Paste(MyForm)
-
-    SleepThenTab()
+    RisController.PasteToFinding(MyForm)
 
     MyForm := "
   (
 No remarkable cardiac findings.
   )"
-    Paste(MyForm)
+    RisController.PasteToImpression(MyForm)
 }
