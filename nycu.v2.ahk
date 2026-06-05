@@ -152,6 +152,9 @@ RisController.EnableShellHookFocus()
     !d:: RisController.InsertCopiedReportDate()
 
     ; Ctrl+Alt+E: 插入目前選取的歷史報告名稱
+    ^!+e:: {
+    }
+
     ^!e:: RisController.InsertSelectedHistoryName()
 
     ; --- Pathology Or MRN Copy ---
