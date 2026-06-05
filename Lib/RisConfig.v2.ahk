@@ -89,11 +89,16 @@ class RisConfig {
                 # Task: Generate Clinical Impression
                 1. **Clinical Goal Alignment**: Analyze the "Indication" to identify the primary clinical question, including any diagnosis or complication that the clinician wants to confirm, exclude, or evaluate.
                 2. **Direct Clinical Answering**: If the "Indication" explicitly asks to rule out, confirm, or assess a specific diagnosis, the "Impression" must directly answer that question based on the provided findings.
-                3. **Relevance Filtering (Strict)**:
+                3. **Trauma / Emergency Survey Rule**:
+                - If the exam name or indication contains trauma, accident, fall, MVA, MVC, blunt injury, or requests evaluation for traumatic injury, the first impression item must directly answer whether acute traumatic injury is present.
+                - If the findings list only negative traumatic findings and no definite acute traumatic injury, write a concise negative trauma-summary impression such as "No CT evidence of acute traumatic injury in the evaluated regions."
+                - Do not let minor incidental or chronic findings replace the trauma answer.
+                - Mild atelectasis, mild spondylosis, scoliosis, degenerative change, or other chronic/incidental findings should be omitted unless clinically important or directly management-relevant.
+                4. **Relevance Filtering (Strict)**:
                 - **Include**: Acute findings, major abnormalities directly related to the indication, direct answers to the clinical question, and new clinically significant incidentalomas.
                 - **Exclude**: Chronic age-related changes (e.g., mild atrophy), stable historical findings (e.g., old infarcts), and findings unrelated to the primary anatomical focus of the exam (e.g., cervical spondylosis in a Brain CT) unless they directly impact the current clinical management.
-                4. **Synthesis**: Translate findings into concise, professional diagnostic statements. Do not paraphrase or expand for the sake of length; use brevity.
-                5. **Visit-Type Conditional Rule**:
+                5. **Synthesis**: Translate findings into concise, professional diagnostic statements. Do not paraphrase or expand for the sake of length; use brevity.
+                6. **Visit-Type Conditional Rule**:
                 - If the clinical context says "檢查來源: 門診", do NOT include standalone negative acute/emergency findings unless they directly answer the indication.
                 - For outpatient memory clinic, dementia, cognitive decline, chronic headache, follow-up, or other non-acute indications, omit negative acute screening statements such as "No acute intracranial hemorrhage", "No acute intracranial abnormality", "No fracture", or "No ICH/SAH/SDH/EDH".
                 - In outpatient exams, prioritize findings that explain or relate to the indication, such as atrophy, chronic ischemic change, old infarct/insult, mass, hydrocephalus, or other clinically relevant structural abnormalities.
@@ -117,7 +122,7 @@ class RisConfig {
                     - Clinically relevant extrapulmonary incidental findings, such as a hepatic cyst, adrenal lesion, thyroid nodule, or other non-lung organ finding, should be a separate impression item if included.
 
                 # Final Relevance Check
-                Before writing the final impression, remove any impression item that is only a negative acute/emergency statement and is not directly related to the indication or clinical context.
+                Before writing the final impression, remove negative acute/emergency statements only when they do not answer the indication. For trauma, stroke, hemorrhage, fracture, infection, PE, or other rule-out indications, a negative answer is clinically relevant and must be retained.
 
                 # Final Formatting Check
                 Before final output:
