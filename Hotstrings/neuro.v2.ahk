@@ -50,6 +50,9 @@
 ::ctmast::Presence of soft tissue density in the ---- mastoid air sinus, R/O mastoiditis or fluid collection in the mastoid.
 ::lmast::Presence of soft tissue density in the left mastoid air sinus, R/O mastoiditis or fluid collection in the mastoid.
 ::rmast::Presence of soft tissue density in the right mastoid air sinus, R/O mastoiditis or fluid collection in the mastoid.
+::bmdp::Decreased pneumatization of the bilateral mastoid air cells.
+::lmdp::Decreased pneumatization of the left mastoid air cells.
+::rmdp::Decreased pneumatization of the right mastoid air cells.
 ::ctcmast::Underdeveloped pneumatization and sclerotic changes of right/left/bilateral mastoid air cells, suspicious chronic mastoiditis.
 ::atrv::Diffuse atrophy of bilateral cerebral hemispheres, with compensatory dilatation of bilateral lateral ventricles, deepening and widening of cortical sulci.
 ::matrv::Mild enlargement of the ventricular system, in favor of mild brain atrophy.
@@ -134,6 +137,16 @@ The visible paranasal sinuses and mastoids are unremarkable.
 ::dvsok::The major dural venous sinuses are patent.
 ::mrnocva::No evidence of high signal intensity on DWI or low apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem is noted.
 ::ctnocva::No definite low density or loss of gray-white matter differentiation in the brain parenchyma.
+::ctbok::
+{
+    MyForm := "
+  (
+No definite area of obvious abnormal density in the brain noted.
+No definite abnormal mass lesion in the brain noted.
+  )"
+    Paste(MyForm)
+}
+
 ::nocva::No evidence of acute ischemia infarction in the brain and brainstem noted.
 ::noich::No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 ::noich0::No definite acute ICH, SAH, EDH, or SDH.
