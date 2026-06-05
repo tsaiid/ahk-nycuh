@@ -15,7 +15,7 @@ class StackNotify {
 
     static DefaultDuration := 1500
     static MaxVisible := 5
-    static DedupeWindow := 800
+    static DedupeWindow := 0
     static MinWidth := 320
     static Width := 420
     static MaxWidth := 720
@@ -143,6 +143,8 @@ class StackNotify {
         }
 
         themeMs := 0
+        previousBottom := ""
+        slotGap := Round(this.SlotGap * this._scale)
         for index, item in this._queue {
             itemInnerWidth := item.HasOwnProp("innerWidth") ? item.innerWidth : Min(Round(this.MaxWidth * this._scale), Max(Round(this.MinWidth * this._scale), this._MeasureNaturalWidth(item.displayText)))
             displayLines := this._WrapLines(item.displayText, itemInnerWidth)
@@ -151,17 +153,14 @@ class StackNotify {
             itemHeight := paddingY * 2 + slotHeight
             itemTotalWidth := itemInnerWidth + paddingX * 2
 
-            if !(item.HasOwnProp("stackIndex"))
-                item.stackIndex := this._ReserveStackIndex()
-
-            if !(item.HasOwnProp("x")) {
-                position := this._GetWindowPosition(itemTotalWidth, itemHeight, this._refX, this._refY)
-                item.x := position.x
-                item.y := this._GetItemY(item.stackIndex, position.y, itemHeight)
-                item.innerWidth := itemInnerWidth
-                item.totalWidth := itemTotalWidth
-                item.height := itemHeight
-            }
+            position := this._GetWindowPosition(itemTotalWidth, itemHeight, this._refX, this._refY)
+            item.stackIndex := index
+            item.x := position.x
+            item.y := (previousBottom = "") ? position.y : previousBottom + slotGap
+            item.innerWidth := itemInnerWidth
+            item.totalWidth := itemTotalWidth
+            item.height := itemHeight
+            previousBottom := item.y + item.height
 
             theme := item.HasOwnProp("theme") ? item.theme : this._theme
             if (updateTheme && !(item.HasOwnProp("gui"))) {
