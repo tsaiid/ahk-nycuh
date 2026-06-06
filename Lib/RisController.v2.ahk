@@ -2360,7 +2360,7 @@ class RisController {
     }
 
     static _HandleImpressionSuccess(result, extractTime, apiTime, apiKeyName, modelName) {
-        result := RisAIOrchestration.NormalizeResult(result)
+        result := RisAIOrchestration.NormalizeImpressionResult(result)
         this._InsertAIResultToImpression(result)
         this.Notify(RisAIOrchestration.FormatCompleteNotify("已插入 Impression", apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
     }

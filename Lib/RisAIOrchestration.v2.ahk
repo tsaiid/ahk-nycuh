@@ -7,6 +7,10 @@ class RisAIOrchestration {
         return result
     }
 
+    static NormalizeImpressionResult(result) {
+        return Trim(this.NormalizeResult(result), " `t`r`n")
+    }
+
     static FormatCompleteNotify(title, apiKeyName, modelName, detail := "") {
         text := title . "`r`nAPI Key: " . apiKeyName . "`r`nModel: " . modelName
         if (detail != "") {
