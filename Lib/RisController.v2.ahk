@@ -1682,9 +1682,15 @@ class RisController {
                         historyExamName := targetCell.Value
                         if (this._IsRelatedReport(historyExamName, currExamName)) {
                             clickTarget := IsObject(anchorCell) ? anchorCell : targetCell
-                            clickTarget.LegacyIAccessiblePattern.DoDefaultAction()
-                            clickTarget.ControlClick()
-                            this.Notify("已選取: " historyExamName)
+                            successAttempt := this._ClickPastReportCellAndWait(rowEle, clickTarget)
+                            if !successAttempt {
+                                this.Notify("選取失敗: " historyExamName)
+                                return
+                            }
+                            notifyText := this.IsDebug
+                                ? "已選取 (第 " successAttempt " 次 click): " historyExamName
+                                : "已選取: " historyExamName
+                            this.Notify(notifyText)
                             return
                         }
                     }
@@ -1696,6 +1702,60 @@ class RisController {
         } finally {
             RisVisualFeedback.RestoreCursor() ; [新增]
         }
+    }
+
+    static _ClickPastReportCellAndWait(rowEle, clickTarget) {
+        try WinActivate(this.WinTitle)
+        try {
+            hTable := this.PastReportTable.NativeWindowHandle
+            if (hTable) {
+                ControlFocus(hTable)
+            }
+        }
+
+        loop 3 {
+            clickTarget.LegacyIAccessiblePattern.DoDefaultAction()
+            clickTarget.ControlClick()
+            if this._WaitPastReportRowSelected(rowEle, clickTarget, 300) {
+                Sleep 60
+                return A_Index
+            }
+
+            Sleep 80
+        }
+
+        return 0
+    }
+
+    static _WaitPastReportRowSelected(rowEle, clickTarget, timeoutMs) {
+        startTime := A_TickCount
+        loop {
+            if this._IsPastReportRowSelected(rowEle, clickTarget) {
+                return true
+            }
+            if (A_TickCount - startTime >= timeoutMs) {
+                break
+            }
+            Sleep 30
+        }
+        return false
+    }
+
+    static _IsPastReportRowSelected(rowEle, clickTarget) {
+        static STATE_SYSTEM_SELECTED := 0x2
+
+        try {
+            if (rowEle.LegacyIAccessiblePattern.State & STATE_SYSTEM_SELECTED) {
+                return true
+            }
+        }
+        try {
+            if (clickTarget.LegacyIAccessiblePattern.State & STATE_SYSTEM_SELECTED) {
+                return true
+            }
+        }
+
+        return false
     }
 
     static SetAutoNextState(targetState) {

@@ -163,7 +163,11 @@ RisController.EnableShellHookFocus()
     }
 
     ; Alt+Esc: 根據目前的檢查名稱，自動搜尋並選取歷史報告中的相似項目
-    !Esc:: RisController.FindAndClickSimilarReport()
+    !Esc:: {
+        Critical
+        KeyWait("Alt")
+        RisController.FindAndClickSimilarReport()
+    }
 
     ; --- Findings Formatting ---
     SC079:: RisController.FormatFindingText() ; 日文鍵盤的轉換鍵?
