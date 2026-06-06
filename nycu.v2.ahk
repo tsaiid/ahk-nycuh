@@ -17,7 +17,11 @@ SetMouseDelay -1
 SetKeyDelay -1
 
 ; [新增] 設定工作列 (Tray) 上的 Icon
+global TRAY_DEBUG_MODE_ITEM := "RIS Debug Mode"
 TraySetIcon(A_ScriptDir "\assets\nycu_icon.png")
+A_TrayMenu.Add()
+A_TrayMenu.Add(TRAY_DEBUG_MODE_ITEM, ToggleRisDebugMode)
+A_TrayMenu.Uncheck(TRAY_DEBUG_MODE_ITEM)
 A_TrayMenu.Add()
 A_TrayMenu.Add("重新載入相似檢查分組設定`tWin+Ctrl+R", ReloadSimGroups)
 
@@ -413,6 +417,19 @@ Benchmark(funcObj, times := 1) {
 ReloadSimGroups(*) {
     RisController.LoadSimGroups()
     RisController.Notify("相似分組對應表已更新！")
+}
+
+ToggleRisDebugMode(*) {
+    global TRAY_DEBUG_MODE_ITEM
+
+    RisController.IsDebug := !RisController.IsDebug
+    if (RisController.IsDebug) {
+        A_TrayMenu.Check(TRAY_DEBUG_MODE_ITEM)
+        RisController.Notify("RIS Debug Mode 已開啟", 1500)
+    } else {
+        A_TrayMenu.Uncheck(TRAY_DEBUG_MODE_ITEM)
+        RisController.Notify("RIS Debug Mode 已關閉", 1500)
+    }
 }
 
 SC07B::LButton

@@ -2505,7 +2505,8 @@ class RisController {
 
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
     ; [修改] 增加 Benchmark 效能測量
-    static GenerateAndInsertIndication(debugMode := false, isPreloadOnly := false) {
+    static GenerateAndInsertIndication(debugMode?, isPreloadOnly := false) {
+        debugMode := IsSet(debugMode) ? debugMode : this.IsDebug
         requestMode := isPreloadOnly ? "preload" : "manual"
 
         if (this._TryInsertCachedIndication(isPreloadOnly)) {
@@ -2545,7 +2546,8 @@ class RisController {
     }
 
     ; [新增] 產生並插入 Impression (總結 Findings)
-    static GenerateAndInsertImpression(debugMode := false) {
+    static GenerateAndInsertImpression(debugMode?) {
+        debugMode := IsSet(debugMode) ? debugMode : this.IsDebug
         if (!this._BeginForegroundAIRequest()) {
             return
         }
