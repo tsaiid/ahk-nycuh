@@ -35,9 +35,18 @@
 ::msaemr::Mild bilateral periventricular and subcortical white matter hyperintensities on T2WI and FLAIR, compatible with mild subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 
 ; 方案二：Fazekas Scale MRI 描述
-::faz1::Bilateral periventricular caps and punctate deep white matter hyperintensities on T2WI/FLAIR, compatible with mild chronic microvascular ischemic changes (Fazekas grade 1).
-::faz2::Bilateral smooth periventricular halos and beginning confluence of deep white matter hyperintensities on T2WI/FLAIR, compatible with moderate chronic microvascular ischemic changes (Fazekas grade 2).
-::faz3::Bilateral irregular periventricular and large confluent deep white matter hyperintensities on T2WI/FLAIR, compatible with severe chronic microvascular ischemic changes (Fazekas grade 3).
+::faz1::Periventricular caps or pencil-thin lining and punctate deep white matter hyperintensities on T2WI/FLAIR, compatible with chronic microvascular ischemic changes (Fazekas grade 1).
+::faz2::Smooth periventricular halo and beginning confluence of deep white matter hyperintensities on T2WI/FLAIR, compatible with chronic microvascular ischemic changes (Fazekas grade 2).
+::faz3::Irregular periventricular hyperintensity extending into the deep white matter and large confluent deep white matter hyperintensities on T2WI/FLAIR, compatible with chronic microvascular ischemic changes (Fazekas grade 3).
+::fazp0::No definite periventricular white matter hyperintensity.
+::fazp1::Periventricular caps or pencil-thin lining on T2WI/FLAIR, compatible with Fazekas PVH grade 1.
+::fazp2::Smooth periventricular halo on T2WI/FLAIR, compatible with Fazekas PVH grade 2.
+::fazp3::Irregular periventricular hyperintensity extending into the deep white matter on T2WI/FLAIR, compatible with Fazekas PVH grade 3.
+::fazd0::No definite deep white matter hyperintensity.
+::fazd1::Punctate deep white matter hyperintensities on T2WI/FLAIR, compatible with Fazekas DWMH grade 1.
+::fazd2::Beginning confluence of deep white matter hyperintensities on T2WI/FLAIR, compatible with Fazekas DWMH grade 2.
+::fazd3::Large confluent deep white matter hyperintensities on T2WI/FLAIR, compatible with Fazekas DWMH grade 3.
+::fazsum::Chronic microvascular ischemic changes, Fazekas PVH grade __ and DWMH grade __.
 
 ; 方案三：現代化診斷詞彙 (CSVD / 腦幹合併描述)
 ::csvd::Bilateral periventricular and subcortical white matter hyperintensities on T2WI/FLAIR, suggesting cerebral small vessel disease (CSVD) with chronic microvascular ischemic changes.
