@@ -161,6 +161,7 @@ class NoduleTracker {
             [5, 57, 45, 185],
             [5, 57, 47, 185],
             [5, 57, 49, 185],
+            [5, 57, 51, 185],
         ]
 
         for idx, cfg in configs {
