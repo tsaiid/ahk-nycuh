@@ -461,29 +461,6 @@ Benign enlargement of the subarachnoid spaces in infancy.
     RisController.PasteToImpression(MyForm)
 }
 
-;; 1CTA
-::1cta::
-{
-    MyForm := "
-  (
-CT angiography of brain and neck was performed with a multi-slice CT scanner:
-TECHNIQUE: multi thin-slice spiral scanning of arterial and venous phases
-SCAN RANGE: axial plane from the skull base to the vertex.
-CONTRAST MEDIUM: IV bolus injection, 80 ml, rate: 3 ml/sec
-IMAGE POST-PROCESSING: done in workstation with multiPlanar reconstruction, maximal intensity projection and volume rendering technique
-
-CT scan of brain was performed with a multi-slice CT scanner:
-TECHNIQUE: (1) Noncontrast and (2) Post-contrast enhancement
-SCAN RANGE: oblique axial plane from the skull base to the vertex with 5-mm continuous scan slice thickness
-
-Previous CT: no
-
-FINDINGS:
-
-  )"
-    Paste(MyForm)
-}
-
 ::1ctaok::
 {
     MyForm := "

@@ -822,6 +822,7 @@ No identifiable calcification.
 Minimal identifiable calcification.
 Mild calcification.
 Moderate calcification.
+Significant calcification.
   )"
     RisController.PasteToImpression(impression)
 }
