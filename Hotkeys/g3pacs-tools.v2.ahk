@@ -10,6 +10,8 @@ $WheelDown::FocusG3PacsUnderMouseAndScroll("WheelDown")
 
 #HotIf IsG3PacsHotkeyContext()
 ^s::SelectG3PacsSortBySliceLocationDesc()
+$Up::ClickG3PacsUnderMouseAndSendKey("Up")
+$Down::ClickG3PacsUnderMouseAndSendKey("Down")
 #HotIf
 
 #HotIf IsG3PacsCalciumScoreContext()
@@ -36,6 +38,11 @@ FocusG3PacsUnderMouseAndScroll(direction) {
         WinActivate("ahk_id " hwnd)
     }
     Click(direction)
+}
+
+ClickG3PacsUnderMouseAndSendKey(keyName) {
+    Click()
+    Send("{" keyName "}")
 }
 
 HandleG3PacsLeftClick() {
