@@ -41,7 +41,11 @@ FocusG3PacsUnderMouseAndScroll(direction) {
 }
 
 ClickG3PacsUnderMouseAndSendKey(keyName) {
-    Click()
+    MouseGetPos(&mouseX, &mouseY)
+    if !IsRecentG3PacsLeftClick(mouseX, mouseY) {
+        Click()
+        RecordG3PacsLeftClick(mouseX, mouseY)
+    }
     Send("{" keyName "}")
 }
 
@@ -51,6 +55,7 @@ HandleG3PacsLeftClick() {
     static lastClickY := 0
 
     MouseGetPos(&mouseX, &mouseY,, &controlClassNN)
+    RecordG3PacsLeftClick(mouseX, mouseY)
 
     if lastClickTime && IsWithinG3PacsDoubleClick(mouseX, mouseY, lastClickX, lastClickY, A_TickCount - lastClickTime) {
         lastClickTime := 0
@@ -77,6 +82,24 @@ IsWithinG3PacsDoubleClick(mouseX, mouseY, lastClickX, lastClickY, elapsedMs) {
     return elapsedMs <= doubleClickTime
         && Abs(mouseX - lastClickX) <= doubleClickWidth
         && Abs(mouseY - lastClickY) <= doubleClickHeight
+}
+
+RecordG3PacsLeftClick(mouseX, mouseY) {
+    state := GetG3PacsLastLeftClick()
+    state.time := A_TickCount
+    state.x := mouseX
+    state.y := mouseY
+}
+
+IsRecentG3PacsLeftClick(mouseX, mouseY) {
+    state := GetG3PacsLastLeftClick()
+    return state.time
+        && IsWithinG3PacsDoubleClick(mouseX, mouseY, state.x, state.y, A_TickCount - state.time)
+}
+
+GetG3PacsLastLeftClick() {
+    static state := {time: 0, x: 0, y: 0}
+    return state
 }
 
 IsG3PacsImageClassNN(controlClassNN) {
