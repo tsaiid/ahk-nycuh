@@ -402,6 +402,7 @@
 ::smg1::Splenomegaly and prominent portosystemic collaterals suggest portal hypertension.
 
 ::inact::For abdominal condition, please refer to the concurrent CT abdomen for detailed evaluation.
+::inbct::For other findings, please refer to the brain CT performed earlier on the same day.
 ::incct::For thoracic condition, please refer to the concurrent CT chest for detailed evaluation.
 ::innct::For neck condition, please refer to the concurrent CT neck for detailed evaluation.
 
