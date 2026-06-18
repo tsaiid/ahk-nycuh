@@ -2295,7 +2295,7 @@ class RisController {
     }
 
     ; 10.0.1 Indication
-    static _TryInsertCachedIndication(isPreloadOnly) {
+    static _TryInsertCachedIndication(isPreloadOnly, insertAfter := "") {
         if (!this._aiCache.Has("_AI_Indication") || isPreloadOnly) {
             return false
         }
@@ -2303,12 +2303,12 @@ class RisController {
         cached := this._aiCache["_AI_Indication"]
         apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
         modelName := cached.HasOwnProp("modelName") ? cached.modelName : "Model"
-        this._InsertAIResult(cached.text)
+        this._InsertAIResult(cached.text, insertAfter)
         this.Notify(RisAIOrchestration.FormatCompleteNotify("已插入 Indication (來自快取)", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
         return true
     }
 
-    static _TryHandlePendingIndication(isPreloadOnly) {
+    static _TryHandlePendingIndication(isPreloadOnly, insertAfter := "") {
         if (!this._isIndicationPending) {
             return false
         }
@@ -2318,11 +2318,12 @@ class RisController {
         }
 
         this._pendingIndicationInsert := true
+        this._pendingIndicationInsertAfter := insertAfter
         this.Notify("AI 正在背景產生中，完成後將自動插入...")
         return true
     }
 
-    static _BeginIndicationRequest(isPreloadOnly) {
+    static _BeginIndicationRequest(isPreloadOnly, insertAfter := "") {
         if (this._isAIPending) {
             if (!isPreloadOnly) {
                 this.Notify("AI 正在背景產生中...")
@@ -2333,6 +2334,7 @@ class RisController {
         if (!isPreloadOnly) {
             RisVisualFeedback.ShowWaitCursor()
             this._pendingIndicationInsert := true
+            this._pendingIndicationInsertAfter := insertAfter
         }
 
         this._isAIPending := true
@@ -2395,7 +2397,8 @@ class RisController {
 
         shouldInsert := this._pendingIndicationInsert && this._aiCache.Has("_AI_Indication")
         if (shouldInsert) {
-            this._InsertAIResult(this._aiCache["_AI_Indication"].text)
+            insertAfter := this.HasOwnProp("_pendingIndicationInsertAfter") ? this._pendingIndicationInsertAfter : ""
+            this._InsertAIResult(this._aiCache["_AI_Indication"].text, insertAfter)
             if (requestMode == "preload") {
                 cached := this._aiCache["_AI_Indication"]
                 apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
@@ -2405,6 +2408,7 @@ class RisController {
         }
 
         this._pendingIndicationInsert := false
+        this._pendingIndicationInsertAfter := ""
     }
 
     static _HandleImpressionDebugPrompt(debugMode, fullPrompt) {
@@ -2505,19 +2509,19 @@ class RisController {
 
     ; [新增] 外部呼叫的主函式：產生並插入 Indication
     ; [修改] 增加 Benchmark 效能測量
-    static GenerateAndInsertIndication(debugMode?, isPreloadOnly := false) {
+    static GenerateAndInsertIndication(debugMode?, isPreloadOnly := false, insertAfter := "") {
         debugMode := IsSet(debugMode) ? debugMode : this.IsDebug
         requestMode := isPreloadOnly ? "preload" : "manual"
 
-        if (this._TryInsertCachedIndication(isPreloadOnly)) {
+        if (this._TryInsertCachedIndication(isPreloadOnly, insertAfter)) {
             return
         }
 
-        if (this._TryHandlePendingIndication(isPreloadOnly)) {
+        if (this._TryHandlePendingIndication(isPreloadOnly, insertAfter)) {
             return
         }
 
-        if (!this._BeginIndicationRequest(isPreloadOnly)) {
+        if (!this._BeginIndicationRequest(isPreloadOnly, insertAfter)) {
             return
         }
 
@@ -2733,7 +2737,7 @@ class RisController {
     }
 
     ; [內部 Helper] 執行 AI 結果插入 UI
-    static _InsertAIResult(result) {
+    static _InsertAIResult(result, insertAfter := "") {
         if !WinActive(this.WinTitle) {
             WinActivate(this.WinTitle)
             WinWaitActive(this.WinTitle, , 2)
@@ -2752,7 +2756,7 @@ class RisController {
             Sleep(50)
         }
 
-        RisEditControl.ReplaceSelectionAndScroll(targetHwnd, result . "`r`n`r`n")
+        RisEditControl.ReplaceSelectionAndScroll(targetHwnd, result . "`r`n`r`n" . insertAfter)
     }
 
     ; [新增] 極速讀取 Helper：繞過 UIA Fallback，直接調用 Win32 API

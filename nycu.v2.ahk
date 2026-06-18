@@ -143,7 +143,7 @@ RisController.EnableShellHookFocus()
     !+e:: {
         WithImeGuard(() => (
             RisController.InsertExamNameAtCaret(),
-            RisController.GenerateAndInsertIndication()
+            RisController.GenerateAndInsertIndication(, false, "FINDINGS:`r`n")
         ))
     }
 
