@@ -171,7 +171,8 @@ No definite abnormal mass lesion in the brain noted.
 ::gpdncal::Calcifications are noted at the bilateral globus pallidi and dentate nuclei, probably aging related.
 ::mgpdncal::Mild calcifications are noted at the bilateral globus pallidi and dentate nuclei, probably aging related.
 ::mpt::mucoperiosteal thickening
-::npok::Symmetrical soft tissue thickening of the nasopharynx, in favor of adenoidal hyperplasia.
+::npah::Symmetrical soft tissue thickening of the nasopharynx, in favor of adenoidal hyperplasia.
+::npok::Symmetric nasopharynx without mass lesion.
 ::c1::Cavum septum pellucidum.
 ::c2::Cavum septum pellucidum and cavum vergae.
 ::c3::Cavum veli interpositi.
