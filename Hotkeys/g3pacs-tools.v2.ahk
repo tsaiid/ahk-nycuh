@@ -10,7 +10,6 @@ $WheelDown::FocusG3PacsUnderMouseAndScroll("WheelDown")
 
 #HotIf IsG3PacsHotkeyContext()
 ^s::SelectG3PacsSortBySliceLocationDesc()
-^!d::CopyG3PacsActiveSeriesDebugInfo()
 $Up::ClickG3PacsUnderMouseAndSendKey("Up")
 $Down::ClickG3PacsUnderMouseAndSendKey("Down")
 #HotIf
@@ -45,7 +44,11 @@ ClickG3PacsUnderMouseAndSendKey(keyName) {
     MouseGetPos(&mouseX, &mouseY, &hwnd, &controlHwnd, 2)
     if !IsG3PacsActiveSeriesUnderMouse(hwnd, controlHwnd)
         && !IsRecentG3PacsLeftClick(mouseX, mouseY) {
-        Click()
+        if TryControlClickG3PacsSrsUnderMouse(hwnd, controlHwnd) {
+            ; ControlClick the Srs row to focus without moving or dragging the image.
+        } else {
+            Click()
+        }
         RecordG3PacsLeftClick(mouseX, mouseY)
     }
     Send("{" keyName "}")
@@ -62,6 +65,26 @@ IsG3PacsActiveSeriesUnderMouse(hwnd, controlHwnd) {
 
     srsClassNN := GetG3PacsSrsControlForFocusClassNN(controlClassNN, hwnd)
     return srsClassNN != "" && GetG3PacsSrsControlFocusState(srsClassNN, hwnd) = "active"
+}
+
+TryControlClickG3PacsSrsUnderMouse(hwnd, controlHwnd) {
+    if !hwnd || !controlHwnd
+        return false
+
+    try controlClassNN := ControlGetClassNN(controlHwnd)
+    catch {
+        return false
+    }
+
+    srsClassNN := GetG3PacsSrsControlForFocusClassNN(controlClassNN, hwnd)
+    if (srsClassNN = "")
+        return false
+
+    try {
+        ControlClick(srsClassNN, "ahk_id " hwnd,, "Left", 1, "NA")
+        return true
+    }
+    return false
 }
 
 GetG3PacsSrsControlForFocusClassNN(focusClassNN, hwnd) {
@@ -207,160 +230,6 @@ GetG3PacsScreenPixelColor(x, y) {
     } finally {
         DllCall("ReleaseDC", "ptr", 0, "ptr", hdc)
     }
-}
-
-CopyG3PacsActiveSeriesDebugInfo() {
-    debugInfo := BuildG3PacsActiveSeriesDebugInfo()
-    A_Clipboard := debugInfo
-    ToolTip("G3PACS focus debug 已複製到剪貼簿")
-    SetTimer(() => ToolTip(), -2500)
-}
-
-BuildG3PacsActiveSeriesDebugInfo() {
-    MouseGetPos(&mouseX, &mouseY, &hwnd, &controlHwnd, 2)
-
-    lines := "G3PACS active series debug`r`n"
-    lines .= "Time: " FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss") "`r`n"
-    lines .= "Mouse: " mouseX ", " mouseY "`r`n"
-    lines .= "Window hwnd: " hwnd "`r`n"
-    try lines .= "Window title: " WinGetTitle("ahk_id " hwnd) "`r`n"
-    catch as err
-        lines .= "Window title: error - " err.Message "`r`n"
-
-    lines .= "Mouse control hwnd: " controlHwnd "`r`n"
-    controlClassNN := ""
-    try controlClassNN := ControlGetClassNN(controlHwnd)
-    catch as err
-        lines .= "Mouse control ClassNN: error - " err.Message "`r`n"
-    if (controlClassNN != "")
-        lines .= "Mouse control ClassNN: " controlClassNN "`r`n"
-
-    focusHwnd := 0
-    try focusHwnd := ControlGetFocus("ahk_id " hwnd)
-    catch as err
-        lines .= "Win32 focused hwnd: error - " err.Message "`r`n"
-    if focusHwnd {
-        lines .= "Win32 focused hwnd: " focusHwnd "`r`n"
-        try lines .= "Win32 focused ClassNN: " ControlGetClassNN(focusHwnd) "`r`n"
-    } else {
-        lines .= "Win32 focused hwnd: none`r`n"
-    }
-
-    srsClassNN := controlClassNN != "" ? GetG3PacsSrsControlForFocusClassNN(controlClassNN, hwnd) : ""
-    lines .= "Mapped Srs ClassNN: " (srsClassNN != "" ? srsClassNN : "not found") "`r`n"
-    srsState := srsClassNN != "" ? GetG3PacsSrsControlFocusState(srsClassNN, hwnd) : "unknown"
-    lines .= "Active decision: " srsState " (Srs target active #1B1D20, inactive #4B4D5D)`r`n"
-
-    if (srsClassNN = "")
-        return lines
-
-    try lines .= "Srs text: " Trim(ControlGetText(srsClassNN, hwnd)) "`r`n"
-    catch as err
-        lines .= "Srs text: error - " err.Message "`r`n"
-
-    try {
-        ControlGetPos(&x, &y, &w, &h, srsClassNN, hwnd)
-        lines .= "Srs client rect: x=" x " y=" y " w=" w " h=" h "`r`n"
-
-        pt := Buffer(8, 0)
-        NumPut("int", x, pt, 0)
-        NumPut("int", y, pt, 4)
-        DllCall("ClientToScreen", "ptr", hwnd, "ptr", pt)
-        screenX := NumGet(pt, 0, "int")
-        screenY := NumGet(pt, 4, "int")
-        lines .= "Srs screen rect: x=" screenX " y=" screenY " w=" w " h=" h "`r`n"
-        lines .= GetG3PacsSrsTargetColorScanDebug(screenX, screenY, w, h)
-        lines .= GetG3PacsColorScanDebug("Srs horizontal scan y=25%", screenX, screenY + Integer(h * 0.25), w, 17)
-        lines .= GetG3PacsColorScanDebug("Srs horizontal scan y=50%", screenX, screenY + Integer(h * 0.50), w, 17)
-        lines .= GetG3PacsColorScanDebug("Srs horizontal scan y=75%", screenX, screenY + Integer(h * 0.75), w, 17)
-        lines .= "Pixel samples (screen x,y RGB brightness):`r`n"
-
-        samplePoints := [
-            [0.15, 0.25], [0.50, 0.25], [0.85, 0.25],
-            [0.15, 0.50], [0.50, 0.50], [0.85, 0.50],
-            [0.15, 0.75], [0.50, 0.75], [0.85, 0.75],
-        ]
-        for point in samplePoints {
-            px := screenX + Integer(w * point[1])
-            py := screenY + Integer(h * point[2])
-            sample := GetG3PacsScreenPixelColor(px, py)
-            lines .= "  " px "," py " " sample.hex " brightness=" sample.brightness "`r`n"
-        }
-    } catch as err {
-        lines .= "Srs rect/samples: error - " err.Message "`r`n"
-    }
-
-    return lines
-}
-
-GetG3PacsSrsTargetColorScanDebug(screenX, screenY, width, height) {
-    activeCount := 0
-    inactiveCount := 0
-    activeHits := ""
-    inactiveHits := ""
-    xStep := 16
-    lines := "Srs target color scan step=" xStep " (active #1B1D20, inactive #4B4D5D):`r`n"
-
-    for yRatio in [0.25, 0.50, 0.75] {
-        py := screenY + Integer(height * yRatio)
-        x := screenX + 2
-        while (x <= screenX + width - 3) {
-            px := x
-            sample := GetG3PacsScreenPixelColor(px, py)
-            if sample.ok && IsG3PacsColorNear(sample, 0x1B, 0x1D, 0x20, 18) {
-                activeCount += 1
-                if (activeCount <= 12)
-                    activeHits .= "  active " px "," py " " sample.hex " b=" sample.brightness "`r`n"
-            } else if sample.ok && IsG3PacsColorNear(sample, 0x4B, 0x4D, 0x5D, 18) {
-                inactiveCount += 1
-                if (inactiveCount <= 12)
-                    inactiveHits .= "  inactive " px "," py " " sample.hex " b=" sample.brightness "`r`n"
-            }
-            x += xStep
-        }
-    }
-
-    lines .= "  active-like count: " activeCount "`r`n"
-    lines .= "  inactive-like count: " inactiveCount "`r`n"
-    lines .= activeHits
-    lines .= inactiveHits
-    return lines
-}
-
-GetG3PacsColorScanDebug(label, startX, startY, length, sampleCount, vertical := false) {
-    if (length <= 0 || sampleCount <= 0)
-        return label ": invalid scan`r`n"
-
-    step := sampleCount > 1 ? length / (sampleCount - 1) : 0
-    colors := Map()
-    minBrightness := 255
-    maxBrightness := 0
-    sumBrightness := 0
-    lines := label " (" (vertical ? "vertical" : "horizontal") ", samples=" sampleCount "):`r`n"
-
-    Loop sampleCount {
-        offset := Integer((A_Index - 1) * step)
-        px := vertical ? startX : startX + offset
-        py := vertical ? startY + offset : startY
-        sample := GetG3PacsScreenPixelColor(px, py)
-        colors[sample.hex] := colors.Has(sample.hex) ? colors[sample.hex] + 1 : 1
-        minBrightness := Min(minBrightness, sample.brightness)
-        maxBrightness := Max(maxBrightness, sample.brightness)
-        sumBrightness += sample.brightness
-        lines .= "  " px "," py " " sample.hex " b=" sample.brightness "`r`n"
-    }
-
-    lines .= "  brightness min/avg/max=" minBrightness "/" Round(sumBrightness / sampleCount, 1) "/" maxBrightness "`r`n"
-    lines .= "  unique colors: " FormatG3PacsColorCounts(colors) "`r`n"
-    return lines
-}
-
-FormatG3PacsColorCounts(colors) {
-    output := ""
-    for color, count in colors {
-        output .= (output != "" ? ", " : "") color "=" count
-    }
-    return output
 }
 
 HandleG3PacsLeftClick() {
