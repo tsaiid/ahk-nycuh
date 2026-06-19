@@ -215,6 +215,7 @@ class RisController {
     static _isAIPending  := false ; [新增] AI 請求中旗標
     static _isIndicationPending := false ; [新增] indication 產生中旗標
     static _pendingIndicationInsert := false ; [新增] indication 完成後插入請求
+    static _pendingIndicationInsertAfter := ""
     static _isShellHookEnabled := false ; [新增] ShellHook 狀態旗標
     static _shellTrack := Map()         ; [新增] 用於紀錄每個 HWND 的處理狀態 {time: TickCount, timer: Func}
     static _shellTrackTTL := 15000
@@ -2166,6 +2167,14 @@ class RisController {
         }
 
         return ""
+    }
+
+    static GetIndicationFollowupSuffix() {
+        comparisonDate := this.GetComparisonDate()
+        if (comparisonDate != "") {
+            return "COMPARISON: " . comparisonDate . "`r`n`r`nFINDINGS:`r`n"
+        }
+        return "FINDINGS:`r`n"
     }
 
     static _GetCurrentMRN() {
