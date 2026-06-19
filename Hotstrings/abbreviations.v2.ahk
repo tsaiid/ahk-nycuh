@@ -49,6 +49,7 @@
 ::abpa::allergic bronchopulmonary aspergillosis
 ::tib::tree-in-bud appearance
 ::pfn::perifissural nodule
+::pn::previously noted
 ::itho::intrathoracic `
 ::cle::centrilobular emphysema
 ::tbc::tracheobronchial calcification
