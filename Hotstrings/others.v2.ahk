@@ -361,8 +361,8 @@
 ::tz::transitional zone
 ::nobs::nonobstructive `
 ::obs::obstruction
-::hypoec::hypo-enhanced `
-::hyperec::hyper-enhanced `
+::hypoec::hypoenhancing `
+::hyperec::hyperenhancing `
 ::pce::post-contrast enhancement
 ::fl::fatty liver
 ::mfl::mild fatty liver
