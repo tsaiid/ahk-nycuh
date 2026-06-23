@@ -28,6 +28,7 @@ A_TrayMenu.Add("重新載入相似檢查分組設定`tWin+Ctrl+R", ReloadSimGrou
 global PRESERVE_CLIPBOARD := 0
 
 #Include <RisController.v2>
+#Include <RisHotkeyHelp.v2>
 ;#Include <UIA.v2>
 ;#Include <Paste.v2>
 ;#Include <Edit.v2>
@@ -404,6 +405,10 @@ Benchmark(funcObj, times := 1) {
 
 #HotIf ; 關閉條件判斷區
 
+#HotIf IsRisRelatedWindow()
+!h:: RisHotkeyHelp.Show()
+#HotIf
+
 ;
 ; Global Remap
 ;
@@ -450,6 +455,10 @@ IsLdctReportWindow() {
 
 IsAnyRisReportWindow() {
     return IsRisReportWindow() || IsLdctReportWindow()
+}
+
+IsRisRelatedWindow() {
+    return IsAnyRisReportWindow() || IsAbnormalWindow() || IsConsultationWindow()
 }
 
 IsRisEditContext() {
