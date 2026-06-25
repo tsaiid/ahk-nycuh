@@ -358,9 +358,11 @@ class ShuttleProController {
 
     AutoScroll() {
         if (this.ScrollDirection = 1)
-            Click "WheelDown"
+            direction := "WheelDown"
         else
-            Click "WheelUp"
+            direction := "WheelUp"
+
+        this.SendWheel(direction)
 
         ; [新增] 如果剛剛是執行「過渡的一次性 Timer」
         ; 執行完這次動作後，立刻將 Timer 設回目標的穩定循環週期
@@ -381,11 +383,38 @@ class ShuttleProController {
             diff := diff + 256
 
         ; 3. 根據修正後的 diff 執行動作
-        if (diff > 0) {
-            Click "WheelDown"
-        } else if (diff < 0) {
-            Click "WheelUp"
-        }
+        if (diff > 0)
+            direction := "WheelDown"
+        else if (diff < 0)
+            direction := "WheelUp"
+        else
+            return
+
+        this.SendWheel(direction)
+    }
+
+    SendWheel(direction) {
+        if this.TryFocusG3PacsUnderMouseAndScroll(direction)
+            return
+
+        Click direction
+    }
+
+    TryFocusG3PacsUnderMouseAndScroll(direction) {
+        MouseGetPos(,, &hwnd)
+        if !hwnd
+            return false
+
+        try processName := WinGetProcessName("ahk_id " hwnd)
+        catch
+            return false
+        if (processName != "G3PACS.exe")
+            return false
+
+        if !WinActive("ahk_id " hwnd)
+            WinActivate("ahk_id " hwnd)
+        Click direction
+        return true
     }
 
     ExecuteStartup() {
