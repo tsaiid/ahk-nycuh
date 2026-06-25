@@ -58,7 +58,7 @@ ClickG3PacsUnderMouseAndSendKey(keyName) {
         RecordG3PacsLeftClick(mouseX, mouseY)
     }
     Send("{" keyName "}")
-    Sleep(100)
+    Sleep(10)
     SendG3PacsMprNavigationKey(hwnd, controlHwnd)
 }
 
