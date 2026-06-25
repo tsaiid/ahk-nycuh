@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$TestPath,
-    [string]$AhkExe = "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe"
+    [string]$AhkExe = "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe",
+    [int]$TimeoutSeconds = 30
 )
 
 $ErrorActionPreference = "Stop"
@@ -49,18 +50,38 @@ $failedCount = 0
 foreach ($testFile in $testFiles) {
     Write-Host "Running $($testFile.FullName)"
 
+    $wrapperPath = Join-Path $env:TEMP ("ahk-test-wrapper-" + [System.Guid]::NewGuid().ToString("N") + ".ahk")
     $stdoutPath = Join-Path $env:TEMP ("ahk-test-stdout-" + [System.Guid]::NewGuid().ToString("N") + ".log")
     $stderrPath = Join-Path $env:TEMP ("ahk-test-stderr-" + [System.Guid]::NewGuid().ToString("N") + ".log")
 
     try {
+        $escapedTestPath = $testFile.FullName.Replace('"', '""')
+        $wrapperContent = @(
+            "#Requires AutoHotkey v2.0"
+            "#Warn All, StdOut"
+            "#ErrorStdOut"
+            ('#Include "{0}"' -f $escapedTestPath)
+        )
+        Set-Content -LiteralPath $wrapperPath -Value $wrapperContent -Encoding ascii
+
         $testProcess = Start-Process `
             -FilePath $AhkExe `
-            -ArgumentList $testFile.FullName `
+            -ArgumentList $wrapperPath `
             -RedirectStandardOutput $stdoutPath `
             -RedirectStandardError $stderrPath `
-            -Wait `
             -PassThru `
             -NoNewWindow
+
+        $null = $testProcess.Handle
+        if (-not $testProcess.WaitForExit($TimeoutSeconds * 1000)) {
+            $testProcess.Kill()
+            $testProcess.WaitForExit()
+            Write-Host "FAIL Test timed out after $TimeoutSeconds seconds."
+            $failedCount += 1
+            continue
+        }
+        $testProcess.WaitForExit()
+        $testProcess.Refresh()
 
         if (Test-Path -LiteralPath $stdoutPath) {
             Get-Content -LiteralPath $stdoutPath | Write-Host
@@ -71,6 +92,7 @@ foreach ($testFile in $testFiles) {
         }
 
         if ($testProcess.ExitCode -ne 0) {
+            Write-Host "FAIL AutoHotkey exited with code $($testProcess.ExitCode)."
             $failedCount += 1
         }
     } finally {
@@ -80,6 +102,10 @@ foreach ($testFile in $testFiles) {
 
         if (Test-Path -LiteralPath $stderrPath) {
             Remove-Item -LiteralPath $stderrPath -Force
+        }
+
+        if (Test-Path -LiteralPath $wrapperPath) {
+            Remove-Item -LiteralPath $wrapperPath -Force
         }
     }
 }

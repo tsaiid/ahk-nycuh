@@ -8,7 +8,9 @@ class RisAIOrchestration {
     }
 
     static NormalizeImpressionResult(result) {
-        return Trim(this.NormalizeResult(result), " `t`r`n")
+        result := this.NormalizeResult(result)
+        result := RegExReplace(result, "m)[ `t]+(?=`r?$)", "")
+        return Trim(result, " `t`r`n")
     }
 
     static FormatCompleteNotify(title, apiKeyName, modelName, detail := "") {
