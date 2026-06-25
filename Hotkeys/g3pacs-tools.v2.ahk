@@ -52,6 +52,31 @@ ClickG3PacsUnderMouseAndSendKey(keyName) {
         RecordG3PacsLeftClick(mouseX, mouseY)
     }
     Send("{" keyName "}")
+    Sleep(100)
+    SendG3PacsMprNavigationKey(hwnd, controlHwnd)
+}
+
+SendG3PacsMprNavigationKey(hwnd, controlHwnd) {
+    if !hwnd || !controlHwnd
+        return
+
+    try controlClassNN := ControlGetClassNN(controlHwnd)
+    catch {
+        return
+    }
+
+    controls := GetG3PacsSeriesControlsForFocusClassNN(controlClassNN, hwnd)
+    if !controls
+        return
+
+    try descVal := ControlGetText(controls.desc, hwnd)
+    catch {
+        return
+    }
+
+    if RegExMatch(descVal, "i)MPR|MIP|COR|SAG")
+        && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")
+        Send("y")
 }
 
 IsG3PacsActiveSeriesUnderMouse(hwnd, controlHwnd) {
@@ -88,6 +113,11 @@ TryControlClickG3PacsSrsUnderMouse(hwnd, controlHwnd) {
 }
 
 GetG3PacsSrsControlForFocusClassNN(focusClassNN, hwnd) {
+    controls := GetG3PacsSeriesControlsForFocusClassNN(focusClassNN, hwnd)
+    return controls ? controls.srs : ""
+}
+
+GetG3PacsSeriesControlsForFocusClassNN(focusClassNN, hwnd) {
     static classPrefix := "Afx:00400000:b:00000000:00000013:00000000"
     static configs := [
         [3, 10, 29, 101],
@@ -127,11 +157,11 @@ GetG3PacsSrsControlForFocusClassNN(focusClassNN, hwnd) {
             srsClassNN := "AfxWnd140u" . (cfg[3] + (offset * 3))
             descClassNN := "Button" . (cfg[4] + (offset * 5))
             if IsG3PacsSeriesPatternMatch(srsClassNN, imgClassNN, descClassNN, focusClassNN, hwnd)
-                return srsClassNN
+                return {srs: srsClassNN, img: imgClassNN, desc: descClassNN}
         }
     }
 
-    return ""
+    return false
 }
 
 IsG3PacsSeriesPatternMatch(srsClassNN, imgClassNN, descClassNN, focusClassNN, hwnd) {
