@@ -1,4 +1,10 @@
 #Requires AutoHotkey v2.0
+#Include <RisConfig.v2>
+#Include <RisAIService.v2>
+#Include <RisAIOrchestration.v2>
+#Include <RisAIDebugGui.v2>
+#Include <G3PacsNotify.v2>
+
 A_MaxHotkeysPerInterval := 200
 
 ;; for INFINITT PACS
