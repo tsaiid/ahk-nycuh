@@ -4,6 +4,7 @@
 #Include <RisAIOrchestration.v2>
 #Include <RisAIDebugGui.v2>
 #Include <G3PacsNotify.v2>
+#Include <G3PacsProbe.v2>
 
 A_MaxHotkeysPerInterval := 200
 
@@ -71,7 +72,7 @@ SendG3PacsMprNavigationKey(hwnd, controlHwnd) {
         return
     }
 
-    controls := GetG3PacsSeriesControlsForFocusClassNN(controlClassNN, hwnd)
+    controls := G3PacsProbe.GetSeriesControlsForFocusClassNN(controlClassNN, hwnd)
     if !controls
         return
 
@@ -94,7 +95,7 @@ IsG3PacsActiveSeriesUnderMouse(hwnd, controlHwnd) {
         return false
     }
 
-    srsClassNN := GetG3PacsSrsControlForFocusClassNN(controlClassNN, hwnd)
+    srsClassNN := G3PacsProbe.GetSrsControlForFocusClassNN(controlClassNN, hwnd)
     return srsClassNN != "" && GetG3PacsSrsControlFocusState(srsClassNN, hwnd) = "active"
 }
 
@@ -107,101 +108,13 @@ TryControlClickG3PacsSrsUnderMouse(hwnd, controlHwnd) {
         return false
     }
 
-    srsClassNN := GetG3PacsSrsControlForFocusClassNN(controlClassNN, hwnd)
+    srsClassNN := G3PacsProbe.GetSrsControlForFocusClassNN(controlClassNN, hwnd)
     if (srsClassNN = "")
         return false
 
     try {
         ControlClick(srsClassNN, "ahk_id " hwnd,, "Left", 1, "NA")
         return true
-    }
-    return false
-}
-
-GetG3PacsSrsControlForFocusClassNN(focusClassNN, hwnd) {
-    controls := GetG3PacsSeriesControlsForFocusClassNN(focusClassNN, hwnd)
-    return controls ? controls.srs : ""
-}
-
-GetG3PacsSeriesControlsForFocusClassNN(focusClassNN, hwnd) {
-    static classPrefix := "Afx:00400000:b:00000000:00000013:00000000"
-    static configs := [
-        [3, 10, 29, 101],
-        [3, 10, 31, 101],
-        [3, 10, 33, 101],
-        [3, 10, 35, 101],
-        [3, 10, 37, 101],
-        [3, 10, 39, 101],
-        [3, 10, 41, 101],
-        [3, 10, 43, 101],
-        [3, 10, 45, 101],
-        [3, 10, 47, 101],
-        [3, 10, 49, 101],
-        [3, 10, 51, 101],
-        [3, 10, 53, 101],
-        [3, 10, 55, 101],
-        [5, 57, 29, 185],
-        [5, 57, 31, 185],
-        [5, 57, 37, 185],
-        [5, 57, 39, 185],
-        [5, 57, 41, 185],
-        [5, 57, 43, 185],
-        [5, 57, 45, 185],
-        [5, 57, 47, 185],
-        [5, 57, 49, 185],
-        [5, 57, 51, 185],
-        [5, 57, 53, 185],
-    ]
-
-    for cfg in configs {
-        Loop 8 {
-            offset := A_Index - 1
-            expectedFocusNN := classPrefix . (cfg[1] + offset)
-            if (focusClassNN != expectedFocusNN)
-                continue
-
-            imgClassNN := "ComboBox" . (cfg[2] + (offset * 6))
-            srsClassNN := "AfxWnd140u" . (cfg[3] + (offset * 3))
-            descClassNN := "Button" . (cfg[4] + (offset * 5))
-            if IsG3PacsSeriesPatternMatch(srsClassNN, imgClassNN, descClassNN, focusClassNN, hwnd)
-                return {srs: srsClassNN, img: imgClassNN, desc: descClassNN}
-        }
-    }
-
-    return false
-}
-
-IsG3PacsSeriesPatternMatch(srsClassNN, imgClassNN, descClassNN, focusClassNN, hwnd) {
-    try {
-        srsText := ControlGetText(srsClassNN, hwnd)
-        if !InStr(srsText, "VMTool")
-            return false
-
-        descText := ControlGetText(descClassNN, hwnd)
-        if !RegExMatch(descText, "^\(\d+\)\s")
-            return false
-    } catch {
-        return false
-    }
-
-    return IsG3PacsSpatialControlMatch(srsClassNN, focusClassNN, hwnd)
-        && IsG3PacsSpatialControlMatch(imgClassNN, focusClassNN, hwnd)
-        && IsG3PacsSpatialControlMatch(descClassNN, focusClassNN, hwnd)
-}
-
-IsG3PacsSpatialControlMatch(childClassNN, focusClassNN, hwnd) {
-    try {
-        ControlGetPos(&childX, &childY, &childW, &childH, childClassNN, hwnd)
-        ControlGetPos(&focusX, &focusY, &focusW, &focusH, focusClassNN, hwnd)
-        if (childW <= 0 || childH <= 0 || focusW <= 0 || focusH <= 0)
-            return false
-
-        childBottom := childY + childH
-        if (Abs(focusY - childBottom) > 50)
-            return false
-
-        childCenterX := childX + (childW / 2)
-        return childCenterX >= (focusX - 10) && childCenterX <= (focusX + focusW + 10)
     }
     return false
 }

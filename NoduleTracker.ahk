@@ -36,6 +36,7 @@
 #Include <Acc.v2>
 #Include <OCR.v2>
 #Include <G3PacsNotify.v2>
+#Include <G3PacsProbe.v2>
 
 ; ==============================================================================
 ; ★ 類別定義 (階段一：架構與狀態遷移)
@@ -78,7 +79,7 @@ class NoduleTracker {
         CoordMode("Mouse", "Screen")
         CoordMode("ToolTip", "Screen")
 
-        this.GenerateMaps()
+        this.PatternList := G3PacsProbe.GetPatternList()
         this.OptimizePatternOrder() ; 初始化時依照歷史命中率重新排序 PatternList
 
         this.UpdateGUI()
@@ -128,57 +129,6 @@ class NoduleTracker {
             A_TrayMenu.Check(itemName)
         } else {
             A_TrayMenu.Uncheck(itemName)
-        }
-    }
-
-    GenerateMaps() {
-        classPrefix := "Afx:00400000:b:00000000:00000013:00000000"
-        this.PatternList := []
-
-        ; ★ 極簡配置：只需依序填入 [Focus起始, Img Combo起始, Afx起始, Desc起始]
-        ; Img 影像組 Combo 由 Img Combo +3 推導，列遞增同樣為 +6。
-        configs := [
-            [3, 10, 29, 101],
-            [3, 10, 31, 101],
-            [3, 10, 33, 101],
-            [3, 10, 35, 101],
-            [3, 10, 37, 101],
-            [3, 10, 39, 101],
-            [3, 10, 41, 101],
-            [3, 10, 43, 101],
-            [3, 10, 45, 101],
-            [3, 10, 47, 101],
-            [3, 10, 49, 101],
-            [3, 10, 51, 101],
-            [3, 10, 53, 101],
-            [3, 10, 55, 101],
-            [5, 57, 29, 185],
-            [5, 57, 31, 185],
-            [5, 57, 37, 185],
-            [5, 57, 39, 185],
-            [5, 57, 41, 185],
-            [5, 57, 43, 185],
-            [5, 57, 45, 185],
-            [5, 57, 47, 185],
-            [5, 57, 49, 185],
-            [5, 57, 51, 185],
-            [5, 57, 53, 185],
-        ]
-
-        for idx, cfg in configs {
-            pMap := Map()
-            pName := "Pattern_" . cfg[1] . "_" . cfg[2] . "_" . cfg[3] . "_" . cfg[4]
-
-            Loop 8 {
-                i := A_Index - 1
-                f := classPrefix . (cfg[1] + i)
-                c := "ComboBox" . (cfg[2] + (i * 6))
-                g := "ComboBox" . (cfg[2] + 3 + (i * 6))
-                a := "AfxWnd140u" . (cfg[3] + (i * 3))
-                d := "Button" . (cfg[4] + (i * 5))
-                pMap[f] := {img: c, imgGroup: g, srs: a, desc: d, type: pName}
-            }
-            this.PatternList.Push({name: pName, map: pMap})
         }
     }
 
@@ -255,53 +205,18 @@ class NoduleTracker {
         return {srs: "", img: "", valid: false, error: "Probe 失敗 (" . lastError . ")，Acc 也失敗 (" . accError . ")"}
     }
 
-    FindPatternMatch(focusNN, hwnd) {
-        for patternData in this.PatternList {
-            pMap := patternData.map
-            if (pMap.Has(focusNN)) {
-                candidate := pMap[focusNN]
-
-                ; [修正] 除了空間驗證，還需驗證 Series 標籤文字 (VMTool)
-                try {
-                    srsText := ControlGetText(candidate.srs, hwnd)
-                    if (!InStr(srsText, "VMTool"))
-                        continue
-                } catch {
-                    continue
-                }
-
-                if (this.VerifySpatialMatch(candidate.srs, focusNN, hwnd) &&
-                    this.VerifySpatialMatch(candidate.img, focusNN, hwnd) &&
-                    this.VerifySpatialMatch(candidate.desc, focusNN, hwnd)) {
-
-                    ; [新增] 驗證 Description 控制項文字格式 (必須符合 "(從1開始的數字) 文字")
-                    try {
-                        descText := ControlGetText(candidate.desc, hwnd)
-                        if (!RegExMatch(descText, "^\(\d+\)\s"))
-                            continue
-                    } catch {
-                        continue
-                    }
-
-                    return {candidate: candidate, name: patternData.name, desc: descText}
-                }
-            }
-        }
-        return ""
-    }
-
     GetInfo_ByProbe() {
         try {
             ; 優先從滑鼠位置獲取控制項與視窗 (與 ProbeControl 同步，解決焦點不一致問題)
             MouseGetPos(,, &hwnd, &focusNN)
-            match := this.FindPatternMatch(focusNN, hwnd)
+            match := G3PacsProbe.GetSeriesMatchForFocusClassNN(focusNN, hwnd, this.PatternList)
 
             ; 如果滑鼠位置未命中，再嘗試當前視窗焦點
             if (!match) {
                 hwnd := WinActive("A")
                 if (focusHwnd := ControlGetFocus(hwnd)) {
                     focusNN := ControlGetClassNN(focusHwnd)
-                    match := this.FindPatternMatch(focusNN, hwnd)
+                    match := G3PacsProbe.GetSeriesMatchForFocusClassNN(focusNN, hwnd, this.PatternList)
                 }
             }
 
@@ -580,7 +495,7 @@ class NoduleTracker {
         accProbeNums := {focus: focusNum, img: "", srs: "", desc: ""}
         suggestedProbeReport := ""
         matchFound := false
-        match := this.FindPatternMatch(ctrlClassNN, hwnd)
+        match := G3PacsProbe.GetSeriesMatchForFocusClassNN(ctrlClassNN, hwnd, this.PatternList)
         if (match) {
             candidate := match.candidate
             msg .= "🎯 探針命中: " this.FormatPatternName(match.name) "`n"
@@ -852,7 +767,7 @@ class NoduleTracker {
                 msg .= "- 目標焦點: " focusNN "`n"
                 targetCombo := ""
                 method := ""
-                match := this.FindPatternMatch(focusNN, targetHwnd)
+                match := G3PacsProbe.GetSeriesMatchForFocusClassNN(focusNN, targetHwnd, this.PatternList)
                 if (match) {
                     targetCombo := match.candidate.img
                     method := "Probe (" match.name ")"
@@ -1317,26 +1232,6 @@ class NoduleTracker {
 
     ; --- 輔助方法 (Helpers) ---
 
-    VerifySpatialMatch(childNN, focusNN, hwnd) {
-        try {
-            ControlGetPos(&cX, &cY, &cW, &cH, childNN, hwnd)
-            ControlGetPos(&fX, &fY, &fW, &fH, focusNN, hwnd)
-            focusTop := fY
-            srsBottom := cY + cH
-            if (Abs(focusTop - srsBottom) > 50) {
-                return false
-            }
-            centerX := cX + (cW / 2)
-            hMargin := 10
-            if !(centerX >= (fX - hMargin) && centerX <= (fX + fW + hMargin)) {
-                return false
-            }
-            return true
-        } catch {
-            return false
-        }
-    }
-
     ParseSrs(text) {
         splitText := StrSplit(text, ",")
         if (splitText.Length > 0) {
@@ -1517,7 +1412,7 @@ class NoduleTracker {
         if (!IsNumber(info.value) || imgGroupClassNN == "") {
             return info
         }
-        if (focusNN != "" && !this.VerifySpatialMatch(imgGroupClassNN, focusNN, hwnd)) {
+        if (focusNN != "" && !G3PacsProbe.IsSpatialControlMatch(imgGroupClassNN, focusNN, hwnd)) {
             return info
         }
 
