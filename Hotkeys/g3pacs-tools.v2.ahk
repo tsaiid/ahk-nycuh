@@ -150,6 +150,7 @@ GetG3PacsSeriesControlsForFocusClassNN(focusClassNN, hwnd) {
         [5, 57, 47, 185],
         [5, 57, 49, 185],
         [5, 57, 51, 185],
+        [5, 57, 53, 185],
     ]
 
     for cfg in configs {
