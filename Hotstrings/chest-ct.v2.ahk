@@ -30,6 +30,7 @@
 ::cctnc::*PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
 ::cctnat::No abnormal air trapping in both inspiratory and expiratory phases.
 ::cctlok::No suspicious pulmonary nodule or consolidation.
+::cctali::Bilateral peribronchovascular ground-glass opacities and small consolidations, with a patchy and/or gravity-dependent distribution. DDx: acute lung injury, pulmonary edema, atypical pneumonia.
 ::cadr0::CAD-RADS 0: Documented absence of CAD.
 ::cadr1::CAD-RADS 1: Minimal non-obstructive CAD. Consider preventive therapy and risk factor modification.
 ::cadr2::CAD-RADS 2: Mild non-obstructive CAD. Consider preventive therapy and risk factor modification, particularly for patients with non-obstructive plaque in multiple segments.
