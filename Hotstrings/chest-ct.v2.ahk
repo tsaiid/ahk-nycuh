@@ -29,6 +29,7 @@
 ::mmvcal::mild calcification of the mitral valve.
 ::cctnc::*PS. The evaluation is limited especially for solid organs and vascular structure due to absence of contrast enhancement.
 ::cctnat::No abnormal air trapping in both inspiratory and expiratory phases.
+::cctsi::Increased ground-glass opacities in the dependent portions of both lungs, likely due to suboptimal inspiration.
 ::cctlok::No suspicious pulmonary nodule or consolidation.
 ::cctali::Bilateral peribronchovascular ground-glass opacities and small consolidations, with a patchy and/or gravity-dependent distribution. DDx: acute lung injury, pulmonary edema, atypical pneumonia.
 ::cadr0::CAD-RADS 0: Documented absence of CAD.
