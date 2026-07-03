@@ -1,5 +1,14 @@
 #Requires AutoHotkey v2.0
 
+#Include .\RisConfig.v2.ahk
+#Include .\RisAIConfigResolver.v2.ahk
+#Include .\RisAIProviderPolicy.v2.ahk
+#Include .\RisAIRequestBuilder.v2.ahk
+#Include .\RisAITransport.v2.ahk
+#Include .\RisAIDebug.v2.ahk
+#Include .\RisAIModelHealth.v2.ahk
+#Include .\RisAIOrchestration.v2.ahk
+
 /**
  * 負責 AI provider 的調度、重試、快取與傳輸協調
  */

@@ -1,5 +1,7 @@
 #Requires AutoHotkey v2.0
 
+#Include .\RisAIDebug.v2.ahk
+
 /**
  * 負責 AI 相關的 Debug 與比對 GUI
  */

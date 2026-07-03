@@ -1,5 +1,8 @@
 #Requires AutoHotkey v2.0
 
+#Include .\RisAIProviderPolicy.v2.ahk
+#Include .\RisAIText.v2.ahk
+
 class RisAIOrchestration {
     static NormalizeResult(result) {
         result := StrReplace(result, "`r`n", "`n")
