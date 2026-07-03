@@ -1058,6 +1058,7 @@ class RisController {
         try {
             examType := this._GetCurrExamType()
             hEdit := this.FindingEdit.NativeWindowHandle
+            ControlFocus(hEdit)
 
             switch examType {
                 case "CT", "MR": this._FormatFindingForAdvanced(hEdit)
