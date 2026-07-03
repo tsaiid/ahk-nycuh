@@ -5215,6 +5215,7 @@ static CreateNotificationEventHandler(funcObj) => UIA.CreateEventHandler(funcObj
 
 class IUIAutomationEventHandler {
     static __IID := "{146c3c17-f12e-4e22-8c27-f894b9b79c69}"
+    EventHandler := 0
 
     HandleAutomationEvent(pSelf, sender, eventId) {
         ObjAddRef(sender), this.EventHandler.Call(UIA.IUIAutomationElement(sender), eventId&0xFFFFFFFF)
@@ -5222,6 +5223,7 @@ class IUIAutomationEventHandler {
 }
 class IUIAutomationFocusChangedEventHandler {
     static __IID := "{c270f6b5-5c69-4290-9745-7a7f97169468}"
+    EventHandler := 0
 
     HandleFocusChangedEvent(pSelf, sender) {
         ObjAddRef(sender), this.EventHandler.Call(UIA.IUIAutomationElement(sender))
@@ -5235,6 +5237,7 @@ class IUIAutomationFocusChangedEventHandler {
 class IUIAutomationPropertyChangedEventHandler { ; UNTESTED
     ;~ http://msdn.microsoft.com/en-us/library/windows/desktop/ee696119(v=vs.85).aspx
     static __IID := "{40cd37d4-c756-4b0c-8c6f-bddfeeb13b50}"
+    EventHandler := 0
 
     HandlePropertyChangedEvent(pSelf, sender, propertyId, newValue) {
         local val := ComValue(0x400C, newValue)[]
@@ -5249,6 +5252,7 @@ class IUIAutomationPropertyChangedEventHandler { ; UNTESTED
 class IUIAutomationStructureChangedEventHandler {
     ;~ http://msdn.microsoft.com/en-us/library/windows/desktop/ee696197(v=vs.85).aspx
     static __IID := "{e81d1b4e-11c5-42f8-9754-e7036c79f054}"
+    EventHandler := 0
 
     HandleStructureChangedEvent(pSelf, sender, changeType, runtimeId) {
         ObjAddRef(sender), this.EventHandler.Call(UIA.IUIAutomationElement(sender), changeType&0xFFFFFFFF, UIA.SafeArrayToAHKArray(runtimeId))
@@ -5262,6 +5266,7 @@ class IUIAutomationStructureChangedEventHandler {
 class IUIAutomationTextEditTextChangedEventHandler { ; UNTESTED
     ;~ http://msdn.microsoft.com/en-us/library/windows/desktop/dn302202(v=vs.85).aspx
     static __IID := "{92FAA680-E704-4156-931A-E32D5BB38F3F}"
+    EventHandler := 0
 
     HandleTextEditTextChangedEvent(pSelf, sender, changeType, eventStrings) {
         local val := ComValue(0x400C, eventStrings)[]
@@ -5276,6 +5281,7 @@ class IUIAutomationTextEditTextChangedEventHandler { ; UNTESTED
 */
 class IUIAutomationChangesEventHandler { ; UNTESTED
     static __IID := "{58EDCA55-2C3E-4980-B1B9-56C17F27A2A0}"
+    EventHandler := 0
 
     HandleChangesEvent(pSelf, sender, uiaChanges, changesCount) {
         local changes, pExtraInfo
@@ -5290,6 +5296,7 @@ class IUIAutomationChangesEventHandler { ; UNTESTED
 */
 class IUIAutomationNotificationEventHandler {
     static __IID := "{C7CB2637-E6C2-4D0C-85DE-4948C02175C7}"
+    EventHandler := 0
 
     HandleNotificationEvent(pSelf, sender, notificationKind, notificationProcessing, displayString, activityId) {
         ObjAddRef(sender), this.EventHandler.Call(UIA.IUIAutomationElement(sender), notificationKind, notificationProcessing, UIA.BSTR(displayString), UIA.BSTR(activityId))
