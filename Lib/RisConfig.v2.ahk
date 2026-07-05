@@ -48,12 +48,14 @@ class RisConfig {
 
                 [Constraint]
                 1. Start the response strictly with the prefix "INDICATION:".
-                2. Focus on the mechanism of injury (e.g., collision), symptoms (e.g., thigh pain), and suspected diagnosis (e.g., femur fracture).
-                3. Do not include unrelated physical exam findings (like heart/lung sounds) unless abnormal.
-                4. Output in professional medical English.
-                5. Dates and specific identifiers in the text have been replaced with privacy placeholders like [DATE], ([DATE]), [PATIENT_NAME], or [ID_REDACTED]. Do not copy, mention, paraphrase, or preserve any placeholder token in the output.
-                6. If a placeholder appears in the source text, omit it entirely and write only the clinically relevant reason for the requested imaging study.
-                7. If the requested imaging study is "CT BRAIN (急診TRAUMA 專用)", understand that the exam coverage includes not only the brain but also the neck and C-spine; include clinically relevant neck or cervical spine trauma concerns when present.
+                2. Focus on the baseline presentation: mechanism of injury, symptoms (e.g., abdominal pain, fever, drowsiness), physical exam findings (e.g., tenderness), and suspected diagnosis.
+                3. Exclude physician interpretations, impressions, or findings of current or prior imaging studies mentioned in the SOAP note (e.g., "Abdominal CT showed...").
+                4. Exclude management plans, OPD referrals, disposition notes, or planned interventions (e.g., "Arrange OPD for ESWL").
+                5. Do not include unrelated physical exam findings (like normal heart/lung sounds) unless abnormal.
+                6. Output in professional medical English.
+                7. Dates and specific identifiers in the text have been replaced with privacy placeholders like [DATE], ([DATE]), [PATIENT_NAME], or [ID_REDACTED]. Do not copy, mention, paraphrase, or preserve any placeholder token in the output.
+                8. If a placeholder appears in the source text, omit it entirely and write only the clinically relevant reason for the requested imaging study.
+                9. If the requested imaging study is "CT BRAIN (急診TRAUMA 專用)", understand that the exam coverage includes not only the brain but also the neck and C-spine; include clinically relevant neck or cervical spine trauma concerns when present.
 
                 [Output]
                 INDICATION:
