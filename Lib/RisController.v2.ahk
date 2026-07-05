@@ -705,6 +705,7 @@ class RisController {
             try {
                 pastImp := this.GetText(this.PastImpressionText)
                 pastFind := this.GetText(this.PastFindingText)
+                pastFind := RisReportText.ExtractPastFinding(pastFind)
                 hImpEdit := this.ImpressionEdit.NativeWindowHandle
                 hFindEdit := this.FindingEdit.NativeWindowHandle
             } catch {
@@ -728,7 +729,7 @@ class RisController {
                 currentLen := StrLen(currentText)
 
                 RisEditControl.SetSel(hEdit, currentLen, currentLen)
-                if (currentLen > 0) {
+                if (currentLen > 0 && SubStr(currentText, -1) != "`n") {
                     textToAppend := "`r`n" . textToAppend
                 }
 

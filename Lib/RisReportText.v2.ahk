@@ -174,4 +174,17 @@ class RisReportText {
         trailingNewlines := StrReplace(trailingNewlines, "`r", "`n")
         return StrReplace(trailingNewlines, "`n", "`r`n")
     }
+
+    static ExtractPastFinding(text) {
+        if (text == "") {
+            return ""
+        }
+
+        if RegExMatch(text, "is)\bINDICATION:[\s\S]*?\bFINDINGS:\s*([\s\S]*)", &match) {
+            return LTrim(match[1], " `t`r`n")
+        }
+
+        return text
+    }
 }
+
