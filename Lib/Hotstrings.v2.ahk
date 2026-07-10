@@ -41,6 +41,12 @@ hotstrings(k, a := "") {
         hotstrings("", "")
     }
 
+    isTrigger := false
+    if (k == "#TriggerKey#") {
+        isTrigger := true
+        q := a
+    }
+
     if !z {
         try {
             sd := RegRead("HKCU\Control Panel\International", "sDecimal")
@@ -69,9 +75,11 @@ hotstrings(k, a := "") {
         z := true
     }
 
-    if (a == "" and k == "") {
-        ; 取得觸發按鍵
-        q := SubStr(A_ThisHotkey, StrLen(m) + 1)
+    if (isTrigger || (a == "" and k == "")) {
+        if (!isTrigger) {
+            ; 取得觸發按鍵
+            q := SubStr(A_ThisHotkey, StrLen(m) + 1)
+        }
 
         if (q = "BS") {
             if (SubStr(s, -1) != "}")
@@ -101,6 +109,7 @@ hotstrings(k, a := "") {
             s .= q
         }
 
+        matched := false
         ; 檢查是否匹配
         loop parse, t, "`n" {
             if (A_LoopField == "")
@@ -116,17 +125,23 @@ hotstrings(k, a := "") {
             ; --- 修正點：加入 "i)" 使其不區分大小寫 ---
             if (RegExMatch(s, "i)" . pattern . "$", &match)) {
 
+                matched := true
                 len := match.Len
                 s := SubStr(s, 1, -len)
 
-                ; --- 修正點開始 ---
+                bsCount := len
+                if (isTrigger) {
+                    bsCount -= StrLen(q)
+                }
+
                 ; 發送退格鍵刪除觸發字串
-                SendInput("{BS " . len . "}")
+                if (bsCount > 0) {
+                    SendInput("{BS " . bsCount . "}")
+                }
 
                 ; 【關鍵修正】強制等待 50ms，確保應用程式處理完 Backspace
                 ; 如果不加這個，後續 Paste() 使用 EditPaste 時會發生 race condition
                 Sleep(50)
-                ; --- 修正點結束 ---
 
                 replacement := action
                 loop match.Count {
@@ -141,11 +156,13 @@ hotstrings(k, a := "") {
                 catch {
                     SendInput(replacement)
                 }
+                break
             }
         }
 
         if (StrLen(s) > w)
             s := SubStr(s, (w // 2) + 1)
+        return matched
     }
     else {
         ; 註冊模式

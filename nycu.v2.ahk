@@ -297,12 +297,16 @@ RisController.EnableShellHookFocus()
 
 #HotIf IsRisSmartListEnterContext()
     $Enter:: {
-        RisController.SmartListEnter()
+        if (!hotstrings("#TriggerKey#", "Enter")) {
+            RisController.SmartListEnter()
+        }
         Hotstring("Reset")
     }
 
     $NumpadEnter:: {
-        RisController.SmartListEnter()
+        if (!hotstrings("#TriggerKey#", "NumpadEnter")) {
+            RisController.SmartListEnter()
+        }
         Hotstring("Reset")
     }
 #HotIf
