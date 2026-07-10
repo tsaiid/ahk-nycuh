@@ -29,6 +29,7 @@ global PRESERVE_CLIPBOARD := 0
 
 #Include <RisController.v2>
 #Include <RisHotkeyHelp.v2>
+#Include Lib\Hotstrings.v2.ahk
 ;#Include <UIA.v2>
 ;#Include <Paste.v2>
 ;#Include <Edit.v2>
