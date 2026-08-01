@@ -229,6 +229,7 @@ No obvious fracture of the skull.
 No obvious fracture of the skull and facial bones.
 
 The visible paranasal sinuses and mastoids are unremarkable.
+The paranasal sinuses and mastoids are unremarkable.
 
 No obvious fracture or dislocation of the cervical spine.
   )"
