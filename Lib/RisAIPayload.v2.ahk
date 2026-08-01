@@ -37,9 +37,17 @@ class RisAIPayload {
         escapedPrompt := RisAIText.EscapeJsonString(promptText)
         payload := '{'
             . '"model":"' . RisAIText.EscapeJsonString(options.Model) . '",'
-            . '"input":[{"role":"user","content":[{"type":"input_text","text":"' . escapedPrompt . '"}]}],'
-            . '"reasoning":{"effort":"' . RisAIText.EscapeJsonString(options.ReasoningEffort) . '"},'
-            . '"temperature":' . options.Temperature
+            . '"input":[{"role":"user","content":[{"type":"input_text","text":"' . escapedPrompt . '"}]}]'
+
+        reasoningEffort := (IsObject(options) && options.HasOwnProp("ReasoningEffort")) ? StrLower(Trim(options.ReasoningEffort)) : ""
+        if (reasoningEffort != "") {
+            payload .= ',"reasoning":{"effort":"' . RisAIText.EscapeJsonString(options.ReasoningEffort) . '"}'
+        }
+
+        if ((reasoningEffort == "" || reasoningEffort == "none") && IsObject(options) && options.HasOwnProp("Temperature") && options.Temperature != "") {
+            payload .= ',"temperature":' . options.Temperature
+        }
+
         return payload . '}'
     }
 }
