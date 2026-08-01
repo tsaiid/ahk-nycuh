@@ -17,7 +17,7 @@ class RisAIConfigResolver {
             ConfigFile: configFile,
             APIKey: IniRead(configFile, "OpenAI", "APIKey", ""),
             BaseUrl: IniRead(configFile, "OpenAI", "BaseUrl", "https://api.openai.com/v1/responses"),
-            Model: IniRead(configFile, "OpenAI", "Model", "gpt-5.4-nano"),
+            Model: IniRead(configFile, "OpenAI", "Model", "gpt-5.6-luna"),
             Temperature: IniRead(configFile, "OpenAI", "Temperature", "0.2"),
             ReasoningEffort: IniRead(configFile, "OpenAI", "ReasoningEffort", "none")
         }

@@ -71,8 +71,7 @@ RIS 內建 AI 功能可在 `Lib/RisConfig.v2.ahk` 內針對 `Indication`、`Impr
 
 OpenAI API key 請放在 `config/private.ini` 的 `[OpenAI]` 區段，可共用 `APIKey`，或分別設定 `IndicationAPIKey`、`ImpressionAPIKey`、`RefineAPIKey`。目前預設策略為：
 
-- `Indication` / `Refine`: `gpt-5.4-nano`
-- `Impression`: `gpt-5.4-mini`
+- `Indication` / `Impression` / `Refine`: `gpt-5.6-luna`
 
 ## 使用方式
 
