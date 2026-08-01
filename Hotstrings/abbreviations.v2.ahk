@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 ;; Chest
 ::ggo::ground-glass opacity `
@@ -282,6 +282,7 @@
 ::nsd::nasal septum deviation
 ::tmj::temporomandibular joint
 ::sov::superior ophthalmic vein
+::np::nasopharynx
 ::npc::nasopharyngeal cancer
 ::iac::internal acoustic canal
 ::eac::external acoustic canal
