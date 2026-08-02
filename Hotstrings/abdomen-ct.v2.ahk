@@ -40,10 +40,12 @@
 ::actbkaml::Fat-containing tumors at the both kidneys, size up to __ cm, in favor of angiomyolipomas.
 ::actns::No evidence of high-attenuation stone along the urinary tracts.
 ::actbph::Enlarged prostate is noted, most likely benign prostatic hyperplasia.
+::actbphpsa::Enlarged prostate is noted, most likely benign prostatic hyperplasia. Clinical correlation and serum PSA level check are recommended.
 ::actbph1::Prostate enlargement with intravesical protrusion.
 ::mactbph1::Mild prostate enlargement with intravesical protrusion.
 ::actbphc::Enlarged prostate with calcification is noted, most likely benign prostatic hyperplasia.
 ::mactbph::Mild enlarged prostate is noted, most likely benign prostatic hyperplasia.
+::mactbphpsa::Mild prostate enlargement, favoring benign prostatic hyperplasia. Clinical correlation and serum PSA evaluation are suggested if clinically indicated.
 ::mactbphc::Mild enlarged prostate with calcification is noted, most likely benign prostatic hyperplasia.
 ::aphe::arterial phase hyperenhancement
 ::actlok::No definite liver tumor. No abnormal enhanced parenchymal lesion.
