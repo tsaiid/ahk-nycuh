@@ -56,6 +56,7 @@ class RisConfig {
                 7. Dates and specific identifiers in the text have been replaced with privacy placeholders like [DATE], ([DATE]), [PATIENT_NAME], or [ID_REDACTED]. Do not copy, mention, paraphrase, or preserve any placeholder token in the output.
                 8. If a placeholder appears in the source text, omit it entirely and write only the clinically relevant reason for the requested imaging study.
                 9. If the requested imaging study is "CT BRAIN (急診TRAUMA 專用)", understand that the exam coverage includes not only the brain but also the neck and C-spine; include clinically relevant neck or cervical spine trauma concerns when present.
+                10. If the requested imaging study is "CTA THORAX/ HEART/ AORTA WITH+ WITHOUT CONTRAST" (or similar thoracic vascular CTA), note that this exam name is shared for evaluating either the aorta (e.g., aortic dissection, aortic aneurysm) or the pulmonary arteries (e.g., pulmonary embolism/PE). Do NOT automatically default to aorta evaluation; synthesize all available clinical context (such as chest pain, shortness of breath, D-dimer, leg swelling, suspected PE vs. dissection) to accurately identify whether the primary focus is pulmonary embolism (pulmonary artery) or aortic pathology (aorta).
 
                 [Output]
                 INDICATION:
