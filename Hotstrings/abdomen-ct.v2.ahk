@@ -47,6 +47,7 @@
 ::mactbph::Mild enlarged prostate is noted, most likely benign prostatic hyperplasia.
 ::mactbphpsa::Mild prostate enlargement, favoring benign prostatic hyperplasia. Clinical correlation and serum PSA evaluation are suggested if clinically indicated.
 ::mactbphc::Mild enlarged prostate with calcification is noted, most likely benign prostatic hyperplasia.
+::actpcl::* Note: Evaluation of prostate gland and early-stage prostate cancer is limited on CT scan.
 ::aphe::arterial phase hyperenhancement
 ::actlok::No definite liver tumor. No abnormal enhanced parenchymal lesion.
 ::actthad::Areas of liver parenchymal enhancement visible only during the hepatic artery phase, suggestive of transient hepatic attenuation differences (THAD).
@@ -83,6 +84,7 @@
 ::rkuok::The right kidney and ureter are unremarkable.
 ::ubok::No obvious urinary bladder wall thickening or perivesical fat stranding.
 ::guok::No urinary obstruction. No definite high-attenuation urinary tract stone.
+::guok1::No urinary tract obstruction. No definite hyperattenuating urinary tract calculus. No filling defect on CT urography.
 ::ubgb::Gas bubbles in the urinary bladder, probably due to recent examination. Clinical correlation is suggested.
 ::appok::the appendix is normal.
 ::appok1::No evidence of acute appendicitis.
