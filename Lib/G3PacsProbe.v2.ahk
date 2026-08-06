@@ -28,6 +28,7 @@ class G3PacsProbe {
         [5, 57, 49, 185],
         [5, 57, 51, 185],
         [5, 57, 53, 185],
+        [5, 57, 53, 186],
     ]
 
     static GetPatternList() {
