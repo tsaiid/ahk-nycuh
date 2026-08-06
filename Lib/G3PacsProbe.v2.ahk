@@ -35,25 +35,31 @@ class G3PacsProbe {
     static GetPatternList() {
         patterns := []
         for cfg in this.Configs {
-            pMap := Map()
-            pName := "Pattern_" . cfg[1] . "_" . cfg[2] . "_" . cfg[3] . "_" . cfg[4]
+            descOffsets := (cfg[4] == 101 || cfg[4] == 185) ? [0, 1] : [0]
 
-            Loop 8 {
-                offset := A_Index - 1
-                focusClassNN := this.ClassPrefix . (cfg[1] + offset)
-                imgClassNN := "ComboBox" . (cfg[2] + (offset * 6))
-                imgGroupClassNN := "ComboBox" . (cfg[2] + 3 + (offset * 6))
-                srsClassNN := "AfxWnd140u" . (cfg[3] + (offset * 3))
-                descClassNN := "Button" . (cfg[4] + (offset * 5))
-                pMap[focusClassNN] := {
-                    img: imgClassNN,
-                    imgGroup: imgGroupClassNN,
-                    srs: srsClassNN,
-                    desc: descClassNN,
-                    type: pName
+            for descInc in descOffsets {
+                pMap := Map()
+                descBase := cfg[4] + descInc
+                pName := "Pattern_" . cfg[1] . "_" . cfg[2] . "_" . cfg[3] . "_" . descBase
+                isOffset := (descInc > 0)
+
+                Loop 8 {
+                    offset := A_Index - 1
+                    focusClassNN := this.ClassPrefix . (cfg[1] + offset)
+                    imgClassNN := "ComboBox" . (cfg[2] + (offset * 6))
+                    imgGroupClassNN := "ComboBox" . (cfg[2] + 3 + (offset * 6))
+                    srsClassNN := "AfxWnd140u" . (cfg[3] + (offset * 3))
+                    descClassNN := "Button" . (descBase + (offset * 5))
+                    pMap[focusClassNN] := {
+                        img: imgClassNN,
+                        imgGroup: imgGroupClassNN,
+                        srs: srsClassNN,
+                        desc: descClassNN,
+                        type: pName
+                    }
                 }
+                patterns.Push({name: pName, map: pMap, isOffset: isOffset})
             }
-            patterns.Push({name: pName, map: pMap})
         }
         return patterns
     }
@@ -80,7 +86,7 @@ class G3PacsProbe {
             candidate := pMap[focusClassNN]
             descText := ""
             if this.IsSeriesPatternMatch(candidate, focusClassNN, hwnd, &descText)
-                return {candidate: candidate, name: patternData.name, desc: descText}
+                return {candidate: candidate, name: patternData.name, desc: descText, isOffset: patternData.HasOwnProp("isOffset") ? patternData.isOffset : false}
         }
         return false
     }
@@ -92,7 +98,7 @@ class G3PacsProbe {
                 return false
 
             descText := ControlGetText(candidate.desc, hwnd)
-            if !RegExMatch(descText, "^\(\d+\)\s")
+            if !RegExMatch(descText, "i)^\([a-z0-9]+\)\s")
                 return false
         } catch {
             return false

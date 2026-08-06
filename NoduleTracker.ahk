@@ -1,4 +1,4 @@
-﻿; ==============================================================================
+; ==============================================================================
 ; ★ Nodule Tracker (PACS Workflow Optimizer)
 ; ==============================================================================
 ; Description : 自動抓取 PACS 影像中的 Series 與 Image 編號並分類肺葉。
@@ -498,7 +498,7 @@ class NoduleTracker {
         match := G3PacsProbe.GetSeriesMatchForFocusClassNN(ctrlClassNN, hwnd, this.PatternList)
         if (match) {
             candidate := match.candidate
-            msg .= "🎯 探針命中: " this.FormatPatternName(match.name) "`n"
+            msg .= "🎯 探針命中: " this.FormatPatternName(match.name) (match.isOffset ? " (💡 PACS 控制項 +1 容錯命中)" : "") "`n"
             imgVal := ""
             try imgVal := ControlGetText(candidate.img, hwnd)
             imgMax := this.GetComboBoxItemCount(candidate.img, hwnd)
@@ -770,7 +770,7 @@ class NoduleTracker {
                 match := G3PacsProbe.GetSeriesMatchForFocusClassNN(focusNN, targetHwnd, this.PatternList)
                 if (match) {
                     targetCombo := match.candidate.img
-                    method := "Probe (" match.name ")"
+                    method := "Probe (" match.name ")" (match.isOffset ? " [PACS +1 容錯]" : "")
                 }
                 if (targetCombo == "" && this.EnableAccFallback) {
                     msg .= "- 探針未命中，嘗試 Acc 模式...`n"
