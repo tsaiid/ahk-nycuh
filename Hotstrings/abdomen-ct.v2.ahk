@@ -384,7 +384,7 @@ No obvious ascites.
     MyForm := "
   (
 No retroperitoneal or mesenteric lymphadenopathy.
-No pelvic, retroperitoneal or mesenteric lymphadenopathy.
+No pelvic, retroperitoneal, or mesenteric lymphadenopathy.
 No pelvic or retroperitoneal lymphadenopathy.
 No obvious intraabdominal lymphadenopathy.
 No pelvic lymphadenopathy.
