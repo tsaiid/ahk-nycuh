@@ -724,14 +724,61 @@ class NoduleTracker {
             G3PacsNotify.Show("❌ 無法鎖定目標控制項", 1500)
             return
         }
-        inputGui := Gui("+AlwaysOnTop -Caption +Border", "Jump to Image")
-        inputGui.SetFont("s12 Bold", "Segoe UI")
+        ; 偵測螢幕 DPI 與 Windows 文字縮放比率
+        dpi := 0
+        try dpi := G3PacsNotify._GetDpiAtPoint(mX, mY)
+        if (!dpi && targetHwnd) {
+            try dpi := DllCall("User32\GetDpiForWindow", "Ptr", targetHwnd, "UInt")
+        }
+        if (!dpi) {
+            dpi := A_ScreenDPI
+        }
+        dpiScale := (dpi > 0) ? (dpi / 96) : 1.0
+
+        textFactor := 1.0
+        try {
+            rawFactor := RegRead("HKEY_CURRENT_USER\Software\Microsoft\Accessibility", "TextScaleFactor", 100)
+            if (IsNumber(rawFactor) && rawFactor > 100) {
+                textFactor := rawFactor / 100
+            }
+        }
+
+        effectiveScale := dpiScale * textFactor
+        fontSize := Max(10, Round(12 * effectiveScale))
+        pad := Round(2 * effectiveScale)
+        editW := Round(68 * effectiveScale)
+        editH := Round(32 * effectiveScale)
+        totalW := editW + pad * 2
+        totalH := editH + pad * 2
+
+        offsetGap := Round(6 * effectiveScale)
+        guiX := Round(mX - totalW - offsetGap)
+        guiY := Round(mY - totalH - offsetGap)
+        try {
+            workArea := G3PacsNotify._GetMonitorWorkAreaAtPoint(mX, mY)
+            ; 若超出左邊界，則改放置於游標右側避免遮擋
+            if (guiX < workArea.left) {
+                guiX := Round(mX + (16 * effectiveScale))
+            }
+            ; 若超出上邊界，則改放置於游標下方避免遮擋
+            if (guiY < workArea.top) {
+                guiY := Round(mY + (20 * effectiveScale))
+            }
+            ; 確保仍在螢幕工作區範圍內
+            guiX := Max(workArea.left, Min(guiX, workArea.right - totalW))
+            guiY := Max(workArea.top, Min(guiY, workArea.bottom - totalH))
+        }
+
+        inputGui := Gui("+AlwaysOnTop -Caption +Border -DPIScale", "Jump to Image")
+        inputGui.MarginX := pad
+        inputGui.MarginY := pad
+        inputGui.SetFont("s" fontSize " Bold", "Segoe UI")
         inputGui.BackColor := "White"
-        editNum := inputGui.Add("Edit", "w60 h30 Center Number Limit3")
-        btnOk := inputGui.Add("Button", "Default w0 h0", "OK")
+        editNum := inputGui.Add("Edit", Format("w{1} h{2} Center Number Limit4", editW, editH))
+        btnOk := inputGui.Add("Button", "Default w0 h0 Hidden", "OK")
         btnOk.OnEvent("Click", (*) => ProcessJump(editNum.Value))
         inputGui.OnEvent("Escape", (*) => inputGui.Destroy())
-        inputGui.Show("x" (mX - 30) " y" (mY - 15))
+        inputGui.Show(Format("x{1} y{2}", guiX, guiY))
         editNum.Focus()
         guiHwnd := inputGui.Hwnd
         SetTimer(WatchFocus, 100)
