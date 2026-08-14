@@ -205,10 +205,27 @@ No abnormal findings noted in this UGI study.
 {
     MyForm := "
 (
-Single contrast small intestine and compressed spot view were performed under fluoroscope with well demonstration to the ileocecal valve:
+SMALL INTESTINE:
 
-- Normal appearance of mucosa and peristalsis of small intestine without obvious mass lesion.
-- No obvious fistula formation noted.
+CLINICAL HISTORY:
+[Indication, e.g., Suspected bowel obstruction, abdominal pain, or status post-procedure evaluation]
+
+COMPARISON:
+[None / Prior exam date and modality]
+
+TECHNIQUE:
+Serial abdominal radiographs were obtained following oral administration of water-soluble contrast medium (e.g., Gastrografin / Meglumine diatrizoate).
+
+FINDINGS:
+1. Contrast Transit: Smooth and unimpeded transit of contrast material through the stomach, duodenum, and jejunum/ileum. Contrast reaches the cecum and proximal colon at 60 minutes post-ingestion.
+2. Bowel Loops: The small bowel loops show normal caliber, mucosal fold patterns, and wall thickness throughout. No significant luminal narrowing, stricture, or dilatation is identified.
+3. Mass / Lesion: No filling defect, intraluminal mass, or extrinsic compression is seen along the small bowel loops.
+4. Extravasation: No evidence of contrast extravasation, fistulae, or sinus tract formation.
+
+IMPRESSION:
+1. Unremarkable small bowel follow-through study with water-soluble contrast.
+2. Normal transit time, with contrast reaching the colon at 60 minutes.
+3. No small bowel obstruction, stricture, mass, or extravasation identified.
 )"
     Paste(MyForm)
 }
