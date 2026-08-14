@@ -1414,26 +1414,9 @@ Early changes of acute cholecystitis is suspected. Suggest correlate with sonogr
 {
     MyForm := "
   (
-TECHNIQUE:
-Non-contrast and contrast-enhanced abdominal CT scans.
-Scanning range: Liver to symphysis, 5-mm contiguous scan.
-
-Previous abdominal CT: none.
-
-FINDINGS:
 Large inspissated fecal material in the rectum and distal sigmoid colon, with bowel wall edema and perirectal fat stranding. Stercoral colitis is considered.
 No evidence of intraperitoneal free air.
 No obvious ascites.
-
-status post Foley catheterization. The urinary bladder is not distended enough, and the evaluation is limited.
-
-On NG tube.
-The liver, spleen, pancreas, adrenals, kidneys are unremarkable.
-No retroperitoneal or mesenteric lymphadenopathy.
-Subsegmental atelectasis in both lower lungs.
-
-IMPRESSION:
-Stercoral colitis. No evidence of perforation.
   )"
     Paste(MyForm)
 }
