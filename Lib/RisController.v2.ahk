@@ -2570,6 +2570,74 @@ class RisController {
         this.Notify(RisAIOrchestration.FormatCompleteNotify("已插入 MESA Calcium Score Impression", "MESA Calculator", "Template", Format("取資:{}ms, MESA:{}ms", extractTime, mesaTime)), 2500)
     }
 
+    static _BuildRefineRequest(selectedText) {
+        conf := RisConfig.AI.Refine
+        prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
+
+        return RisAIOrchestration.CreateRequest(prompt, conf)
+    }
+
+    static _RunAIRequest(request) {
+        return this._BuildAIRequestResult(request.Prompt, request.Config)
+    }
+
+    static _RunIndicationRequest(request, debugMode, isPreloadOnly) {
+        response := this._RunAIRequest(request)
+        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, response.APIKeyName, response.Model, debugMode)
+    }
+
+    static _RunImpressionRequest(request, debugMode := false) {
+        response := this._RunAIRequest(request)
+        this._HandleImpressionSuccess(response.Result, request.ExtractTime, response.ApiTime, response.APIKeyName, response.Model, debugMode)
+    }
+
+    static _RunRefineRequest(request) {
+        response := this._RunAIRequest(request)
+        return response
+    }
+
+    ; [新增] 外部呼叫的主函式：產生並插入 Indication
+    ; [修改] 增加 Benchmark 效能測量
+    static GenerateAndInsertIndication(debugMode?, isPreloadOnly := false, insertAfter := "") {
+        debugMode := IsSet(debugMode) ? debugMode : this.IsDebug
+        requestMode := isPreloadOnly ? "preload" : "manual"
+
+        if (this._TryInsertCachedIndication(isPreloadOnly, insertAfter)) {
+            return
+        }
+
+        if (this._TryHandlePendingIndication(isPreloadOnly, insertAfter)) {
+            return
+        }
+
+        if (!this._BeginIndicationRequest(isPreloadOnly, insertAfter)) {
+            return
+        }
+
+        try {
+            request := this._BuildIndicationRequest()
+            if (!request) {
+                if (!isPreloadOnly)
+                    this.Notify("無法取得病歷資料，請確認是否在正確視窗內")
+                return
+            }
+
+            if (!this._HandleIndicationDebugPrompt(debugMode, isPreloadOnly, request.Prompt, request.ExtractTime)) {
+                return
+            }
+
+            this._RunIndicationRequest(request, debugMode, isPreloadOnly)
+
+        } catch as err {
+            if (!isPreloadOnly) {
+                fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
+                this._ShowDebugError(fullErrorMsg)
+            }
+        } finally {
+            this._FinishIndicationRequest(requestMode, isPreloadOnly)
+        }
+    }
+
     ; [新增] 產生並插入 Impression (總結 Findings / Calcium Score MESA)
     static GenerateAndInsertImpression(debugMode?) {
         debugMode := IsSet(debugMode) ? debugMode : this.IsDebug
