@@ -2374,14 +2374,16 @@ class RisController {
         }
     }
 
-    static _HandleIndicationDebugPrompt(debugMode, isPreloadOnly, fullPrompt, extractTime) {
+    static _HandleIndicationDebugPrompt(debugMode, isPreloadOnly, fullPrompt, extractTime, title := "AI Debug - Indication Prompt") {
         if (!(debugMode && !isPreloadOnly)) {
             return true
         }
 
         A_Clipboard := fullPrompt
-        ans := MsgBox("Debug 模式開啟。`n【Benchmark】資料提取耗時: " . extractTime . " ms`n`nPrompt 已複製到剪貼簿。是否繼續呼叫 API？`n`n" . SubStr(fullPrompt, 1, 500) . "...", "AI Debug", "YesNo")
-        return ans != "No"
+        return RisAIDebugGui.ShowPromptConfirm(title, fullPrompt, {
+            Notify: this.Notify.Bind(this),
+            Header: "Debug 模式開啟。資料提取耗時: " . extractTime . " ms`r`nPrompt 已複製到剪貼簿。確認後才會繼續呼叫 API。"
+        })
     }
 
     static _HandleIndicationSuccess(isPreloadOnly, result, apiTime, extractTime, apiKeyName, modelName, debugMode := false) {
@@ -2389,7 +2391,17 @@ class RisController {
         this._CacheIndicationResult(normalized, apiTime, extractTime, apiKeyName, modelName)
 
         if (debugMode && !isPreloadOnly) {
-            MsgBox("【Benchmark】`n資料提取: " . extractTime . " ms`nAPI 耗時: " . apiTime . " ms`n`n【API 回傳結果】`n" . normalized, "AI Debug")
+            RisAIDebugGui.ShowResponseDebug(
+                "AI Debug - Indication Result",
+                normalized,
+                {
+                    Notify: this.Notify.Bind(this),
+                    ExtractTime: extractTime,
+                    ApiTime: apiTime,
+                    APIKeyName: apiKeyName,
+                    Model: modelName
+                }
+            )
         }
 
         if (!isPreloadOnly) {

@@ -671,14 +671,15 @@ NotifyG3PacsAIStatus(message, duration := 1800) {
 }
 
 ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
-    resultGui := Gui("+AlwaysOnTop +Resize", "G3PACS Calcium Score AI")
+    resultGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "G3PACS Calcium Score AI")
     resultGui.MarginX := 14
     resultGui.MarginY := 12
-    resultGui.SetFont("s10", "Microsoft JhengHei UI")
+    resultGui.BackColor := "F4F5F7"
+    resultGui.SetFont("s11", "Microsoft JhengHei UI")
 
     resultGui.Add("Text", "w760", "Result:")
     resultEditHeight := showDebugWindow ? 110 : 180
-    resultEdit := resultGui.Add("Edit", "w760 h" . resultEditHeight . " ReadOnly Multi -Wrap", resultText)
+    resultEdit := resultGui.Add("Edit", "xm w760 h" . resultEditHeight . " ReadOnly Multi -Wrap -WantReturn", resultText)
 
     if showDebugWindow {
         debugText := Format(
@@ -700,7 +701,7 @@ ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
         )
 
         resultGui.Add("Text", "xm y+12 w760", "Debug:")
-        debugEdit := resultGui.Add("Edit", "w760 h220 ReadOnly Multi -Wrap", debugText)
+        debugEdit := resultGui.Add("Edit", "xm w760 h220 ReadOnly Multi -Wrap -WantReturn", debugText)
     }
 
     btnCopyResult := resultGui.Add("Button", "Default w140 xm y+12", "複製結果")
@@ -719,9 +720,11 @@ ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
 
     btnClose := resultGui.Add("Button", "w100 x+10 yp", "關閉")
     btnClose.OnEvent("Click", (*) => resultGui.Destroy())
+    resultGui.OnEvent("Close", (*) => resultGui.Destroy())
     resultGui.OnEvent("Escape", (*) => resultGui.Destroy())
 
     resultGui.Show("AutoSize Center")
+    RisAIDebugGui.ApplyWindowStyle(resultGui.Hwnd)
     SendMessage(0x00B1, 0, 0, resultEdit.Hwnd)
     if showDebugWindow {
         SendMessage(0x00B1, 0, 0, debugEdit.Hwnd)

@@ -17,12 +17,16 @@ class RisAIDebugGui {
         header := (IsObject(options) && options.HasOwnProp("Header")) ? options.Header : "Prompt 已複製到剪貼簿。"
         result := false
 
-        promptGui := Gui("+AlwaysOnTop +Resize", title)
-        promptGui.SetFont("s10", "Microsoft JhengHei UI")
-        promptGui.Add("Text", "w860", header . "`r`n字元數: " . StrLen(promptText))
-        promptEdit := promptGui.Add("Edit", "w860 h520 ReadOnly Multi -Wrap -WantReturn", promptText)
+        promptGui := Gui("+AlwaysOnTop +ToolWindow +Resize", title)
+        promptGui.MarginX := 14
+        promptGui.MarginY := 12
+        promptGui.BackColor := "F4F5F7"
+        promptGui.SetFont("s11", "Microsoft JhengHei UI")
 
-        btnContinue := promptGui.Add("Button", "Default w140 x10 y+12", "繼續呼叫 API")
+        promptGui.Add("Text", "w860", header . "`r`n字元數: " . StrLen(promptText))
+        promptEdit := promptGui.Add("Edit", "xm w860 h520 ReadOnly Multi -Wrap -WantReturn", promptText)
+
+        btnContinue := promptGui.Add("Button", "Default w140 xm y+12", "繼續呼叫 API")
         btnContinue.OnEvent("Click", (*) => (
             result := true,
             promptGui.Destroy()
@@ -40,6 +44,7 @@ class RisAIDebugGui {
         promptGui.OnEvent("Escape", (*) => promptGui.Destroy())
 
         promptGui.Show("Center")
+        this.ApplyWindowStyle(promptGui.Hwnd)
         btnContinue.Focus()
         SendMessage(0x00B1, 0, 0, promptEdit.Hwnd)
         WinWaitClose("ahk_id " . promptGui.Hwnd)
@@ -64,19 +69,23 @@ class RisAIDebugGui {
             waitText := "`r`nWaitForResponse: " . request.Metrics.WaitForResponseTime . " ms"
         }
 
-        debugGui := Gui("+AlwaysOnTop +Resize", "Google AI Debug - curl")
-        debugGui.SetFont("s10", "Microsoft JhengHei UI")
+        debugGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "Google AI Debug - curl")
+        debugGui.MarginX := 14
+        debugGui.MarginY := 12
+        debugGui.BackColor := "F4F5F7"
+        debugGui.SetFont("s11", "Microsoft JhengHei UI")
+
         debugGui.Add("Text", "w760", "Status: " . response.Status
             . "`r`nModel: " . modelText
             . "`r`nAPI Key: " . apiKeyName
             . waitText
             . "`r`nPayload: " . StrLen(payload) . " chars"
             . "`r`nResponse: " . StrLen(response.ResponseText) . " chars")
-        curlEdit := debugGui.Add("Edit", "w760 h360 ReadOnly Multi -Wrap", curlCommand)
+        curlEdit := debugGui.Add("Edit", "xm w760 h360 ReadOnly Multi -Wrap -WantReturn", curlCommand)
 
         notify := (IsObject(options) && options.HasOwnProp("Notify")) ? options.Notify : (*) => 0
 
-        btnCopy := debugGui.Add("Button", "w140 x10 y+12", "複製 curl")
+        btnCopy := debugGui.Add("Button", "w140 xm y+12", "複製 curl")
         btnCopy.OnEvent("Click", (*) => (
             A_Clipboard := curlCommand,
             notify("已複製 curl 測試指令", 2000)
@@ -88,9 +97,15 @@ class RisAIDebugGui {
             notify("已複製完整 debug 資訊", 2000)
         ))
 
-        btnClose := debugGui.Add("Button", "w100 x+10 yp", "關閉")
+        btnClose := debugGui.Add("Button", "Default w100 x+10 yp", "關閉")
         btnClose.OnEvent("Click", (*) => debugGui.Destroy())
-        debugGui.Show()
+        debugGui.OnEvent("Close", (*) => debugGui.Destroy())
+        debugGui.OnEvent("Escape", (*) => debugGui.Destroy())
+
+        debugGui.Show("Center")
+        this.ApplyWindowStyle(debugGui.Hwnd)
+        btnClose.Focus()
+        SendMessage(0x00B1, 0, 0, curlEdit.Hwnd)
     }
 
     /**
@@ -101,23 +116,28 @@ class RisAIDebugGui {
     static ShowDebugError(errMsg, options := 0) {
         notify := (IsObject(options) && options.HasOwnProp("Notify")) ? options.Notify : (*) => 0
 
-        errGui := Gui("+AlwaysOnTop +Resize", "AI Debug - 處理失敗")
-        errGui.SetFont("s10", "Microsoft JhengHei UI")
+        errGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "AI Debug - 處理失敗")
+        errGui.MarginX := 14
+        errGui.MarginY := 12
+        errGui.BackColor := "F4F5F7"
+        errGui.SetFont("s11", "Microsoft JhengHei UI")
 
-        errGui.Add("Text", "w500", "API 呼叫或處理過程中發生例外錯誤：")
+        errGui.Add("Text", "w560", "API 呼叫或處理過程中發生例外錯誤：")
+        errEdit := errGui.Add("Edit", "xm w560 h260 ReadOnly Multi -WantReturn", errMsg)
 
-        errEdit := errGui.Add("Edit", "w500 h250 ReadOnly Multi vErrText", errMsg)
-
-        btnCopy := errGui.Add("Button", "w120 x10 y+15", "📋 複製完整訊息")
+        btnCopy := errGui.Add("Button", "w160 xm y+12", "📋 複製完整訊息")
         btnCopy.OnEvent("Click", (*) => (
             A_Clipboard := errMsg,
             notify("已複製錯誤訊息至剪貼簿！", 2000)
         ))
 
-        btnClose := errGui.Add("Button", "w100 x+270", "關閉")
+        btnClose := errGui.Add("Button", "Default w100 x+10 yp", "關閉")
         btnClose.OnEvent("Click", (*) => errGui.Destroy())
+        errGui.OnEvent("Close", (*) => errGui.Destroy())
+        errGui.OnEvent("Escape", (*) => errGui.Destroy())
 
         errGui.Show("AutoSize Center")
+        this.ApplyWindowStyle(errGui.Hwnd)
         btnClose.Focus()
         SendMessage(0x00B1, 0, 0, errEdit.Hwnd) ; 避免唯讀 Edit 在顯示時自動全選
     }
@@ -144,8 +164,11 @@ class RisAIDebugGui {
             resultText
         )
 
-        respGui := Gui("+AlwaysOnTop +Resize", title)
-        respGui.SetFont("s10", "Microsoft JhengHei UI")
+        respGui := Gui("+AlwaysOnTop +ToolWindow +Resize", title)
+        respGui.MarginX := 14
+        respGui.MarginY := 12
+        respGui.BackColor := "F4F5F7"
+        respGui.SetFont("s11", "Microsoft JhengHei UI")
 
         statsHeader := Format(
             "Model: {1} | API Key: {2}`r`n資料提取: {3} ms | API 耗時: {4} ms",
@@ -155,11 +178,11 @@ class RisAIDebugGui {
             apiTime
         )
         respGui.Add("Text", "w700", statsHeader)
-        respGui.Add("Text", "w700 y+8", "AI 回傳結果 (Impression):")
+        respGui.Add("Text", "w700 y+8", "AI 回傳結果:")
 
-        respEdit := respGui.Add("Edit", "w700 h260 ReadOnly Multi +Wrap", resultText)
+        respEdit := respGui.Add("Edit", "xm w700 h260 ReadOnly Multi +Wrap -WantReturn", resultText)
 
-        btnCopyAll := respGui.Add("Button", "w150 x10 y+12", "📋 複製完整內容")
+        btnCopyAll := respGui.Add("Button", "w160 xm y+12", "📋 複製完整內容")
         btnCopyAll.OnEvent("Click", (*) => (
             A_Clipboard := fullDebugText,
             notify("已複製完整除錯資訊至剪貼簿", 1800)
@@ -177,6 +200,7 @@ class RisAIDebugGui {
         respGui.OnEvent("Escape", (*) => respGui.Destroy())
 
         respGui.Show("Center")
+        this.ApplyWindowStyle(respGui.Hwnd)
         btnClose.Focus()
         SendMessage(0x00B1, 0, 0, respEdit.Hwnd)
         WinWaitClose("ahk_id " . respGui.Hwnd)
@@ -226,7 +250,7 @@ class RisAIDebugGui {
         myGui.OnEvent("Escape", (*) => myGui.Destroy())
 
         myGui.Show("Center")
-        this.ApplyPolishComparisonWindowStyle(myGui.Hwnd)
+        this.ApplyWindowStyle(myGui.Hwnd)
 
         refinedEdit.Focus()
         SendMessage(0x00B1, 0, 0, refinedEdit.Hwnd)
@@ -291,7 +315,7 @@ class RisAIDebugGui {
         myGui.OnEvent("Escape", (*) => myGui.Destroy())
 
         myGui.Show(Format("w{} Center", layout.WindowWidth))
-        this.ApplyPolishComparisonWindowStyle(myGui.Hwnd)
+        this.ApplyWindowStyle(myGui.Hwnd)
 
         if (openAIResult.Success) {
             openAIEdit.Focus()
@@ -332,7 +356,7 @@ class RisAIDebugGui {
         return "API Key: " . debugInfo.APIKeyName . " | Model: " . debugInfo.Model . " | Time: " . debugInfo.ApiTime
     }
 
-    static ApplyPolishComparisonWindowStyle(hwnd) {
+    static ApplyWindowStyle(hwnd) {
         try {
             if (this.GetWindowsBuildNumber() < 22000) {
                 renderingPolicy := 1 ; DWMNCRP_DISABLED: remove Win10 DWM shadow/edge.
@@ -343,6 +367,10 @@ class RisAIDebugGui {
             borderColor := 0xFFFFFFFE ; DWMWA_COLOR_NONE: remove Win11 DWM outline while keeping shadow.
             DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 34, "UInt*", borderColor, "UInt", 4)
         }
+    }
+
+    static ApplyPolishComparisonWindowStyle(hwnd) {
+        this.ApplyWindowStyle(hwnd)
     }
 
     static GetWindowsBuildNumber() {

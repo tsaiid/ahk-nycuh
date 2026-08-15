@@ -1573,20 +1573,26 @@ class NoduleTracker {
     }
 
     ShowDebugWindow(content, title := "Debug Info", timeout := 0) {
-        debugGui := Gui("+AlwaysOnTop +Resize", title)
+        debugGui := Gui("+AlwaysOnTop +ToolWindow +Resize", title)
+        debugGui.MarginX := 14
+        debugGui.MarginY := 12
+        debugGui.BackColor := "F4F5F7"
         debugGui.SetFont("s10", "Maple Mono CN")
-        debugGui.BackColor := "F0F0F0"
-        editCtrl := debugGui.Add("Edit", "w600 h400 ReadOnly Multi", content)
-        btnCopy := debugGui.Add("Button", "Default w120 h30", "📋 複製全部")
+        editCtrl := debugGui.Add("Edit", "xm w600 h400 ReadOnly Multi -WantReturn", content)
+        btnCopy := debugGui.Add("Button", "Default w120 xm y+12", "📋 複製全部")
         btnCopy.OnEvent("Click", (*) => (
             A_Clipboard := content,
             ToolTip("已複製到剪貼簿"),
             SetTimer(() => ToolTip(), -2000)
         ))
-        btnClose := debugGui.Add("Button", "x+10 w100 h30", "關閉")
+        btnClose := debugGui.Add("Button", "x+10 yp w100", "關閉")
         btnClose.OnEvent("Click", (*) => debugGui.Destroy())
-        debugGui.Show()
-        SendMessage(0x00B1, -1, 0, editCtrl.Hwnd) ; EM_SETSEL
+        debugGui.OnEvent("Close", (*) => debugGui.Destroy())
+        debugGui.OnEvent("Escape", (*) => debugGui.Destroy())
+        debugGui.Show("Center")
+        this.ApplyWindowStyle(debugGui.Hwnd)
+        SendMessage(0x00B1, 0, 0, editCtrl.Hwnd)
+        btnCopy.Focus()
         if (timeout > 0) {
             SetTimer(() => debugGui.Destroy(), -timeout * 1000)
         }
