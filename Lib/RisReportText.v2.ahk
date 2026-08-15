@@ -186,5 +186,93 @@ class RisReportText {
 
         return text
     }
+
+    static ExtractTotalCalciumScore(text) {
+        if (text == "") {
+            return ""
+        }
+
+        if RegExMatch(text, "i)\bTotal\s+Calcium\s+Score(?:\s*\([^)]*\))?\s*(?:is|:|=)?\s*(\d+(?:\.\d+)?)", &match) {
+            return match[1]
+        }
+
+        if RegExMatch(text, "i)\b(?:Total|Agatston)\s+Score(?:\s*\([^)]*\))?\s*(?:is|:|=)?\s*(\d+(?:\.\d+)?)", &match) {
+            return match[1]
+        }
+
+        if RegExMatch(text, "i)\bTotal\s+Calcium[^\d\r\n]*?(\d+(?:\.\d+)?)", &match) {
+            return match[1]
+        }
+
+        return ""
+    }
+
+    static IsCalciumScoreExam(examName) {
+        if (examName == "") {
+            return false
+        }
+
+        cleanName := Trim(RegExReplace(examName, "i)^\s*檢查項目\s*[:：]\s*", ""), " `t`r`n")
+        return RegExMatch(cleanName, "i)\bcalcium\s+scor(?:e|ing)\b") || InStr(cleanName, "鈣化")
+    }
+
+    static GetCalciumScoreSeverity(score) {
+        num := IsNumber(score) ? Number(score) : (RegExMatch(String(score), "(\d+(?:\.\d+)?)", &m) ? Number(m[1]) : 0)
+        if (num <= 0) {
+            return "No identifiable"
+        }
+        if (num <= 10) {
+            return "Minimal identifiable"
+        }
+        if (num <= 100) {
+            return "Mild"
+        }
+        if (num <= 400) {
+            return "Moderate"
+        }
+        return "Significant"
+    }
+
+    static GetOrdinal(num) {
+        n := IsInteger(num) ? Integer(num) : (RegExMatch(String(num), "(\d+)", &m) ? Integer(m[1]) : 0)
+        mod100 := Mod(n, 100)
+        if (mod100 >= 11 && mod100 <= 13) {
+            return n . "th"
+        }
+        switch Mod(n, 10) {
+            case 1: return n . "st"
+            case 2: return n . "nd"
+            case 3: return n . "rd"
+            default: return n . "th"
+        }
+    }
+
+    static FormatCalciumScoreImpression(score, mesaResult) {
+        numScore := IsNumber(score) ? Number(score) : (RegExMatch(String(score), "(\d+(?:\.\d+)?)", &m) ? Number(m[1]) : 0)
+        severity := this.GetCalciumScoreSeverity(numScore)
+
+        ; 分數為 0 時
+        if (numScore <= 0) {
+            if (IsObject(mesaResult) && mesaResult.IsSuccess && !mesaResult.IsOutOfRange && mesaResult.NonZeroProbability != "") {
+                return Format("Total Calcium Score (Equivalent Agatston Score) is 0 (No identifiable calcification; probability of non-zero CAC in demographic peers is {1}).", mesaResult.NonZeroProbability)
+            }
+            return "Total Calcium Score (Equivalent Agatston Score) is 0 (No identifiable calcification)."
+        }
+
+        ; 分數 > 0 且在 MESA 參考範圍內 (Age 45-84)
+        if (IsObject(mesaResult) && mesaResult.IsSuccess && !mesaResult.IsOutOfRange && mesaResult.Percentile != "") {
+            ordinalPerc := this.GetOrdinal(mesaResult.Percentile)
+            probText := (mesaResult.NonZeroProbability != "") ? Format("; probability of non-zero CAC: {1}", mesaResult.NonZeroProbability) : ""
+            return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification; {3} percentile compared to age-, sex-, and race-matched peers in MESA{4}).", numScore, severity, ordinalPerc, probText)
+        }
+
+        ; 年齡或分數超出 MESA 參考範圍
+        if (IsObject(mesaResult) && mesaResult.IsOutOfRange) {
+            return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification; patient is outside MESA reference age range of 45-84 years).", numScore, severity)
+        }
+
+        ; 其他情況 (如 MESA 查詢失敗)
+        return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification).", numScore, severity)
+    }
 }
 

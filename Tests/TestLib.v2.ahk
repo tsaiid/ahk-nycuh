@@ -20,6 +20,12 @@ AssertTrue(condition, message := "") {
     }
 }
 
+AssertFalse(condition, message := "") {
+    if (condition) {
+        throw Error(message != "" ? message : "expected condition to be false")
+    }
+}
+
 RunRegisteredTests() {
     global TestCases
     failedCount := 0

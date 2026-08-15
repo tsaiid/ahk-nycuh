@@ -17,6 +17,7 @@
 #Include .\RisVisualFeedback.v2.ahk
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
+#Include .\RisMesaService.v2.ahk
 
 class RisController {
     ; =================================================================
@@ -2422,22 +2423,38 @@ class RisController {
         this._pendingIndicationInsertAfter := ""
     }
 
-    static _HandleImpressionDebugPrompt(debugMode, fullPrompt) {
+    static _HandleImpressionDebugPrompt(debugMode, fullPrompt, title := "AI Debug - Impression Prompt") {
         if (!debugMode) {
             return true
         }
 
         A_Clipboard := fullPrompt
-        return RisAIDebugGui.ShowPromptConfirm("AI Debug - Impression Prompt", fullPrompt, {
+        return RisAIDebugGui.ShowPromptConfirm(title, fullPrompt, {
             Notify: this.Notify.Bind(this),
             Header: "Prompt 已複製到剪貼簿。確認後才會繼續呼叫 API。"
         })
     }
 
-    static _HandleImpressionSuccess(result, extractTime, apiTime, apiKeyName, modelName) {
+    static _HandleImpressionSuccess(result, extractTime, apiTime, apiKeyName, modelName, debugMode := false, isCalciumScore := false) {
         result := RisAIOrchestration.NormalizeImpressionResult(result)
+
+        if (debugMode) {
+            RisAIDebugGui.ShowResponseDebug(
+                isCalciumScore ? "AI Debug - Calcium Score Result" : "AI Debug - Impression Result",
+                result,
+                {
+                    Notify: this.Notify.Bind(this),
+                    ExtractTime: extractTime,
+                    ApiTime: apiTime,
+                    APIKeyName: apiKeyName,
+                    Model: modelName
+                }
+            )
+        }
+
         this._InsertAIResultToImpression(result)
-        this.Notify(RisAIOrchestration.FormatCompleteNotify("已插入 Impression", apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
+        notifyTitle := isCalciumScore ? "已插入 MESA Calcium Score Impression" : "已插入 Impression"
+        this.Notify(RisAIOrchestration.FormatCompleteNotify(notifyTitle, apiKeyName, modelName, Format("取資:{}ms, API:{}ms", extractTime, apiTime)), 2500)
     }
 
     static _BuildAIRequestResult(promptText, aiConfig) {
@@ -2492,75 +2509,68 @@ class RisController {
         })
     }
 
-    static _BuildRefineRequest(selectedText) {
-        conf := RisConfig.AI.Refine
-        prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
-
-        return RisAIOrchestration.CreateRequest(prompt, conf)
-    }
-
-    static _RunAIRequest(request) {
-        return this._BuildAIRequestResult(request.Prompt, request.Config)
-    }
-
-    static _RunIndicationRequest(request, debugMode, isPreloadOnly) {
-        response := this._RunAIRequest(request)
-        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, response.APIKeyName, response.Model, debugMode)
-    }
-
-    static _RunImpressionRequest(request) {
-        response := this._RunAIRequest(request)
-        this._HandleImpressionSuccess(response.Result, request.ExtractTime, response.ApiTime, response.APIKeyName, response.Model)
-    }
-
-    static _RunRefineRequest(request) {
-        response := this._RunAIRequest(request)
-        return response
-    }
-
-    ; [新增] 外部呼叫的主函式：產生並插入 Indication
-    ; [修改] 增加 Benchmark 效能測量
-    static GenerateAndInsertIndication(debugMode?, isPreloadOnly := false, insertAfter := "") {
-        debugMode := IsSet(debugMode) ? debugMode : this.IsDebug
-        requestMode := isPreloadOnly ? "preload" : "manual"
-
-        if (this._TryInsertCachedIndication(isPreloadOnly, insertAfter)) {
-            return
-        }
-
-        if (this._TryHandlePendingIndication(isPreloadOnly, insertAfter)) {
-            return
-        }
-
-        if (!this._BeginIndicationRequest(isPreloadOnly, insertAfter)) {
-            return
-        }
-
+    static _ProcessCalciumScoreImpression(debugMode) {
+        t0 := A_TickCount
         try {
-            request := this._BuildIndicationRequest()
-            if (!request) {
-                if (!isPreloadOnly)
-                    this.Notify("無法取得病歷資料，請確認是否在正確視窗內")
-                return
-            }
-
-            if (!this._HandleIndicationDebugPrompt(debugMode, isPreloadOnly, request.Prompt, request.ExtractTime)) {
-                return
-            }
-
-            this._RunIndicationRequest(request, debugMode, isPreloadOnly)
-
-        } catch as err {
-            if (!isPreloadOnly) {
-                fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack
-                this._ShowDebugError(fullErrorMsg)
-            }
-        } finally {
-            this._FinishIndicationRequest(requestMode, isPreloadOnly)
+            hFind := this.FindingEdit.NativeWindowHandle
+            hImp  := this.ImpressionEdit.NativeWindowHandle
+        } catch {
+            this.Notify("找不到編輯欄位，請確認視窗是否正確")
+            return
         }
+
+        findingText := ControlGetText(hFind)
+        if (findingText == "") {
+            this.Notify("Findings 欄位為空，無法產生總結")
+            return
+        }
+
+        ; 讀取年齡
+        ageRaw := this._FastGetCtrlText("AgeText")
+        ptAge := RegExMatch(ageRaw, "(\d+)", &mAge) ? mAge[1] : 0
+
+        ; 讀取性別
+        genderRaw := this._FastGetCtrlText("GenderText")
+        sex := this._NormalizePatientSex(genderRaw)
+
+        ; 讀取 Total Calcium Score
+        totalScore := RisReportText.ExtractTotalCalciumScore(findingText)
+        if (totalScore == "") {
+            totalScore := 0
+        }
+
+        extractTime := A_TickCount - t0
+
+        ; 連線至 MESA 計算器取得即時計算結果
+        tMesa := A_TickCount
+        mesaResult := RisMesaService.Query(ptAge, sex, totalScore, "1")
+        mesaTime := A_TickCount - tMesa
+
+        ; 本機套用標準 Template 格式化 Impression
+        impressionResult := RisReportText.FormatCalciumScoreImpression(totalScore, mesaResult)
+        impressionResult := RisAIOrchestration.NormalizeImpressionResult(impressionResult)
+
+        enableDebug := debugMode
+
+        if (enableDebug) {
+            RisAIDebugGui.ShowResponseDebug(
+                "Debug - MESA Calcium Score Impression",
+                impressionResult,
+                {
+                    Notify: this.Notify.Bind(this),
+                    ExtractTime: extractTime,
+                    ApiTime: mesaTime,
+                    APIKeyName: "MESA Calculator (Web)",
+                    Model: "Template (No LLM)"
+                }
+            )
+        }
+
+        this._InsertAIResultToImpression(impressionResult)
+        this.Notify(RisAIOrchestration.FormatCompleteNotify("已插入 MESA Calcium Score Impression", "MESA Calculator", "Template", Format("取資:{}ms, MESA:{}ms", extractTime, mesaTime)), 2500)
     }
 
-    ; [新增] 產生並插入 Impression (總結 Findings)
+    ; [新增] 產生並插入 Impression (總結 Findings / Calcium Score MESA)
     static GenerateAndInsertImpression(debugMode?) {
         debugMode := IsSet(debugMode) ? debugMode : this.IsDebug
         if (!this._BeginForegroundAIRequest()) {
@@ -2568,6 +2578,12 @@ class RisController {
         }
 
         try {
+            examName := this._GetCleanCurrentExamName()
+            if (RisReportText.IsCalciumScoreExam(examName)) {
+                this._ProcessCalciumScoreImpression(debugMode)
+                return
+            }
+
             request := this._BuildImpressionRequest()
             if (!request) {
                 this.Notify("找不到編輯欄位，請確認視窗是否正確")
@@ -2578,11 +2594,11 @@ class RisController {
                 return
             }
 
-            if (!this._HandleImpressionDebugPrompt(debugMode, request.Prompt)) {
+            if (!this._HandleImpressionDebugPrompt(debugMode, request.Prompt, "AI Debug - Impression Prompt")) {
                 return
             }
 
-            this._RunImpressionRequest(request)
+            this._RunImpressionRequest(request, debugMode)
 
         } catch as err {
             fullErrorMsg := "【錯誤訊息】`n" . err.Message . "`n`n【發生位置】`n" . err.What . "`n`n【呼叫堆疊】`n" . err.Stack

@@ -123,6 +123,66 @@ class RisAIDebugGui {
     }
 
     /**
+     * 顯示 AI 回傳結果之 Debug 視窗
+     * @param title 視窗標題
+     * @param resultText 回傳之文字結果
+     * @param options 選項 { Notify: func, ExtractTime: int, ApiTime: int, Model: string, APIKeyName: string, Wait: bool }
+     */
+    static ShowResponseDebug(title, resultText, options := 0) {
+        notify := (IsObject(options) && options.HasOwnProp("Notify")) ? options.Notify : (*) => 0
+        extractTime := (IsObject(options) && options.HasOwnProp("ExtractTime")) ? options.ExtractTime : "-"
+        apiTime := (IsObject(options) && options.HasOwnProp("ApiTime")) ? options.ApiTime : "-"
+        modelName := (IsObject(options) && options.HasOwnProp("Model")) ? options.Model : "-"
+        apiKeyName := (IsObject(options) && options.HasOwnProp("APIKeyName")) ? options.APIKeyName : "-"
+
+        fullDebugText := Format(
+            "【AI 資訊】`r`nModel: {1}`r`nAPI Key: {2}`r`n資料提取: {3} ms | API 耗時: {4} ms`r`n`r`n【回傳結果】`r`n{5}",
+            modelName,
+            apiKeyName,
+            extractTime,
+            apiTime,
+            resultText
+        )
+
+        respGui := Gui("+AlwaysOnTop +Resize", title)
+        respGui.SetFont("s10", "Microsoft JhengHei UI")
+
+        statsHeader := Format(
+            "Model: {1} | API Key: {2}`r`n資料提取: {3} ms | API 耗時: {4} ms",
+            modelName,
+            apiKeyName,
+            extractTime,
+            apiTime
+        )
+        respGui.Add("Text", "w700", statsHeader)
+        respGui.Add("Text", "w700 y+8", "AI 回傳結果 (Impression):")
+
+        respEdit := respGui.Add("Edit", "w700 h260 ReadOnly Multi +Wrap", resultText)
+
+        btnCopyAll := respGui.Add("Button", "w150 x10 y+12", "📋 複製完整內容")
+        btnCopyAll.OnEvent("Click", (*) => (
+            A_Clipboard := fullDebugText,
+            notify("已複製完整除錯資訊至剪貼簿", 1800)
+        ))
+
+        btnCopyResult := respGui.Add("Button", "w120 x+10 yp", "複製結果")
+        btnCopyResult.OnEvent("Click", (*) => (
+            A_Clipboard := resultText,
+            notify("已複製結果至剪貼簿", 1800)
+        ))
+
+        btnClose := respGui.Add("Button", "Default w100 x+10 yp", "確定")
+        btnClose.OnEvent("Click", (*) => respGui.Destroy())
+        respGui.OnEvent("Close", (*) => respGui.Destroy())
+        respGui.OnEvent("Escape", (*) => respGui.Destroy())
+
+        respGui.Show("Center")
+        btnClose.Focus()
+        SendMessage(0x00B1, 0, 0, respEdit.Hwnd)
+        WinWaitClose("ahk_id " . respGui.Hwnd)
+    }
+
+    /**
      * 顯示單一 AI 潤色結果比對視窗
      */
     static ShowPolishComparisonGui(hEdit, original, refined, sel, debugInfo := "", options := 0) {
