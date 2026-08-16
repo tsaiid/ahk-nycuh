@@ -356,6 +356,10 @@ class RisAIDebugGui {
         return "API Key: " . debugInfo.APIKeyName . " | Model: " . debugInfo.Model . " | Time: " . debugInfo.ApiTime
     }
 
+    /**
+     * 套用視窗樣式（Win10 移除 DWM 陰影與邊框，Win11 保留陰影但消除邊框）
+     * @param hwnd 視窗控制代碼
+     */
     static ApplyWindowStyle(hwnd) {
         try {
             if (this.GetWindowsBuildNumber() < 22000) {
@@ -366,13 +370,22 @@ class RisAIDebugGui {
 
             borderColor := 0xFFFFFFFE ; DWMWA_COLOR_NONE: remove Win11 DWM outline while keeping shadow.
             DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 34, "UInt*", borderColor, "UInt", 4)
+        } catch {
         }
     }
 
+    /**
+     * 套用潤飾比對視窗樣式 (相容方法)
+     * @param hwnd 視窗控制代碼
+     */
     static ApplyPolishComparisonWindowStyle(hwnd) {
         this.ApplyWindowStyle(hwnd)
     }
 
+    /**
+     * 取得 Windows 系統 Build 編號
+     * @returns {Integer}
+     */
     static GetWindowsBuildNumber() {
         return RegExMatch(A_OSVersion, "^\d+\.\d+\.(\d+)", &match) ? Integer(match[1]) : 0
     }

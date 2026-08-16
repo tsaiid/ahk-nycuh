@@ -1,10 +1,10 @@
 #Requires AutoHotkey v2.0
-#Include <RisConfig.v2>
-#Include <RisAIService.v2>
-#Include <RisAIOrchestration.v2>
-#Include <RisAIDebugGui.v2>
-#Include <G3PacsNotify.v2>
-#Include <G3PacsProbe.v2>
+#Include ..\Lib\RisConfig.v2.ahk
+#Include ..\Lib\RisAIService.v2.ahk
+#Include ..\Lib\RisAIOrchestration.v2.ahk
+#Include ..\Lib\RisAIDebugGui.v2.ahk
+#Include ..\Lib\G3PacsNotify.v2.ahk
+#Include ..\Lib\G3PacsProbe.v2.ahk
 
 A_MaxHotkeysPerInterval := 200
 
