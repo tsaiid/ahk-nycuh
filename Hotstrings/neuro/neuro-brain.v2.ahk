@@ -1034,6 +1034,50 @@ Right mesial temporal sclerosis may be suspected. Clinical correlation is sugges
     RisController.PasteToImpression(MyForm)
 }
 
+;; MRSE
+::mrse::
+{
+    MyForm := "
+  (
+Pituitary gland height about 5 mm.
+
+No evidence of ectopic post pituitary lobe noted.
+
+No evidence of mass lesion on the sellar or suprasellar or hypothalamus regions.
+
+No evidence of abnormal enhanced mass lesion noted over the suprasellar region noted.
+
+
+
+Pituitary gland height about 7 mm.
+
+No evidence of ectopic post pituitary lobe noted.
+
+No evidence of mass lesion on the sellar or suprasellar or hypothalamus regions.
+
+No evidence of abnormal enhanced mass lesion noted over the suprasellar region noted.
+
+No evidence of low signal intensity nodule noted within the pituitary gland in the conventional and dynamic scan. Suggest correlate with prolactin level.
+
+1. Presence of enhanced cystic/mass lesion in the sellar and suprasellar arer, size about---------cm.
+2. Pituitary gland height about--------mm.
+3. No evidence of mass lesion on the sellar or suprasellar or hypothalamus regions.
+4. Presence of hyposignal intensity nodule over the right/left pituitary gland in the conventional/dynamic scan
+5. No evidence of hyposignal intensity nodule noted within the pituitary gland in the conventional and dynamic scan
+6. Suggest correlate with serum prolactin level.
+  )"
+    RisController.PasteToFinding(MyForm)
+
+    MyForm := "
+  (
+No evidence of mass lesion on the sellar or suprasellar or hypothalamus regions.
+
+From the imaging finding and clinical history, compatible with pituitary microadenoma over the right side pituitary gland and status post treatment.
+No obvious interval changes compared to the previous last study.
+  )"
+    RisController.PasteToImpression(MyForm)
+}
+
 ::bctas::
 {
     MyForm := "
