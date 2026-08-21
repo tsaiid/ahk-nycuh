@@ -254,7 +254,7 @@
 ::eca::external carotid artery
 ::caa::cerebral amyloid angiopathy
 ::ene::encephalomalacia
-::bg::basal ganglion
+::bg::basal ganglia
 ::vb::vertebral body
 ::vbs::vertebral bodies
 ::mcm::mega cisterna magna
