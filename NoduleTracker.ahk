@@ -231,6 +231,9 @@ class NoduleTracker {
                 imgInfo := this.ApplyImageGroupOffset(imgVal, candidate.img, candidate.imgGroup, hwnd, focusNN)
                 imgVal := imgInfo.value
 
+                descVal := match.desc
+                minSeries := this.ExtractMinSeriesFromDesc(descVal)
+
                 srsVal := ""
                 try {
                     ControlGetPos(&cX, &cY, &cW, &cH, candidate.srs, hwnd)
@@ -240,7 +243,7 @@ class NoduleTracker {
 
                     if (cW > 0 && cH > 0) {
                         scanW := (cW > 150) ? 150 : cW
-                        ocrResult := this.CaptureSrsOcr(screenX, screenY, scanW, cH)
+                        ocrResult := this.CaptureSrsOcr(screenX, screenY, scanW, cH, minSeries)
                         srsVal := ocrResult.srs
                     }
 
@@ -259,7 +262,6 @@ class NoduleTracker {
                 } catch {
                     ; OCR 失敗仍可嘗試備援方案
                 }
-                descVal := match.desc
 
                 if (srsVal != "") {
                     if (this.EnableMprImgOffset && descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
@@ -343,6 +345,7 @@ class NoduleTracker {
                 if (descVal == "")
                     descVal := Trim(descEl.Name)
             }
+            minSeries := this.ExtractMinSeriesFromDesc(descVal)
             try {
                 srsEl := pacsRoot[srsPath]
                 rawText := ""
@@ -355,13 +358,16 @@ class NoduleTracker {
                     }
                 }
                 if (rawText != "") {
-                    srsVal := this.ParseSrs(rawText)
+                    parsedVal := this.ParseSrs(rawText)
+                    if (parsedVal != "" && (minSeries <= 0 || Integer(parsedVal) >= minSeries)) {
+                        srsVal := parsedVal
+                    }
                 }
                 if (srsVal == "") {
                     loc := srsEl.Location
                     if (loc.w > 0 && loc.h > 0) {
                         scanW := (loc.w > 150) ? 150 : loc.w
-                        ocrResult := this.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h)
+                        ocrResult := this.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h, minSeries)
                         srsVal := ocrResult.srs
                     }
                 }
@@ -507,6 +513,7 @@ class NoduleTracker {
             try srsText := ControlGetText(candidate.srs, hwnd)
             descText := ""
             try descText := ControlGetText(candidate.desc, hwnd)
+            minSeries := this.ExtractMinSeriesFromDesc(descText)
             msg .= "  - Img 控制項: " candidate.img " (數值: " Trim(imgVal) ") (最大: " (imgMax != "" ? imgMax : "無法讀取") ")"
             if (imgInfo.groupValue != "") {
                 msg .= " (影像組: " imgInfo.groupClassNN "=" imgInfo.groupValue
@@ -526,12 +533,12 @@ class NoduleTracker {
                 srsX := NumGet(pt, 0, "int"), srsY := NumGet(pt, 4, "int")
                 if (cW > 0 && cH > 0) {
                     scanW := (cW > 150) ? 150 : cW
-                    ocrResult := this.CaptureSrsOcr(srsX, srsY, scanW, cH)
+                    ocrResult := this.CaptureSrsOcr(srsX, srsY, scanW, cH, minSeries)
                     srsVal := ocrResult.srs
                     msg .= "  - OCR 解析 Series: [" (srsVal == "" ? "解析失敗" : srsVal) "]`n"
                     msg .= "    (方法: " ocrResult.method ")`n"
                     msg .= "    (原始文字: " StrReplace(ocrResult.Text, "`n", " ") ")`n"
-                    msg .= this.BuildOcrDebugReport(srsX, srsY, scanW, cH, "  - Series OCR 多選項結果")
+                    msg .= this.BuildOcrDebugReport(srsX, srsY, scanW, cH, "  - Series OCR 多選項結果", minSeries)
                 }
             }
             matchFound := true
@@ -629,6 +636,7 @@ class NoduleTracker {
                                     msg .= "     (📍 Desc ClassNN: " dNN " -> 數字: " (descNum != "" ? descNum : "?") ")`n"
                                 }
                             }
+                            minSeries := this.ExtractMinSeriesFromDesc(descVal)
                             rawText := ""
                             try rawText := srsEl.Name
                             if (rawText == "") {
@@ -637,17 +645,20 @@ class NoduleTracker {
                             srsVal := ""
                             if (rawText != "") {
                                 msg .= "   🔍 Acc 屬性文字: [" rawText "]`n"
-                                srsVal := this.ParseSrs(rawText)
+                                parsedVal := this.ParseSrs(rawText)
+                                if (parsedVal != "" && (minSeries <= 0 || Integer(parsedVal) >= minSeries)) {
+                                    srsVal := parsedVal
+                                }
                             }
                             if (srsVal == "") {
                                 msg .= "   ⚠️ 文字解析無結果，啟動 OCR...`n"
                                 if (loc.w > 0 && loc.h > 0) {
                                     scanW := (loc.w > 150) ? 150 : loc.w
-                                    ocrResult := this.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h)
+                                    ocrResult := this.CaptureSrsOcr(loc.x, loc.y, scanW, loc.h, minSeries)
                                     safeText := StrReplace(ocrResult.Text, "`n", " ")
                                     msg .= "   🔍 OCR 方法: [" ocrResult.method "]`n"
                                     msg .= "   🔍 OCR 原始文字: [" safeText "]`n"
-                                    msg .= this.BuildOcrDebugReport(loc.x, loc.y, scanW, loc.h, "   - Srs OCR 多選項結果")
+                                    msg .= this.BuildOcrDebugReport(loc.x, loc.y, scanW, loc.h, "   - Srs OCR 多選項結果", minSeries)
                                     srsVal := ocrResult.srs
                                 }
                             }
@@ -1279,6 +1290,13 @@ class NoduleTracker {
 
     ; --- 輔助方法 (Helpers) ---
 
+    ExtractMinSeriesFromDesc(descText) {
+        if (descText != "" && RegExMatch(Trim(descText), "^\(\s*(\d+)\s*\)", &match)) {
+            return Integer(match[1])
+        }
+        return 0
+    }
+
     ParseSrs(text) {
         splitText := StrSplit(text, ",")
         if (splitText.Length > 0) {
@@ -1305,7 +1323,7 @@ class NoduleTracker {
         }
     }
 
-    CaptureSrsOcr(x, y, w, h) {
+    CaptureSrsOcr(x, y, w, h, minSeries := 0) {
         variants := [
             {method: "scale=3", opts: {scale: 3}},
             {method: "scale=3 invert", opts: {scale: 3, invertcolors: true}},
@@ -1321,16 +1339,16 @@ class NoduleTracker {
             result := this.CaptureOcrWithOptions(x, y, w, h, variant.opts)
             srsVal := this.ParseSrs(result.Text)
             if (variant.method == variants[1].method) {
-                fallback := {Text: result.Text, srs: srsVal, method: variant.method}
+                fallback := {Text: result.Text, srs: (minSeries <= 0 || (srsVal != "" && Integer(srsVal) >= minSeries)) ? srsVal : "", method: variant.method}
             }
-            if (srsVal != "") {
+            if (srsVal != "" && (minSeries <= 0 || Integer(srsVal) >= minSeries)) {
                 return {Text: result.Text, srs: srsVal, method: variant.method}
             }
         }
         return fallback
     }
 
-    BuildOcrDebugReport(x, y, w, h, label := "") {
+    BuildOcrDebugReport(x, y, w, h, label := "", minSeries := 0) {
         variants := [
             {name: "scale=2", opts: {scale: 2}},
             {name: "scale=3", opts: {scale: 3}},
@@ -1343,7 +1361,7 @@ class NoduleTracker {
         ]
         msg := ""
         if (label != "") {
-            msg .= label "`n"
+            msg .= label (minSeries > 0 ? " (驗證 Series >= " minSeries ")" : "") "`n"
         }
         msg .= "    區域: X" x " Y" y " W" w " H" h "`n"
         for variant in variants {
@@ -1352,7 +1370,16 @@ class NoduleTracker {
             if (text == "") {
                 text := "<empty>"
             }
-            msg .= "    - " variant.name ": [" text "]`n"
+            status := ""
+            parsed := this.ParseSrs(result.Text)
+            if (parsed != "") {
+                if (minSeries > 0 && Integer(parsed) < minSeries) {
+                    status := " -> 解析: " parsed " (<" minSeries " 排除)"
+                } else {
+                    status := " -> 解析: " parsed " ✅"
+                }
+            }
+            msg .= "    - " variant.name ": [" text "]" status "`n"
         }
         return msg
     }
