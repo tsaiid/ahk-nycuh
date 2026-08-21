@@ -1,5 +1,7 @@
 #Requires AutoHotkey v2.0
 
+#Include .\RisAIPayload.v2.ahk
+
 class RisAIRequestBuilder {
     static BuildGoogleRequest(promptText, options, configTime, inlineImage := 0) {
         payloadStart := A_TickCount
