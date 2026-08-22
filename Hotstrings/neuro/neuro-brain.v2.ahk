@@ -81,6 +81,17 @@ No definite abnormal enhancing mass lesion in the brain noted.
     RisController.PasteToImpression(MyForm)
 }
 
+;; CTN1ok0
+::ctn1ok0::
+{
+    MyForm := "
+  (
+No definite abnormal enhancing mass lesion in the brain noted.
+The major dural venous sinuses are patent.
+  )"
+    Paste(MyForm)
+}
+
 ;; CTN2
 ::ctn2::
 {
