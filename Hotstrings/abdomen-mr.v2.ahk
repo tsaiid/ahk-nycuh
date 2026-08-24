@@ -1,5 +1,6 @@
 #Requires AutoHotkey v2.0
 
+#Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
 #Include ..\Lib\ShowGUIatCurrScreenCenter.v2.ahk
 #Include ..\Lib\RisAIDebugGui.v2.ahk
