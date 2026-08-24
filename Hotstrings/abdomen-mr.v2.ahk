@@ -1,7 +1,8 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 #Include ..\Lib\ShowGUIatCurrScreenCenter.v2.ahk
+#Include ..\Lib\RisAIDebugGui.v2.ahk
 #Include lib\ris-common.v2.ahk
 
 ; Abdomen MR Forms
@@ -936,24 +937,31 @@ ProstateSizeCalForm() {
     ; 先取得當前活動視窗的 ID，以便稍後切換回來
     parentWnd := WinExist("A")
 
-    PSC := Gui(, "Prostate Size Helper")
-    PSC.SetFont("s12", "Verdana")
+    PSC := Gui("+AlwaysOnTop +ToolWindow", "Prostate Size Helper")
+    PSC.MarginX := 16
+    PSC.MarginY := 14
+    PSC.BackColor := "F4F5F7"
+    PSC.SetFont("s11", "Microsoft JhengHei UI")
 
-    PSC.Add("Text", "x12 y22 w160 h20", "Width")
-    PSC.Add("Text", "x12 y72 w160 h20", "Length")
-    PSC.Add("Text", "x12 y122 w160 h20", "Height")
+    PSC.Add("Text", "xm ym+3 w60", "Width:")
+    edtWidth := PSC.Add("Edit", "x+8 yp-3 w90 Number")
+    PSC.Add("Text", "x+8 yp+3 w35", "mm")
 
-    ; 儲存 Edit 控制項物件，以便稍後取值
-    edtWidth := PSC.Add("Edit", "x162 y20 w80 h22 Number")
-    edtLength := PSC.Add("Edit", "x162 y70 w80 h22 Number")
-    edtHeight := PSC.Add("Edit", "x162 y120 w80 h22 Number")
+    PSC.Add("Text", "xm y+12 w60", "Length:")
+    edtLength := PSC.Add("Edit", "x+8 yp-3 w90 Number")
+    PSC.Add("Text", "x+8 yp+3 w35", "mm")
 
-    PSC.Add("Text", "x252 y22 w30 h20", "mm")
-    PSC.Add("Text", "x252 y72 w30 h20", "mm")
-    PSC.Add("Text", "x252 y122 w30 h20", "mm")
+    PSC.Add("Text", "xm y+12 w60", "Height:")
+    edtHeight := PSC.Add("Edit", "x+8 yp-3 w90 Number")
+    PSC.Add("Text", "x+8 yp+3 w35", "mm")
 
-    btnOK := PSC.Add("Button", "x12 y170 w40 h30 Default", "OK")
+    btnOK := PSC.Add("Button", "Default xm y+16 w100", "確定 (Enter)")
+    btnCancel := PSC.Add("Button", "x+10 yp w100", "取消 (Esc)")
+
     btnOK.OnEvent("Click", PSCButtonOK)
+    btnCancel.OnEvent("Click", PSCButtonCancel)
+    PSC.OnEvent("Close", PSCButtonCancel)
+    PSC.OnEvent("Escape", PSCButtonCancel)
 
     ; ShowGUIatCurrScreenCenter 邏輯移植
     ; get current monitor index
@@ -973,25 +981,41 @@ ProstateSizeCalForm() {
     GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
 
     PSC.Show("x" GUI_X " y" GUI_Y)
+    RisAIDebugGui.ApplyWindowStyle(PSC.Hwnd)
+    edtWidth.Focus()
 
-    ; 定義內部函數處理點擊事件
+    ; 取消與關閉處理
+    PSCButtonCancel(*) {
+        PSC.Destroy()
+        if (parentWnd && WinExist("ahk_id " parentWnd)) {
+            WinActivate("ahk_id " parentWnd)
+        }
+    }
+
+    ; 定義內部函數處理點擊確定事件
     PSCButtonOK(*) {
-        PSC.Hide() ; 先隱藏，避免視覺干擾
-
         ; 從控制項物件獲取數值
-        ValWidth := edtWidth.Value
-        ValLength := edtLength.Value
-        ValHeight := edtHeight.Value
+        ValWidth := Trim(edtWidth.Value)
+        ValLength := Trim(edtLength.Value)
+        ValHeight := Trim(edtHeight.Value)
 
         if (ValWidth = "" || ValLength = "" || ValHeight = "") {
-            MsgBox("Empty value")
+            MsgBox("請輸入完整數值", "Prostate Size Helper", "Icon! 4096")
+            if (ValWidth = "")
+                edtWidth.Focus()
+            else if (ValLength = "")
+                edtLength.Focus()
+            else
+                edtHeight.Focus()
             return
         }
 
+        PSC.Destroy()
+
         ; 數值計算
-        PrWidth := Round(ValWidth / 10, 1)
-        PrLength := Round(ValLength / 10, 1)
-        PrHeight := Round(ValHeight / 10, 1)
+        PrWidth := Round(Number(ValWidth) / 10, 1)
+        PrLength := Round(Number(ValLength) / 10, 1)
+        PrHeight := Round(Number(ValHeight) / 10, 1)
         PrVol := Round(PrWidth * PrLength * PrHeight * 0.52, 1)
 
         ; 使用 Format 格式化字串
@@ -1001,10 +1025,8 @@ Prostatic size: {1} x {2} x {3} cm; Volume: {4} ml (length x width x height x 0.
 )", PrWidth, PrLength,
             PrHeight, PrVol)
 
-        PSC.Destroy()
-
-        if WinExist("ahk_id " parentWnd) {
-            WinActivate "ahk_id " parentWnd
+        if (parentWnd && WinExist("ahk_id " parentWnd)) {
+            WinActivate("ahk_id " parentWnd)
         }
 
         Paste(MyForm)
