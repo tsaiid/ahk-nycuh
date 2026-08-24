@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0
 
 #Include .\RisAIDebug.v2.ahk
+#Include .\RisDialog.v2.ahk
 
 /**
  * 負責 AI 相關的 Debug 與比對 GUI
@@ -17,11 +18,7 @@ class RisAIDebugGui {
         header := (IsObject(options) && options.HasOwnProp("Header")) ? options.Header : "Prompt 已複製到剪貼簿。"
         result := false
 
-        promptGui := Gui("+AlwaysOnTop +ToolWindow +Resize", title)
-        promptGui.MarginX := 14
-        promptGui.MarginY := 12
-        promptGui.BackColor := "F4F5F7"
-        promptGui.SetFont("s11", "Microsoft JhengHei UI")
+        promptGui := RisDialog.Create(title, "+AlwaysOnTop +ToolWindow +Resize", {MarginX: 14, MarginY: 12})
 
         promptGui.Add("Text", "w860", header . "`r`n字元數: " . StrLen(promptText))
         promptEdit := promptGui.Add("Edit", "xm w860 h520 ReadOnly Multi -Wrap -WantReturn", promptText)
@@ -43,8 +40,7 @@ class RisAIDebugGui {
         promptGui.OnEvent("Close", (*) => promptGui.Destroy())
         promptGui.OnEvent("Escape", (*) => promptGui.Destroy())
 
-        promptGui.Show("Center")
-        this.ApplyWindowStyle(promptGui.Hwnd)
+        RisDialog.ShowCenter(promptGui)
         btnContinue.Focus()
         SendMessage(0x00B1, 0, 0, promptEdit.Hwnd)
         WinWaitClose("ahk_id " . promptGui.Hwnd)
@@ -69,11 +65,7 @@ class RisAIDebugGui {
             waitText := "`r`nWaitForResponse: " . request.Metrics.WaitForResponseTime . " ms"
         }
 
-        debugGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "Google AI Debug - curl")
-        debugGui.MarginX := 14
-        debugGui.MarginY := 12
-        debugGui.BackColor := "F4F5F7"
-        debugGui.SetFont("s11", "Microsoft JhengHei UI")
+        debugGui := RisDialog.Create("Google AI Debug - curl", "+AlwaysOnTop +ToolWindow +Resize", {MarginX: 14, MarginY: 12})
 
         debugGui.Add("Text", "w760", "Status: " . response.Status
             . "`r`nModel: " . modelText
@@ -102,8 +94,7 @@ class RisAIDebugGui {
         debugGui.OnEvent("Close", (*) => debugGui.Destroy())
         debugGui.OnEvent("Escape", (*) => debugGui.Destroy())
 
-        debugGui.Show("Center")
-        this.ApplyWindowStyle(debugGui.Hwnd)
+        RisDialog.ShowCenter(debugGui)
         btnClose.Focus()
         SendMessage(0x00B1, 0, 0, curlEdit.Hwnd)
     }
@@ -116,11 +107,7 @@ class RisAIDebugGui {
     static ShowDebugError(errMsg, options := 0) {
         notify := (IsObject(options) && options.HasOwnProp("Notify")) ? options.Notify : (*) => 0
 
-        errGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "AI Debug - 處理失敗")
-        errGui.MarginX := 14
-        errGui.MarginY := 12
-        errGui.BackColor := "F4F5F7"
-        errGui.SetFont("s11", "Microsoft JhengHei UI")
+        errGui := RisDialog.Create("AI Debug - 處理失敗", "+AlwaysOnTop +ToolWindow +Resize", {MarginX: 14, MarginY: 12})
 
         errGui.Add("Text", "w560", "API 呼叫或處理過程中發生例外錯誤：")
         errEdit := errGui.Add("Edit", "xm w560 h260 ReadOnly Multi -WantReturn", errMsg)
@@ -136,8 +123,7 @@ class RisAIDebugGui {
         errGui.OnEvent("Close", (*) => errGui.Destroy())
         errGui.OnEvent("Escape", (*) => errGui.Destroy())
 
-        errGui.Show("AutoSize Center")
-        this.ApplyWindowStyle(errGui.Hwnd)
+        RisDialog.ShowCenter(errGui, "AutoSize")
         btnClose.Focus()
         SendMessage(0x00B1, 0, 0, errEdit.Hwnd) ; 避免唯讀 Edit 在顯示時自動全選
     }
@@ -164,11 +150,7 @@ class RisAIDebugGui {
             resultText
         )
 
-        respGui := Gui("+AlwaysOnTop +ToolWindow +Resize", title)
-        respGui.MarginX := 14
-        respGui.MarginY := 12
-        respGui.BackColor := "F4F5F7"
-        respGui.SetFont("s11", "Microsoft JhengHei UI")
+        respGui := RisDialog.Create(title, "+AlwaysOnTop +ToolWindow +Resize", {MarginX: 14, MarginY: 12})
 
         statsHeader := Format(
             "Model: {1} | API Key: {2}`r`n資料提取: {3} ms | API 耗時: {4} ms",
@@ -199,8 +181,7 @@ class RisAIDebugGui {
         respGui.OnEvent("Close", (*) => respGui.Destroy())
         respGui.OnEvent("Escape", (*) => respGui.Destroy())
 
-        respGui.Show("Center")
-        this.ApplyWindowStyle(respGui.Hwnd)
+        RisDialog.ShowCenter(respGui)
         btnClose.Focus()
         SendMessage(0x00B1, 0, 0, respEdit.Hwnd)
         WinWaitClose("ahk_id " . respGui.Hwnd)
@@ -214,11 +195,7 @@ class RisAIDebugGui {
         applyFont := (IsObject(options) && options.HasOwnProp("ApplyFont")) ? options.ApplyFont : (*) => 0
         onAccept := (IsObject(options) && options.HasOwnProp("OnAccept")) ? options.OnAccept : (*) => 0
 
-        myGui := Gui("+AlwaysOnTop +ToolWindow", "AI 潤色結果比對")
-        myGui.MarginX := 14
-        myGui.MarginY := 12
-        myGui.BackColor := "F4F5F7"
-        myGui.SetFont("s11", "Microsoft JhengHei UI")
+        myGui := RisDialog.Create("AI 潤色結果比對", "+AlwaysOnTop +ToolWindow", {MarginX: 14, MarginY: 12})
 
         myGui.Add("Text", "w400", "原始文字 (Original):")
         myGui.Add("Text", "x+20 yp w400", "潤色結果 (Refined):")
@@ -249,8 +226,7 @@ class RisAIDebugGui {
         btnReject.OnEvent("Click", (*) => myGui.Destroy())
         myGui.OnEvent("Escape", (*) => myGui.Destroy())
 
-        myGui.Show("Center")
-        this.ApplyWindowStyle(myGui.Hwnd)
+        RisDialog.ShowCenter(myGui)
 
         refinedEdit.Focus()
         SendMessage(0x00B1, 0, 0, refinedEdit.Hwnd)
@@ -268,11 +244,7 @@ class RisAIDebugGui {
         colW := layout.ColumnWidth
         gap := layout.Gap
 
-        myGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "AI 潤色結果三欄比對")
-        myGui.MarginX := layout.MarginX
-        myGui.MarginY := 12
-        myGui.BackColor := "F4F5F7"
-        myGui.SetFont("s11", "Microsoft JhengHei UI")
+        myGui := RisDialog.Create("AI 潤色結果三欄比對", "+AlwaysOnTop +ToolWindow +Resize", {MarginX: layout.MarginX, MarginY: 12})
 
         myGui.Add("Text", Format("w{}", colW), "原始文字 (Original):")
         myGui.Add("Text", Format("x+{} yp w{}", gap, colW), "OpenAI:")
@@ -314,8 +286,7 @@ class RisAIDebugGui {
         btnUseGoogle.OnEvent("Click", applyResult.Bind(googleEdit, "Google AI"))
         myGui.OnEvent("Escape", (*) => myGui.Destroy())
 
-        myGui.Show(Format("w{} Center", layout.WindowWidth))
-        this.ApplyWindowStyle(myGui.Hwnd)
+        RisDialog.ShowCenter(myGui, Format("w{}", layout.WindowWidth))
 
         if (openAIResult.Success) {
             openAIEdit.Focus()
@@ -361,17 +332,7 @@ class RisAIDebugGui {
      * @param hwnd 視窗控制代碼
      */
     static ApplyWindowStyle(hwnd) {
-        try {
-            if (this.GetWindowsBuildNumber() < 22000) {
-                renderingPolicy := 1 ; DWMNCRP_DISABLED: remove Win10 DWM shadow/edge.
-                DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 2, "Int*", renderingPolicy, "UInt", 4)
-                return
-            }
-
-            borderColor := 0xFFFFFFFE ; DWMWA_COLOR_NONE: remove Win11 DWM outline while keeping shadow.
-            DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 34, "UInt*", borderColor, "UInt", 4)
-        } catch {
-        }
+        RisDialog.ApplyWindowStyle(hwnd)
     }
 
     /**
@@ -379,7 +340,7 @@ class RisAIDebugGui {
      * @param hwnd 視窗控制代碼
      */
     static ApplyPolishComparisonWindowStyle(hwnd) {
-        this.ApplyWindowStyle(hwnd)
+        RisDialog.ApplyWindowStyle(hwnd)
     }
 
     /**
@@ -387,6 +348,6 @@ class RisAIDebugGui {
      * @returns {Integer}
      */
     static GetWindowsBuildNumber() {
-        return RegExMatch(A_OSVersion, "^\d+\.\d+\.(\d+)", &match) ? Integer(match[1]) : 0
+        return RisDialog.GetWindowsBuildNumber()
     }
 }

@@ -9,6 +9,7 @@
 #Include <RisAIRequestBuilder.v2>
 #Include <RisAITransport.v2>
 #Include <RisAIDebug.v2>
+#Include <RisDialog.v2>
 #Include <RisAIDebugGui.v2>
 #Include <RisAIService.v2>
 #Include <RisAIModelHealth.v2>

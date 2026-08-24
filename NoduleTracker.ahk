@@ -35,6 +35,7 @@
 #Requires AutoHotkey v2.0
 #Include <Acc.v2>
 #Include <OCR.v2>
+#Include <RisDialog.v2>
 #Include <G3PacsNotify.v2>
 #Include <G3PacsProbe.v2>
 
@@ -1012,24 +1013,7 @@ class NoduleTracker {
         chkMprOffset.OnEvent("Click", (ctrl, *) => (this.EnableMprImgOffset := ctrl.Value, this.UpdateTrayMenu()))
 
         this.MyGui.Show("x" this.GuiX " y" this.GuiY " NoActivate AutoSize")
-        this.ApplyWindowStyle(this.MyGui.Hwnd)
-    }
-
-    ApplyWindowStyle(hwnd) {
-        try {
-            if (this.GetWindowsBuildNumber() < 22000) {
-                renderingPolicy := 1 ; DWMNCRP_DISABLED: remove Win10 DWM shadow/edge.
-                DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 2, "Int*", renderingPolicy, "UInt", 4)
-                return
-            }
-
-            borderColor := 0xFFFFFFFE ; DWMWA_COLOR_NONE: remove Win11 DWM outline while keeping shadow.
-            DllCall("Dwmapi\DwmSetWindowAttribute", "Ptr", hwnd, "UInt", 34, "UInt*", borderColor, "UInt", 4)
-        }
-    }
-
-    GetWindowsBuildNumber() {
-        return RegExMatch(A_OSVersion, "^\d+\.\d+\.(\d+)", &match) ? Integer(match[1]) : 0
+        RisDialog.ApplyWindowStyle(this.MyGui.Hwnd)
     }
 
     RenderSection(label, xPos) {
@@ -1600,11 +1584,7 @@ class NoduleTracker {
     }
 
     ShowDebugWindow(content, title := "Debug Info", timeout := 0) {
-        debugGui := Gui("+AlwaysOnTop +ToolWindow +Resize", title)
-        debugGui.MarginX := 14
-        debugGui.MarginY := 12
-        debugGui.BackColor := "F4F5F7"
-        debugGui.SetFont("s10", "Maple Mono CN")
+        debugGui := RisDialog.Create(title, "+AlwaysOnTop +ToolWindow +Resize", {MarginX: 14, MarginY: 12, FontSize: "s10", FontName: "Maple Mono CN"})
         editCtrl := debugGui.Add("Edit", "xm w600 h400 ReadOnly Multi -WantReturn", content)
         btnCopy := debugGui.Add("Button", "Default w120 xm y+12", "📋 複製全部")
         btnCopy.OnEvent("Click", (*) => (
@@ -1616,8 +1596,7 @@ class NoduleTracker {
         btnClose.OnEvent("Click", (*) => debugGui.Destroy())
         debugGui.OnEvent("Close", (*) => debugGui.Destroy())
         debugGui.OnEvent("Escape", (*) => debugGui.Destroy())
-        debugGui.Show("Center")
-        this.ApplyWindowStyle(debugGui.Hwnd)
+        RisDialog.ShowCenter(debugGui)
         SendMessage(0x00B1, 0, 0, editCtrl.Hwnd)
         btnCopy.Focus()
         if (timeout > 0) {

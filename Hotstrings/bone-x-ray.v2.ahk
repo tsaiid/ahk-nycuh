@@ -2,7 +2,7 @@
 
 #Include ..\Lib\Paste.v2.ahk
 #Include ..\Lib\ShowGUIatCurrScreenCenter.v2.ahk
-#Include ..\Lib\RisAIDebugGui.v2.ahk
+#Include ..\Lib\RisDialog.v2.ahk
 
 ; For Bone Plain Film
 ::bok::No joint space narrowing, dislocation, or fracture.
@@ -555,11 +555,7 @@ The estimation of bone age is by the method of Greulich and Pyle.
 
 ;; for LLD form
 LLDForm(parentWnd) {
-    LLDGui := Gui("+AlwaysOnTop +ToolWindow", "LLD Helper")
-    LLDGui.MarginX := 16
-    LLDGui.MarginY := 14
-    LLDGui.BackColor := "F4F5F7"
-    LLDGui.SetFont("s11", "Microsoft JhengHei UI")
+    LLDGui := RisDialog.Create("LLD Helper")
 
     LLDGui.Add("Text", "xm ym+3 w125", "Right Leg Length:")
     edtRtLL := LLDGui.Add("Edit", "x+8 yp-3 w90 Number")
@@ -572,36 +568,15 @@ LLDForm(parentWnd) {
     btnOK := LLDGui.Add("Button", "Default xm y+16 w120", "確定 (Enter)")
     btnCancel := LLDGui.Add("Button", "x+10 yp w120", "取消 (Esc)")
 
+    LLDButtonCancel(*) => RisDialog.CloseAndRestoreFocus(LLDGui, parentWnd)
+
     btnOK.OnEvent("Click", LLDButtonOK)
     btnCancel.OnEvent("Click", LLDButtonCancel)
     LLDGui.OnEvent("Close", LLDButtonCancel)
     LLDGui.OnEvent("Escape", LLDButtonCancel)
 
-    ; Positioning logic (使用您已有的 v2 函式)
-    CurrentMonitorIndex := GetCurrentMonitorIndex()
-
-    ; 為了計算尺寸，先隱藏顯示以取得 Hwnd 與初始大小
-    LLDGui.Show("Hide")
-    GUI_Hwnd := LLDGui.Hwnd
-
-    ; 假設您的 v2 GetClientSize 遵循標準 v2 ByRef 寫法，變數前需加 &
-    GUI_Width := 0, GUI_Height := 0
-    GetClientSize(GUI_Hwnd, &GUI_Width, &GUI_Height)
-
-    GUI_X := CoordXCenterScreen(GUI_Width, CurrentMonitorIndex)
-    GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
-
-    LLDGui.Show("x" GUI_X " y" GUI_Y)
-    RisAIDebugGui.ApplyWindowStyle(LLDGui.Hwnd)
+    RisDialog.ShowAtCurrentMonitorCenter(LLDGui)
     edtRtLL.Focus()
-
-    ; 取消與關閉處理
-    LLDButtonCancel(*) {
-        LLDGui.Destroy()
-        if (parentWnd && WinExist("ahk_id " parentWnd)) {
-            WinActivate("ahk_id " parentWnd)
-        }
-    }
 
     ; 定義內部函數處理點擊確定事件
     LLDButtonOK(*) {
@@ -617,7 +592,7 @@ LLDForm(parentWnd) {
             return
         }
 
-        LLDGui.Destroy()
+        RisDialog.CloseAndRestoreFocus(LLDGui, parentWnd)
 
         RtLL := Round(Number(valRtLL) / 10, 1)
         LtLL := Round(Number(valLtLL) / 10, 1)
@@ -637,9 +612,6 @@ IMPRESSION:
 {4}
 )",
             RtLL, LtLL, delta, MeningfulLLD)
-
-        if (parentWnd && WinExist("ahk_id " parentWnd))
-            WinActivate("ahk_id " parentWnd)
 
         Paste(MyForm)
     }

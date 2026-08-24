@@ -3,7 +3,7 @@
 #Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
 #Include ..\Lib\ShowGUIatCurrScreenCenter.v2.ahk
-#Include ..\Lib\RisAIDebugGui.v2.ahk
+#Include ..\Lib\RisDialog.v2.ahk
 #Include lib\ris-common.v2.ahk
 
 ; Abdomen MR Forms
@@ -938,11 +938,7 @@ ProstateSizeCalForm() {
     ; 先取得當前活動視窗的 ID，以便稍後切換回來
     parentWnd := WinExist("A")
 
-    PSC := Gui("+AlwaysOnTop +ToolWindow", "Prostate Size Helper")
-    PSC.MarginX := 16
-    PSC.MarginY := 14
-    PSC.BackColor := "F4F5F7"
-    PSC.SetFont("s11", "Microsoft JhengHei UI")
+    PSC := RisDialog.Create("Prostate Size Helper")
 
     PSC.Add("Text", "xm ym+3 w60", "Width:")
     edtWidth := PSC.Add("Edit", "x+8 yp-3 w90 Number")
@@ -959,39 +955,15 @@ ProstateSizeCalForm() {
     btnOK := PSC.Add("Button", "Default xm y+16 w100", "確定 (Enter)")
     btnCancel := PSC.Add("Button", "x+10 yp w100", "取消 (Esc)")
 
+    PSCButtonCancel(*) => RisDialog.CloseAndRestoreFocus(PSC, parentWnd)
+
     btnOK.OnEvent("Click", PSCButtonOK)
     btnCancel.OnEvent("Click", PSCButtonCancel)
     PSC.OnEvent("Close", PSCButtonCancel)
     PSC.OnEvent("Escape", PSCButtonCancel)
 
-    ; ShowGUIatCurrScreenCenter 邏輯移植
-    ; get current monitor index
-    CurrentMonitorIndex := GetCurrentMonitorIndex()
-
-    ; get Hwnd of current GUI (v2 物件已有 Hwnd 屬性)
-    PSC.Show("Hide") ; 先以隱藏模式 Show 出來，才能計算 ClientSize
-    GUI_Hwnd := PSC.Hwnd
-
-    ; Calculate size of GUI
-    ; 注意：呼叫參照參數 (&) 的函數時，變數前要加 &
-    GUI_Width := 0, GUI_Height := 0
-    GetClientSize(GUI_Hwnd, &GUI_Width, &GUI_Height)
-
-    ; Calculate where the GUI should be positioned
-    GUI_X := CoordXCenterScreen(GUI_Width, CurrentMonitorIndex)
-    GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
-
-    PSC.Show("x" GUI_X " y" GUI_Y)
-    RisAIDebugGui.ApplyWindowStyle(PSC.Hwnd)
+    RisDialog.ShowAtCurrentMonitorCenter(PSC)
     edtWidth.Focus()
-
-    ; 取消與關閉處理
-    PSCButtonCancel(*) {
-        PSC.Destroy()
-        if (parentWnd && WinExist("ahk_id " parentWnd)) {
-            WinActivate("ahk_id " parentWnd)
-        }
-    }
 
     ; 定義內部函數處理點擊確定事件
     PSCButtonOK(*) {
@@ -1011,7 +983,7 @@ ProstateSizeCalForm() {
             return
         }
 
-        PSC.Destroy()
+        RisDialog.CloseAndRestoreFocus(PSC, parentWnd)
 
         ; 數值計算
         PrWidth := Round(Number(ValWidth) / 10, 1)
@@ -1025,10 +997,6 @@ ProstateSizeCalForm() {
 Prostatic size: {1} x {2} x {3} cm; Volume: {4} ml (length x width x height x 0.52).
 )", PrWidth, PrLength,
             PrHeight, PrVol)
-
-        if (parentWnd && WinExist("ahk_id " parentWnd)) {
-            WinActivate("ahk_id " parentWnd)
-        }
 
         Paste(MyForm)
     }

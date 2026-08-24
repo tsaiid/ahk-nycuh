@@ -3,6 +3,7 @@
 #Include ..\Lib\RisAIService.v2.ahk
 #Include ..\Lib\RisAIOrchestration.v2.ahk
 #Include ..\Lib\RisAIDebugGui.v2.ahk
+#Include ..\Lib\RisDialog.v2.ahk
 #Include ..\Lib\G3PacsNotify.v2.ahk
 #Include ..\Lib\G3PacsProbe.v2.ahk
 
@@ -671,11 +672,7 @@ NotifyG3PacsAIStatus(message, duration := 1800) {
 }
 
 ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
-    resultGui := Gui("+AlwaysOnTop +ToolWindow +Resize", "G3PACS Calcium Score AI")
-    resultGui.MarginX := 14
-    resultGui.MarginY := 12
-    resultGui.BackColor := "F4F5F7"
-    resultGui.SetFont("s11", "Microsoft JhengHei UI")
+    resultGui := RisDialog.Create("G3PACS Calcium Score AI", "+AlwaysOnTop +ToolWindow +Resize", {MarginX: 14, MarginY: 12})
 
     resultGui.Add("Text", "w760", "Result:")
     resultEditHeight := showDebugWindow ? 110 : 180
@@ -723,8 +720,7 @@ ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
     resultGui.OnEvent("Close", (*) => resultGui.Destroy())
     resultGui.OnEvent("Escape", (*) => resultGui.Destroy())
 
-    resultGui.Show("AutoSize Center")
-    RisAIDebugGui.ApplyWindowStyle(resultGui.Hwnd)
+    RisDialog.ShowCenter(resultGui, "AutoSize")
     SendMessage(0x00B1, 0, 0, resultEdit.Hwnd)
     if showDebugWindow {
         SendMessage(0x00B1, 0, 0, debugEdit.Hwnd)

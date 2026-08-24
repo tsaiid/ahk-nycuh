@@ -2,7 +2,7 @@
 
 #Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
-#Include ..\Lib\RisAIDebugGui.v2.ahk
+#Include ..\Lib\RisDialog.v2.ahk
 #Include lib\ris-common.v2.ahk
 
 ; Chest CT Forms
@@ -978,11 +978,7 @@ Fleischner2017Form() {
     ; 取得當前活動視窗的 ID，以便稍後貼上文字時切換回來
     parentWnd := WinExist("A")
 
-    FsgGui := Gui("+AlwaysOnTop +ToolWindow", "Fleischner 2017 Guidelines Helper")
-    FsgGui.MarginX := 16
-    FsgGui.MarginY := 14
-    FsgGui.BackColor := "F4F5F7"
-    FsgGui.SetFont("s10", "Microsoft JhengHei UI")
+    FsgGui := RisDialog.Create("Fleischner 2017 Guidelines Helper",, {FontSize: "s10"})
 
     FsgGui.Add("Text", "xm ym", "Solid Nodule:")
     FsgGui.Add("GroupBox", "xm y+4 Section w260 h100", "Single")
@@ -1022,21 +1018,14 @@ Fleischner2017Form() {
     btnOK := FsgGui.Add("Button", "Default xm y+18 w120", "確定 (Enter)")
     btnCancel := FsgGui.Add("Button", "x+12 yp w120", "取消 (Esc)")
 
+    FsgButtonCancel(*) => RisDialog.CloseAndRestoreFocus(FsgGui, parentWnd)
+
     btnOK.OnEvent("Click", FsgButtonOK)
     btnCancel.OnEvent("Click", FsgButtonCancel)
     FsgGui.OnEvent("Close", FsgButtonCancel)
     FsgGui.OnEvent("Escape", FsgButtonCancel)
 
-    FsgGui.Show("AutoSize Center")
-    RisAIDebugGui.ApplyWindowStyle(FsgGui.Hwnd)
-
-    ; 取消與關閉處理
-    FsgButtonCancel(*) {
-        FsgGui.Destroy()
-        if (parentWnd && WinExist("ahk_id " parentWnd)) {
-            WinActivate("ahk_id " parentWnd)
-        }
-    }
+    RisDialog.ShowCenter(FsgGui, "AutoSize")
 
     ; 定義內部函式處理點擊事件 (Closure)，可以直接使用外部變數
     FsgButtonOK(*) {
@@ -1072,11 +1061,7 @@ Fleischner2017Form() {
         ; 使用 Format 格式化字串
         MyForm := Format("Fleischner Society 2017 Guidelines recommends: {1}", FsgRecommendations[SelectedIndex])
 
-        FsgGui.Destroy()
-
-        if (parentWnd && WinExist("ahk_id " parentWnd)) {
-            WinActivate("ahk_id " parentWnd)
-        }
+        RisDialog.CloseAndRestoreFocus(FsgGui, parentWnd)
 
         Paste(MyForm)
     }
