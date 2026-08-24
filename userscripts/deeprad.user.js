@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepRad helpers
 // @namespace    http://tsai.it/
-// @version      20260604.1
+// @version      20260824.4
 // @description  Add reporting helpers to DeepRad.AI.
 // @author       I-Ta Tsai
 // @match        http://172.17.15.97:17000/
@@ -215,40 +215,122 @@
         }
     }
 
-    function getNoduleType(row) {
-        const title = row.cells[4]?.querySelector('svg')?.getAttribute('title');
-        const type = (title || getCleanText(row.cells[4])).trim().toLowerCase();
+    function getColumnIndices(table) {
+        const headers = Array.from(table?.querySelectorAll('thead th') || []);
+        const indices = {
+            no: 0,
+            lobe: 1,
+            slice: 2,
+            diameter: 3,
+            type: 4,
+            lungRads: 5,
+            select: 6
+        };
+        headers.forEach((th, idx) => {
+            const text = getCleanText(th).toLowerCase();
+            if (text.includes('no.')) indices.no = idx;
+            else if (text.includes('lobe')) indices.lobe = idx;
+            else if (text.includes('slice')) indices.slice = idx;
+            else if (text.includes('diameter')) indices.diameter = idx;
+            else if (text.includes('type')) indices.type = idx;
+            else if (text.includes('lung-rads') || text.includes('rads')) indices.lungRads = idx;
+            else if (text.includes('select')) indices.select = idx;
+        });
+        return indices;
+    }
+
+    function getNoduleType(row, typeColIndex = 4) {
+        const cell = row.cells[typeColIndex];
+        const title = cell?.querySelector('svg')?.getAttribute('title') || cell?.querySelector('[title]')?.getAttribute('title');
+        const type = (title || getCleanText(cell)).trim().toLowerCase();
         return type === 'pure ggo' ? 'non-solid' : type;
+    }
+
+    function getNoduleLungRads(row, lungRadsColIndex = 5) {
+        const cell = row.cells[lungRadsColIndex];
+        return getCleanText(cell);
+    }
+
+    function isLungRads3OrAbove(lungRads) {
+        const match = String(lungRads || '').trim().match(/^(\d+)/);
+        return match ? Number(match[1]) >= 3 : false;
+    }
+
+    function normalizeAxis(str) {
+        if (!str || str === '--') return '';
+        const match = String(str).trim().match(/([0-9.]+)\s*[*xX×,]\s*([0-9.]+)/);
+        if (match) {
+            return `${match[1]} x ${match[2]} mm`;
+        }
+        return String(str).trim();
+    }
+
+    function getAxisFromKeyFilmDOM() {
+        const keyFilm = document.querySelector('.key-film');
+        if (!keyFilm) return '';
+        const pElements = keyFilm.querySelectorAll('.view-col p, p');
+        for (const p of pElements) {
+            const text = getCleanText(p);
+            const match = text.match(/Axis:\s*([0-9.]+\s*[*xX×,]\s*[0-9.]+(?:\s*mm)?)/i);
+            if (match) {
+                return normalizeAxis(match[1]);
+            }
+        }
+        return '';
+    }
+
+    function isRowCurrentlySelected(row) {
+        return row.classList.contains('selected') || Boolean(row.querySelector('td.selected'));
+    }
+
+    async function getNoduleAxisByDOM(row) {
+        if (isRowCurrentlySelected(row)) {
+            return getAxisFromKeyFilmDOM();
+        }
+
+        try {
+            const clickable = row.querySelector('td:not(:last-child)') || row;
+            clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            await new Promise((resolve) => setTimeout(resolve, 60));
+            return getAxisFromKeyFilmDOM();
+        } catch {
+            return '';
+        }
     }
 
     function getNoduleRows() {
         return Array.from(document.querySelectorAll('table.nodule-table tbody tr'));
     }
 
-    function isNoduleRowSelected(row) {
-        const checkbox = row.cells[6]?.querySelector('input[type="checkbox"]');
+    function isNoduleRowSelected(row, selectColIndex = 6) {
+        const checkbox = row.cells[selectColIndex]?.querySelector('input[type="checkbox"]') ||
+            row.querySelector('input[type="checkbox"]');
         return Boolean(checkbox && (checkbox.checked || checkbox.matches(':checked')));
     }
 
-    function formatNoduleRow(row, series) {
-        const lobe = getCleanText(row.cells[1]);
-        const image = getCleanText(row.cells[2]);
-        const diameter = getCleanText(row.cells[3]);
-        const type = getNoduleType(row);
+    function formatNoduleRow(row, series, axis = '', cols = { lobe: 1, slice: 2, diameter: 3, type: 4, lungRads: 5 }) {
+        const lobe = getCleanText(row.cells[cols.lobe]);
+        const image = getCleanText(row.cells[cols.slice]);
+        const diameter = getCleanText(row.cells[cols.diameter]);
+        const type = getNoduleType(row, cols.type);
+        const lungRads = getNoduleLungRads(row, cols.lungRads);
 
         if (!lobe || !image || !diameter || !type) {
             return '';
         }
 
-        return `A ${diameter} mm ${type} nodule in the ${lobe} of lung (Srs/Img: ${series}/${image}).`;
+        const normAxis = isLungRads3OrAbove(lungRads) ? normalizeAxis(axis) : '';
+        const axisPart = normAxis ? ` (${normAxis})` : '';
+
+        return `A ${diameter} mm${axisPart} ${type} nodule in the ${lobe} of lung (Srs/Img: ${series}/${image}).`;
     }
 
-    function formatHpaNoduleRows(rows) {
+    function formatHpaNoduleRows(rows, cols = { lobe: 1, slice: 2 }) {
         const imagesByLobe = new Map();
 
         for (const row of rows) {
-            const lobe = getCleanText(row.cells[1]);
-            const imageText = getCleanText(row.cells[2]);
+            const lobe = getCleanText(row.cells[cols.lobe ?? 1]);
+            const imageText = getCleanText(row.cells[cols.slice ?? 2]);
             const image = Number(imageText);
             if (!lobe || !imageText || !Number.isInteger(image)) {
                 continue;
@@ -381,24 +463,57 @@
         }
     }
 
-    function copyNoduleTable() {
+    async function copyNoduleTable() {
         const reportFormat = getReportFormat();
         const series = getReportSeries();
-        const rows = getNoduleRows().filter(isNoduleRowSelected);
+        const table = document.querySelector('table.nodule-table');
+        const cols = getColumnIndices(table);
+        const rows = getNoduleRows().filter((row) => isNoduleRowSelected(row, cols.select));
         console.info(`[DeepRad helpers] selected ${rows.length} nodule row(s).`);
 
-        const report = reportFormat === 'HPA'
-            ? formatHpaNoduleRows(rows)
-            : rows
-                .map((row) => formatNoduleRow(row, series))
-                .filter(Boolean)
-                .join('\r\n');
-
-        if (report) {
-            copyText(report).then(() => {
+        if (reportFormat === 'HPA') {
+            const report = formatHpaNoduleRows(rows, cols);
+            if (report) {
+                await copyText(report);
                 console.info(`[DeepRad helpers] copied ${rows.length} nodule(s).`);
                 showDeepRadStatus(`Copied ${rows.length} nodule(s).`);
-            });
+            } else {
+                console.warn('[DeepRad helpers] no nodules to copy.');
+                showDeepRadStatus('No selected nodules to copy.', 2400);
+            }
+            return;
+        }
+
+        const initialSelectedRow = getNoduleRows().find(isRowCurrentlySelected);
+        const formattedRows = [];
+        let switchedRow = false;
+
+        for (const row of rows) {
+            const lungRads = getNoduleLungRads(row, cols.lungRads);
+            let axis = '';
+            if (isLungRads3OrAbove(lungRads)) {
+                axis = await getNoduleAxisByDOM(row);
+                switchedRow = true;
+            }
+            const formatted = formatNoduleRow(row, series, axis, cols);
+            if (formatted) {
+                formattedRows.push(formatted);
+            }
+        }
+
+        if (switchedRow && initialSelectedRow) {
+            try {
+                const restoreClickable = initialSelectedRow.querySelector('td:not(:last-child)') || initialSelectedRow;
+                restoreClickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            } catch {}
+        }
+
+        const report = formattedRows.join('\r\n');
+
+        if (report) {
+            await copyText(report);
+            console.info(`[DeepRad helpers] copied ${rows.length} nodule(s).`);
+            showDeepRadStatus(`Copied ${rows.length} nodule(s).`);
         } else {
             console.warn('[DeepRad helpers] no nodules to copy.');
             showDeepRadStatus('No selected nodules to copy.', 2400);
