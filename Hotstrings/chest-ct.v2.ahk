@@ -2,6 +2,7 @@
 
 #Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
+#Include ..\Lib\RisAIDebugGui.v2.ahk
 #Include lib\ris-common.v2.ahk
 
 ; Chest CT Forms
@@ -977,53 +978,68 @@ Fleischner2017Form() {
     ; 取得當前活動視窗的 ID，以便稍後貼上文字時切換回來
     parentWnd := WinExist("A")
 
-    FsgGui := Gui(, "Fleischner 2017 Guidelines Helper")
-    FsgGui.SetFont("s10", "Verdana")
+    FsgGui := Gui("+AlwaysOnTop +ToolWindow", "Fleischner 2017 Guidelines Helper")
+    FsgGui.MarginX := 16
+    FsgGui.MarginY := 14
+    FsgGui.BackColor := "F4F5F7"
+    FsgGui.SetFont("s10", "Microsoft JhengHei UI")
 
-    FsgGui.Add("Text", , "Solid")
-    FsgGui.Add("GroupBox", "xm ym+20 Section w245 h90", "Single")
-    FsgGui.Add("GroupBox", "xm+255 ym+20 Section w245 h90", "Multiple")
+    FsgGui.Add("Text", "xm ym", "Solid Nodule:")
+    FsgGui.Add("GroupBox", "xm y+4 Section w260 h100", "Single")
+    FsgGui.Add("GroupBox", "x+16 ys w260 h100", "Multiple")
 
-    FsgGui.Add("Text", "xm", "Subsolid")
-    FsgGui.Add("GroupBox", "xm ym+140 Section w150 h70", "Single GGN")
-    FsgGui.Add("GroupBox", "xm+170 ym+140 Section w150 h70", "Single part solid")
-    FsgGui.Add("GroupBox", "xm+340 ym+140 Section w150 h70", "Multiple")
+    FsgGui.Add("Text", "xm y+14", "Subsolid Nodule:")
+    FsgGui.Add("GroupBox", "xm y+4 Section w168 h80", "Single GGN")
+    FsgGui.Add("GroupBox", "x+16 ys w168 h80", "Single part solid")
+    FsgGui.Add("GroupBox", "x+16 ys w168 h80", "Multiple")
 
     ; 用陣列來儲存所有的 Radio 物件，以便稍後判斷哪一個被選中
     RadioControls := []
 
     ; --- Solid single ---
     ; 注意：v2 中，只有第一個 Radio 加上 "Group" 選項，後續的 Radio 只要不加 "Group" 就會視為同一組
-    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+40 vRadio1 Group", "< 6 mm"))
-    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+60", "6-8 mm"))
-    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+80", "> 8 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+14 ys+24 vRadio1 Group", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+14 y+4", "6-8 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+14 y+4", "> 8 mm"))
 
     ; --- Solid multiple ---
-    RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+40", "< 6 mm"))
-    RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+60", "6-8 mm"))
-    RadioControls.Push(FsgGui.Add("Radio", "xm+265 ym+80", "> 8 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+290 ys+24", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+290 y+4", "6-8 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+290 y+4", "> 8 mm"))
 
     ; --- Subsolid single GGN ---
-    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+160", "< 6 mm"))
-    RadioControls.Push(FsgGui.Add("Radio", "xm+10 ym+180", ">= 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+14 ys+24", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+14 y+4", ">= 6 mm"))
 
     ; --- Subsolid single part solid ---
-    RadioControls.Push(FsgGui.Add("Radio", "xm+180 ym+160", "< 6 mm"))
-    RadioControls.Push(FsgGui.Add("Radio", "xm+180 ym+180", ">= 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+198 ys+24", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+198 y+4", ">= 6 mm"))
 
     ; --- Subsolid multiple ---
-    RadioControls.Push(FsgGui.Add("Radio", "xm+350 ym+160", "< 6 mm"))
-    RadioControls.Push(FsgGui.Add("Radio", "xm+350 ym+180", ">= 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+382 ys+24", "< 6 mm"))
+    RadioControls.Push(FsgGui.Add("Radio", "xs+382 y+4", ">= 6 mm"))
 
-    Btn := FsgGui.Add("Button", "xm Default", "OK")
-    Btn.OnEvent("Click", FsgButtonOK) ; 綁定點擊事件
+    btnOK := FsgGui.Add("Button", "Default xm y+18 w120", "確定 (Enter)")
+    btnCancel := FsgGui.Add("Button", "x+12 yp w120", "取消 (Esc)")
+
+    btnOK.OnEvent("Click", FsgButtonOK)
+    btnCancel.OnEvent("Click", FsgButtonCancel)
+    FsgGui.OnEvent("Close", FsgButtonCancel)
+    FsgGui.OnEvent("Escape", FsgButtonCancel)
 
     FsgGui.Show("AutoSize Center")
+    RisAIDebugGui.ApplyWindowStyle(FsgGui.Hwnd)
+
+    ; 取消與關閉處理
+    FsgButtonCancel(*) {
+        FsgGui.Destroy()
+        if (parentWnd && WinExist("ahk_id " parentWnd)) {
+            WinActivate("ahk_id " parentWnd)
+        }
+    }
 
     ; 定義內部函式處理點擊事件 (Closure)，可以直接使用外部變數
     FsgButtonOK(*) {
-        Saved := FsgGui.Submit() ; 隱藏並送出
-
         ; 找出被選中的 Radio Index (1-12)
         SelectedIndex := 0
         for index, radioCtrl in RadioControls {
@@ -1034,7 +1050,7 @@ Fleischner2017Form() {
         }
 
         if (SelectedIndex == 0) {
-            MsgBox("Empty value")
+            MsgBox("請選擇一個選項", "Fleischner 2017 Guidelines Helper", "Icon! 4096")
             return
         }
 
@@ -1058,8 +1074,8 @@ Fleischner2017Form() {
 
         FsgGui.Destroy()
 
-        if WinExist("ahk_id " parentWnd) {
-            WinActivate "ahk_id " parentWnd
+        if (parentWnd && WinExist("ahk_id " parentWnd)) {
+            WinActivate("ahk_id " parentWnd)
         }
 
         Paste(MyForm)

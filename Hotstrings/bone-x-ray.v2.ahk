@@ -2,6 +2,7 @@
 
 #Include ..\Lib\Paste.v2.ahk
 #Include ..\Lib\ShowGUIatCurrScreenCenter.v2.ahk
+#Include ..\Lib\RisAIDebugGui.v2.ahk
 
 ; For Bone Plain Film
 ::bok::No joint space narrowing, dislocation, or fracture.
@@ -554,28 +555,72 @@ The estimation of bone age is by the method of Greulich and Pyle.
 
 ;; for LLD form
 LLDForm(parentWnd) {
-    LLDGui := Gui(, "LLD Helper")
-    LLDGui.SetFont("s12", "Verdana")
-    LLDGui.Add("Text", "x12 y22 w160 h20", "Right Leg Length")
-    LLDGui.Add("Text", "x12 y72 w160 h20", "Left Leg Length")
-    LLDGui.Add("Edit", "x162 y20 w80 h22 vLLDFormRtLL Number")
-    LLDGui.Add("Edit", "x162 y70 w80 h22 vLLDFormLtLL Number")
-    LLDGui.Add("Text", "x252 y22 w30 h20", "mm")
-    LLDGui.Add("Text", "x252 y72 w30 h20", "mm")
-    BtnOK := LLDGui.Add("Button", "x12 y120 w40 h30 Default", "OK")
+    LLDGui := Gui("+AlwaysOnTop +ToolWindow", "LLD Helper")
+    LLDGui.MarginX := 16
+    LLDGui.MarginY := 14
+    LLDGui.BackColor := "F4F5F7"
+    LLDGui.SetFont("s11", "Microsoft JhengHei UI")
 
-    ; 定義按鈕事件 (巢狀函式，可直接存取 LLDGui)
+    LLDGui.Add("Text", "xm ym+3 w125", "Right Leg Length:")
+    edtRtLL := LLDGui.Add("Edit", "x+8 yp-3 w90 Number")
+    LLDGui.Add("Text", "x+8 yp+3 w35", "mm")
+
+    LLDGui.Add("Text", "xm y+12 w125", "Left Leg Length:")
+    edtLtLL := LLDGui.Add("Edit", "x+8 yp-3 w90 Number")
+    LLDGui.Add("Text", "x+8 yp+3 w35", "mm")
+
+    btnOK := LLDGui.Add("Button", "Default xm y+16 w120", "確定 (Enter)")
+    btnCancel := LLDGui.Add("Button", "x+10 yp w120", "取消 (Esc)")
+
+    btnOK.OnEvent("Click", LLDButtonOK)
+    btnCancel.OnEvent("Click", LLDButtonCancel)
+    LLDGui.OnEvent("Close", LLDButtonCancel)
+    LLDGui.OnEvent("Escape", LLDButtonCancel)
+
+    ; Positioning logic (使用您已有的 v2 函式)
+    CurrentMonitorIndex := GetCurrentMonitorIndex()
+
+    ; 為了計算尺寸，先隱藏顯示以取得 Hwnd 與初始大小
+    LLDGui.Show("Hide")
+    GUI_Hwnd := LLDGui.Hwnd
+
+    ; 假設您的 v2 GetClientSize 遵循標準 v2 ByRef 寫法，變數前需加 &
+    GUI_Width := 0, GUI_Height := 0
+    GetClientSize(GUI_Hwnd, &GUI_Width, &GUI_Height)
+
+    GUI_X := CoordXCenterScreen(GUI_Width, CurrentMonitorIndex)
+    GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
+
+    LLDGui.Show("x" GUI_X " y" GUI_Y)
+    RisAIDebugGui.ApplyWindowStyle(LLDGui.Hwnd)
+    edtRtLL.Focus()
+
+    ; 取消與關閉處理
+    LLDButtonCancel(*) {
+        LLDGui.Destroy()
+        if (parentWnd && WinExist("ahk_id " parentWnd)) {
+            WinActivate("ahk_id " parentWnd)
+        }
+    }
+
+    ; 定義內部函數處理點擊確定事件
     LLDButtonOK(*) {
-        Saved := LLDGui.Submit() ; 儲存並隱藏視窗，Saved 為包含控制項數值的物件
+        valRtLL := Trim(edtRtLL.Value)
+        valLtLL := Trim(edtLtLL.Value)
 
-        if (Saved.LLDFormRtLL == "" || Saved.LLDFormLtLL == "") {
-            MsgBox("Empty value")
-            LLDGui.Show() ; 若驗證失敗，重新顯示視窗
+        if (valRtLL = "" || valLtLL = "") {
+            MsgBox("請輸入完整數值", "LLD Helper", "Icon! 4096")
+            if (valRtLL = "")
+                edtRtLL.Focus()
+            else
+                edtLtLL.Focus()
             return
         }
 
-        RtLL := Round(Saved.LLDFormRtLL / 10, 1)
-        LtLL := Round(Saved.LLDFormLtLL / 10, 1)
+        LLDGui.Destroy()
+
+        RtLL := Round(Number(valRtLL) / 10, 1)
+        LtLL := Round(Number(valLtLL) / 10, 1)
         delta := Round(Abs(RtLL - LtLL), 1)
         MeningfulLLD := (delta >= 1 ? "Evidence of leg length discrepancy." : "No evidence of leg length discrepancy.")
 
@@ -593,31 +638,9 @@ IMPRESSION:
 )",
             RtLL, LtLL, delta, MeningfulLLD)
 
-        LLDGui.Destroy()
-
-        if parentWnd && WinExist("ahk_id " parentWnd)
+        if (parentWnd && WinExist("ahk_id " parentWnd))
             WinActivate("ahk_id " parentWnd)
 
         Paste(MyForm)
     }
-
-    ; 綁定事件
-    BtnOK.OnEvent("Click", LLDButtonOK)
-    LLDGui.OnEvent("Escape", (gui) => gui.Destroy())
-
-    ; Positioning logic (使用您已有的 v2 函式)
-    CurrentMonitorIndex := GetCurrentMonitorIndex()
-
-    ; 為了計算尺寸，先隱藏顯示以取得 Hwnd 與初始大小
-    LLDGui.Show("Hide")
-    GUI_Hwnd := LLDGui.Hwnd
-
-    ; 假設您的 v2 GetClientSize 遵循標準 v2 ByRef 寫法，變數前需加 &
-    GUI_Width := 0, GUI_Height := 0
-    GetClientSize(GUI_Hwnd, &GUI_Width, &GUI_Height)
-
-    GUI_X := CoordXCenterScreen(GUI_Width, CurrentMonitorIndex)
-    GUI_Y := CoordYCenterScreen(GUI_Height, CurrentMonitorIndex)
-
-    LLDGui.Show("x" GUI_X " y" GUI_Y)
 }
