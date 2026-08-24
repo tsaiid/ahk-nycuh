@@ -27,6 +27,65 @@
 ::jz::junctional zone
 ::emok::No abnormal endometrial thickening.
 
+GetUnremarkableAbdomenMROrgans(searchText) {
+    ; 定義器官與關鍵字 (排除 urinary bladder 與 bowel)
+    organRules := Map()
+    organRules["liver"]           := ["hepatic", "liver", "hcc", "hemangioma", "ihd"]
+    organRules["gallbladder"]     := ["gallbladder", "gallstone", "cholecystitis", "cholecystectomy"]
+    organRules["spleen"]          := ["spleen", "splenic", "splenomegaly"]
+    organRules["pancreas"]        := ["pancreas", "pancreatic"]
+    organRules["adrenals"]        := ["adrenal"]
+    organRules["kidneys"]         := ["kidney", "renal", "hydronephrosis", "nephro", "hydroureter", "urinary"]
+
+    orderedKeys := ["liver", "gallbladder", "spleen", "pancreas", "adrenals", "kidneys"]
+    safeOrgans := []
+
+    for organ in orderedKeys {
+        isMentioned := false
+        for kw in organRules[organ] {
+            if (InStr(searchText, kw)) {
+                isMentioned := true
+                break
+            }
+        }
+        if (!isMentioned) {
+            safeOrgans.Push(organ)
+        }
+    }
+    return safeOrgans
+}
+
+; 檢查並取得 MR 額外的 negative findings (淋巴結；不含 Free Air 與 Ascites)
+GetAbdomenMRExtraFindings(searchText) {
+    extra := ""
+    ; 淋巴結檢查
+    if (!InStr(searchText, "lymph") && !InStr(searchText, "node") && !InStr(searchText, "lymphadenopathy")) {
+        extra .= "`nNo definite retroperitoneal or mesenteric lymphadenopathy identified."
+    }
+    return extra
+}
+
+::amrok1::
+{
+    ; 1. 取得文本
+    searchText := RisController.GetFindingSearchText()
+
+    ; 2. 處理器官列表
+    safeOrgans := GetUnremarkableAbdomenMROrgans(searchText)
+    finalOutput := ""
+    if (safeOrgans.Length > 0) {
+        finalOutput .= "The " . FormatList(safeOrgans) . " are unremarkable. "
+    }
+
+    ; 3. 處理淋巴結 (不需檢查 Free Air 與 Ascites)
+    finalOutput .= GetAbdomenMRExtraFindings(searchText)
+
+    ; 4. 執行輸出
+    if (Trim(finalOutput) != "") {
+        Paste(Trim(finalOutput))
+    }
+}
+
 ;; General
 ::amrpan::
 {
