@@ -18,13 +18,13 @@ class RisMesaService {
     static Query(age, sex, totalScore, race := "1") {
         numAge := IsInteger(age) ? Integer(age) : (RegExMatch(String(age), "(\d+)", &mAge) ? Integer(mAge[1]) : 0)
         numScore := IsNumber(totalScore) ? Number(totalScore) : (RegExMatch(String(totalScore), "(\d+(?:\.\d+)?)", &mScore) ? Number(mScore[1]) : 0)
+        scoreStr := (IsInteger(numScore) || numScore == Floor(numScore)) ? String(Integer(numScore)) : RegExReplace(Format("{:.2f}", numScore), "\.?0+$", "")
 
         ; 性別代碼：0 為 female, 1 為 male
         genderCode := "0"
         if (sex == "M" || sex == "1" || InStr(sex, "Male") || InStr(sex, "男")) {
             genderCode := "1"
         }
-        genderLabel := (genderCode == "1") ? "Female" : "Female"
         genderLabel := (genderCode == "1") ? "Male" : "Female"
 
         ; 檢查是否超出 MESA 適用年齡/分數範圍 (45-84 歲, 分數 0-10000)
@@ -38,7 +38,7 @@ class RisMesaService {
                 TotalScore: numScore,
                 Percentile: "",
                 NonZeroProbability: "",
-                Summary: "Patient age (" . numAge . ") or score (" . numScore . ") is outside MESA reference range (Age 45-84, Score <= 10000).",
+                Summary: "Patient age (" . numAge . ") or score (" . scoreStr . ") is outside MESA reference range (Age 45-84, Score <= 10000).",
                 Error: ""
             }
         }
@@ -70,7 +70,7 @@ class RisMesaService {
                 . "&Age=" . this._UrlEncode(String(numAge))
                 . "&gender=" . this._UrlEncode(genderCode)
                 . "&Race=" . this._UrlEncode(String(race))
-                . "&Score=" . this._UrlEncode(String(numScore))
+                . "&Score=" . this._UrlEncode(scoreStr)
                 . "&Calculate=Calculate"
 
             reqPost := ComObject("WinHttp.WinHttpRequest.5.1")

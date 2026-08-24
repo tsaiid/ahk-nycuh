@@ -247,8 +247,20 @@ class RisReportText {
         }
     }
 
+    static FormatScore(score) {
+        if (score == "" || !IsNumber(score)) {
+            return "0"
+        }
+        num := Number(score)
+        if (IsInteger(num) || num == Floor(num)) {
+            return String(Integer(num))
+        }
+        return RegExReplace(Format("{:.2f}", num), "\.?0+$", "")
+    }
+
     static FormatCalciumScoreImpression(score, mesaResult) {
         numScore := IsNumber(score) ? Number(score) : (RegExMatch(String(score), "(\d+(?:\.\d+)?)", &m) ? Number(m[1]) : 0)
+        scoreText := this.FormatScore(score)
         severity := this.GetCalciumScoreSeverity(numScore)
 
         ; 分數為 0 時
@@ -263,16 +275,16 @@ class RisReportText {
         if (IsObject(mesaResult) && mesaResult.IsSuccess && !mesaResult.IsOutOfRange && mesaResult.Percentile != "") {
             ordinalPerc := this.GetOrdinal(mesaResult.Percentile)
             probText := (mesaResult.NonZeroProbability != "") ? Format("; probability of non-zero CAC: {1}", mesaResult.NonZeroProbability) : ""
-            return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification; {3} percentile compared to age-, sex-, and race-matched peers in MESA{4}).", numScore, severity, ordinalPerc, probText)
+            return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification; {3} percentile compared to age-, sex-, and race-matched peers in MESA{4}).", scoreText, severity, ordinalPerc, probText)
         }
 
         ; 年齡或分數超出 MESA 參考範圍
         if (IsObject(mesaResult) && mesaResult.IsOutOfRange) {
-            return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification; patient is outside MESA reference age range of 45-84 years).", numScore, severity)
+            return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification; patient is outside MESA reference age range of 45-84 years).", scoreText, severity)
         }
 
         ; 其他情況 (如 MESA 查詢失敗)
-        return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification).", numScore, severity)
+        return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification).", scoreText, severity)
     }
 }
 

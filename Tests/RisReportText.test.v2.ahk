@@ -10,6 +10,7 @@ RegisterTest("RisReportText.ExtractPastFinding strips header/indication", Test_R
 RegisterTest("RisReportText.ExtractTotalCalciumScore extracts Agatston scores", Test_RisReportText_ExtractTotalCalciumScore)
 RegisterTest("RisReportText.IsCalciumScoreExam detects calcium score exams", Test_RisReportText_IsCalciumScoreExam)
 RegisterTest("RisReportText.GetCalciumScoreSeverity classifies scores", Test_RisReportText_GetCalciumScoreSeverity)
+RegisterTest("RisReportText.FormatScore formats numbers cleanly", Test_RisReportText_FormatScore)
 RegisterTest("RisReportText.FormatCalciumScoreImpression formats templates correctly", Test_RisReportText_FormatCalciumScoreImpression)
 
 Test_RisReportText_GetExamTypeCt() {
@@ -87,6 +88,19 @@ Test_RisReportText_GetCalciumScoreSeverity() {
     AssertEqual("98th", RisReportText.GetOrdinal(98))
 }
 
+Test_RisReportText_FormatScore() {
+    AssertEqual("0", RisReportText.FormatScore(0))
+    AssertEqual("0", RisReportText.FormatScore("0"))
+    AssertEqual("0", RisReportText.FormatScore("0.0"))
+    AssertEqual("0", RisReportText.FormatScore(0.0))
+    AssertEqual("0.2", RisReportText.FormatScore(0.2))
+    AssertEqual("0.2", RisReportText.FormatScore("0.2"))
+    AssertEqual("0.25", RisReportText.FormatScore(0.25))
+    AssertEqual("123", RisReportText.FormatScore(123))
+    AssertEqual("123", RisReportText.FormatScore("123"))
+    AssertEqual("123.4", RisReportText.FormatScore(123.40))
+}
+
 Test_RisReportText_FormatCalciumScoreImpression() {
     mesaNormal := {
         IsSuccess: true,
@@ -96,6 +110,16 @@ Test_RisReportText_FormatCalciumScoreImpression() {
     }
     expectedNormal := "Total Calcium Score (Equivalent Agatston Score) is 123 (Moderate calcification; 98th percentile compared to age-, sex-, and race-matched peers in MESA; probability of non-zero CAC: 16%)."
     AssertEqual(expectedNormal, RisReportText.FormatCalciumScoreImpression(123, mesaNormal))
+
+    mesaFloat := {
+        IsSuccess: true,
+        IsOutOfRange: false,
+        Percentile: "65",
+        NonZeroProbability: "34%"
+    }
+    expectedFloat := "Total Calcium Score (Equivalent Agatston Score) is 0.2 (Minimal identifiable calcification; 65th percentile compared to age-, sex-, and race-matched peers in MESA; probability of non-zero CAC: 34%)."
+    AssertEqual(expectedFloat, RisReportText.FormatCalciumScoreImpression("0.2", mesaFloat))
+    AssertEqual(expectedFloat, RisReportText.FormatCalciumScoreImpression(0.2, mesaFloat))
 
     mesaZero := {
         IsSuccess: true,
