@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepRad helpers
 // @namespace    http://tsai.it/
-// @version      20260824.4
+// @version      20260827.1
 // @description  Add reporting helpers to DeepRad.AI.
 // @author       I-Ta Tsai
 // @match        http://172.17.15.97:17000/
@@ -174,8 +174,8 @@
         return document.querySelector('.report-selector select')?.value;
     }
 
-    function getReportSeries() {
-        const reportFormat = getReportFormat();
+    function getReportSeries(targetFormat) {
+        const reportFormat = targetFormat || getReportFormat();
         return SERIES_BY_REPORT_FORMAT[reportFormat] ?? SERIES_BY_REPORT_FORMAT.healthCheck;
     }
 
@@ -463,20 +463,20 @@
         }
     }
 
-    async function copyNoduleTable() {
-        const reportFormat = getReportFormat();
-        const series = getReportSeries();
+    async function copyNoduleTable(targetFormat = 'HPA') {
+        const series = getReportSeries(targetFormat);
         const table = document.querySelector('table.nodule-table');
         const cols = getColumnIndices(table);
         const rows = getNoduleRows().filter((row) => isNoduleRowSelected(row, cols.select));
-        console.info(`[DeepRad helpers] selected ${rows.length} nodule row(s).`);
+        const formatLabel = targetFormat === 'HPA' ? 'HPA' : 'Health Check';
+        console.info(`[DeepRad helpers] selected ${rows.length} ${formatLabel} nodule row(s).`);
 
-        if (reportFormat === 'HPA') {
+        if (targetFormat === 'HPA') {
             const report = formatHpaNoduleRows(rows, cols);
             if (report) {
                 await copyText(report);
-                console.info(`[DeepRad helpers] copied ${rows.length} nodule(s).`);
-                showDeepRadStatus(`Copied ${rows.length} nodule(s).`);
+                console.info(`[DeepRad helpers] copied ${rows.length} HPA nodule(s).`);
+                showDeepRadStatus(`Copied ${rows.length} HPA nodule(s).`);
             } else {
                 console.warn('[DeepRad helpers] no nodules to copy.');
                 showDeepRadStatus('No selected nodules to copy.', 2400);
@@ -512,8 +512,8 @@
 
         if (report) {
             await copyText(report);
-            console.info(`[DeepRad helpers] copied ${rows.length} nodule(s).`);
-            showDeepRadStatus(`Copied ${rows.length} nodule(s).`);
+            console.info(`[DeepRad helpers] copied ${rows.length} Health Check nodule(s).`);
+            showDeepRadStatus(`Copied ${rows.length} Health Check nodule(s).`);
         } else {
             console.warn('[DeepRad helpers] no nodules to copy.');
             showDeepRadStatus('No selected nodules to copy.', 2400);
@@ -521,16 +521,23 @@
     }
 
     window.addEventListener('keydown', (ev) => {
-        if (ev.ctrlKey && ev.shiftKey && (ev.code === 'KeyC' || ev.key.toLowerCase() === 'c')) {
-            console.info('[DeepRad helpers] Ctrl+Shift+C detected.');
-            copyNoduleTable();
+        const isKeyC = ev.code === 'KeyC' || (ev.key && ev.key.toLowerCase() === 'c');
+        if (ev.ctrlKey && !ev.altKey && ev.shiftKey && isKeyC) {
+            console.info('[DeepRad helpers] Ctrl+Shift+C detected (HPA).');
+            copyNoduleTable('HPA');
+            ev.preventDefault();
+            ev.stopPropagation();
+        } else if (ev.altKey && !ev.ctrlKey && ev.shiftKey && isKeyC) {
+            console.info('[DeepRad helpers] Alt+Shift+C detected (Health Check).');
+            copyNoduleTable('healthCheck');
             ev.preventDefault();
             ev.stopPropagation();
         }
     }, true);
 
     if (typeof GM_registerMenuCommand === 'function') {
-        GM_registerMenuCommand('Copy nodule table', copyNoduleTable);
+        GM_registerMenuCommand('Copy HPA nodules (Ctrl+Shift+C)', () => copyNoduleTable('HPA'));
+        GM_registerMenuCommand('Copy Health check nodules (Alt+Shift+C)', () => copyNoduleTable('healthCheck'));
         GM_registerMenuCommand('Refresh token now', refreshToken);
     }
 
