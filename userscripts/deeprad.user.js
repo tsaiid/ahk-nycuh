@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepRad helpers
 // @namespace    http://tsai.it/
-// @version      20260827.1
+// @version      20260827.2
 // @description  Add reporting helpers to DeepRad.AI.
 // @author       I-Ta Tsai
 // @match        http://172.17.15.97:17000/
@@ -62,6 +62,7 @@
 
         localStorage.setItem('token', backupToken);
         console.warn('[DeepRad helpers] restored token cleared by frontend timer.');
+        dismissSessionExpiredNotifications();
         return true;
     }
 
@@ -164,6 +165,52 @@
                 sessionStorage.setItem(MANUAL_LOGOUT_KEY, String(Date.now()));
             }
         }, true);
+    }
+
+    function dismissSessionExpiredNotifications() {
+        const toastCandidates = document.querySelectorAll(
+            '[data-sonner-toast], [data-sonner-toaster] li, section[aria-label*="Notification" i] li'
+        );
+
+        for (const toast of toastCandidates) {
+            const text = (toast.textContent || '').trim();
+            if (/session expired/i.test(text) || /please login again/i.test(text)) {
+                toast.style.display = 'none';
+
+                const closeButton = toast.querySelector(
+                    'button[data-action], button[data-close-button], button[data-button], button'
+                );
+                if (closeButton) {
+                    try {
+                        closeButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                    } catch {}
+                }
+
+                try {
+                    toast.remove();
+                } catch {}
+
+                console.info('[DeepRad helpers] auto-dismissed session expired notification.');
+            }
+        }
+    }
+
+    function startSessionExpiredNotificationObserver() {
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.addedNodes.length > 0) {
+                    dismissSessionExpiredNotifications();
+                    break;
+                }
+            }
+        });
+
+        const target = document.documentElement || document;
+        if (target) {
+            observer.observe(target, { childList: true, subtree: true });
+        }
+
+        dismissSessionExpiredNotifications();
     }
 
     function getCleanText(element) {
@@ -545,6 +592,7 @@
     rememberCurrentPath();
     patchPageAuthHeaders();
     patchFrontendLogoutTimer();
+    startSessionExpiredNotificationObserver();
 
     if (location.pathname === '/login' && restoreTokenIfNeeded()) {
         const lastPath = sessionStorage.getItem(LAST_PATH_KEY);
