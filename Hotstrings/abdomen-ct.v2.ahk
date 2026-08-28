@@ -123,6 +123,7 @@ No obvious ascites.
 {
     MyForm := "
   (
+No definite hepatic space-occupying lesion demonstrating arterial-phase hyperenhancement or washout.
 No abnormal enhanced lesion or washout pattern noted.
 No definite abnormal enhanced hepatic mass lesion with washout pattern noted.
 No definite abnormal enhanced hepatic mass lesion with/without washout pattern noted.
