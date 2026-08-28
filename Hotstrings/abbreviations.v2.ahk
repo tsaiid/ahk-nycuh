@@ -231,7 +231,7 @@
 ::rsj::rectosigmoid junction
 
 ;; Brain
-::ich::intracranial hemorrhage
+::ich::intracerebral hemorrhage
 ::ivh::intraventricular hemorrhage
 ::sah::subarachnoid hemorrhage
 ::sdh::subdural hematoma
