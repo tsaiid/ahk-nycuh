@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepRad helpers
 // @namespace    http://tsai.it/
-// @version      20260827.2
+// @version      20260827.3
 // @description  Add reporting helpers to DeepRad.AI.
 // @author       I-Ta Tsai
 // @match        http://172.17.15.97:17000/
@@ -173,22 +173,27 @@
         );
 
         for (const toast of toastCandidates) {
+            if (toast.dataset.deepradDismissed) {
+                continue;
+            }
+
             const text = (toast.textContent || '').trim();
             if (/session expired/i.test(text) || /please login again/i.test(text)) {
-                toast.style.display = 'none';
+                toast.dataset.deepradDismissed = 'true';
+                toast.style.setProperty('display', 'none', 'important');
 
                 const closeButton = toast.querySelector(
                     'button[data-action], button[data-close-button], button[data-button], button'
                 );
                 if (closeButton) {
                     try {
-                        closeButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                    } catch {}
+                        closeButton.click();
+                    } catch {
+                        try {
+                            closeButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                        } catch {}
+                    }
                 }
-
-                try {
-                    toast.remove();
-                } catch {}
 
                 console.info('[DeepRad helpers] auto-dismissed session expired notification.');
             }
