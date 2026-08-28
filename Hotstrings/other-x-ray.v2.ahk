@@ -20,6 +20,9 @@
 ::lmcs::Ground glass opacity in left maxillary sinus, suspicious mucoperiosteal thickening or chronic sinusitis.
 ::lmcs1::Ground glass opacity in left maxillary sinus, suspicious mucoperiosteal thickening or chronic sinusitis. DDx: occult facial bone fracture.
 ::bmcs::Ground glass opacity in bilateral maxillary sinuses, suspicious mucoperiosteal thickening or chronic sinusitis.
+::rmcps::Right maxillary chronic sinusitis.
+::lmcps::Left maxillary chronic sinusitis.
+::bmcps::Bilateral maxillary chronic sinusitis.
 ::rms::Presence of air-fluid level in right maxillary sinus, suspicious sinusitis.
 ::lms::Presence of air-fluid level in left maxillary sinus, suspicious sinusitis.
 ::bms::Presence of air-fluid level in bilateral maxillary sinuses, suspicious sinusitis.
