@@ -232,6 +232,7 @@
 
 ;; Brain
 ::ich::intracerebral hemorrhage
+::iph::intraparenchymal hemorrhage
 ::ivh::intraventricular hemorrhage
 ::sah::subarachnoid hemorrhage
 ::sdh::subdural hematoma
