@@ -47,6 +47,8 @@ class NoduleTracker {
     static COL_LEFT_X := 10
     static COL_RIGHT_X := 170
     static COL_WIDTH := 140
+    static DEFAULT_MARGIN_TOP := 50
+    static DEFAULT_MARGIN_RIGHT := 20
 
     ; --- 資料屬性 (Data Properties) ---
     NoduleData := Map("RUL", [], "RML", [], "RLL", [], "LUL", [], "LLL", [])
@@ -1012,6 +1014,14 @@ class NoduleTracker {
         chkMprOffset := this.MyGui.Add("Checkbox", "x10 y+2 Checked" (this.EnableMprImgOffset ? "1" : "0"), "啟用 MPR/MIP/COR/SAG Img +1 補償")
         chkMprOffset.OnEvent("Click", (ctrl, *) => (this.EnableMprImgOffset := ctrl.Value, this.UpdateTrayMenu()))
 
+        ; 取得目前 AutoSize 計算後的視窗寬高
+        this.MyGui.Show("Hide AutoSize")
+        guiW := 0, guiH := 0
+        this.MyGui.GetPos(,, &guiW, &guiH)
+
+        ; 檢查是否超出顯示邊界，若超出則調整為主螢幕右上角
+        this.EnsureValidGuiPosition(guiW, guiH)
+
         this.MyGui.Show("x" this.GuiX " y" this.GuiY " NoActivate AutoSize")
         RisDialog.ApplyWindowStyle(this.MyGui.Hwnd)
     }
@@ -1273,6 +1283,82 @@ class NoduleTracker {
     }
 
     ; --- 輔助方法 (Helpers) ---
+
+    /**
+     * 檢查指定的視窗座標與大小是否完全落在系統任一螢幕的工作區 (Work Area) 內
+     * @param {Integer} x 視窗 X 座標
+     * @param {Integer} y 視窗 Y 座標
+     * @param {Integer} w 視窗寬度
+     * @param {Integer} h 視窗高度
+     * @returns {Boolean} true: 在有效螢幕範圍內; false: 超出邊界或不在任何螢幕內
+     */
+    static IsPositionInScreen(x, y, w := 320, h := 300) {
+        if (x == "" || y == "") {
+            return false
+        }
+        monitorCount := MonitorGetCount()
+        loop monitorCount {
+            if (!MonitorGetWorkArea(A_Index, &workLeft, &workTop, &workRight, &workBottom)) {
+                continue
+            }
+            workW := workRight - workLeft
+            workH := workBottom - workTop
+
+            ; 判斷水平與垂直方向是否在該螢幕工作區邊界內
+            xValid := (w <= workW) ? (x >= workLeft && (x + w) <= workRight) : (x >= workLeft)
+            yValid := (h <= workH) ? (y >= workTop && (y + h) <= workBottom) : (y >= workTop)
+
+            if (xValid && yValid) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * 計算主螢幕 (Primary Monitor) 右上角的座標位置
+     * @param {Integer} w 視窗寬度
+     * @param {Integer} h 視窗高度
+     * @param {VarRef} outX 輸出的 X 座標 (選填)
+     * @param {VarRef} outY 輸出的 Y 座標 (選填)
+     * @returns {Object} {x, y}
+     */
+    static GetPrimaryTopRightPos(w := 320, h := 300, &outX := 0, &outY := 0) {
+        primaryIndex := 1
+        try {
+            primaryIndex := MonitorGetPrimary()
+        }
+        if (!MonitorGetWorkArea(primaryIndex, &workLeft, &workTop, &workRight, &workBottom)) {
+            workLeft := 0, workTop := 0, workRight := A_ScreenWidth, workBottom := A_ScreenHeight
+        }
+
+        marginRight := NoduleTracker.DEFAULT_MARGIN_RIGHT
+        marginTop := NoduleTracker.DEFAULT_MARGIN_TOP
+
+        outX := workRight - w - marginRight
+        if (outX < workLeft) {
+            outX := workLeft
+        }
+
+        outY := workTop + marginTop
+        if (outY + h > workBottom) {
+            outY := Max(workTop, workBottom - h)
+        }
+        return {x: outX, y: outY}
+    }
+
+    /**
+     * 確保當前視窗位置有效；若超出所有螢幕顯示邊界，則自動修正為主螢幕右上角
+     * @param {Integer} w 視窗寬度
+     * @param {Integer} h 視窗高度
+     */
+    EnsureValidGuiPosition(w := 320, h := 300) {
+        if (!NoduleTracker.IsPositionInScreen(this.GuiX, this.GuiY, w, h)) {
+            NoduleTracker.GetPrimaryTopRightPos(w, h, &newX, &newY)
+            this.GuiX := newX
+            this.GuiY := newY
+        }
+    }
 
     ExtractMinSeriesFromDesc(descText) {
         if (descText != "" && RegExMatch(Trim(descText), "^\(\s*(\d+)\s*\)", &match)) {
