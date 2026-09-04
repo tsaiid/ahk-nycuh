@@ -2,9 +2,8 @@
 
 #Include TestLib.v2.ahk
 
-RegisterTest("ExtractMinSeriesFromDesc extracts index from parentheses", Test_ExtractMinSeriesFromDesc)
 RegisterTest("ParseSrs parses leading series number", Test_ParseSrs)
-RegisterTest("minSeries filtering logic accepts only srs >= minSeries", Test_MinSeriesValidation)
+RegisterTest("Majority voting algorithm selects consensus series", Test_MajorityVotingAlgorithm)
 RegisterTest("IsPositionInScreen detects in-bound and out-of-bound positions", Test_IsPositionInScreen)
 RegisterTest("GetPrimaryTopRightPos calculates valid position on primary monitor", Test_GetPrimaryTopRightPos)
 
@@ -54,13 +53,6 @@ GetPrimaryTopRightPos(w := 320, h := 300, &outX := 0, &outY := 0) {
     return {x: outX, y: outY}
 }
 
-ExtractMinSeriesFromDesc(descText) {
-    if (descText != "" && RegExMatch(Trim(descText), "^\(\s*(\d+)\s*\)", &match)) {
-        return Integer(match[1])
-    }
-    return 0
-}
-
 ParseSrs(text) {
     splitText := StrSplit(text, ",")
     if (splitText.Length > 0) {
@@ -69,17 +61,6 @@ ParseSrs(text) {
         }
     }
     return ""
-}
-
-Test_ExtractMinSeriesFromDesc() {
-    AssertEqual(7, ExtractMinSeriesFromDesc("(7) V phase  5.0  MPR  cor"))
-    AssertEqual(1, ExtractMinSeriesFromDesc("(1) Plain CT"))
-    AssertEqual(12, ExtractMinSeriesFromDesc("(12) CTA Chest 1.0"))
-    AssertEqual(3, ExtractMinSeriesFromDesc("  ( 3 ) Axial "))
-    AssertEqual(0, ExtractMinSeriesFromDesc("(0) Scout"))
-    AssertEqual(0, ExtractMinSeriesFromDesc(""))
-    AssertEqual(0, ExtractMinSeriesFromDesc("Plain CT without parens"))
-    AssertEqual(0, ExtractMinSeriesFromDesc("(abc) Invalid format"))
 }
 
 Test_ParseSrs() {
@@ -91,29 +72,23 @@ Test_ParseSrs() {
     AssertEqual("", ParseSrs(""))
 }
 
-Test_MinSeriesValidation() {
-    minSeries := ExtractMinSeriesFromDesc("(7) V phase  5.0  MPR  cor")
-    AssertEqual(7, minSeries)
-
-    ; scale=3 gives "1" -> should be rejected because 1 < 7
-    srsVal1 := ParseSrs("1 V phase")
-    isValid1 := (srsVal1 != "" && (minSeries <= 0 || Integer(srsVal1) >= minSeries))
-    AssertFalse(isValid1, "Series 1 should be rejected when minSeries is 7")
-
-    ; scale=2 gives "11" -> should be accepted because 11 >= 7
-    srsVal2 := ParseSrs("11 , V phase")
-    isValid2 := (srsVal2 != "" && (minSeries <= 0 || Integer(srsVal2) >= minSeries))
-    AssertTrue(isValid2, "Series 11 should be accepted when minSeries is 7")
-
-    ; If minSeries is 0 (no desc bracket), "1" should be accepted
-    minSeries0 := ExtractMinSeriesFromDesc("Plain")
-    isValid3 := (srsVal1 != "" && (minSeries0 <= 0 || Integer(srsVal1) >= minSeries0))
-    AssertTrue(isValid3, "Series 1 should be accepted when minSeries is 0")
-}
-
 Test_IsPositionInScreen() {
     primaryIndex := MonitorGetPrimary()
     MonitorGetWorkArea(primaryIndex, &workLeft, &workTop, &workRight, &workBottom)
+
+    ; 計算跨所有螢幕的最大邊界，確保測試極端座標時真正超出所有螢幕
+    maxRight := workRight
+    minLeft := workLeft
+    minTop := workTop
+    maxBottom := workBottom
+    loop MonitorGetCount() {
+        if (MonitorGetWorkArea(A_Index, &mLeft, &mTop, &mRight, &mBottom)) {
+            minLeft := Min(minLeft, mLeft)
+            maxRight := Max(maxRight, mRight)
+            minTop := Min(minTop, mTop)
+            maxBottom := Max(maxBottom, mBottom)
+        }
+    }
 
     ; 正常在螢幕內的座標
     w := 320, h := 300
@@ -121,16 +96,16 @@ Test_IsPositionInScreen() {
     validY := workTop + 50
     AssertTrue(IsPositionInScreen(validX, validY, w, h), "Valid position within work area should return true")
 
-    ; 負數座標（超出左側/上方）
-    AssertFalse(IsPositionInScreen(workLeft - 100, validY, w, h), "Negative/out-of-bounds X on left should return false")
-    AssertFalse(IsPositionInScreen(validX, workTop - 100, w, h), "Out-of-bounds Y on top should return false")
+    ; 負數座標（超出最左側/最上方）
+    AssertFalse(IsPositionInScreen(minLeft - 500, validY, w, h), "Negative/out-of-bounds X on left should return false")
+    AssertFalse(IsPositionInScreen(validX, minTop - 500, w, h), "Out-of-bounds Y on top should return false")
 
     ; 超出右側/下方的極端座標
-    AssertFalse(IsPositionInScreen(workRight + 500, validY, w, h), "X far beyond right bound should return false")
-    AssertFalse(IsPositionInScreen(validX, workBottom + 500, w, h), "Y far beyond bottom bound should return false")
+    AssertFalse(IsPositionInScreen(maxRight + 500, validY, w, h), "X far beyond right bound should return false")
+    AssertFalse(IsPositionInScreen(validX, maxBottom + 500, w, h), "Y far beyond bottom bound should return false")
 
-    ; 視窗超出右側邊界
-    AssertFalse(IsPositionInScreen(workRight - 50, validY, w, h), "Window overflowing right edge should return false")
+    ; 視窗超出右側邊界 (針對最右邊螢幕的邊界)
+    AssertFalse(IsPositionInScreen(maxRight - 50, validY, w, h), "Window overflowing right edge should return false")
 
     ; 空座標
     AssertFalse(IsPositionInScreen("", 50, w, h), "Empty X should return false")
@@ -153,6 +128,76 @@ Test_GetPrimaryTopRightPos() {
     AssertTrue(outY >= workTop, "Top-right Y should be >= workTop")
     AssertTrue(outY + h <= workBottom, "Top-right Y + h should be <= workBottom")
     AssertTrue(IsPositionInScreen(outX, outY, w, h), "Calculated top-right position must pass IsPositionInScreen")
+}
+
+SelectBestSrsFromVotes(candidates, &outMethod := "") {
+    votes := Map()
+    for item in candidates {
+        if (item.srs != "") {
+            votes[item.srs] := votes.Has(item.srs) ? votes[item.srs] + 1 : 1
+        }
+    }
+    if (votes.Count == 0) {
+        return ""
+    }
+    bestSrs := ""
+    maxVotes := 0
+    for srsVal, count in votes {
+        if (count > maxVotes) {
+            maxVotes := count
+            bestSrs := srsVal
+        }
+    }
+    for item in candidates {
+        if (item.srs == bestSrs) {
+            outMethod := item.method " (投票: " maxVotes "/" candidates.Length ")"
+            return item.srs
+        }
+    }
+    return ""
+}
+
+Test_MajorityVotingAlgorithm() {
+    ; 情境 1：全數一致（8 票全為 8）
+    c1 := [
+        {srs: "8", method: "scale=3"},
+        {srs: "8", method: "scale=3 invert"},
+        {srs: "8", method: "scale=2"},
+        {srs: "8", method: "scale=4"},
+        {srs: "8", method: "scale=3 grayscale"},
+        {srs: "8", method: "scale=4 grayscale"},
+        {srs: "8", method: "scale=4 invert"},
+        {srs: "8", method: "scale=4 gray+invert"}
+    ]
+    res1 := SelectBestSrsFromVotes(c1, &m1)
+    AssertEqual("8", res1, "Unanimous voting should pick 8")
+    AssertEqual("scale=3 (投票: 8/8)", m1, "Method should report 8/8 votes")
+
+    ; 情境 2：單一 scale 誤識（scale=2 為 18，其餘 7 個為 104）
+    c2 := [
+        {srs: "104", method: "scale=3"},
+        {srs: "104", method: "scale=3 invert"},
+        {srs: "18", method: "scale=2"},
+        {srs: "104", method: "scale=4"},
+        {srs: "104", method: "scale=3 grayscale"},
+        {srs: "104", method: "scale=4 grayscale"},
+        {srs: "104", method: "scale=4 invert"},
+        {srs: "104", method: "scale=4 gray+invert"}
+    ]
+    res2 := SelectBestSrsFromVotes(c2, &m2)
+    AssertEqual("104", res2, "Majority voting should pick 104 over 18")
+    AssertEqual("scale=3 (投票: 7/8)", m2, "Method should report 7/8 votes")
+
+    ; 情境 3：scale=3 漏字為 1，其他多數為 11
+    c3 := [
+        {srs: "1", method: "scale=3"},
+        {srs: "11", method: "scale=2"},
+        {srs: "11", method: "scale=4"},
+        {srs: "11", method: "scale=3 grayscale"},
+        {srs: "", method: "scale=4 grayscale"}
+    ]
+    res3 := SelectBestSrsFromVotes(c3, &m3)
+    AssertEqual("11", res3, "Majority voting should pick 11 over 1")
 }
 
 RunRegisteredTests()
