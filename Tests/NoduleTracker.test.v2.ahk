@@ -6,6 +6,8 @@ RegisterTest("ParseSrs parses leading series number", Test_ParseSrs)
 RegisterTest("Majority voting algorithm selects consensus series", Test_MajorityVotingAlgorithm)
 RegisterTest("IsPositionInScreen detects in-bound and out-of-bound positions", Test_IsPositionInScreen)
 RegisterTest("GetPrimaryTopRightPos calculates valid position on primary monitor", Test_GetPrimaryTopRightPos)
+RegisterTest("IsMprSeries identifies MPR series and ignores MRI sequences", Test_IsMprSeries)
+RegisterTest("CalculateQuickSetTarget applies reverse compensation for MPR", Test_CalculateQuickSetTarget)
 
 IsPositionInScreen(x, y, w := 320, h := 300) {
     if (x == "" || y == "") {
@@ -198,6 +200,51 @@ Test_MajorityVotingAlgorithm() {
     ]
     res3 := SelectBestSrsFromVotes(c3, &m3)
     AssertEqual("11", res3, "Majority voting should pick 11 over 1")
+}
+
+IsMprSeries(descVal) {
+    return descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")
+}
+
+CalculateQuickSetTarget(inputVal, isMpr, enableOffset) {
+    if (!IsNumber(inputVal)) {
+        return 0
+    }
+    num := Integer(inputVal)
+    if (num < 1) {
+        return 0
+    }
+    if (enableOffset && isMpr) {
+        num := Max(1, num - 1)
+    }
+    return num
+}
+
+Test_IsMprSeries() {
+    AssertTrue(IsMprSeries("(3) Axial MPR"), "Axial MPR should be MPR series")
+    AssertTrue(IsMprSeries("COR MIP"), "COR MIP should be MPR series")
+    AssertTrue(IsMprSeries("SAG MPR 2mm"), "SAG MPR should be MPR series")
+    AssertFalse(IsMprSeries("(2) 1.25mm CT Axial"), "Standard Axial should not be MPR series")
+    AssertFalse(IsMprSeries("T2 SAG"), "T2 SAG is MRI, should be ignored")
+    AssertFalse(IsMprSeries("DWI COR"), "DWI COR is MRI, should be ignored")
+    AssertFalse(IsMprSeries(""), "Empty string should not be MPR")
+}
+
+Test_CalculateQuickSetTarget() {
+    ; 當選項啟用且為 MPR 序列：輸入 30 應跳到 29
+    AssertEqual(29, CalculateQuickSetTarget(30, true, true), "MPR enabled: 30 should jump to 29")
+    AssertEqual(1, CalculateQuickSetTarget(2, true, true), "MPR enabled: 2 should jump to 1")
+    AssertEqual(1, CalculateQuickSetTarget(1, true, true), "MPR enabled: 1 should clamp to 1")
+
+    ; 當選項未啟用：輸入 30 維持 30
+    AssertEqual(30, CalculateQuickSetTarget(30, true, false), "MPR disabled: 30 should remain 30")
+
+    ; 當非 MPR 序列：輸入 30 維持 30
+    AssertEqual(30, CalculateQuickSetTarget(30, false, true), "Non-MPR: 30 should remain 30")
+
+    ; 無效輸入
+    AssertEqual(0, CalculateQuickSetTarget(0, true, true), "0 should be invalid (0)")
+    AssertEqual(0, CalculateQuickSetTarget("abc", true, true), "Non-number should be invalid (0)")
 }
 
 RunRegisteredTests()

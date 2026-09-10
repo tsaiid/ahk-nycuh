@@ -7,7 +7,7 @@
 ; Author      : Tsai, I-Ta (放射科醫師)
 ; GitHub      : tsaiid
 ; License     : MIT License
-; Version     : 2026.04.03 (Updated compensation logic)
+; Version     : 2026.04.03 (Support reverse MPR offset for Ctrl+G)
 ;
 ; ------------------------------------------------------------------------------
 ; 【使用說明】
@@ -19,7 +19,7 @@
 ;    - Shift + Alt + Q/A/Z/W/S : 抓取單筆並帶入肺葉名稱 (e.g., RUL of lung...)
 ;    - m                       : 僅抓取並格式化為 (Srs/Img: 3/69)
 ; 4. 輔助工具：
-;    - Ctrl + G    : 快速跳至指定影像編號 (透過定位 PACS 控制項寫入)
+;    - Ctrl + G    : 快速跳至指定影像編號 (透過定位 PACS 控制項寫入，支援 MPR 反向補償)
 ;    - F11         : 執行效能基準測試 (Benchmark)，驗證探針模式命中率。
 ;    - F12         : 開啟探針工具，深度除錯當前控制項 ClassNN 與 Acc 路徑。
 ; 5. GUI 功能：
@@ -28,7 +28,7 @@
 ;    - Img No      : 提取所有 Image Number，排序並以分號分隔複製。
 ;    - Import Clipboard : 從剪貼簿匯入 Lobe:Img 格式，未知 Series 預設為 4。
 ; 6. 特殊邏輯：
-;    - 自動補償：偵測到 MPR/MIP/COR/SAG 序列時，影像編號自動 +1 (適配 PACS)。
+;    - 自動補償：偵測到 MPR/MIP/COR/SAG 序列時，影像編號自動 +1 (適配 PACS)；Ctrl+G 跳轉時則反向 -1。
 ;    - 動態排序：依據歷史命中率自動調整探針順序，提升抓取速度。
 ; ------------------------------------------------------------------------------
 
@@ -49,6 +49,24 @@ class NoduleTracker {
     static COL_WIDTH := 140
     static DEFAULT_MARGIN_TOP := 50
     static DEFAULT_MARGIN_RIGHT := 20
+
+    static IsMprSeries(descVal) {
+        return descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")
+    }
+
+    static CalculateQuickSetTarget(inputVal, isMpr, enableOffset) {
+        if (!IsNumber(inputVal)) {
+            return 0
+        }
+        num := Integer(inputVal)
+        if (num < 1) {
+            return 0
+        }
+        if (enableOffset && isMpr) {
+            num := Max(1, num - 1)
+        }
+        return num
+    }
 
     ; --- 資料屬性 (Data Properties) ---
     NoduleData := Map("RUL", [], "RML", [], "RLL", [], "LUL", [], "LLL", [])
@@ -281,7 +299,7 @@ class NoduleTracker {
                 }
 
                 if (srsVal != "") {
-                    if (this.EnableMprImgOffset && descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+                    if (this.EnableMprImgOffset && NoduleTracker.IsMprSeries(descVal)) {
                         if (IsNumber(imgVal)) {
                             imgVal := String(Integer(imgVal) + 1)
                         }
@@ -385,7 +403,7 @@ class NoduleTracker {
                     }
                 }
             }
-            if (this.EnableMprImgOffset && descVal != "" && RegExMatch(descVal, "i)MPR|MIP|COR|SAG") && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd")) {
+            if (this.EnableMprImgOffset && NoduleTracker.IsMprSeries(descVal)) {
                 if (IsNumber(imgVal)) {
                     imgVal := String(Integer(imgVal) + 1)
                 }
@@ -820,23 +838,28 @@ class NoduleTracker {
                 inputGui.Destroy()
                 return
             }
-            targetNum := Integer(val)
-            if (targetNum < 1) {
+            inputNum := Integer(val)
+            if (inputNum < 1) {
                 inputGui.Destroy()
                 G3PacsNotify.Show("❌ 影像編號需大於 0", 1500)
                 return
             }
             inputGui.Destroy()
-            msg := "【Ctrl+G 執行除錯】`n目標影像編號: " targetNum "`n"
+            msg := "【Ctrl+G 執行除錯】`n輸入影像編號: " inputNum "`n"
             try {
                 focusNN := ControlGetClassNN(targetFocusHwnd)
                 msg .= "- 目標焦點: " focusNN "`n"
                 targetCombo := ""
                 method := ""
+                descVal := ""
                 match := G3PacsProbe.GetSeriesMatchForFocusClassNN(focusNN, targetHwnd, this.PatternList)
                 if (match) {
                     targetCombo := match.candidate.img
                     method := "Probe (" match.name ")" (match.isOffset ? " [PACS +1 容錯]" : "")
+                    descVal := match.HasOwnProp("desc") ? match.desc : ""
+                    if (descVal == "" && match.candidate.HasOwnProp("desc")) {
+                        try descVal := ControlGetText(match.candidate.desc, targetHwnd)
+                    }
                 }
                 if (targetCombo == "" && this.EnableAccFallback) {
                     msg .= "- 探針未命中，嘗試 Acc 模式...`n"
@@ -864,6 +887,20 @@ class NoduleTracker {
                                 targetCombo := ControlGetClassNN(this.WindowFromPoint(loc.x + 10, loc.y + 10))
                                 method := "Acc Path Calculation"
                             }
+                            pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
+                            basePath := ""
+                            Loop targetIdx {
+                                basePath .= pathParts[A_Index] ","
+                            }
+                            srsPath := basePath . pathParts[pathParts.Length]
+                            try {
+                                descPath := srsPath . ",2,4"
+                                descEl := pacsRoot[descPath]
+                                descVal := Trim(descEl.Value)
+                                if (descVal == "") {
+                                    descVal := Trim(descEl.Name)
+                                }
+                            }
                         }
                     }
                 }
@@ -871,6 +908,18 @@ class NoduleTracker {
                     throw Error("無法定位目標 ComboBox")
                 }
                 msg .= "- 定位成功: " targetCombo " (方法: " method ")`n"
+                if (descVal != "") {
+                    msg .= "- 序列描述: " descVal "`n"
+                }
+
+                isMpr := NoduleTracker.IsMprSeries(descVal)
+                targetNum := NoduleTracker.CalculateQuickSetTarget(inputNum, isMpr, this.EnableMprImgOffset)
+                if (this.EnableMprImgOffset && isMpr) {
+                    msg .= "- 套用 MPR 反向補償 (-1): " inputNum " -> " targetNum "`n"
+                } else {
+                    msg .= "- 目標影像編號: " targetNum "`n"
+                }
+
                 itemCount := SendMessage(0x0146, 0, 0, targetCombo, "ahk_id " targetHwnd) ; CB_GETCOUNT
                 if (itemCount != -1) {
                     msg .= "- ComboBox 項目數: " itemCount "`n"
