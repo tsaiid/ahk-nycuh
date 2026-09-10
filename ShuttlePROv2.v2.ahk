@@ -8,6 +8,7 @@ CoordMode "Mouse", "Screen"
 TraySetIcon(A_ScriptDir "\assets\ShuttlePROv2_icon.png")
 
 #Include <AHKHID.v2>
+#Include <G3PacsProbe.v2>
 
 global App := ShuttleProController()
 
@@ -96,14 +97,14 @@ class ShuttleProController {
             2, "7",
             3, "5",
             4, "6",
-            5, "r",
+            5, (*) => G3PacsProbe.ClickUnderMouseAndSendKey("r"),
             6, "8",
             7, "1",
             8, "9",
             9, "4",
             10, "y",
             11, (*) => this.ToggleDiffExamSync(),
-            12, "g",
+            12, (*) => G3PacsProbe.ClickUnderMouseAndSendKey("g"),
             13, (*) => this.ToggleSync(),
             14, "{Home}",
             15, "0"
@@ -150,8 +151,22 @@ class ShuttleProController {
 
     GetActiveContext() {
         for appConfig in this.AppList {
-            if WinActive(appConfig.WinTitle)
+            if WinActive(appConfig.WinTitle) {
                 return appConfig
+            }
+        }
+
+        MouseGetPos(,, &hwnd)
+        if (hwnd) {
+            try {
+                if (WinGetProcessName("ahk_id " hwnd) = "G3PACS.exe") {
+                    for appConfig in this.AppList {
+                        if (appConfig.Name = "G3PACS") {
+                            return appConfig
+                        }
+                    }
+                }
+            }
         }
         return ""
     }
