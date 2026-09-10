@@ -74,15 +74,16 @@ GetAbdomenMRExtraFindings(searchText) {
     safeOrgans := GetUnremarkableAbdomenMROrgans(searchText)
     finalOutput := ""
     if (safeOrgans.Length > 0) {
-        finalOutput .= "The " . FormatList(safeOrgans) . " are unremarkable. "
+        finalOutput .= "The " . FormatList(safeOrgans) . " are unremarkable."
     }
 
     ; 3. 處理淋巴結 (不需檢查 Free Air 與 Ascites)
     finalOutput .= GetAbdomenMRExtraFindings(searchText)
 
     ; 4. 執行輸出
-    if (Trim(finalOutput) != "") {
-        Paste(Trim(finalOutput))
+    finalOutput := Trim(finalOutput, " `t`r`n")
+    if (finalOutput != "") {
+        Paste(finalOutput)
     }
 }
 

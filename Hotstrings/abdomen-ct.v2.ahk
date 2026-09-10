@@ -340,8 +340,9 @@ GetAbdomenExtraFindings(searchText, includeFreeAir := false, includeAscites := f
     finalOutput .= GetAbdomenExtraFindings(searchText, false, false)
 
     ; 4. 輸出
-    if (Trim(finalOutput) != "") {
-        Paste(Trim(finalOutput))
+    finalOutput := Trim(finalOutput, " `t`r`n")
+    if (finalOutput != "") {
+        Paste(finalOutput)
     }
 }
 
@@ -354,15 +355,16 @@ GetAbdomenExtraFindings(searchText, includeFreeAir := false, includeAscites := f
     safeOrgans := GetUnremarkableOrgans(searchText)
     finalOutput := ""
     if (safeOrgans.Length > 0) {
-        finalOutput .= "The " . FormatList(safeOrgans) . " are unremarkable. "
+        finalOutput .= "The " . FormatList(safeOrgans) . " are unremarkable."
     }
 
     ; 3. 處理淋巴結、Free Air 與 Ascites
     finalOutput .= GetAbdomenExtraFindings(searchText, true, true)
 
     ; 4. 執行輸出
-    if (Trim(finalOutput) != "") {
-        Paste(Trim(finalOutput))
+    finalOutput := Trim(finalOutput, " `t`r`n")
+    if (finalOutput != "") {
+        Paste(finalOutput)
     }
 }
 
