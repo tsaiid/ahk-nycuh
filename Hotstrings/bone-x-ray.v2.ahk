@@ -343,6 +343,8 @@ The visible paranasal sinuses and mastoids are unremarkable.
 No obvious dislocation or fracture.
 The paranasal sinuses are clear.
 The mastoid air cells are well-aerated.
+No obvious fracture of the skull.
+No obvious fracture of the skull and facial bones.
 )"
     Paste(MyForm)
 }
