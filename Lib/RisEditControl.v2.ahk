@@ -5,6 +5,7 @@
  */
 class RisEditControl {
     static MSG := {
+        SETREDRAW:   0x000B,
         GETSEL:      0x00B0,
         SETSEL:      0x00B1,
         LINESCROLL:  0x00B6,
@@ -20,6 +21,14 @@ class RisEditControl {
 
     static SetSel(hCtrl, startPos, endPos) {
         SendMessage(this.MSG.SETSEL, startPos, endPos, hCtrl)
+    }
+
+    static SetRedraw(hCtrl, enable, bErase := false) {
+        SendMessage(this.MSG.SETREDRAW, enable ? 1 : 0, 0, hCtrl)
+        if (enable) {
+            DllCall("InvalidateRect", "Ptr", hCtrl, "Ptr", 0, "Int", bErase ? 1 : 0)
+            DllCall("UpdateWindow", "Ptr", hCtrl)
+        }
     }
 
     static ReplaceSel(hCtrl, text) {
@@ -147,15 +156,19 @@ class RisEditControl {
         return {Start: lineStart, ContentEnd: contentEnd, FullEnd: fullEnd}
     }
 
-    static SelectLine(hCtrl) {
-        bounds := this.GetLogicalLineBoundaries(hCtrl)
+    static SelectLine(hCtrl, bounds := "") {
+        if (!bounds) {
+            bounds := this.GetLogicalLineBoundaries(hCtrl)
+        }
         if (bounds.FullEnd > bounds.Start) {
             this.SetSel(hCtrl, bounds.Start, bounds.FullEnd)
         }
     }
 
-    static SelectLineForRemoval(hCtrl) {
-        bounds := this.GetLogicalLineBoundaries(hCtrl)
+    static SelectLineForRemoval(hCtrl, bounds := "") {
+        if (!bounds) {
+            bounds := this.GetLogicalLineBoundaries(hCtrl)
+        }
         isLastLine := (bounds.FullEnd == bounds.ContentEnd)
 
         if (!isLastLine) {
@@ -519,19 +532,33 @@ class RisEditControl {
     }
 
     static DeleteCurrentLine(hCtrl) {
-        this.SelectLineForRemoval(hCtrl)
-        SendMessage(this.MSG.CLEAR, 0, 0, hCtrl)
-        this.ScrollCaret(hCtrl)
+        bounds := this.GetLogicalLineBoundaries(hCtrl)
+        this.SetRedraw(hCtrl, false)
+        try {
+            this.SelectLineForRemoval(hCtrl, bounds)
+            SendMessage(this.MSG.CLEAR, 0, 0, hCtrl)
+            this.ScrollCaret(hCtrl)
+        } finally {
+            this.SetRedraw(hCtrl, true)
+        }
     }
 
     static CutLineOrSelection(hCtrl) {
         sel := this.GetSel(hCtrl)
         if (sel.Start == sel.End) {
-            this.SelectLineForRemoval(hCtrl)
+            bounds := this.GetLogicalLineBoundaries(hCtrl)
+            this.SetRedraw(hCtrl, false)
+            try {
+                this.SelectLineForRemoval(hCtrl, bounds)
+                SendMessage(this.MSG.CUT, 0, 0, hCtrl)
+                this.ScrollCaret(hCtrl)
+            } finally {
+                this.SetRedraw(hCtrl, true)
+            }
+        } else {
+            SendMessage(this.MSG.CUT, 0, 0, hCtrl)
+            this.ScrollCaret(hCtrl)
         }
-
-        SendMessage(this.MSG.CUT, 0, 0, hCtrl)
-        this.ScrollCaret(hCtrl)
     }
 
     static CopyLineOrSelection(hCtrl) {
@@ -539,15 +566,19 @@ class RisEditControl {
         didAutoSelect := false
 
         if (sel.Start == sel.End) {
-            this.SelectLine(hCtrl)
-            didAutoSelect := true
+            bounds := this.GetLogicalLineBoundaries(hCtrl)
+            this.SetRedraw(hCtrl, false)
+            try {
+                this.SelectLine(hCtrl, bounds)
+                SendMessage(this.MSG.COPY, 0, 0, hCtrl)
+                this.SetSel(hCtrl, sel.Start, sel.Start)
+            } finally {
+                this.SetRedraw(hCtrl, true)
+            }
+            return
         }
 
         SendMessage(this.MSG.COPY, 0, 0, hCtrl)
-
-        if (didAutoSelect) {
-            this.SetSel(hCtrl, sel.Start, sel.Start)
-        }
     }
 
     static MoveCaret(hCtrl, mode) {
