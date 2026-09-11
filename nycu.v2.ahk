@@ -24,11 +24,13 @@ A_TrayMenu.Add(TRAY_DEBUG_MODE_ITEM, ToggleRisDebugMode)
 A_TrayMenu.Uncheck(TRAY_DEBUG_MODE_ITEM)
 A_TrayMenu.Add()
 A_TrayMenu.Add("重新載入相似檢查分組設定`tWin+Ctrl+R", ReloadSimGroups)
+A_TrayMenu.Add("Hotstring 搜尋命令列`tCtrl+Shift+F", (*) => RisHotstringPalette.Show())
 
 global PRESERVE_CLIPBOARD := 0
 
 #Include <RisController.v2>
 #Include <RisHotkeyHelp.v2>
+#Include <RisHotstringPalette.v2>
 #Include Lib\Hotstrings.v2.ahk
 ;#Include <UIA.v2>
 ;#Include <Paste.v2>
@@ -77,6 +79,11 @@ RisController.EnableShellHookFocus()
     ^w:: {
         Critical
         RisController.DeleteWordBackward()
+    }
+
+    ; Ctrl+Shift+F: RIS Hotstring 即時檢索命令列
+    ^+f:: {
+        WithImeGuard(() => RisHotstringPalette.Show())
     }
 #HotIf
 

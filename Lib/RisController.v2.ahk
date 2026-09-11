@@ -1121,7 +1121,12 @@ class RisController {
     ; =================================================================
     ; 8. 其他功能 (UI 互動, 字體, 排版, 滑鼠)
     ; =================================================================
+    static EnforcedFontName := "Maple Mono CN"
+    static EnforcedFontSize := 11
+
     static EnableFontEnforcer(fontName := "Cascadia Code", fontSize := 12) {
+        this.EnforcedFontName := fontName
+        this.EnforcedFontSize := fontSize
         dpiRatio := 96 / A_ScreenDPI
         adjustedSize := Round(fontSize * dpiRatio, 1)
 
