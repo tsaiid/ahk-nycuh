@@ -181,6 +181,7 @@ class RisHotkeyHelp {
             {Context: "通用", Keys: "Win+Ctrl+R", Action: "重新載入相似檢查分組設定"},
             {Context: "通用", Keys: "SC07B", Action: "映射為滑鼠左鍵"},
             {Context: "任何 RIS 報告", Keys: "Ctrl+W", Action: "刪除前一個字"},
+            {Context: "任何 RIS 報告", Keys: "Ctrl+Shift+F", Action: "Hotstring 搜尋命令列"},
             {Context: "標準 RIS 報告", Keys: "Alt+Up / Alt+Down", Action: "移動目前行"},
             {Context: "標準 RIS 報告", Keys: "滑鼠左鍵", Action: "處理三連點選取"},
             {Context: "標準 RIS 報告", Keys: "Ctrl+1", Action: "切到歷史資料，顯示全部"},
