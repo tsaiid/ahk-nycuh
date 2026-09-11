@@ -376,9 +376,14 @@ class RisEditControl {
     }
 
     static _RemoveLineContent(hCtrl, lineInfo) {
-        this.SetSel(hCtrl, lineInfo.Bounds.Start, lineInfo.Bounds.ContentEnd)
-        this.ReplaceSel(hCtrl, "")
-        this.ScrollCaret(hCtrl)
+        this.SetRedraw(hCtrl, false)
+        try {
+            this.SetSel(hCtrl, lineInfo.Bounds.Start, lineInfo.Bounds.ContentEnd)
+            this.ReplaceSel(hCtrl, "")
+            this.ScrollCaret(hCtrl)
+        } finally {
+            this.SetRedraw(hCtrl, true)
+        }
     }
 
     static _ParseSmartLine(lineText) {
@@ -526,8 +531,13 @@ class RisEditControl {
         targetPos := (foundPos == 0) ? StrLen(text) : foundPos - 1
 
         if (targetPos > currentPos) {
-            this.SetSel(hCtrl, currentPos, targetPos)
-            this.ReplaceSel(hCtrl, "")
+            this.SetRedraw(hCtrl, false)
+            try {
+                this.SetSel(hCtrl, currentPos, targetPos)
+                this.ReplaceSel(hCtrl, "")
+            } finally {
+                this.SetRedraw(hCtrl, true)
+            }
         }
     }
 
@@ -632,8 +642,13 @@ class RisEditControl {
             }
         }
 
-        this.SetSel(hCtrl, i, caretPos)
-        this.ReplaceSel(hCtrl, "")
+        this.SetRedraw(hCtrl, false)
+        try {
+            this.SetSel(hCtrl, i, caretPos)
+            this.ReplaceSel(hCtrl, "")
+        } finally {
+            this.SetRedraw(hCtrl, true)
+        }
     }
 
     static IsSpace(char) {
@@ -680,9 +695,6 @@ class RisEditControl {
             txtBtm .= "`r`n"
         }
 
-        this.SetSel(hCtrl, topLine.Start, btmLine.FullEnd)
-        this.ReplaceSel(hCtrl, txtBtm . txtTop)
-
         offset := sel.Start - currLine.Start
         if (direction == "Up") {
             newPos := topLine.Start + offset
@@ -690,8 +702,15 @@ class RisEditControl {
             newPos := topLine.Start + StrLen(txtBtm) + offset
         }
 
-        this.SetSel(hCtrl, newPos, newPos)
-        this.ScrollCaret(hCtrl)
+        this.SetRedraw(hCtrl, false)
+        try {
+            this.SetSel(hCtrl, topLine.Start, btmLine.FullEnd)
+            this.ReplaceSel(hCtrl, txtBtm . txtTop)
+            this.SetSel(hCtrl, newPos, newPos)
+            this.ScrollCaret(hCtrl)
+        } finally {
+            this.SetRedraw(hCtrl, true)
+        }
     }
 
     static SmartExtendSelection(hCtrl, direction) {
