@@ -9,6 +9,9 @@ RegisterTest("RisHotstringPalette._ParseFileContent parses function call hotstri
 RegisterTest("RisHotstringPalette._FindMatchingSnippet returns line matching keyword", Test_FindMatchingSnippet_Keyword)
 RegisterTest("RisHotstringPalette._FindMatchingSnippet returns default line when trigger matches", Test_FindMatchingSnippet_Trigger)
 RegisterTest("RisHotstringPalette.Filter matches words and ranks trigger exact match first", Test_FilterAndRanking)
+RegisterTest("RisHotstringPalette._EscapeHtml escapes special HTML characters", Test_EscapeHtml)
+RegisterTest("RisHotstringPalette._Highlight wraps matched keywords in span tags", Test_Highlight)
+RegisterTest("RisHotstringPalette._GetPreviewHtml converts newlines to br and preserves indentation", Test_GetPreviewHtml)
 RegisterTest("RisHotstringPalette._CreateGui initializes controls without option errors", Test_CreateGui)
 
 Test_ParseSingleLine() {
@@ -144,6 +147,42 @@ Test_FilterAndRanking() {
     RisHotstringPalette.Filter("lung")
     AssertEqual(3, RisHotstringPalette._filteredItems.Length, "All 3 items contain 'lung'")
     AssertEqual("lung", RisHotstringPalette._filteredItems[1].item.trigger, "Exact trigger match 'lung' should be ranked first")
+}
+
+Test_EscapeHtml() {
+    raw := '<div class="test">& "hello"</div>'
+    escaped := RisHotstringPalette._EscapeHtml(raw)
+    AssertEqual("&lt;div class=&quot;test&quot;&gt;&amp; &quot;hello&quot;&lt;/div&gt;", escaped, "HTML characters should be escaped")
+}
+
+Test_Highlight() {
+    text := "No pulmonary nodule or consolidation."
+    highlighted := RisHotstringPalette._Highlight(text, ["nodule", "pulmonary"])
+    expected := "No <span class='hl' style='background-color:#FEF08A;color:#854D0E;font-weight:bold;padding:0 2px;'>pulmonary</span> <span class='hl' style='background-color:#FEF08A;color:#854D0E;font-weight:bold;padding:0 2px;'>nodule</span> or consolidation."
+    AssertEqual(expected, highlighted, "Matched words should be wrapped in highlight span tags")
+}
+
+Test_GetPreviewHtml() {
+    RisHotstringPalette._filteredItems := [
+        {
+            item: {
+                trigger: "testtrig",
+                replacement: "Heading 1`r`nHeading 2`n  * Indented detail",
+                lines: ["Heading 1", "Heading 2", "  * Indented detail"],
+                isMultiLine: true,
+                isFunction: false,
+                file: "test.ahk"
+            },
+            snippet: "Heading 1",
+            score: 100
+        }
+    ]
+    RisHotstringPalette._searchTerms := ["Heading"]
+
+    preview := RisHotstringPalette._GetPreviewHtml(1)
+    hl := "<span class='hl' style='background-color:#FEF08A;color:#854D0E;font-weight:bold;padding:0 2px;'>Heading</span>"
+    expected := hl . " 1<br>" . hl . " 2<br>&nbsp;&nbsp;* Indented detail"
+    AssertEqual(expected, preview, "Preview HTML should convert newlines to <br> and indentations to &nbsp;")
 }
 
 Test_CreateGui() {

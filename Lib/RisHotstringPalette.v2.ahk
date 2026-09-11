@@ -5,17 +5,18 @@
 
 /**
  * RIS Hotstring 即時檢索浮動命令列 (Command Palette)
- * 支援熱字關鍵字即時搜尋、多行模板命中行摘要與即時預覽、Enter 直接貼入報告
+ * 支援熱字關鍵字即時搜尋、HTML 即時 Highlighting、多行模板即時預覽、Enter 直接貼入報告
  */
 class RisHotstringPalette {
     static _cache := []
     static _isLoaded := false
     static _gui := 0
     static _editSearch := 0
-    static _lvResults := 0
-    static _previewBox := 0
-    static _lblStatus := 0
+    static _browser := 0
+    static _doc := 0
     static _filteredItems := []
+    static _searchTerms := []
+    static _selectedIndex := 1
     static _parentWnd := 0
 
     static Hwnd => (RisHotstringPalette._gui ? RisHotstringPalette._gui.Hwnd : 0)
@@ -37,6 +38,8 @@ class RisHotstringPalette {
                 return
             } catch {
                 this._gui := 0
+                this._browser := 0
+                this._doc := 0
             }
         }
 
@@ -52,7 +55,7 @@ class RisHotstringPalette {
         }
         contentWidth := guiWidth - 32
 
-        guiHeight := 605
+        guiHeight := 592
         if (guiHeight > monHeight - 40) {
             guiHeight := monHeight - 40
         }
@@ -81,6 +84,8 @@ class RisHotstringPalette {
             this._gui.Destroy()
         }
         this._gui := 0
+        this._browser := 0
+        this._doc := 0
 
         if (this._parentWnd && WinExist("ahk_id " . this._parentWnd)) {
             try {
@@ -113,13 +118,12 @@ class RisHotstringPalette {
         }
 
         matched := []
-        totalCache := this._cache.Length
 
         for _, item in this._cache {
             if (searchTerms.Length == 0) {
                 snippet := this._GetDefaultSnippet(item)
                 matched.Push({ item: item, snippet: snippet, score: 0 })
-                if (matched.Length >= 150) {
+                if (matched.Length >= 100) {
                     break
                 }
                 continue
@@ -143,27 +147,27 @@ class RisHotstringPalette {
 
         if (searchTerms.Length > 0) {
             this._SortResults(matched)
-            if (matched.Length > 150) {
-                matched.Length := 150
+            if (matched.Length > 100) {
+                matched.Length := 100
             }
         }
 
         this._filteredItems := matched
-        this._UpdateListView()
+        this._searchTerms := searchTerms
+        this._selectedIndex := 1
+        this._UpdateHtml()
     }
 
     /**
      * 送出當前選取的項目並貼入原視窗
+     * @param {Integer} targetRow 指定選取的列 (預設 0 代表使用當前選中項)
      */
-    static SubmitSelection() {
+    static SubmitSelection(targetRow := 0) {
         if (!this._gui) {
             return
         }
 
-        row := this._lvResults.GetNext(0, "Focused")
-        if (row == 0 && this._filteredItems.Length > 0) {
-            row := 1
-        }
+        row := (targetRow > 0) ? targetRow : this._selectedIndex
         if (row <= 0 || row > this._filteredItems.Length) {
             return
         }
@@ -196,12 +200,8 @@ class RisHotstringPalette {
             return
         }
 
-        currentRow := this._lvResults.GetNext(0, "Focused")
-        nextRow := (currentRow <= 0) ? 1 : (currentRow >= this._filteredItems.Length) ? this._filteredItems.Length : (currentRow + 1)
-
-        this._lvResults.Modify(0, "-Select -Focus")
-        this._lvResults.Modify(nextRow, "+Select +Focus +Vis")
-        this._UpdatePreview(nextRow)
+        nextRow := (this._selectedIndex >= this._filteredItems.Length) ? this._filteredItems.Length : (this._selectedIndex + 1)
+        this._SetSelectedIndex(nextRow)
     }
 
     /**
@@ -212,12 +212,8 @@ class RisHotstringPalette {
             return
         }
 
-        currentRow := this._lvResults.GetNext(0, "Focused")
-        prevRow := (currentRow <= 1) ? 1 : (currentRow - 1)
-
-        this._lvResults.Modify(0, "-Select -Focus")
-        this._lvResults.Modify(prevRow, "+Select +Focus +Vis")
-        this._UpdatePreview(prevRow)
+        prevRow := (this._selectedIndex <= 1) ? 1 : (this._selectedIndex - 1)
+        this._SetSelectedIndex(prevRow)
     }
 
     ; =========================================================================
@@ -267,45 +263,87 @@ class RisHotstringPalette {
         g.OnEvent("Escape", ObjBindMethod(this, "Close"))
         g.OnEvent("Close", ObjBindMethod(this, "Close"))
 
-        monoFont := this._GetReportMonospaceFont()
-
-        ; 搜尋輸入框
+        ; 搜尋輸入框 (原生 Win32 Edit，輸入法 0 延遲)
         editSearch := g.Add("Edit", Format("x16 y14 w{1} h36 -E0x200 Border", contentWidth))
         editSearch.SetFont("s13", "Microsoft JhengHei UI")
         editSearch.OnEvent("Change", ObjBindMethod(this, "_OnSearchChange"))
         this._editSearch := editSearch
 
-        ; 結果清單 (ListView)
-        col1Width := 180
-        col2Width := Max(200, contentWidth - col1Width - 25)
-        lvResults := g.Add("ListView", Format("x16 y58 w{1} h250 -Hdr -Multi Grid", contentWidth), ["縮寫", "內容摘要 / 命中行"])
-        lvResults.SetFont("s11", monoFont)
-        lvResults.ModifyCol(1, col1Width)
-        lvResults.ModifyCol(2, col2Width)
-        lvResults.OnEvent("ItemSelect", ObjBindMethod(this, "_OnItemSelect"))
-        lvResults.OnEvent("DoubleClick", ObjBindMethod(this, "_OnDoubleClick"))
-        this._lvResults := lvResults
-
-        ; 預覽區標籤與狀態
-        titleW := Max(200, contentWidth - 200)
-        statusX := 16 + contentWidth - 190
-        lblTitle := g.Add("Text", Format("x16 y316 w{1} h20 c475569 BackgroundTrans", titleW), "📄 完整模板即時預覽 (Full Template Preview)")
-        lblTitle.SetFont("s10 bold", "Microsoft JhengHei UI")
-
-        lblStatus := g.Add("Text", Format("x{1} y316 w190 h20 Right c64748B BackgroundTrans", statusX), "")
-        lblStatus.SetFont("s9", "Microsoft JhengHei UI")
-        this._lblStatus := lblStatus
-
-        ; 預覽多行內容區塊 (ReadOnly Edit, 自動換行, 無左右滾動)
-        previewBox := g.Add("Edit", Format("x16 y340 w{1} h220 ReadOnly +Wrap +VScroll -E0x200 Border", contentWidth))
-        previewBox.SetFont("s11", monoFont)
-        this._previewBox := previewBox
-
-        ; 底部操作提示
-        hint := g.Add("Text", Format("x16 y570 w{1} h20 Center c64748B BackgroundTrans", contentWidth), "[Enter] 貼入報告    |    [↑ / ↓] 切換選取    |    [Esc] 關閉")
-        hint.SetFont("s9", "Microsoft JhengHei UI")
+        ; ActiveX HTML 容器 (承載結果清單與完整預覽)
+        browserCtrl := g.Add("ActiveX", Format("x16 y56 w{1} h526", contentWidth), "Shell.Explorer")
+        this._browser := browserCtrl.Value
+        try {
+            this._browser.Silent := true
+        }
+        this._InitBrowserHtml()
 
         this._gui := g
+    }
+
+    static _InitBrowserHtml() {
+        browser := this._browser
+        browser.Navigate("about:blank")
+        while (browser.Busy || browser.ReadyState < 4) {
+            Sleep 10
+        }
+
+        monoFont := this._GetReportMonospaceFont()
+
+        html := "<!doctype html><html><head><meta http-equiv='X-UA-Compatible' content='IE=edge'>"
+            . "<meta charset='utf-8'><style>"
+            . "* { box-sizing: border-box; }"
+            . "html, body { margin:0; padding:0; background:#F4F5F7; color:#1E293B; font-family:'" monoFont "','Cascadia Code','Consolas',monospace; font-size:14px; user-select:none; overflow:hidden; }"
+            . "#container { height:522px; padding:0; }"
+            . "#resultsList { height:220px; overflow-y:auto; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:4px; }"
+            . ".item { display:block; padding:3px 8px; border-left:4px solid transparent; border-bottom:1px solid #F1F5F9; cursor:pointer; font-size:14px; line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }"
+            . ".item:hover { background:#F8FAFC; }"
+            . ".item.selected { background:#E2E8F0; border-left:4px solid #0F766E; font-weight:bold; }"
+            . ".trigger { display:inline-block; width:170px; color:#0F766E; font-weight:bold; vertical-align:top; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }"
+            . ".snippet { display:inline; color:#334155; padding-left:8px; }"
+            . ".preview-header { margin:8px 0 4px; font-weight:bold; font-size:13px; color:#475569; overflow:hidden; }"
+            . ".preview-title { float:left; }"
+            . ".preview-count { float:right; color:#64748B; font-weight:normal; }"
+            . "#previewBox { height:250px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:4px; padding:8px 12px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; font-family:'" monoFont "','Cascadia Code','Consolas',monospace; font-size:14px; line-height:1.5; color:#1E293B; clear:both; }"
+            . ".hint { margin:8px 0 0; font-size:12px; color:#64748B; text-align:center; font-family:'Microsoft JhengHei UI',sans-serif; }"
+            . ".hl { background-color:#FEF08A; color:#854D0E; font-weight:bold; padding:0 2px; border-radius:2px; }"
+            . ".no-results { padding:28px 16px; text-align:center; color:#94A3B8; font-style:italic; }"
+            . "</style>"
+            . "<script>"
+            . "function selectIndex(idx) {"
+            . "  var items = document.getElementsByTagName('div');"
+            . "  for (var i = 0; i < items.length; i++) {"
+            . "    if (items[i].id && items[i].id.indexOf('item_') === 0) {"
+            . "      items[i].className = 'item';"
+            . "    }"
+            . "  }"
+            . "  var curr = document.getElementById('item_' + idx);"
+            . "  if (curr) {"
+            . "    curr.className = 'item selected';"
+            . "    if (curr.scrollIntoView) {"
+            . "      curr.scrollIntoView(false);"
+            . "    }"
+            . "  }"
+            . "}"
+            . "</script>"
+            . "</head><body>"
+            . "<div id='container'>"
+            . "  <div id='resultsList'></div>"
+            . "  <div class='preview-header'>"
+            . "    <span class='preview-title'>📄 完整模板即時預覽 (Full Template Preview)</span>"
+            . "    <span id='statusCount' class='preview-count'></span>"
+            . "  </div>"
+            . "  <div id='previewBox'></div>"
+            . "  <div class='hint'>[Enter] 貼入報告    |    [↑ / ↓] 切換選取    |    [Esc] 關閉</div>"
+            . "</div></body></html>"
+
+        doc := browser.Document
+        doc.Open()
+        doc.Write(html)
+        doc.Close()
+
+        doc.parentWindow.ahkSelect := ObjBindMethod(this, "_OnHtmlSelect")
+        doc.parentWindow.ahkSubmit := ObjBindMethod(this, "_OnHtmlSubmit")
+        this._doc := doc
     }
 
     static _OnSearchChange(*) {
@@ -315,48 +353,170 @@ class RisHotstringPalette {
         this.Filter(this._editSearch.Value)
     }
 
-    static _OnItemSelect(ctrl, itemIndex, selected) {
-        if (selected && itemIndex > 0) {
-            this._UpdatePreview(itemIndex)
+    static _OnHtmlSelect(idx) {
+        if (!this._gui || idx <= 0 || idx > this._filteredItems.Length) {
+            return
         }
+        this._SetSelectedIndex(idx)
     }
 
-    static _OnDoubleClick(*) {
-        this.SubmitSelection()
+    static _OnHtmlSubmit(idx) {
+        this.SubmitSelection(idx)
     }
 
-    static _UpdateListView() {
-        if (!this._gui) {
+    static _SetSelectedIndex(idx) {
+        if (!this._doc || this._filteredItems.Length == 0) {
             return
         }
 
-        this._lvResults.Opt("-Redraw")
-        this._lvResults.Delete()
-
-        for _, entry in this._filteredItems {
-            this._lvResults.Add(, entry.item.trigger, entry.snippet)
+        this._selectedIndex := idx
+        try {
+            this._doc.parentWindow.selectIndex(idx)
+            box := this._doc.getElementById("previewBox")
+            box.innerHTML := this._GetPreviewHtml(idx)
+            box.scrollTop := 0
         }
+    }
 
-        this._lvResults.Opt("+Redraw")
+    static _UpdateHtml() {
+        if (!this._doc) {
+            return
+        }
 
         count := this._filteredItems.Length
-        this._lblStatus.Value := Format("共 {1} 項結果", count)
+        terms := this._searchTerms
+        listHtml := ""
 
-        if (count > 0) {
-            this._lvResults.Modify(1, "+Select +Focus +Vis")
-            this._UpdatePreview(1)
-        } else {
-            this._previewBox.Value := "(查無符合關鍵字的 Hotstring)"
-        }
-    }
-
-    static _UpdatePreview(index) {
-        if (!this._gui || index <= 0 || index > this._filteredItems.Length) {
+        if (count == 0) {
+            listHtml := "<div class='no-results'>(查無符合關鍵字的 Hotstring)</div>"
+            try {
+                this._doc.getElementById("resultsList").innerHTML := listHtml
+                this._doc.getElementById("statusCount").innerText := "共 0 項結果"
+                box := this._doc.getElementById("previewBox")
+                box.innerHTML := "<span style='color:#94A3B8;font-style:italic;'>(查無符合關鍵字的 Hotstring)</span>"
+                box.scrollTop := 0
+            }
             return
         }
 
-        item := this._filteredItems[index].item
-        this._previewBox.Value := item.replacement
+        for idx, entry in this._filteredItems {
+            selectedClass := (idx == 1) ? " selected" : ""
+            hlTrigger := this._Highlight(entry.item.trigger, terms)
+            hlSnippet := this._Highlight(entry.snippet, terms)
+
+            listHtml .= Format(
+                "<div class='item{1}' id='item_{2}' onclick='window.ahkSelect({2})' ondblclick='window.ahkSubmit({2})'>"
+                . "<span class='trigger'>{3}</span>"
+                . "<span class='snippet'>{4}</span>"
+                . "</div>",
+                selectedClass, idx, hlTrigger, hlSnippet
+            )
+        }
+
+        try {
+            this._doc.getElementById("resultsList").innerHTML := listHtml
+            this._doc.getElementById("statusCount").innerText := Format("共 {1} 項結果", count)
+            box := this._doc.getElementById("previewBox")
+            box.innerHTML := this._GetPreviewHtml(1)
+            box.scrollTop := 0
+        }
+    }
+
+    static _GetPreviewHtml(idx) {
+        if (idx <= 0 || idx > this._filteredItems.Length) {
+            return ""
+        }
+        item := this._filteredItems[idx].item
+        html := this._Highlight(item.replacement, this._searchTerms)
+        html := StrReplace(html, "`r`n", "<br>")
+        html := StrReplace(html, "`n", "<br>")
+        html := StrReplace(html, "`r", "<br>")
+        html := StrReplace(html, "`t", "&nbsp;&nbsp;&nbsp;&nbsp;")
+        html := StrReplace(html, "  ", "&nbsp;&nbsp;")
+        html := StrReplace(html, "<br> ", "<br>&nbsp;")
+        if (SubStr(html, 1, 1) == " ") {
+            html := "&nbsp;" . SubStr(html, 2)
+        }
+        return html
+    }
+
+    static _EscapeHtml(text) {
+        text := StrReplace(text, "&", "&amp;")
+        text := StrReplace(text, "<", "&lt;")
+        text := StrReplace(text, ">", "&gt;")
+        text := StrReplace(text, '"', "&quot;")
+        return text
+    }
+
+    static _Highlight(rawText, searchTerms) {
+        if (searchTerms.Length == 0) {
+            return this._EscapeHtml(rawText)
+        }
+
+        sortedTerms := this._SortTermsByLength(searchTerms)
+        patternParts := []
+        for _, term in sortedTerms {
+            if (term != "") {
+                patternParts.Push(this._EscapeRegEx(term))
+            }
+        }
+        if (patternParts.Length == 0) {
+            return this._EscapeHtml(rawText)
+        }
+
+        fullPattern := "i)(" . this._Join(patternParts, "|") . ")"
+        result := ""
+        lastPos := 1
+
+        while RegExMatch(rawText, fullPattern, &m, lastPos) {
+            matchPos := m.Pos(0)
+            matchLen := m.Len(0)
+
+            if (matchPos > lastPos) {
+                result .= this._EscapeHtml(SubStr(rawText, lastPos, matchPos - lastPos))
+            }
+
+            result .= "<span class='hl' style='background-color:#FEF08A;color:#854D0E;font-weight:bold;padding:0 2px;'>" . this._EscapeHtml(m[0]) . "</span>"
+            lastPos := matchPos + matchLen
+        }
+
+        if (lastPos <= StrLen(rawText)) {
+            result .= this._EscapeHtml(SubStr(rawText, lastPos))
+        }
+
+        return result
+    }
+
+    static _SortTermsByLength(terms) {
+        sorted := []
+        for _, t in terms {
+            sorted.Push(t)
+        }
+        len := sorted.Length
+        i := 2
+        while (i <= len) {
+            key := sorted[i]
+            j := i - 1
+            while (j >= 1 && StrLen(sorted[j]) < StrLen(key)) {
+                sorted[j + 1] := sorted[j]
+                j -= 1
+            }
+            sorted[j + 1] := key
+            i += 1
+        }
+        return sorted
+    }
+
+    static _Join(arr, delimiter := "") {
+        res := ""
+        for i, item in arr {
+            res .= (i > 1 ? delimiter : "") . item
+        }
+        return res
+    }
+
+    static _EscapeRegEx(str) {
+        return RegExReplace(str, "([\\.\$\*\+\?\(\)\[\]\{\}\|\^])", "\$1")
     }
 
     static _GetDefaultSnippet(item) {
@@ -418,7 +578,6 @@ class RisHotstringPalette {
     }
 
     static _SortResults(matched) {
-        ; 簡易插入排序 (In-place insertion sort by score descending)
         len := matched.Length
         i := 2
         while (i <= len) {
