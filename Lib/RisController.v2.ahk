@@ -1080,13 +1080,18 @@ class RisController {
             hEdit := this.ImpressionEdit.NativeWindowHandle
             ControlFocus(hEdit)
 
-            RisEditControl.SetSel(hEdit, 0, -1)
-            lineCount := RisEditControl.CountNonEmptyLines(hEdit)
+            RisEditControl.SetRedraw(hEdit, false)
+            try {
+                RisEditControl.SetSel(hEdit, 0, -1)
+                lineCount := RisEditControl.CountNonEmptyLines(hEdit)
 
-            if (lineCount > 1) {
-                this._ReorderSelectedText(hEdit, , , , , true)
-            } else {
-                this._ReorderSelectedText(hEdit, true, , , , true)
+                if (lineCount > 1) {
+                    this._ReorderSelectedText(hEdit, , , , , true)
+                } else {
+                    this._ReorderSelectedText(hEdit, true, , , , true)
+                }
+            } finally {
+                RisEditControl.SetRedraw(hEdit, true)
             }
             SetTimer( () => RisController._ScrollAndHighlightCaret(hEdit), -10 )
         } catch as err {
@@ -2238,8 +2243,13 @@ class RisController {
         range := RisReportText.FindContentRange(fullText, "Basic")
 
         if (range) {
-            RisEditControl.SetSel(hEdit, range.Start, range.End)
-            this._ReorderSelectedText(hEdit, false, true, "-", false)
+            RisEditControl.SetRedraw(hEdit, false)
+            try {
+                RisEditControl.SetSel(hEdit, range.Start, range.End)
+                this._ReorderSelectedText(hEdit, false, true, "-", false)
+            } finally {
+                RisEditControl.SetRedraw(hEdit, true)
+            }
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
         }
@@ -2250,18 +2260,23 @@ class RisController {
         range := RisReportText.FindContentRange(fullText, "Advanced")
 
         if (range) {
-            RisEditControl.SetSel(hEdit, range.Start, range.End)
-            if (range.HasOwnProp("TrailingNewlines")) {
-                selectedText := RisEditControl.GetSelectedText(hEdit)
-                if (selectedText == "") {
-                    return
-                }
+            RisEditControl.SetRedraw(hEdit, false)
+            try {
+                RisEditControl.SetSel(hEdit, range.Start, range.End)
+                if (range.HasOwnProp("TrailingNewlines")) {
+                    selectedText := RisEditControl.GetSelectedText(hEdit)
+                    if (selectedText == "") {
+                        return
+                    }
 
-                finalText := RisReportText.ReorderSelectedText(selectedText, false, false, "-", true)
-                finalText := RTrim(finalText, "`r`n") . range.TrailingNewlines
-                RisEditControl.ReplaceSelectionPreserveFirstVisibleLine(hEdit, finalText)
-            } else {
-                this._ReorderSelectedText(hEdit, false, false, "-", true)
+                    finalText := RisReportText.ReorderSelectedText(selectedText, false, false, "-", true)
+                    finalText := RTrim(finalText, "`r`n") . range.TrailingNewlines
+                    RisEditControl.ReplaceSelectionPreserveFirstVisibleLine(hEdit, finalText)
+                } else {
+                    this._ReorderSelectedText(hEdit, false, false, "-", true)
+                }
+            } finally {
+                RisEditControl.SetRedraw(hEdit, true)
             }
         } else {
             this.Notify("報告格式不如預期，無法自動排版")
