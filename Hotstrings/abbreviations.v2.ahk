@@ -144,8 +144,8 @@
 ::ima::inferior mesenteric artery
 ::iud::intrauterine device
 ::gb::gallbladder
-::gbs::gallbladder stone
-::gbss::gallbladder stones
+::gbs::gallstone
+::gbss::gallstones
 ::gbsg::gallbladder sludge
 ::gbp::gallbladder polyp
 ::gbps::gallbladder polyps
