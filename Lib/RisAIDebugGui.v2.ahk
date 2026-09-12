@@ -7,6 +7,22 @@
  * 負責 AI 相關的 Debug 與比對 GUI
  */
 class RisAIDebugGui {
+    static comparisonGuiHwnd := 0
+    static applyFirstChoiceFunc := 0
+    static applySecondChoiceFunc := 0
+
+    /**
+     * 套用三欄比對視窗中的選項 (1: 第一個結果/OpenAI, 2: 第二個結果/Google AI)
+     * @param {Integer} index
+     */
+    static ApplyPolishProviderChoice(index) {
+        if (index == 1 && this.applyFirstChoiceFunc) {
+            (this.applyFirstChoiceFunc)()
+        } else if (index == 2 && this.applySecondChoiceFunc) {
+            (this.applySecondChoiceFunc)()
+        }
+    }
+
     /**
      * 顯示完整 AI Prompt，並讓使用者確認是否繼續呼叫 API
      * @param title 視窗標題
@@ -261,12 +277,12 @@ class RisAIDebugGui {
         myGui.Add("Text", Format("x+{} yp w{} Center", gap, colW), this.FormatProviderDebugLine(googleResult))
         myGui.SetFont("s11", "Microsoft JhengHei UI")
 
-        buttonWidth := Min(160, colW)
+        buttonWidth := Min(180, colW)
         buttonOffset := Floor((colW - buttonWidth) / 2)
         openAIButtonX := layout.MarginX + colW + gap + buttonOffset
         googleButtonX := layout.MarginX + (colW * 2) + (gap * 2) + buttonOffset
-        btnUseOpenAI := myGui.Add("Button", Format("Default w{} x{} y+18", buttonWidth, openAIButtonX), "Use OpenAI")
-        btnUseGoogle := myGui.Add("Button", Format("w{} x{} yp", buttonWidth, googleButtonX), "Use Google")
+        btnUseOpenAI := myGui.Add("Button", Format("Default w{} x{} y+18", buttonWidth, openAIButtonX), "Use OpenAI (Alt+&1)")
+        btnUseGoogle := myGui.Add("Button", Format("w{} x{} yp", buttonWidth, googleButtonX), "Use Google (Alt+&2)")
 
         if (!openAIResult.Success) {
             btnUseOpenAI.Enabled := false
@@ -275,16 +291,32 @@ class RisAIDebugGui {
             btnUseGoogle.Enabled := false
         }
 
+        cleanupGui() {
+            RisAIDebugGui.comparisonGuiHwnd := 0
+            RisAIDebugGui.applyFirstChoiceFunc := 0
+            RisAIDebugGui.applySecondChoiceFunc := 0
+        }
+
+        closeGui(*) {
+            cleanupGui()
+            myGui.Destroy()
+        }
+
         applyResult(editCtrl, label, *) {
             finalText := editCtrl.Value
+            closeGui()
             onAccept(hEdit, finalText, sel)
-            myGui.Destroy()
             notify("已套用 " . label . " 版本")
         }
 
-        btnUseOpenAI.OnEvent("Click", applyResult.Bind(openAIEdit, "OpenAI"))
-        btnUseGoogle.OnEvent("Click", applyResult.Bind(googleEdit, "Google AI"))
-        myGui.OnEvent("Escape", (*) => myGui.Destroy())
+        btnUseOpenAI.OnEvent("Click", (*) => (openAIResult.Success ? applyResult(openAIEdit, "OpenAI") : 0))
+        btnUseGoogle.OnEvent("Click", (*) => (googleResult.Success ? applyResult(googleEdit, "Google AI") : 0))
+        myGui.OnEvent("Close", closeGui)
+        myGui.OnEvent("Escape", closeGui)
+
+        this.comparisonGuiHwnd := myGui.Hwnd
+        this.applyFirstChoiceFunc := () => (openAIResult.Success ? applyResult(openAIEdit, "OpenAI") : 0)
+        this.applySecondChoiceFunc := () => (googleResult.Success ? applyResult(googleEdit, "Google AI") : 0)
 
         RisDialog.ShowCenter(myGui, Format("w{}", layout.WindowWidth))
 
@@ -351,3 +383,8 @@ class RisAIDebugGui {
         return RisDialog.GetWindowsBuildNumber()
     }
 }
+
+#HotIf (RisAIDebugGui.comparisonGuiHwnd && WinActive("ahk_id " . RisAIDebugGui.comparisonGuiHwnd))
+!1::RisAIDebugGui.ApplyPolishProviderChoice(1)
+!2::RisAIDebugGui.ApplyPolishProviderChoice(2)
+#HotIf
