@@ -866,10 +866,14 @@ class RisController {
     ; =================================================================
 
     static ClearCurrentEdit() {
+        if !this.IsTargetFocused() {
+            return false
+        }
         try {
             hFocus := ControlGetFocus("A")
-            ControlSetText("", hFocus)
+            RisEditControl.ClearAll(hFocus)
         }
+        return true
     }
 
     static KillLine() {

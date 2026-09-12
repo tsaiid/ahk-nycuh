@@ -541,6 +541,17 @@ class RisEditControl {
         }
     }
 
+    static ClearAll(hCtrl) {
+        this.SetRedraw(hCtrl, false)
+        try {
+            this.SetSel(hCtrl, 0, -1)
+            this.ReplaceSel(hCtrl, "")
+            this.ScrollCaret(hCtrl)
+        } finally {
+            this.SetRedraw(hCtrl, true)
+        }
+    }
+
     static DeleteCurrentLine(hCtrl) {
         bounds := this.GetLogicalLineBoundaries(hCtrl)
         this.SetRedraw(hCtrl, false)

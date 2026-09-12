@@ -19,6 +19,8 @@ Test_RisController_MethodsExist() {
     AssertTrue(HasMethod(RisController, "InsertCopiedReportDate"), "InsertCopiedReportDate method must exist")
     AssertTrue(HasMethod(RisController, "InsertSelectedHistoryName"), "InsertSelectedHistoryName method must exist")
     AssertTrue(HasMethod(RisController, "CopyPathologyReportOrMRN"), "CopyPathologyReportOrMRN method must exist")
+    AssertTrue(HasMethod(RisController, "ClearCurrentEdit"), "ClearCurrentEdit method must exist")
+    AssertTrue(HasMethod(RisEditControl, "ClearAll"), "ClearAll method must exist")
 }
 
 RunRegisteredTests()
