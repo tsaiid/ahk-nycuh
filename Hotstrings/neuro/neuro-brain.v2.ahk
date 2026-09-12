@@ -254,6 +254,26 @@ No obvious fracture or dislocation of the cervical spine.
     RisController.PasteToImpression(MyForm)
 }
 
+::ctn2trok00::
+{
+    MyForm := "
+  (
+- No definite area of obvious abnormal density in the brain noted.
+- No definite abnormal mass lesion in the brain noted.
+- No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
+- The bilateral lateral ventricles are symmetrical without dilatation.
+- No obvious fracture of the skull.
+- The visible paranasal sinuses and mastoids are unremarkable.
+  )"
+    RisController.PasteToFinding(MyForm)
+
+    MyForm := "
+  (
+No CT evidence of acute intracranial injury or skull fracture.
+  )"
+    RisController.PasteToImpression(MyForm)
+}
+
 ;; CTN2 - CVA
 ::ctn2cva::
 {
