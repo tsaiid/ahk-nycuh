@@ -23,6 +23,7 @@
 ;    - F11         : 執行效能基準測試 (Benchmark)，驗證探針模式命中率。
 ;    - F12         : 開啟探針工具，深度除錯當前控制項 ClassNN 與 Acc 路徑。
 ; 5. GUI 功能：
+;    - Sentence    : 整合所有記錄並輸出完整描述句 (例如 "A tiny nodule in the RUL of lung (Srs/Img: 6/15).")。
 ;    - Full        : 整合所有記錄並按肺葉順序自動排序複製 (標準報告格式)。
 ;    - Lobe:Img    : 依肺葉分類複製影像編號 (e.g., RUL:15;22;LUL:10)。
 ;    - Img No      : 提取所有 Image Number，排序並以分號分隔複製。
@@ -120,11 +121,13 @@ class NoduleTracker {
         ; --- 按鈕區 (靜態) ---
         this.MyGui.SetFont("s9 Norm", "Segoe UI")
         btnX := 15
-        btnCopy := this.MyGui.Add("Button", "x" btnX " y+10 w85 h30", "Full")
+        btnSentence := this.MyGui.Add("Button", "x" btnX " y+10 w70 h30", "Sentence")
+        btnSentence.OnEvent("Click", this.CopySentenceReport.Bind(this))
+        btnCopy := this.MyGui.Add("Button", "x+6 w55 h30", "Full")
         btnCopy.OnEvent("Click", this.CopyReport.Bind(this))
-        btnCopyLocImg := this.MyGui.Add("Button", "x+10 w90 h30", "Lobe:Img")
+        btnCopyLocImg := this.MyGui.Add("Button", "x+6 w72 h30", "Lobe:Img")
         btnCopyLocImg.OnEvent("Click", this.CopyLocImg.Bind(this))
-        btnCopyImg := this.MyGui.Add("Button", "x+10 w85 h30", "Img No")
+        btnCopyImg := this.MyGui.Add("Button", "x+6 w65 h30", "Img No")
         btnCopyImg.OnEvent("Click", this.CopyImgNo.Bind(this))
         btnImport := this.MyGui.Add("Button", "x" btnX " y+5 w280 h28", "Import Clipboard")
         btnImport.OnEvent("Click", this.ImportLobeImgFromClipboard.Bind(this))
@@ -1264,8 +1267,8 @@ class NoduleTracker {
         }
     }
 
-    CopyReport(*) {
-        reportParts := []
+    GetFormattedLobeEntries() {
+        lobeEntries := []
         For label in this.LobeOrder {
             items := this.NoduleData[label]
             if (items.Length > 0) {
@@ -1296,24 +1299,68 @@ class NoduleTracker {
                     lobeStr .= sKey . "/" . imgStr . "; "
                 }
                 lobeStr := Trim(lobeStr, "; ")
-                reportParts.Push(label . " (Srs/Img: " . lobeStr . ")")
+                lobeEntries.Push({label: label, srsImg: lobeStr, count: items.Length})
             }
         }
-        if (reportParts.Length == 0) {
-            G3PacsNotify.Show("! 無資料可複製", 2000)
-            return
-        }
-        finalStr := ""
+        return lobeEntries
+    }
+
+    static JoinLobeParts(reportParts) {
         if (reportParts.Length == 1) {
-            finalStr := reportParts[1]
+            return reportParts[1]
         } else if (reportParts.Length == 2) {
-            finalStr := reportParts[1] . " and " . reportParts[2]
-        } else {
+            return reportParts[1] . " and " . reportParts[2]
+        } else if (reportParts.Length > 2) {
+            finalStr := ""
             Loop reportParts.Length - 1 {
                 finalStr .= reportParts[A_Index] . ", "
             }
-            finalStr .= "and " . reportParts[reportParts.Length]
+            return finalStr . "and " . reportParts[reportParts.Length]
         }
+        return ""
+    }
+
+    static FormatSentenceReport(lobeEntries) {
+        if (lobeEntries.Length == 0) {
+            return ""
+        }
+        totalNodules := 0
+        For entry in lobeEntries {
+            totalNodules += entry.count
+        }
+        if (totalNodules == 1) {
+            entry := lobeEntries[1]
+            return "A tiny nodule in the " . entry.label . " of lung (Srs/Img: " . entry.srsImg . ")."
+        }
+        reportParts := []
+        For entry in lobeEntries {
+            reportParts.Push(entry.label . " (Srs/Img: " . entry.srsImg . ")")
+        }
+        return "Tiny nodules in the " . NoduleTracker.JoinLobeParts(reportParts) . " of lung."
+    }
+
+    CopySentenceReport(*) {
+        lobeEntries := this.GetFormattedLobeEntries()
+        if (lobeEntries.Length == 0) {
+            G3PacsNotify.Show("! 無資料可複製", 2000)
+            return
+        }
+        finalStr := NoduleTracker.FormatSentenceReport(lobeEntries)
+        A_Clipboard := finalStr
+        G3PacsNotify.Show("Copied:`n" finalStr, 3000)
+    }
+
+    CopyReport(*) {
+        lobeEntries := this.GetFormattedLobeEntries()
+        if (lobeEntries.Length == 0) {
+            G3PacsNotify.Show("! 無資料可複製", 2000)
+            return
+        }
+        reportParts := []
+        For entry in lobeEntries {
+            reportParts.Push(entry.label . " (Srs/Img: " . entry.srsImg . ")")
+        }
+        finalStr := NoduleTracker.JoinLobeParts(reportParts)
         A_Clipboard := finalStr
         G3PacsNotify.Show("Copied:`n" finalStr, 3000)
     }

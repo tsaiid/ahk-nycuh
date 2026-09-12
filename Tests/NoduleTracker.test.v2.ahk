@@ -8,6 +8,11 @@ RegisterTest("IsPositionInScreen detects in-bound and out-of-bound positions", T
 RegisterTest("GetPrimaryTopRightPos calculates valid position on primary monitor", Test_GetPrimaryTopRightPos)
 RegisterTest("IsMprSeries identifies MPR series and ignores MRI sequences", Test_IsMprSeries)
 RegisterTest("CalculateQuickSetTarget applies reverse compensation for MPR", Test_CalculateQuickSetTarget)
+RegisterTest("FormatSentenceReport formats single nodule as full sentence", Test_FormatSentenceReport_Single)
+RegisterTest("FormatSentenceReport formats multiple nodules across lobes with plural form", Test_FormatSentenceReport_MultipleLobes)
+RegisterTest("FormatSentenceReport formats multiple nodules in single lobe with plural form", Test_FormatSentenceReport_SingleLobeMultiple)
+RegisterTest("FormatSentenceReport formats 3 lobes with Oxford comma", Test_FormatSentenceReport_ThreeLobes)
+RegisterTest("FormatSentenceReport returns empty string when no nodules", Test_FormatSentenceReport_Empty)
 
 IsPositionInScreen(x, y, w := 320, h := 300) {
     if (x == "" || y == "") {
@@ -245,6 +250,80 @@ Test_CalculateQuickSetTarget() {
     ; 無效輸入
     AssertEqual(0, CalculateQuickSetTarget(0, true, true), "0 should be invalid (0)")
     AssertEqual(0, CalculateQuickSetTarget("abc", true, true), "Non-number should be invalid (0)")
+}
+
+JoinLobeParts(reportParts) {
+    if (reportParts.Length == 1) {
+        return reportParts[1]
+    } else if (reportParts.Length == 2) {
+        return reportParts[1] . " and " . reportParts[2]
+    } else if (reportParts.Length > 2) {
+        finalStr := ""
+        Loop reportParts.Length - 1 {
+            finalStr .= reportParts[A_Index] . ", "
+        }
+        return finalStr . "and " . reportParts[reportParts.Length]
+    }
+    return ""
+}
+
+FormatSentenceReport(lobeEntries) {
+    if (lobeEntries.Length == 0) {
+        return ""
+    }
+    totalNodules := 0
+    For entry in lobeEntries {
+        totalNodules += entry.count
+    }
+    if (totalNodules == 1) {
+        entry := lobeEntries[1]
+        return "A tiny nodule in the " . entry.label . " of lung (Srs/Img: " . entry.srsImg . ")."
+    }
+    reportParts := []
+    For entry in lobeEntries {
+        reportParts.Push(entry.label . " (Srs/Img: " . entry.srsImg . ")")
+    }
+    return "Tiny nodules in the " . JoinLobeParts(reportParts) . " of lung."
+}
+
+Test_FormatSentenceReport_Single() {
+    entries := [
+        {label: "RUL", srsImg: "6/15", count: 1}
+    ]
+    expected := "A tiny nodule in the RUL of lung (Srs/Img: 6/15)."
+    AssertEqual(expected, FormatSentenceReport(entries), "Single nodule format mismatch")
+}
+
+Test_FormatSentenceReport_MultipleLobes() {
+    entries := [
+        {label: "RUL", srsImg: "6/15", count: 1},
+        {label: "RLL", srsImg: "6/30", count: 1}
+    ]
+    expected := "Tiny nodules in the RUL (Srs/Img: 6/15) and RLL (Srs/Img: 6/30) of lung."
+    AssertEqual(expected, FormatSentenceReport(entries), "Multiple lobes format mismatch")
+}
+
+Test_FormatSentenceReport_SingleLobeMultiple() {
+    entries := [
+        {label: "RUL", srsImg: "6/15,20", count: 2}
+    ]
+    expected := "Tiny nodules in the RUL (Srs/Img: 6/15,20) of lung."
+    AssertEqual(expected, FormatSentenceReport(entries), "Single lobe multiple nodules format mismatch")
+}
+
+Test_FormatSentenceReport_ThreeLobes() {
+    entries := [
+        {label: "RUL", srsImg: "6/15", count: 1},
+        {label: "RML", srsImg: "6/20", count: 1},
+        {label: "RLL", srsImg: "6/30", count: 1}
+    ]
+    expected := "Tiny nodules in the RUL (Srs/Img: 6/15), RML (Srs/Img: 6/20), and RLL (Srs/Img: 6/30) of lung."
+    AssertEqual(expected, FormatSentenceReport(entries), "Three lobes format mismatch")
+}
+
+Test_FormatSentenceReport_Empty() {
+    entries := []
+    AssertEqual("", FormatSentenceReport(entries), "Empty entries should return empty string")
 }
 
 RunRegisteredTests()
