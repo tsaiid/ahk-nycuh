@@ -12,6 +12,7 @@ RegisterTest("RisReportText.IsCalciumScoreExam detects calcium score exams", Tes
 RegisterTest("RisReportText.GetCalciumScoreSeverity classifies scores", Test_RisReportText_GetCalciumScoreSeverity)
 RegisterTest("RisReportText.FormatScore formats numbers cleanly", Test_RisReportText_FormatScore)
 RegisterTest("RisReportText.FormatCalciumScoreImpression formats templates correctly", Test_RisReportText_FormatCalciumScoreImpression)
+RegisterTest("RisReportText.FindFindingsNextLinePosition locates line after FINDINGS", Test_RisReportText_FindFindingsNextLinePosition)
 
 Test_RisReportText_GetExamTypeCt() {
     AssertEqual("CT", RisReportText.GetExamType("Abdomen CT with contrast"))
@@ -138,6 +139,58 @@ Test_RisReportText_FormatCalciumScoreImpression() {
     }
     expectedOut := "Total Calcium Score (Equivalent Agatston Score) is 50 (Mild calcification; patient is outside MESA reference age range of 45-84 years)."
     AssertEqual(expectedOut, RisReportText.FormatCalciumScoreImpression(50, mesaOut))
+}
+
+Test_RisReportText_FindFindingsNextLinePosition() {
+    ; 1. 標準 FINDINGS: 帶有換行與後續內文
+    text1 := "INDICATION: Pain`r`n`r`nFINDINGS:`r`n- Lungs clear"
+    pos1 := RisReportText.FindFindingsNextLinePosition(text1)
+    AssertTrue(pos1 != false, "Should find standard FINDINGS:")
+    AssertEqual(false, pos1.NeedsNewline, "Should not need newline when already present")
+    AssertEqual("-", SubStr(text1, pos1.Pos + 1, 1), "Caret should be at start of next line")
+
+    ; 2. FINDINGS: 下方為空行
+    text2 := "FINDINGS:`r`n`r`n- Lungs clear"
+    pos2 := RisReportText.FindFindingsNextLinePosition(text2)
+    AssertTrue(pos2 != false, "Should find FINDINGS: with blank line")
+    AssertEqual(false, pos2.NeedsNewline, "Should not need newline")
+    AssertEqual("`r`n", SubStr(text2, pos2.Pos + 1, 2), "Caret should be on the empty line")
+
+    ; 3. FINDINGS: 位於文字末尾且未換行
+    text3 := "INDICATION: None`r`nFINDINGS:"
+    pos3 := RisReportText.FindFindingsNextLinePosition(text3)
+    AssertTrue(pos3 != false, "Should find FINDINGS: at end of text")
+    AssertEqual(true, pos3.NeedsNewline, "Should need newline when at EOF without newline")
+    AssertEqual(StrLen(text3), pos3.Pos, "Target position should be at end of text")
+
+    ; 4. 血管攝影 PROCEDURE AND FINDINGS:
+    text4 := "PROCEDURE AND FINDINGS:`r`n1. Right CFA puncture"
+    pos4 := RisReportText.FindFindingsNextLinePosition(text4)
+    AssertTrue(pos4 != false, "Should find PROCEDURE AND FINDINGS:")
+    AssertEqual(false, pos4.NeedsNewline, "Should not need newline")
+    AssertEqual("1", SubStr(text4, pos4.Pos + 1, 1), "Caret should be at start of next line")
+
+    ; 5. 心血管 CARDIOVASCULAR FINDINGS:
+    text5 := "CARDIOVASCULAR FINDINGS:`r`n- Normal heart"
+    pos5 := RisReportText.FindFindingsNextLinePosition(text5)
+    AssertTrue(pos5 != false, "Should find CARDIOVASCULAR FINDINGS:")
+    AssertEqual(false, pos5.NeedsNewline, "Should not need newline")
+    AssertEqual("-", SubStr(text5, pos5.Pos + 1, 1), "Caret should be at start of next line")
+
+    ; 6. 全形冒號與大小寫 Findings：
+    text6 := "Findings：`r`nNormal"
+    pos6 := RisReportText.FindFindingsNextLinePosition(text6)
+    AssertTrue(pos6 != false, "Should find Findings： with full-width colon")
+    AssertEqual(false, pos6.NeedsNewline, "Should not need newline")
+    AssertEqual("Normal", SubStr(text6, pos6.Pos + 1, 6), "Caret should be at start of next line")
+
+    ; 7. 無 FINDINGS 標題
+    text7 := "IMPRESSION:`r`nNo acute findings."
+    pos7 := RisReportText.FindFindingsNextLinePosition(text7)
+    AssertEqual(false, pos7, "Should return false when no FINDINGS header exists")
+
+    ; 8. 空字串
+    AssertEqual(false, RisReportText.FindFindingsNextLinePosition(""), "Should return false for empty text")
 }
 
 RunRegisteredTests()

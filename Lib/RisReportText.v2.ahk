@@ -286,5 +286,32 @@ class RisReportText {
         ; 其他情況 (如 MESA 查詢失敗)
         return Format("Total Calcium Score (Equivalent Agatston Score) is {1} ({2} calcification).", scoreText, severity)
     }
+
+    static FindFindingsNextLinePosition(text) {
+        if (text == "") {
+            return false
+        }
+
+        patternPrimary := "(?im)^[ \t]*(?:PROCEDURES?\s+AND\s+)?FINDINGS[:：][^\r\n]*(\r?\n)?"
+        patternFallback := "(?im)^[ \t]*(?:(?:CARDIOVASCULAR|OTHER|ANCILLARY)\s+)?FINDINGS[:：][^\r\n]*(\r?\n)?"
+        patternCatchAll := "(?im)^[ \t]*[A-Za-z ]+FINDINGS[:：][^\r\n]*(\r?\n)?"
+
+        match := ""
+        if !RegExMatch(text, patternPrimary, &match) {
+            if !RegExMatch(text, patternFallback, &match) {
+                if !RegExMatch(text, patternCatchAll, &match) {
+                    return false
+                }
+            }
+        }
+
+        hasNewline := (match[1] != "")
+        targetPos := match.Pos + match.Len - 1
+
+        return {
+            Pos: targetPos,
+            NeedsNewline: !hasNewline
+        }
+    }
 }
 

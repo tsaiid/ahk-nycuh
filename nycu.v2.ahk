@@ -193,6 +193,9 @@ RisController.EnableShellHookFocus()
     ; --- Copy Finding to Impression ---
     #v:: RisController.CopyFindingToImpression()
 
+    ; --- Jump to FINDINGS ---
+    #f:: RisController.JumpToFindings()
+
 #HotIf ; IsRisReportWindow()
 
 ; 只有在「標準 RIS」且「焦點在輸入框內」時，這些熱鍵才存在

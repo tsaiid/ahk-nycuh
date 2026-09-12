@@ -862,6 +862,43 @@ class RisController {
     }
 
     ; =================================================================
+    ; 跳至 FINDINGS 下一行 (Win+F)
+    ; =================================================================
+    static JumpToFindings(hCtrl := 0) {
+        try {
+            hEdit := hCtrl ? hCtrl : this.FindingEdit.NativeWindowHandle
+            if !hEdit || !DllCall("IsWindow", "Ptr", hEdit) {
+                this.Notify("找不到報告輸入框")
+                return false
+            }
+
+            ControlFocus(hEdit)
+            fullText := ControlGetText(hEdit)
+
+            posInfo := RisReportText.FindFindingsNextLinePosition(fullText)
+            if (!posInfo) {
+                this.Notify("未找到 FINDINGS: 區塊")
+                return false
+            }
+
+            if (posInfo.NeedsNewline) {
+                RisEditControl.SetSel(hEdit, posInfo.Pos, posInfo.Pos)
+                RisEditControl.ReplaceSel(hEdit, "`r`n")
+                newPos := posInfo.Pos + 2
+                RisEditControl.SetSel(hEdit, newPos, newPos)
+            } else {
+                RisEditControl.SetSel(hEdit, posInfo.Pos, posInfo.Pos)
+            }
+
+            SetTimer( () => RisController._ScrollAndHighlightCaret(hEdit), -10 )
+            return true
+        } catch as err {
+            this.Notify("跳至 FINDINGS 失敗: " . err.Message)
+            return false
+        }
+    }
+
+    ; =================================================================
     ; 6. 編輯器指令 (KillLine, Delete, Format)
     ; =================================================================
 
