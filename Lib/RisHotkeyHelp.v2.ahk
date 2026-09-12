@@ -204,6 +204,7 @@ class RisHotkeyHelp {
             {Context: "標準 RIS 報告", Keys: "SC079 / Ctrl+Alt+,", Action: "格式化 Findings"},
             {Context: "標準 RIS 報告", Keys: "SC070 / Ctrl+Alt+.", Action: "格式化 Impression"},
             {Context: "標準 RIS 報告", Keys: "Win+V", Action: "複製 Finding 到 Impression"},
+            {Context: "標準 RIS 報告", Keys: "Win+C", Action: "複製 Finding 與 Impression"},
             {Context: "標準 RIS 報告", Keys: "Win+F", Action: "跳至 Findings 下一行"},
             {Context: "RIS 輸入框", Keys: "Alt+I", Action: "產生並插入 AI indication"},
             {Context: "RIS 輸入框", Keys: "Alt+S", Action: "產生並插入 AI impression"},

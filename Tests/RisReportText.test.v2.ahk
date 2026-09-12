@@ -13,6 +13,7 @@ RegisterTest("RisReportText.GetCalciumScoreSeverity classifies scores", Test_Ris
 RegisterTest("RisReportText.FormatScore formats numbers cleanly", Test_RisReportText_FormatScore)
 RegisterTest("RisReportText.FormatCalciumScoreImpression formats templates correctly", Test_RisReportText_FormatCalciumScoreImpression)
 RegisterTest("RisReportText.FindFindingsNextLinePosition locates line after FINDINGS", Test_RisReportText_FindFindingsNextLinePosition)
+RegisterTest("RisReportText.FormatFindingAndImpression formats template correctly", Test_RisReportText_FormatFindingAndImpression)
 
 Test_RisReportText_GetExamTypeCt() {
     AssertEqual("CT", RisReportText.GetExamType("Abdomen CT with contrast"))
@@ -191,6 +192,27 @@ Test_RisReportText_FindFindingsNextLinePosition() {
 
     ; 8. 空字串
     AssertEqual(false, RisReportText.FindFindingsNextLinePosition(""), "Should return false for empty text")
+}
+
+Test_RisReportText_FormatFindingAndImpression() {
+    finding := "1. Mild fatty liver.`r`n2. Small renal cyst."
+    impression := "No acute abdomen."
+    expected := "1. Mild fatty liver.`r`n2. Small renal cyst.`r`n`r`nIMPRESSION:`r`nNo acute abdomen."
+    AssertEqual(expected, RisReportText.FormatFindingAndImpression(finding, impression))
+
+    ; 測試結尾帶多餘換行及空白的情況
+    findingWithTrailing := "1. Mild fatty liver.`r`n2. Small renal cyst.`r`n`r`n   `r`n"
+    impressionWithTrailing := "No acute abdomen.`r`n`r`n"
+    AssertEqual(expected, RisReportText.FormatFindingAndImpression(findingWithTrailing, impressionWithTrailing))
+
+    ; 測試 LF 換行輸入
+    findingLf := "Line 1`nLine 2"
+    impressionLf := "Impression 1"
+    expectedLf := "Line 1`r`nLine 2`r`n`r`nIMPRESSION:`r`nImpression 1"
+    AssertEqual(expectedLf, RisReportText.FormatFindingAndImpression(findingLf, impressionLf))
+
+    ; 測試 Finding 為空的情況
+    AssertEqual("IMPRESSION:`r`nImpression only", RisReportText.FormatFindingAndImpression("", "Impression only"))
 }
 
 RunRegisteredTests()

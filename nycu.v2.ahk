@@ -193,6 +193,9 @@ RisController.EnableShellHookFocus()
     ; --- Copy Finding to Impression ---
     #v:: RisController.CopyFindingToImpression()
 
+    ; --- Copy Finding and Impression to Clipboard ---
+    #c:: RisController.CopyFindingAndImpression()
+
     ; --- Jump to FINDINGS ---
     #f:: RisController.JumpToFindings()
 

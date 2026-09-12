@@ -313,5 +313,23 @@ class RisReportText {
             NeedsNewline: !hasNewline
         }
     }
+
+    static FormatFindingAndImpression(findingText, impressionText) {
+        cleanFinding := RTrim(findingText, " `t`r`n")
+        cleanImpression := RTrim(impressionText, " `t`r`n")
+
+        cleanFinding := StrReplace(cleanFinding, "`r`n", "`n")
+        cleanFinding := StrReplace(cleanFinding, "`r", "`n")
+        cleanFinding := StrReplace(cleanFinding, "`n", "`r`n")
+
+        cleanImpression := StrReplace(cleanImpression, "`r`n", "`n")
+        cleanImpression := StrReplace(cleanImpression, "`r", "`n")
+        cleanImpression := StrReplace(cleanImpression, "`n", "`r`n")
+
+        if (cleanFinding == "") {
+            return "IMPRESSION:`r`n" . cleanImpression
+        }
+        return cleanFinding . "`r`n`r`nIMPRESSION:`r`n" . cleanImpression
+    }
 }
 

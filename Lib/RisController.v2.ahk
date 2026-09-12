@@ -862,6 +862,23 @@ class RisController {
     }
 
     ; =================================================================
+    ; 複製 Finding 與 Impression 至剪貼簿 (Win+C)
+    ; =================================================================
+    static CopyFindingAndImpression() {
+        try {
+            findingText := this.FindingText
+            impressionText := this.ImpressionText
+            reportText := RisReportText.FormatFindingAndImpression(findingText, impressionText)
+            A_Clipboard := reportText
+            this.Notify("已複製 Finding 與 Impression")
+            return true
+        } catch as err {
+            this.Notify("複製失敗: " . err.Message)
+            return false
+        }
+    }
+
+    ; =================================================================
     ; 跳至 FINDINGS 下一行 (Win+F)
     ; =================================================================
     static JumpToFindings(hCtrl := 0) {

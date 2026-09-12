@@ -13,6 +13,7 @@ Test_RisController_MethodsExist() {
     AssertTrue(HasMethod(RisController, "FormatFindingText"), "FormatFindingText method must exist")
     AssertTrue(HasMethod(RisController, "FormatImpressionText"), "FormatImpressionText method must exist")
     AssertTrue(HasMethod(RisController, "CopyFindingToImpression"), "CopyFindingToImpression method must exist")
+    AssertTrue(HasMethod(RisController, "CopyFindingAndImpression"), "CopyFindingAndImpression method must exist")
     AssertTrue(HasMethod(RisController, "JumpToFindings"), "JumpToFindings method must exist")
     AssertTrue(HasMethod(RisController, "CompareSelectionWithAI"), "CompareSelectionWithAI method must exist")
     AssertTrue(HasMethod(RisController, "PolishSelectionWithAI"), "PolishSelectionWithAI method must exist")
