@@ -84,6 +84,23 @@ The thoracic cage and bones appear intact.
     Paste(MyForm)
 }
 
+::cttrok::
+{
+    MyForm := "
+  (
+No pneumothorax or hemothorax.
+No lung contusion, pneumothorax, or hemothorax.
+The heart and great vessels appear unremarkable.
+The thoracic cage and bones appear intact.
+
+
+No liver, spleen, or kidney traumatic injury.
+No evidence of intraperitoneal free air.
+No obvious ascites.
+  )"
+    Paste(MyForm)
+}
+
 ::cctlapok::
 {
     MyForm := "
