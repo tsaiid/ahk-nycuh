@@ -429,10 +429,6 @@ Small amount of ascites in the recto-vesical pouch.
 Small amount of ascites in the cul-de-sac.
 No obvious ascites is noted.
 No evidence of intraperitoneal free air.
-
-The liver, gallbladder, spleen, pancreas, adrenals, kidneys, and urinary bladder are normal.
-No retroperitoneal or mesenteric lymphadenopathy.
-The lungs covered in the scanning range are unremarkable.
   )"
     RisController.PasteToFinding(MyForm)
 
