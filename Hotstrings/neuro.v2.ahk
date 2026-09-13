@@ -109,6 +109,8 @@ The visible paranasal sinuses and mastoids are unremarkable.
 ::rnth::Right nasal turbinate hypertrophy.
 ::lnth::Left nasal turbinate hypertrophy.
 ::bnth::Bilateral nasal turbinate hypertrophy.
+::mbpte::Mild bilateral palatine tonsillar enlargement.
+::mbptec::Mild bilateral palatine tonsillar enlargement with calcifications.
 ::ctmcm::Prominent retrocerebellar cerebrospinal fluid space with normal vermis, 4th ventricle, and cerebellar hemispheres, in favor of mega cisterna magna.
 ::epc::endplate changes
 ::ctnph::Enlarged lateral and third ventricles, with relatively normal 4th ventricle. Ventricular enlargement is out of proportion to cortical sulcal enlargement, and presence of bilateral periventricular low density is noted. Normal pressure hydrocephalus may be suspected. DDx: normal aging brain.
