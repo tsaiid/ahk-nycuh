@@ -1902,6 +1902,16 @@ class RisController {
                 {Label: "myometrium / myometrial", Pattern: "\b(myometrium|myometrial)\b"},
                 {Label: "cervix / gynecologic cervical", Pattern: "\b(cervix|uterine\s+cervix|cervical\s+(canal|os|mass|cancer|carcinoma|lesion))\b"},
                 {Label: "hysterectomy", Pattern: "\b(hysterectomy|hysterectomies)\b"},
+                {Label: "oophorectomy", Pattern: "\b(oophorectomy|oophorectomies)\b"},
+                {Label: "salpingectomy", Pattern: "\b(salpingectomy|salpingectomies)\b"},
+                {Label: "salpingo-oophorectomy", Pattern: "\b(salpingo-?oophorectomy|salpingo-?oophorectomies)\b"},
+                {Label: "myomectomy", Pattern: "\b(myomectomy|myomectomies)\b"},
+                {Label: "trachelectomy", Pattern: "\b(trachelectomy|trachelectomies)\b"},
+                {Label: "tubal ligation / sterilization", Pattern: "\b(tubal\s+(ligation|sterilization|occlusion))\b"},
+                {Label: "colporrhaphy / vulvectomy / vaginectomy", Pattern: "\b(colporrhaphy|colpoperineorrhaphy|vaginectomy|vulvectomy)\b"},
+                {Label: "hysterectomy acronyms (TAH / TVH / TLH / LAVH)", Pattern: "\b(TAH|TVH|TLH|LAVH)\b"},
+                {Label: "salpingo-oophorectomy acronyms (BSO / USO / LSO / RSO)", Pattern: "\b(BSO|USO|LSO|RSO)\b"},
+                {Label: "dilation and curettage (D&C)", Pattern: "\b(d&c|d\s*&\s*c|dilat(at)?ion\s+and\s+curettage)\b"},
                 {Label: "vagina / vaginal", Pattern: "\b(vagina|vaginal)\b"},
                 {Label: "vulva / vulvar", Pattern: "\b(vulva|vulvar)\b"}
             ]
@@ -1911,13 +1921,21 @@ class RisController {
             return [
                 {Label: "prostate / prostatic", Pattern: "\b(prostate|prostatic)\b"},
                 {Label: "prostatectomy", Pattern: "\b(prostatectomy|prostatectomies)\b"},
+                {Label: "transurethral prostate surgery (TURP / HoLEP / ThuLEP)", Pattern: "\b(TURP|TUR-P|HoLEP|ThuLEP|TUIP)\b"},
+                {Label: "benign prostatic hyperplasia (BPH)", Pattern: "\b(BPH)\b"},
                 {Label: "seminal vesicle", Pattern: "\b(seminal\s+vesicles?)\b"},
                 {Label: "testis / testicular", Pattern: "\b(testis|testes|testicular)\b"},
+                {Label: "orchiectomy", Pattern: "\b(orchi(d)?ectomy|orchi(d)?ectomies)\b"},
+                {Label: "orchiopexy", Pattern: "\b(orchi(d)?opexy|orchi(d)?opexies)\b"},
                 {Label: "scrotum / scrotal", Pattern: "\b(scrotum|scrotal)\b"},
                 {Label: "penis / penile", Pattern: "\b(penis|penile)\b"},
+                {Label: "circumcision", Pattern: "\b(circumcision|circumcised)\b"},
                 {Label: "epididymis / epididymal", Pattern: "\b(epididymis|epididymal)\b"},
                 {Label: "vas deferens", Pattern: "\b(vas\s+deferens|deferential\s+ducts?)\b"},
-                {Label: "spermatic cord", Pattern: "\b(spermatic\s+cords?)\b"}
+                {Label: "vasectomy", Pattern: "\b(vasectomy|vasectomies)\b"},
+                {Label: "spermatic cord", Pattern: "\b(spermatic\s+cords?)\b"},
+                {Label: "varicocelectomy", Pattern: "\b(varicocelectomy|varicocelectomies)\b"},
+                {Label: "hydrocelectomy", Pattern: "\b(hydrocelectomy|hydrocelectomies)\b"}
             ]
         }
 
