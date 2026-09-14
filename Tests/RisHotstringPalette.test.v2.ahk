@@ -13,6 +13,7 @@ RegisterTest("RisHotstringPalette._EscapeHtml escapes special HTML characters", 
 RegisterTest("RisHotstringPalette._Highlight wraps matched keywords in span tags", Test_Highlight)
 RegisterTest("RisHotstringPalette._GetPreviewHtml converts newlines to br and preserves indentation", Test_GetPreviewHtml)
 RegisterTest("RisHotstringPalette._CreateGui initializes controls without option errors", Test_CreateGui)
+RegisterTest("RisHotstringPalette._CreateGui initializes controls with custom height", Test_CreateGui_CustomHeight)
 
 Test_ParseSingleLine() {
     sample := "
@@ -189,6 +190,16 @@ Test_CreateGui() {
     RisHotstringPalette._CreateGui()
     try {
         AssertTrue(RisHotstringPalette._gui != 0, "Gui should be created")
+        AssertTrue(RisHotstringPalette.Hwnd > 0, "Hwnd should exist")
+    } finally {
+        RisHotstringPalette.Close()
+    }
+}
+
+Test_CreateGui_CustomHeight() {
+    RisHotstringPalette._CreateGui(1000, 968, 800)
+    try {
+        AssertTrue(RisHotstringPalette._gui != 0, "Gui should be created with custom height")
         AssertTrue(RisHotstringPalette.Hwnd > 0, "Hwnd should exist")
     } finally {
         RisHotstringPalette.Close()

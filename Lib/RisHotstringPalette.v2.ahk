@@ -55,7 +55,10 @@ class RisHotstringPalette {
         }
         contentWidth := guiWidth - 32
 
-        guiHeight := 592
+        guiHeight := Round(monHeight * 4 / 5)
+        if (guiHeight < 592) {
+            guiHeight := Min(592, monHeight - 40)
+        }
         if (guiHeight > monHeight - 40) {
             guiHeight := monHeight - 40
         }
@@ -63,7 +66,7 @@ class RisHotstringPalette {
         guiX := mLeft + Floor((monWidth - guiWidth) / 2)
         guiY := mTop + Floor((monHeight - guiHeight) / 2)
 
-        this._CreateGui(guiWidth, contentWidth)
+        this._CreateGui(guiWidth, contentWidth, guiHeight)
         this._editSearch.Value := ""
         this.Filter("")
 
@@ -251,9 +254,14 @@ class RisHotstringPalette {
         return GetCurrentMonitorIndex()
     }
 
-    static _CreateGui(guiWidth := 1000, contentWidth := 0) {
+    static _CreateGui(guiWidth := 1000, contentWidth := 0, guiHeight := 592) {
         if (contentWidth <= 0) {
             contentWidth := guiWidth - 32
+        }
+
+        browserHeight := guiHeight - 66
+        if (browserHeight < 200) {
+            browserHeight := 200
         }
 
         g := RisDialog.Create("RIS Hotstring Command Palette", "+AlwaysOnTop +ToolWindow -DPIScale")
@@ -270,21 +278,27 @@ class RisHotstringPalette {
         this._editSearch := editSearch
 
         ; ActiveX HTML 容器 (承載結果清單與完整預覽)
-        browserCtrl := g.Add("ActiveX", Format("x16 y56 w{1} h526", contentWidth), "Shell.Explorer")
+        browserCtrl := g.Add("ActiveX", Format("x16 y56 w{1} h{2}", contentWidth, browserHeight), "Shell.Explorer")
         this._browser := browserCtrl.Value
         try {
             this._browser.Silent := true
         }
-        this._InitBrowserHtml()
+        this._InitBrowserHtml(browserHeight)
 
         this._gui := g
     }
 
-    static _InitBrowserHtml() {
+    static _InitBrowserHtml(browserHeight := 526) {
         browser := this._browser
         browser.Navigate("about:blank")
         while (browser.Busy || browser.ReadyState < 4) {
             Sleep 10
+        }
+
+        containerHeight := browserHeight - 4
+        previewHeight := containerHeight - 272
+        if (previewHeight < 100) {
+            previewHeight := 100
         }
 
         monoFont := this._GetReportMonospaceFont()
@@ -293,7 +307,7 @@ class RisHotstringPalette {
             . "<meta charset='utf-8'><style>"
             . "* { box-sizing: border-box; }"
             . "html, body { margin:0; padding:0; background:#F4F5F7; color:#1E293B; font-family:'" monoFont "','Cascadia Code','Consolas',monospace; font-size:14px; user-select:none; overflow:hidden; }"
-            . "#container { height:522px; padding:0; }"
+            . "#container { height:" . containerHeight . "px; padding:0; }"
             . "#resultsList { height:220px; overflow-y:auto; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:4px; }"
             . ".item { display:block; padding:3px 8px; border-left:4px solid transparent; border-bottom:1px solid #F1F5F9; cursor:pointer; font-size:14px; line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }"
             . ".item:hover { background:#F8FAFC; }"
@@ -303,7 +317,7 @@ class RisHotstringPalette {
             . ".preview-header { margin:8px 0 4px; font-weight:bold; font-size:13px; color:#475569; overflow:hidden; }"
             . ".preview-title { float:left; }"
             . ".preview-count { float:right; color:#64748B; font-weight:normal; }"
-            . "#previewBox { height:250px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:4px; padding:8px 12px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; font-family:'" monoFont "','Cascadia Code','Consolas',monospace; font-size:14px; line-height:1.5; color:#1E293B; clear:both; }"
+            . "#previewBox { height:" . previewHeight . "px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:4px; padding:8px 12px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; font-family:'" monoFont "','Cascadia Code','Consolas',monospace; font-size:14px; line-height:1.5; color:#1E293B; clear:both; }"
             . ".hint { margin:8px 0 0; font-size:12px; color:#64748B; text-align:center; font-family:'Microsoft JhengHei UI',sans-serif; }"
             . ".hl { background-color:#FEF08A; color:#854D0E; font-weight:bold; padding:0 2px; border-radius:2px; }"
             . ".no-results { padding:28px 16px; text-align:center; color:#94A3B8; font-style:italic; }"
