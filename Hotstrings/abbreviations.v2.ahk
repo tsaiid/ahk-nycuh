@@ -78,6 +78,7 @@
 ::cca::common carotid artery
 ::eca::external carotid artery
 ::ica::internal carotid artery
+::arsa::aberrant right subclavian artery
 
 ;; MSK
 ::oa::osteoarthrosis
