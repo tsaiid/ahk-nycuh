@@ -455,8 +455,6 @@ ToggleRisDebugMode(*) {
     }
 }
 
-SC07B::LButton
-
 WithImeGuard(action) {
     Send("{Blind}{vkE8}")
     try action.Call()
