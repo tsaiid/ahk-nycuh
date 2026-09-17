@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepRad helpers
 // @namespace    http://tsai.it/
-// @version      20260827.3
+// @version      20260917.1
 // @description  Add reporting helpers to DeepRad.AI.
 // @author       I-Ta Tsai
 // @match        http://172.17.15.97:17000/
@@ -308,6 +308,19 @@
         return match ? Number(match[1]) >= 3 : false;
     }
 
+    function isSubsolidType(type) {
+        return /sub-?solid|part-?solid/i.test(String(type || ''));
+    }
+
+    function normalizeSolidPart(str) {
+        if (!str || str === '--') return '';
+        const match = String(str).trim().match(/^([0-9]+(?:\.[0-9]+)?)/);
+        if (!match) return '';
+        const num = parseFloat(match[1]);
+        if (isNaN(num) || num <= 0) return '';
+        return `${match[1]} mm`;
+    }
+
     function normalizeAxis(str) {
         if (!str || str === '--') return '';
         const match = String(str).trim().match(/([0-9.]+)\s*[*xX×,]\s*([0-9.]+)/);
@@ -331,6 +344,25 @@
         return '';
     }
 
+    function getSolidPartFromDOM() {
+        const input = document.querySelector('.form-table input[name="solid_part"], input[name="solid_part"]');
+        let val = (input?.value || input?.getAttribute?.('value') || '').trim();
+
+        if (!val) {
+            const thElements = document.querySelectorAll('.form-table th, th');
+            for (const th of thElements) {
+                if (/solid\s*part/i.test(getCleanText(th))) {
+                    const cell = th.closest('tr')?.querySelector('td');
+                    const rowInput = cell?.querySelector('input');
+                    val = (rowInput?.value || rowInput?.getAttribute?.('value') || getCleanText(cell) || '').trim();
+                    if (val) break;
+                }
+            }
+        }
+
+        return normalizeSolidPart(val);
+    }
+
     function isRowCurrentlySelected(row) {
         return row.classList.contains('selected') || Boolean(row.querySelector('td.selected'));
     }
@@ -350,6 +382,21 @@
         }
     }
 
+    async function getNoduleSolidPartByDOM(row) {
+        if (isRowCurrentlySelected(row)) {
+            return getSolidPartFromDOM();
+        }
+
+        try {
+            const clickable = row.querySelector('td:not(:last-child)') || row;
+            clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            await new Promise((resolve) => setTimeout(resolve, 60));
+            return getSolidPartFromDOM();
+        } catch {
+            return '';
+        }
+    }
+
     function getNoduleRows() {
         return Array.from(document.querySelectorAll('table.nodule-table tbody tr'));
     }
@@ -360,12 +407,17 @@
         return Boolean(checkbox && (checkbox.checked || checkbox.matches(':checked')));
     }
 
-    function formatNoduleRow(row, series, axis = '', cols = { lobe: 1, slice: 2, diameter: 3, type: 4, lungRads: 5 }) {
-        const lobe = getCleanText(row.cells[cols.lobe]);
-        const image = getCleanText(row.cells[cols.slice]);
-        const diameter = getCleanText(row.cells[cols.diameter]);
-        const type = getNoduleType(row, cols.type);
-        const lungRads = getNoduleLungRads(row, cols.lungRads);
+    function formatNoduleRow(row, series, axis = '', solidPart = '', cols = { lobe: 1, slice: 2, diameter: 3, type: 4, lungRads: 5 }) {
+        if (typeof solidPart === 'object' && solidPart !== null) {
+            cols = solidPart;
+            solidPart = '';
+        }
+
+        const lobe = getCleanText(row.cells[cols.lobe ?? 1]);
+        const image = getCleanText(row.cells[cols.slice ?? 2]);
+        const diameter = getCleanText(row.cells[cols.diameter ?? 3]);
+        const type = getNoduleType(row, cols.type ?? 4);
+        const lungRads = getNoduleLungRads(row, cols.lungRads ?? 5);
 
         if (!lobe || !image || !diameter || !type) {
             return '';
@@ -373,8 +425,10 @@
 
         const normAxis = isLungRads3OrAbove(lungRads) ? normalizeAxis(axis) : '';
         const axisPart = normAxis ? ` (${normAxis})` : '';
+        const normSolidPart = isSubsolidType(type) ? normalizeSolidPart(solidPart) : '';
+        const solidPartText = normSolidPart ? ` (solid part: ${normSolidPart})` : '';
 
-        return `A ${diameter} mm${axisPart} ${type} nodule in the ${lobe} of lung (Srs/Img: ${series}/${image}).`;
+        return `A ${diameter} mm${axisPart} ${type} nodule${solidPartText} in the ${lobe} of lung (Srs/Img: ${series}/${image}).`;
     }
 
     function formatHpaNoduleRows(rows, cols = { lobe: 1, slice: 2 }) {
@@ -541,13 +595,33 @@
         let switchedRow = false;
 
         for (const row of rows) {
+            const type = getNoduleType(row, cols.type);
             const lungRads = getNoduleLungRads(row, cols.lungRads);
+            const needAxis = isLungRads3OrAbove(lungRads);
+            const needSolidPart = isSubsolidType(type);
+
             let axis = '';
-            if (isLungRads3OrAbove(lungRads)) {
-                axis = await getNoduleAxisByDOM(row);
-                switchedRow = true;
+            let solidPart = '';
+
+            if (needAxis || needSolidPart) {
+                if (!isRowCurrentlySelected(row)) {
+                    try {
+                        const clickable = row.querySelector('td:not(:last-child)') || row;
+                        clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                        await new Promise((resolve) => setTimeout(resolve, 60));
+                        switchedRow = true;
+                    } catch {}
+                }
+
+                if (needAxis) {
+                    axis = getAxisFromKeyFilmDOM();
+                }
+                if (needSolidPart) {
+                    solidPart = getSolidPartFromDOM();
+                }
             }
-            const formatted = formatNoduleRow(row, series, axis, cols);
+
+            const formatted = formatNoduleRow(row, series, axis, solidPart, cols);
             if (formatted) {
                 formattedRows.push(formatted);
             }
