@@ -63,3 +63,4 @@
 - 每次修改程式碼後，必須執行 `powershell -NoProfile -ExecutionPolicy Bypass -File Utilities\compile-check.ps1` 進行語法驗證。
 - 修改檔案前請勿執行 compile-check 或 test 腳本，僅在完成程式碼修改後再進行驗證。
 - 除非使用者主動要求 Commit，否則在修改程式碼後不要自動進行 Commit 提交。
+- 執行 AHK 測試與語法驗證時，優先使用 Scoop 安裝的最新版 AutoHotkey (位於 `$env:USERPROFILE\scoop\apps\autohotkey\current\v2\AutoHotkey64.exe`)，而非 Program Files 中的舊版本。

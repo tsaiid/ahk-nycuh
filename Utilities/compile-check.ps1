@@ -2,8 +2,8 @@
 param(
     [string]$Entry,
     [switch]$Compile,
-    [string]$AhkExe = "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe",
-    [string]$AhkCompiler = "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe",
+    [string]$AhkExe = "",
+    [string]$AhkCompiler = "",
     [string]$OutputDir
 )
 
@@ -11,6 +11,64 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $repoRoot
+
+function Resolve-DefaultAhkExe {
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    if ($env:SCOOP) {
+        $candidates.Add((Join-Path $env:SCOOP "apps\autohotkey\current\v2\AutoHotkey64.exe"))
+        $candidates.Add((Join-Path $env:SCOOP "apps\autohotkey\current\AutoHotkey64.exe"))
+    }
+    if ($env:USERPROFILE) {
+        $candidates.Add((Join-Path $env:USERPROFILE "scoop\apps\autohotkey\current\v2\AutoHotkey64.exe"))
+        $candidates.Add((Join-Path $env:USERPROFILE "scoop\apps\autohotkey\current\AutoHotkey64.exe"))
+    }
+    if ($env:SCOOP_GLOBAL) {
+        $candidates.Add((Join-Path $env:SCOOP_GLOBAL "apps\autohotkey\current\v2\AutoHotkey64.exe"))
+        $candidates.Add((Join-Path $env:SCOOP_GLOBAL "apps\autohotkey\current\AutoHotkey64.exe"))
+    }
+    $candidates.Add("C:\ProgramData\scoop\apps\autohotkey\current\v2\AutoHotkey64.exe")
+    $candidates.Add("C:\ProgramData\scoop\apps\autohotkey\current\AutoHotkey64.exe")
+    $candidates.Add("C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe")
+
+    foreach ($candidate in $candidates) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate)) {
+            return $candidate
+        }
+    }
+
+    return "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe"
+}
+
+function Resolve-DefaultAhkCompiler {
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    if ($env:SCOOP) {
+        $candidates.Add((Join-Path $env:SCOOP "apps\autohotkey\current\Compiler\Ahk2Exe.exe"))
+    }
+    if ($env:USERPROFILE) {
+        $candidates.Add((Join-Path $env:USERPROFILE "scoop\apps\autohotkey\current\Compiler\Ahk2Exe.exe"))
+    }
+    if ($env:SCOOP_GLOBAL) {
+        $candidates.Add((Join-Path $env:SCOOP_GLOBAL "apps\autohotkey\current\Compiler\Ahk2Exe.exe"))
+    }
+    $candidates.Add("C:\ProgramData\scoop\apps\autohotkey\current\Compiler\Ahk2Exe.exe")
+    $candidates.Add("C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe")
+
+    foreach ($candidate in $candidates) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate)) {
+            return $candidate
+        }
+    }
+
+    return "C:\Program Files\AutoHotkey\Compiler\Ahk2Exe.exe"
+}
+
+if ([string]::IsNullOrWhiteSpace($AhkExe)) {
+    $AhkExe = Resolve-DefaultAhkExe
+}
+
+if ([string]::IsNullOrWhiteSpace($AhkCompiler)) {
+    $AhkCompiler = Resolve-DefaultAhkCompiler
+}
 
 $entryList = @(
     "nycu.v2.ahk",
@@ -351,6 +409,8 @@ function Invoke-Compile {
 if (-not (Test-Path -LiteralPath $AhkExe)) {
     Write-Error "AutoHotkey executable not found: $AhkExe"
 }
+
+Write-Host "Using AutoHotkey: $AhkExe"
 
 $selectedEntries = Get-SelectedEntries -RequestedEntry $Entry
 Write-Host "Selected entries:"

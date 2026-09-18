@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$TestPath,
-    [string]$AhkExe = "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe",
+    [string]$AhkExe = "",
     [int]$TimeoutSeconds = 30
 )
 
@@ -9,6 +9,37 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $repoRoot
+
+function Resolve-DefaultAhkExe {
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    if ($env:SCOOP) {
+        $candidates.Add((Join-Path $env:SCOOP "apps\autohotkey\current\v2\AutoHotkey64.exe"))
+        $candidates.Add((Join-Path $env:SCOOP "apps\autohotkey\current\AutoHotkey64.exe"))
+    }
+    if ($env:USERPROFILE) {
+        $candidates.Add((Join-Path $env:USERPROFILE "scoop\apps\autohotkey\current\v2\AutoHotkey64.exe"))
+        $candidates.Add((Join-Path $env:USERPROFILE "scoop\apps\autohotkey\current\AutoHotkey64.exe"))
+    }
+    if ($env:SCOOP_GLOBAL) {
+        $candidates.Add((Join-Path $env:SCOOP_GLOBAL "apps\autohotkey\current\v2\AutoHotkey64.exe"))
+        $candidates.Add((Join-Path $env:SCOOP_GLOBAL "apps\autohotkey\current\AutoHotkey64.exe"))
+    }
+    $candidates.Add("C:\ProgramData\scoop\apps\autohotkey\current\v2\AutoHotkey64.exe")
+    $candidates.Add("C:\ProgramData\scoop\apps\autohotkey\current\AutoHotkey64.exe")
+    $candidates.Add("C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe")
+
+    foreach ($candidate in $candidates) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate)) {
+            return $candidate
+        }
+    }
+
+    return "C:\Program Files\AutoHotkey\v2\AutoHotkey64.exe"
+}
+
+if ([string]::IsNullOrWhiteSpace($AhkExe)) {
+    $AhkExe = Resolve-DefaultAhkExe
+}
 
 function Resolve-AbsolutePath {
     param(
@@ -26,6 +57,8 @@ function Resolve-AbsolutePath {
 if (-not (Test-Path -LiteralPath $AhkExe)) {
     Write-Error "AutoHotkey executable not found: $AhkExe"
 }
+
+Write-Host "Using AutoHotkey: $AhkExe"
 
 if ([string]::IsNullOrWhiteSpace($TestPath)) {
     $testFiles = @(
