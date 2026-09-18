@@ -331,5 +331,60 @@ class RisReportText {
         }
         return cleanFinding . "`r`n`r`nIMPRESSION:`r`n" . cleanImpression
     }
+
+    static SplitTextToSentences(text) {
+        if (text == "") {
+            return ""
+        }
+
+        ; 1. 方案 A：將既有的換行符號全部替換為單一空格，壓平成單一文本段落
+        text := StrReplace(text, "`r`n", " ")
+        text := StrReplace(text, "`r", " ")
+        text := StrReplace(text, "`n", " ")
+        text := RegExReplace(text, "[ \t]+", " ")
+        text := Trim(text, " `t")
+
+        if (text == "") {
+            return ""
+        }
+
+        ; 2. 小數點保護 (例如 1.5 cm, 0.8 x 1.2 cm, 3.0 mm)
+        dotPlaceholder := Chr(1)
+        text := RegExReplace(text, "(\d)\.(\d)", "$1" . dotPlaceholder . "$2")
+
+        ; 3. 縮寫保護
+        ; 方位：Rt., Lt., Bil.
+        ; 解剖/醫學：post., ant., sup., inf., vs., approx., etc.
+        ; 稱謂/文獻：Dr., Mr., Ms., No., Fig.
+        text := RegExReplace(text, "i)\b(Rt|Lt|Bil|post|ant|sup|inf|vs|approx|etc|Dr|Mr|Ms|No|Fig)\.", "$1" . dotPlaceholder)
+        text := RegExReplace(text, "i)\b(e)\.(g)\.", "$1" . dotPlaceholder . "$2" . dotPlaceholder)
+        text := RegExReplace(text, "i)\b(i)\.(e)\.", "$1" . dotPlaceholder . "$2" . dotPlaceholder)
+
+        ; 4. 斷句分割
+        ; 句尾標點：[.?!] 後面可能跟隨右引號或右括號，如 .) 或 ?" 或 !)
+        ; 斷句條件：該標點後方接有空格，或是到達字串結尾。
+        splitMarker := Chr(2)
+        text := RegExReplace(text, "([.?!]+[\x22')\]]*)(?:\s+|$)", "$1" . splitMarker)
+
+        ; 5. 還原佔位符並拆分為各句子
+        text := StrReplace(text, dotPlaceholder, ".")
+        rawLines := StrSplit(text, splitMarker)
+
+        sentences := []
+        for line in rawLines {
+            cleanLine := Trim(line, " `t")
+            if (cleanLine != "") {
+                sentences.Push(cleanLine)
+            }
+        }
+
+        ; 6. 以 CRLF 重新組裝
+        finalText := ""
+        for idx, sentence in sentences {
+            finalText .= (idx > 1 ? "`r`n" : "") . sentence
+        }
+
+        return finalText
+    }
 }
 

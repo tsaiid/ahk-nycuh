@@ -14,6 +14,7 @@ RegisterTest("RisReportText.FormatScore formats numbers cleanly", Test_RisReport
 RegisterTest("RisReportText.FormatCalciumScoreImpression formats templates correctly", Test_RisReportText_FormatCalciumScoreImpression)
 RegisterTest("RisReportText.FindFindingsNextLinePosition locates line after FINDINGS", Test_RisReportText_FindFindingsNextLinePosition)
 RegisterTest("RisReportText.FormatFindingAndImpression formats template correctly", Test_RisReportText_FormatFindingAndImpression)
+RegisterTest("RisReportText.SplitTextToSentences splits sentences correctly", Test_RisReportText_SplitTextToSentences)
 
 Test_RisReportText_GetExamTypeCt() {
     AssertEqual("CT", RisReportText.GetExamType("Abdomen CT with contrast"))
@@ -213,6 +214,42 @@ Test_RisReportText_FormatFindingAndImpression() {
 
     ; 測試 Finding 為空的情況
     AssertEqual("IMPRESSION:`r`nImpression only", RisReportText.FormatFindingAndImpression("", "Impression only"))
+}
+
+Test_RisReportText_SplitTextToSentences() {
+    ; 1. 使用者範例：多句連續段落拆分為三行
+    sample1 := "Abdomen to pelvis CT without contrast enhancement shows some hyperdense nodules in gallbladder and right kidney. There is unremarkable finding at liver, spleen, pancreas, and visible lungs. Degenerative spine and atherosclerotic aorta are noted."
+    expected1 := "Abdomen to pelvis CT without contrast enhancement shows some hyperdense nodules in gallbladder and right kidney.`r`nThere is unremarkable finding at liver, spleen, pancreas, and visible lungs.`r`nDegenerative spine and atherosclerotic aorta are noted."
+    AssertEqual(expected1, RisReportText.SplitTextToSentences(sample1), "Basic multi-sentence splitting failed")
+
+    ; 2. 句首與句尾多餘空白清理
+    sample2 := "   First sentence with extra spaces.    Second sentence with trailing spaces.   "
+    expected2 := "First sentence with extra spaces.`r`nSecond sentence with trailing spaces."
+    AssertEqual(expected2, RisReportText.SplitTextToSentences(sample2), "Trimming spaces failed")
+
+    ; 3. 小數點與醫學縮寫保護 (1.5 cm, Rt., Lt., approx., etc., vs.)
+    sample3 := "A 1.5 cm nodule at Rt. kidney. Lt. lobe of liver shows small cyst, approx. 0.8 cm. Infection vs. inflammation?"
+    expected3 := "A 1.5 cm nodule at Rt. kidney.`r`nLt. lobe of liver shows small cyst, approx. 0.8 cm.`r`nInfection vs. inflammation?"
+    AssertEqual(expected3, RisReportText.SplitTextToSentences(sample3), "Decimal and abbreviation protection failed")
+
+    ; 4. 問號與驚嘆號斷句
+    sample4 := "Is there acute hemorrhage? No acute finding! Follow-up is recommended."
+    expected4 := "Is there acute hemorrhage?`r`nNo acute finding!`r`nFollow-up is recommended."
+    AssertEqual(expected4, RisReportText.SplitTextToSentences(sample4), "Question mark and exclamation mark splitting failed")
+
+    ; 5. 方案 A：原本含有換行的多行文本壓平重新斷句
+    sample5 := "Line one continues`r`nhere. Line two starts`r`nhere."
+    expected5 := "Line one continues here.`r`nLine two starts here."
+    AssertEqual(expected5, RisReportText.SplitTextToSentences(sample5), "Multi-line flattening failed")
+
+    ; 6. 最後一句無標點符號時依然保留
+    sample6 := "First sentence. Second sentence without period"
+    expected6 := "First sentence.`r`nSecond sentence without period"
+    AssertEqual(expected6, RisReportText.SplitTextToSentences(sample6), "Sentence without trailing period failed")
+
+    ; 7. 空字串與純空白
+    AssertEqual("", RisReportText.SplitTextToSentences(""), "Empty string should return empty")
+    AssertEqual("", RisReportText.SplitTextToSentences("   `r`n   "), "Whitespace-only string should return empty")
 }
 
 RunRegisteredTests()

@@ -280,6 +280,11 @@ RisController.EnableShellHookFocus()
         WithImeGuard(() => RisController.ReorderSelection({keepEmpty: true, itemChar: ">"}))
     }
 
+    ; Ctrl+Shift+D: 將選取的整段文字拆分成一句一行 (Sentence Splitting)
+    ^+d:: {
+        WithImeGuard(() => RisController.SplitSelectionToSentences())
+    }
+
     ^d:: {
         Send "{Del}"
     }

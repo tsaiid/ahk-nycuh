@@ -1181,6 +1181,26 @@ class RisController {
         }
     }
 
+    static SplitSelectionToSentences() {
+        if !this.IsTargetFocused() {
+            return
+        }
+        try {
+            hEdit := ControlGetFocus("A")
+            selectedText := RisEditControl.GetSelectedText(hEdit)
+            if (selectedText == "") {
+                return
+            }
+
+            finalText := RisReportText.SplitTextToSentences(selectedText)
+            if (finalText != "") {
+                RisEditControl.ReplaceSelectionPreserveFirstVisibleLine(hEdit, finalText)
+            }
+        } catch as err {
+            this.Notify("文字斷句失敗: " err.Message)
+        }
+    }
+
     ; =================================================================
     ; 8. 其他功能 (UI 互動, 字體, 排版, 滑鼠)
     ; =================================================================
