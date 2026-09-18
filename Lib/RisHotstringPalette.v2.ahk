@@ -219,6 +219,39 @@ class RisHotstringPalette {
         this._SetSelectedIndex(prevRow)
     }
 
+    /**
+     * 複製當前選取的文字 (支援 Edit 搜尋框與 HTML 預覽視窗)
+     */
+    static CopySelection() {
+        if (!this._gui) {
+            return
+        }
+
+        ; 情況 1: 若輸入焦點在原生搜尋輸入框
+        if (this._editSearch && this._gui.FocusedCtrl == this._editSearch) {
+            SendMessage(0x0301, 0, 0, this._editSearch.Hwnd) ; WM_COPY
+            return
+        }
+
+        ; 情況 2: 若輸入焦點在 HTML / ActiveX 預覽區 (或反白了預覽文字)
+        if (this._doc) {
+            try {
+                if (this._doc.execCommand("Copy")) {
+                    return
+                }
+            }
+            try {
+                if (this._doc.selection && this._doc.selection.type = "Text") {
+                    selText := this._doc.selection.createRange().text
+                    if (selText != "") {
+                        A_Clipboard := selText
+                        return
+                    }
+                }
+            }
+        }
+    }
+
     ; =========================================================================
     ; 內部輔助方法 (Internal Helpers)
     ; =========================================================================
@@ -317,7 +350,7 @@ class RisHotstringPalette {
             . ".preview-header { margin:8px 0 4px; font-weight:bold; font-size:13px; color:#475569; overflow:hidden; }"
             . ".preview-title { float:left; }"
             . ".preview-count { float:right; color:#64748B; font-weight:normal; }"
-            . "#previewBox { height:" . previewHeight . "px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:4px; padding:8px 12px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; font-family:'" monoFont "','Cascadia Code','Consolas',monospace; font-size:14px; line-height:1.5; color:#1E293B; clear:both; }"
+            . "#previewBox { height:" . previewHeight . "px; background:#FFFFFF; border:1px solid #CBD5E1; border-radius:4px; padding:8px 12px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; font-family:'" monoFont "','Cascadia Code','Consolas',monospace; font-size:14px; line-height:1.5; color:#1E293B; clear:both; user-select:text; -ms-user-select:text; }"
             . ".hint { margin:8px 0 0; font-size:12px; color:#64748B; text-align:center; font-family:'Microsoft JhengHei UI',sans-serif; }"
             . ".hl { background-color:#FEF08A; color:#854D0E; font-weight:bold; padding:0 2px; border-radius:2px; }"
             . ".no-results { padding:28px 16px; text-align:center; color:#94A3B8; font-style:italic; }"
@@ -770,4 +803,5 @@ Down::RisHotstringPalette.SelectNext()
 Up::RisHotstringPalette.SelectPrev()
 Enter::RisHotstringPalette.SubmitSelection()
 Escape::RisHotstringPalette.Close()
+^c::RisHotstringPalette.CopySelection()
 #HotIf

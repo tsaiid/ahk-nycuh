@@ -14,6 +14,7 @@ RegisterTest("RisHotstringPalette._Highlight wraps matched keywords in span tags
 RegisterTest("RisHotstringPalette._GetPreviewHtml converts newlines to br and preserves indentation", Test_GetPreviewHtml)
 RegisterTest("RisHotstringPalette._CreateGui initializes controls without option errors", Test_CreateGui)
 RegisterTest("RisHotstringPalette._CreateGui initializes controls with custom height", Test_CreateGui_CustomHeight)
+RegisterTest("RisHotstringPalette.CopySelection handles Edit and HTML selection gracefully", Test_CopySelection)
 
 Test_ParseSingleLine() {
     sample := "
@@ -201,6 +202,25 @@ Test_CreateGui_CustomHeight() {
     try {
         AssertTrue(RisHotstringPalette._gui != 0, "Gui should be created with custom height")
         AssertTrue(RisHotstringPalette.Hwnd > 0, "Hwnd should exist")
+    } finally {
+        RisHotstringPalette.Close()
+    }
+}
+
+Test_CopySelection() {
+    RisHotstringPalette._CreateGui()
+    try {
+        ; 測試 1: 無選取文字時執行不應拋出例外
+        RisHotstringPalette.CopySelection()
+
+        ; 測試 2: Edit 控制項選取並複製
+        editCtrl := RisHotstringPalette._editSearch
+        editCtrl.Value := "CopyTestSearch"
+        editCtrl.Focus()
+        SendMessage(0x00B1, 0, 8, editCtrl.Hwnd) ; EM_SETSEL: 選取 "CopyTest"
+        A_Clipboard := ""
+        RisHotstringPalette.CopySelection()
+        AssertEqual("CopyTest", A_Clipboard, "Should copy selected text from edit control")
     } finally {
         RisHotstringPalette.Close()
     }
