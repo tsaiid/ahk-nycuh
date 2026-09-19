@@ -234,8 +234,25 @@ GetUnremarkableNeckFindings(searchText) {
     findings := []
 
     ; 1. Pharynx/Larynx
-    if (!HasPositiveFinding(searchText, ["nasopharynx", "oropharynx", "hypopharynx", "larynx", "epiglottis", "vocal cord", "pharyngeal"])) {
-        findings.Push("The nasopharynx, oropharynx, hypopharynx, and larynx are unremarkable.")
+    safePharynx := []
+    hasGeneralPharynx := HasPositiveFinding(searchText, ["pharynx", "pharyngeal"])
+
+    if (!hasGeneralPharynx && !HasPositiveFinding(searchText, ["nasopharynx", "nasopharyngeal", "npc"])) {
+        safePharynx.Push("nasopharynx")
+    }
+    if (!hasGeneralPharynx && !HasPositiveFinding(searchText, ["oropharynx", "oropharyngeal", "tonsil", "tonsils", "tonsillar", "tongue base", "base of tongue", "soft palate", "uvula"])) {
+        safePharynx.Push("oropharynx")
+    }
+    if (!hasGeneralPharynx && !HasPositiveFinding(searchText, ["hypopharynx", "hypopharyngeal", "pyriform sinus", "piriform sinus", "postcricoid", "vallecula", "valleculae"])) {
+        safePharynx.Push("hypopharynx")
+    }
+    if (!HasPositiveFinding(searchText, ["larynx", "laryngeal", "epiglottis", "vocal cord", "vocal cords", "arytenoid", "glottis", "glottic", "subglottic", "supraglottic"])) {
+        safePharynx.Push("larynx")
+    }
+
+    if (safePharynx.Length > 0) {
+        verb := (safePharynx.Length == 1) ? " is unremarkable." : " are unremarkable."
+        findings.Push("The " . FormatList(safePharynx) . verb)
     }
 
     ; 2. Lymph Nodes
@@ -244,18 +261,46 @@ GetUnremarkableNeckFindings(searchText) {
     }
 
     ; 3. Glands
-    if (!HasPositiveFinding(searchText, ["parotid", "submandibular gland", "thyroid"])) {
-        findings.Push("No particular findings of parotid gland, submandibular gland, and thyroid gland.")
+    safeGlands := []
+    hasGeneralSalivary := HasPositiveFinding(searchText, ["salivary gland", "salivary glands"])
+
+    if (!hasGeneralSalivary && !HasPositiveFinding(searchText, ["parotid", "parotids", "stensen"])) {
+        safeGlands.Push("parotid gland")
+    }
+    if (!hasGeneralSalivary && !HasPositiveFinding(searchText, ["submandibular gland", "submandibular glands", "submandibular duct", "wharton"])) {
+        safeGlands.Push("submandibular gland")
+    }
+    if (!HasPositiveFinding(searchText, ["thyroid", "goiter"])) {
+        safeGlands.Push("thyroid gland")
+    }
+
+    if (safeGlands.Length > 0) {
+        findings.Push("No particular findings of " . FormatList(safeGlands) . ".")
     }
 
     ; 4. Sinuses/Mastoid
-    if (!HasPositiveFinding(searchText, ["sinus", "sinuses", "sinusitis", "maxillary", "frontal", "ethmoid", "sphenoid", "mastoid"])) {
-        findings.Push("The paranasal sinuses and mastoid air cells are clear.")
+    safeSinusMastoid := []
+    if (!HasPositiveFinding(searchText, ["sinus", "sinuses", "sinusitis", "maxillary", "frontal", "ethmoid", "sphenoid", "paranasal"])) {
+        safeSinusMastoid.Push("paranasal sinuses")
+    }
+    if (!HasPositiveFinding(searchText, ["mastoid", "mastoids", "mastoiditis"])) {
+        safeSinusMastoid.Push("mastoid air cells")
+    }
+
+    if (safeSinusMastoid.Length > 0) {
+        findings.Push("The " . FormatList(safeSinusMastoid) . " are clear.")
     }
 
     ; 5. Brain/Lungs
-    if (!HasPositiveFinding(searchText, ["brain", "lung"])) {
+    hasBrainFinding := HasPositiveFinding(searchText, ["brain", "cerebral", "cerebellum", "cerebellar", "intracranial", "basal ganglion", "basal ganglia", "encephalomalacia"])
+    hasLungFinding := HasPositiveFinding(searchText, ["lung", "lungs", "pulmonary", "pleural", "pleura"])
+
+    if (!hasBrainFinding && !hasLungFinding) {
         findings.Push("The visible brain and lungs show no remarkable findings.")
+    } else if (!hasBrainFinding) {
+        findings.Push("The visible brain shows no remarkable findings.")
+    } else if (!hasLungFinding) {
+        findings.Push("The visible lungs show no remarkable findings.")
     }
 
     return findings
