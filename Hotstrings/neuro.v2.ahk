@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
@@ -198,6 +198,7 @@ No definite abnormal mass lesion in the brain noted.
 ::csptrok::No obvious fracture or dislocation of the cervical spine.
 ::icr::intracranial
 ::mritumorcpok::No evidence of abnormal tumor mass lesion over the skull base, bilateral CP angle cisterns, or bilateral pre-pontine cistern regions is noted.
+::mriseizureok::No evidence of hippocampal atrophy or abnormal signal intensity.
 ::riol::Status post right intraocular lens (IOL) implantation.
 ::liol::Status post left intraocular lens (IOL) implantation.
 ::biol::Status post bilateral intraocular lens (IOL) implantations.
