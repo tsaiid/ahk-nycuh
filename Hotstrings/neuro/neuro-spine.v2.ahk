@@ -395,20 +395,42 @@ GenerateSpineImpression(isMild := false)
 
     ; 4. 組合字串
     if (positiveFindings.Length == 0) {
-        ; Fallback: [Mild] [lumbar] degenerative spine disease...
-        rawStr := (isMild ? "mild " : "") . spineLoc . " degenerative spine disease, as described above."
+        mainStr := "degenerative spine disease"
     } else {
         mainStr := FormatList(positiveFindings)
-
-        ; 處理後綴 (Stenosis)
-        suffix := ""
-        if (HasPositiveFinding(searchText, ["stenosis"])) {
-            suffix := ", with spinal canal and neuroforaminal stenosis"
-        }
-
-        ; 組合: [Mild] [lumbar] [findings][suffix]...
-        rawStr := (isMild ? "mild " : "") . spineLoc . " " . mainStr . suffix . ", as described above."
     }
+
+    ; 處理手術後綴 (s/p OP)
+    opStr := ""
+    if (HasPositiveFinding(searchText, [
+        "internal fixation", "fixation", "instrumentation", "instrumented",
+        "discectomy", "disectiomy", "diskectomy", "microdiscectomy", "microdiskectomy",
+        "laminectomy", "hemilaminectomy", "laminotomy", "laminoplasty",
+        "corpectomy", "facetectomy", "foraminotomy", "flavectomy",
+        "decompression", "decompressive",
+        "vertebroplasty", "kyphoplasty", "arthrodesis", "arthroplasty",
+        "interbody fusion", "spinal fusion", "instrumented fusion",
+        "interbody cage", "cage placement", "fusion cage",
+        "pedicle screw", "pedicle screws", "transpedicular screw", "transpedicular screws",
+        "artificial disc", "disc prosthesis",
+        "ACDF", "PLIF", "TLIF", "ALIF", "OLIF",
+        "s/p OP", "status post OP", "status post op", "post-op", "postop", "postoperative", "post-operation", "postoperation",
+        "s/p operation", "s/p surgery",
+        "surgical change", "surgical changes", "post-surgical", "postsurgical",
+        "prior operation", "prior surgery", "previous operation", "previous surgery",
+        "operated"
+    ])) {
+        opStr := ", s/p OP"
+    }
+
+    ; 處理後綴 (Stenosis)
+    suffix := ""
+    if (HasPositiveFinding(searchText, ["stenosis"])) {
+        suffix := ", with spinal canal and neuroforaminal stenosis"
+    }
+
+    ; 組合: [Mild] [lumbar] [findings][opStr][suffix]...
+    rawStr := (isMild ? "mild " : "") . spineLoc . " " . mainStr . opStr . suffix . ", as described above."
 
     ; 5. 統一格式化輸出 (首字大寫 + 句點)
     ; 確保 rawStr 去除前後空白
