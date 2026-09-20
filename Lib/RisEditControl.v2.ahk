@@ -235,36 +235,6 @@ class RisEditControl {
         return this._CanRemoveEmptySmartPrefix(lineInfo) || this._GetSmartListNextPrefix(lineInfo) != ""
     }
 
-    static SmartListBackspace(hCtrl) {
-        lineInfo := this._GetCurrentLineInfo(hCtrl)
-        if (!lineInfo || lineInfo.Sel.Start != lineInfo.Sel.End) {
-            return false
-        }
-
-        if (lineInfo.Sel.Start != lineInfo.Bounds.ContentEnd) {
-            return false
-        }
-
-        if !this._CanRemoveEmptySmartPrefix(lineInfo) {
-            return false
-        }
-
-        this._RemoveLineContent(hCtrl, lineInfo)
-        return true
-    }
-
-    static ShouldSmartListBackspace(hCtrl) {
-        lineInfo := this._GetCurrentLineInfo(hCtrl)
-        if (!lineInfo || lineInfo.Sel.Start != lineInfo.Sel.End) {
-            return false
-        }
-
-        if (lineInfo.Sel.Start != lineInfo.Bounds.ContentEnd) {
-            return false
-        }
-
-        return this._CanRemoveEmptySmartPrefix(lineInfo)
-    }
 
     static _GetCurrentLineInfo(hCtrl) {
         try {

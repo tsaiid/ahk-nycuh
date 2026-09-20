@@ -235,7 +235,6 @@ class RisHotkeyHelp {
             {Context: "RIS 輸入框", Keys: "XButton1", Action: "自動偵測項目符號並重排選取文字"},
             {Context: "RIS 輸入框", Keys: "XButton2", Action: "重排選取文字"},
             {Context: "RIS 智慧清單", Keys: "Enter / NumpadEnter", Action: "智慧清單換行"},
-            {Context: "RIS 智慧清單", Keys: "Backspace", Action: "智慧清單退格"},
             {Context: "鍵盤配置", Keys: "F2", Action: "顯示目前鍵盤語言 ID"},
             {Context: "US 鍵盤", Keys: "Right Alt", Action: "啟用或切換 RIS 焦點"},
             {Context: "日文鍵盤", Keys: "SC029", Action: "啟用或切換 RIS 焦點"},

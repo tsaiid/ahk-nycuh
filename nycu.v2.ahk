@@ -330,12 +330,6 @@ RisController.EnableShellHookFocus()
     }
 #HotIf
 
-#HotIf IsRisSmartListBackspaceContext()
-    $Backspace:: {
-        RisController.SmartListBackspace()
-        Hotstring("Reset")
-    }
-#HotIf
 
 ;; for JIS keyboard
 ; 取得目前活動視窗的輸入法語言 ID
@@ -488,10 +482,6 @@ IsRisEditContext() {
 
 IsRisSmartListEnterContext() {
     return IsRisEditContext() && RisController.ShouldSmartListEnter()
-}
-
-IsRisSmartListBackspaceContext() {
-    return IsRisEditContext() && RisController.ShouldSmartListBackspace()
 }
 
 IsAbnormalWindow() {

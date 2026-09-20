@@ -1082,31 +1082,6 @@ class RisController {
         }
     }
 
-    static SmartListBackspace() {
-        if !this.IsTargetFocused() {
-            return false
-        }
-
-        try {
-            hEdit := ControlGetFocus("A")
-            return RisEditControl.SmartListBackspace(hEdit)
-        } catch {
-            return false
-        }
-    }
-
-    static ShouldSmartListBackspace() {
-        if !this.IsTargetFocused() {
-            return false
-        }
-
-        try {
-            hEdit := ControlGetFocus("A")
-            return RisEditControl.ShouldSmartListBackspace(hEdit)
-        } catch {
-            return false
-        }
-    }
 
     ; =================================================================
     ; 7. 格式化邏輯 (Format Finding/Impression)
