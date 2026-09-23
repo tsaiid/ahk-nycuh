@@ -9,7 +9,7 @@ RegisterTest("RisAIPayload.BuildOpenAIPayload omits temperature when reasoning i
 
 Test_RisAIPayload_BuildOpenAIPayload_WithNoneReasoning() {
     options := {
-        Model: "gpt-5.6-luna",
+        Model: "gpt-6-luna",
         ReasoningEffort: "none",
         Temperature: 0.2
     }
@@ -20,7 +20,7 @@ Test_RisAIPayload_BuildOpenAIPayload_WithNoneReasoning() {
 
 Test_RisAIPayload_BuildOpenAIPayload_WithLowReasoning() {
     options := {
-        Model: "gpt-5.6-luna",
+        Model: "gpt-6-luna",
         ReasoningEffort: "low",
         Temperature: 0.2
     }

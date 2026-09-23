@@ -23,7 +23,7 @@ class RisConfig {
                 "gemini-3.1-flash-lite"
             ],
             OpenAIModels: [
-                "gpt-5.6-luna"
+                "gpt-6-luna"
             ],
             Temperature: 0.2,
             ReasoningEffort: "none",
@@ -73,7 +73,7 @@ class RisConfig {
                 "gemini-3.1-flash-lite"
             ],
             OpenAIModels: [
-                "gpt-5.6-luna"
+                "gpt-6-luna"
             ],
             Temperature: 0.2,
             ReasoningEffort: "low",
@@ -154,7 +154,7 @@ class RisConfig {
                 "gemini-3.1-flash-lite"
             ],
             OpenAIModels: [
-                "gpt-5.6-luna"
+                "gpt-6-luna"
             ],
             Temperature: 0.3,
             ReasoningEffort: "none",
