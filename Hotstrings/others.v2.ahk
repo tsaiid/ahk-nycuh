@@ -319,7 +319,7 @@
 ;; Limitations
 ::olnd::However, the obstruction level cannot be demonstrated in this study.
 ::tstc::too small to categorize
-::motion::* Obvious motion artifacts may limit the interpretation.
+::motion::* Significant motion artifacts may limit the interpretation.
 ::mart::* Obvious metallic artifact may limit the evaluation.
 ::ubl::(* Limited evaluation due to collapsed UB.)
 ::gil::(* limited evaluation due to peristalsis, susceptibility artifact from gas, etc.)
