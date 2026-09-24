@@ -226,6 +226,7 @@ class RisHotkeyHelp {
             {Context: "RIS 輸入框", Keys: "Ctrl+Shift+-", Action: "移除編號並改用 -"},
             {Context: "RIS 輸入框", Keys: "Ctrl+Alt+Shift+-", Action: "移除編號並自動偵測項目符號"},
             {Context: "RIS 輸入框", Keys: "Ctrl+Shift+>", Action: "移除編號並改用 >"},
+            {Context: "RIS 輸入框", Keys: "Ctrl+Shift+D", Action: "將選取文字拆分為一句一行"},
             {Context: "RIS 輸入框", Keys: "Ctrl+D", Action: "送出 Delete"},
             {Context: "RIS 輸入框", Keys: "Win+A", Action: "全選"},
             {Context: "RIS 輸入框", Keys: "Ctrl+Up / Ctrl+Down", Action: "智慧翻頁移動"},
