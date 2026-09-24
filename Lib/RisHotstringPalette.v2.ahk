@@ -190,6 +190,8 @@ class RisHotstringPalette {
 
         if (selected.isFunction) {
             SendInput("{Raw}" . selected.trigger . "`t")
+        } else if (!RegExMatch(selected.options, "i)[RT]") && RegExMatch(selected.replacement, "\{[^}]+\}")) {
+            SendInput(selected.replacement)
         } else {
             Paste(selected.replacement)
         }
@@ -645,6 +647,9 @@ class RisHotstringPalette {
         baseDir := A_ScriptDir . "\Hotstrings"
         if (!DirExist(baseDir)) {
             baseDir := A_ScriptDir . "\..\Hotstrings"
+        }
+        if (!DirExist(baseDir) && DirExist(A_LineFile . "\..\..\Hotstrings")) {
+            baseDir := A_LineFile . "\..\..\Hotstrings"
         }
         if (!DirExist(baseDir)) {
             this._isLoaded := true

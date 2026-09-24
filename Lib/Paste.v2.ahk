@@ -11,14 +11,14 @@ Paste(text, convertCRLF := true) {
     ; --- 1. 嘗試取得焦點 Control 的 Hwnd ---
     hCtl := 0
     try {
-        focusedHwnd := ControlGetFocus("A")
+        hCtl := ControlGetFocus("A")
     }
 
     ; --- 2. 策略 A: 直接訊息貼上 (優先使用) ---
-    if (focusedHwnd) {
+    if (hCtl) {
         try {
             ; 使用 Hwnd 呼叫 EditPaste，完全繞過剪貼簿
-            EditPaste(text, focusedHwnd)
+            EditPaste(text, hCtl)
             return ; 成功則直接結束
         } catch {
             ; 失敗 (例如該 Control 不支援 Edit 訊息) 則繼續往下
@@ -27,8 +27,8 @@ Paste(text, convertCRLF := true) {
 
     ; --- 3. 策略 B: 傳統剪貼簿貼上 (備案) ---
 
-    ; 字數少直接打字
-    if (StrLen(text) < 50) {
+    ; 字數少直接打字 (長度門檻與 FastInput 一致設為 20)
+    if (StrLen(text) < 20) {
         SendText(text)
         return
     }

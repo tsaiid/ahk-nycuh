@@ -18,10 +18,13 @@ SetKeyDelay -1
 
 ; [新增] 設定工作列 (Tray) 上的 Icon
 global TRAY_DEBUG_MODE_ITEM := "RIS Debug Mode"
+global TRAY_FAST_PASTE_ITEM := "Hotstring 快速貼上模式"
 TraySetIcon(A_ScriptDir "\assets\nycu_icon.png")
 A_TrayMenu.Add()
 A_TrayMenu.Add(TRAY_DEBUG_MODE_ITEM, ToggleRisDebugMode)
 A_TrayMenu.Uncheck(TRAY_DEBUG_MODE_ITEM)
+A_TrayMenu.Add(TRAY_FAST_PASTE_ITEM, ToggleFastPaste)
+A_TrayMenu.Check(TRAY_FAST_PASTE_ITEM)
 A_TrayMenu.Add()
 A_TrayMenu.Add("重新載入相似檢查分組設定`tWin+Ctrl+R", ReloadSimGroups)
 A_TrayMenu.Add("Hotstring 搜尋命令列`tCtrl+Shift+F", (*) => RisHotstringPalette.Show())
@@ -31,6 +34,7 @@ global PRESERVE_CLIPBOARD := 0
 #Include <RisController.v2>
 #Include <RisHotkeyHelp.v2>
 #Include <RisHotstringPalette.v2>
+#Include <RisHotstringFastInput.v2>
 #Include Lib\Hotstrings.v2.ahk
 ;#Include <UIA.v2>
 ;#Include <Paste.v2>
@@ -49,6 +53,9 @@ RisController.EnableFontEnforcer("Maple Mono CN", 11)
 
 ; 啟動自動搶焦功能 (搶回 RIS 焦點以便自動化工具運作)
 RisController.EnableShellHookFocus()
+
+; 啟動 Hotstring 快速貼上加速 (預設啟用，門檻長度 >= 20 字元)
+RisHotstringFastInput.Enable(20)
 
 ; --- Hotstrings (在標準 RIS 與 LDCT 視窗均生效) ---
 #HotIf IsAnyRisReportWindow()
@@ -451,6 +458,17 @@ ToggleRisDebugMode(*) {
     } else {
         A_TrayMenu.Uncheck(TRAY_DEBUG_MODE_ITEM)
         RisController.Notify("RIS Debug Mode 已關閉", 1500)
+    }
+}
+
+ToggleFastPaste(*) {
+    global TRAY_FAST_PASTE_ITEM
+
+    RisHotstringFastInput.Toggle()
+    if (RisHotstringFastInput.isEnabled) {
+        A_TrayMenu.Check(TRAY_FAST_PASTE_ITEM)
+    } else {
+        A_TrayMenu.Uncheck(TRAY_FAST_PASTE_ITEM)
     }
 }
 
