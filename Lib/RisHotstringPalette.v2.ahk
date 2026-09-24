@@ -18,6 +18,8 @@ class RisHotstringPalette {
     static _searchTerms := []
     static _selectedIndex := 1
     static _parentWnd := 0
+    static _searchSeq := 0
+    static _debounceTimer := 0
 
     static Hwnd => (RisHotstringPalette._gui ? RisHotstringPalette._gui.Hwnd : 0)
 
@@ -79,6 +81,8 @@ class RisHotstringPalette {
      * 關閉檢索視窗並還原焦點
      */
     static Close(*) {
+        this._CancelDebounce()
+
         if (!this._gui) {
             return
         }
@@ -109,8 +113,14 @@ class RisHotstringPalette {
     /**
      * 搜尋與過濾核心邏輯
      * @param {String} keyword 關鍵字字串
+     * @param {Integer} seq 搜尋序號 (用以丟棄已過期之搜尋結果)
      */
-    static Filter(keyword) {
+    static Filter(keyword, seq := 0) {
+        if (seq == 0) {
+            this._searchSeq += 1
+            seq := this._searchSeq
+        }
+
         kw := Trim(keyword)
         searchTerms := []
         for _, term in StrSplit(kw, " ") {
@@ -123,6 +133,10 @@ class RisHotstringPalette {
         matched := []
 
         for _, item in this._cache {
+            if (seq != this._searchSeq) {
+                return
+            }
+
             if (searchTerms.Length == 0) {
                 snippet := this._GetDefaultSnippet(item)
                 matched.Push({ item: item, snippet: snippet, score: 0 })
@@ -148,11 +162,19 @@ class RisHotstringPalette {
             matched.Push({ item: item, snippet: snippet, score: score })
         }
 
+        if (seq != this._searchSeq) {
+            return
+        }
+
         if (searchTerms.Length > 0) {
             this._SortResults(matched)
             if (matched.Length > 100) {
                 matched.Length := 100
             }
+        }
+
+        if (seq != this._searchSeq) {
+            return
         }
 
         this._filteredItems := matched
@@ -166,6 +188,8 @@ class RisHotstringPalette {
      * @param {Integer} targetRow 指定選取的列 (預設 0 代表使用當前選中項)
      */
     static SubmitSelection(targetRow := 0) {
+        this._FlushPendingSearch()
+
         if (!this._gui) {
             return
         }
@@ -201,6 +225,8 @@ class RisHotstringPalette {
      * 選擇下一個項目
      */
     static SelectNext() {
+        this._FlushPendingSearch()
+
         if (!this._gui || this._filteredItems.Length == 0) {
             return
         }
@@ -213,6 +239,8 @@ class RisHotstringPalette {
      * 選擇上一個項目
      */
     static SelectPrev() {
+        this._FlushPendingSearch()
+
         if (!this._gui || this._filteredItems.Length == 0) {
             return
         }
@@ -399,7 +427,43 @@ class RisHotstringPalette {
         if (!this._gui) {
             return
         }
-        this.Filter(this._editSearch.Value)
+
+        val := this._editSearch.Value
+        if (val == "") {
+            this._CancelDebounce()
+            this.Filter("")
+            return
+        }
+
+        this._searchSeq += 1
+        currSeq := this._searchSeq
+        this._CancelDebounce()
+        this._debounceTimer := ObjBindMethod(this, "_ExecuteDebouncedSearch", currSeq)
+        SetTimer(this._debounceTimer, -100)
+    }
+
+    static _CancelDebounce() {
+        if (this._debounceTimer) {
+            SetTimer(this._debounceTimer, 0)
+            this._debounceTimer := 0
+        }
+    }
+
+    static _ExecuteDebouncedSearch(seq) {
+        this._debounceTimer := 0
+        if (!this._gui || seq != this._searchSeq) {
+            return
+        }
+        this.Filter(this._editSearch.Value, seq)
+    }
+
+    static _FlushPendingSearch() {
+        if (this._debounceTimer) {
+            this._CancelDebounce()
+            if (this._gui) {
+                this.Filter(this._editSearch.Value, ++this._searchSeq)
+            }
+        }
     }
 
     static _OnHtmlSelect(idx) {
@@ -627,17 +691,43 @@ class RisHotstringPalette {
     }
 
     static _SortResults(matched) {
-        len := matched.Length
-        i := 2
-        while (i <= len) {
-            key := matched[i]
-            j := i - 1
-            while (j >= 1 && matched[j].score < key.score) {
-                matched[j + 1] := matched[j]
+        if (matched.Length <= 1) {
+            return
+        }
+        this._QuickSort(matched, 1, matched.Length)
+    }
+
+    static _QuickSort(arr, left, right) {
+        if (left >= right) {
+            return
+        }
+
+        pivotIndex := (left + right) >> 1
+        pivotScore := arr[pivotIndex].score
+        i := left
+        j := right
+
+        while (i <= j) {
+            while (arr[i].score > pivotScore) {
+                i += 1
+            }
+            while (arr[j].score < pivotScore) {
                 j -= 1
             }
-            matched[j + 1] := key
-            i += 1
+            if (i <= j) {
+                tmp := arr[i]
+                arr[i] := arr[j]
+                arr[j] := tmp
+                i += 1
+                j -= 1
+            }
+        }
+
+        if (left < j) {
+            this._QuickSort(arr, left, j)
+        }
+        if (i < right) {
+            this._QuickSort(arr, i, right)
         }
     }
 
@@ -688,8 +778,11 @@ class RisHotstringPalette {
                 rawRest := RTrim(m[3], "`r`n")
                 trimmedCheck := Trim(rawRest)
 
-                ; 單行 Hotstring 判斷
-                if (trimmedCheck != "" && SubStr(trimmedCheck, 1, 1) != ";") {
+                ; 判斷同行是否含有大括號區塊開頭 (K&R / OTB Style，如 ::sk:: {)
+                isSameLineBrace := RegExMatch(trimmedCheck, "^\{\s*(?:;.*)?$")
+
+                ; 單行 Hotstring 判斷 (排除註解與同行大括號開頭)
+                if (trimmedCheck != "" && SubStr(trimmedCheck, 1, 1) != ";" && !isSameLineBrace) {
                     commentPos := InStr(rawRest, " `;")
                     if (commentPos > 0) {
                         replacement := RTrim(SubStr(rawRest, 1, commentPos - 1))
@@ -718,29 +811,33 @@ class RisHotstringPalette {
                 }
 
                 ; 多行區塊 / 表單 Hotstring 判斷
-                j := i + 1
-                foundBrace := false
-                while (j <= totalLines) {
-                    tLine := Trim(lines[j])
-                    if (tLine == "" || SubStr(tLine, 1, 1) == ";") {
-                        j += 1
-                        continue
-                    }
-                    if (InStr(tLine, "{")) {
-                        foundBrace := true
+                startLine := 0
+                if (isSameLineBrace) {
+                    startLine := i
+                } else {
+                    j := i + 1
+                    while (j <= totalLines) {
+                        tLine := Trim(lines[j])
+                        if (tLine == "" || SubStr(tLine, 1, 1) == ";") {
+                            j += 1
+                            continue
+                        }
+                        if (InStr(tLine, "{")) {
+                            startLine := j
+                            break
+                        }
                         break
                     }
-                    break
                 }
 
-                if (!foundBrace) {
+                if (!startLine) {
                     i += 1
                     continue
                 }
 
                 braceDepth := 0
                 blockLines := []
-                k := j
+                k := startLine
                 while (k <= totalLines) {
                     curr := lines[k]
                     loop parse, curr {

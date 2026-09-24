@@ -15,6 +15,9 @@ RegisterTest("RisHotstringPalette._GetPreviewHtml converts newlines to br and pr
 RegisterTest("RisHotstringPalette._CreateGui initializes controls without option errors", Test_CreateGui)
 RegisterTest("RisHotstringPalette._CreateGui initializes controls with custom height", Test_CreateGui_CustomHeight)
 RegisterTest("RisHotstringPalette.CopySelection handles Edit and HTML selection gracefully", Test_CopySelection)
+RegisterTest("RisHotstringPalette._ParseFileContent parses same-line brace hotstrings", Test_ParseSameLineBrace)
+RegisterTest("RisHotstringPalette._SortResults sorts matches in descending score order", Test_SortResultsDescending)
+RegisterTest("RisHotstringPalette._FlushPendingSearch executes pending search immediately", Test_FlushPendingSearch)
 
 Test_ParseSingleLine() {
     sample := "
@@ -221,6 +224,62 @@ Test_CopySelection() {
         A_Clipboard := ""
         RisHotstringPalette.CopySelection()
         AssertEqual("CopyTest", A_Clipboard, "Should copy selected text from edit control")
+    } finally {
+        RisHotstringPalette.Close()
+    }
+}
+
+Test_ParseSameLineBrace() {
+    sample := "::sk:: {`n"
+        . '    MyForm := "`n'
+        . "(`n"
+        . "The bowel gas pattern is unremarkable.`n"
+        . "No subphrenic free air.`n"
+        . ')"`n'
+        . "    Paste(MyForm)`n"
+        . "}"
+    RisHotstringPalette._cache := []
+    RisHotstringPalette._ParseFileContent(sample, "test.ahk")
+
+    AssertEqual(1, RisHotstringPalette._cache.Length, "Should parse 1 item with same-line brace")
+    item := RisHotstringPalette._cache[1]
+    AssertEqual("sk", item.trigger, "Trigger should be 'sk'")
+    AssertTrue(item.isMultiLine, "Should be multi-line")
+    AssertEqual(2, item.lines.Length, "Should have 2 lines")
+    AssertEqual("The bowel gas pattern is unremarkable.", Trim(item.lines[1]), "First line")
+    AssertEqual("No subphrenic free air.", Trim(item.lines[2]), "Second line")
+}
+
+Test_SortResultsDescending() {
+    items := [
+        { score: 10, name: "low" },
+        { score: 250, name: "high" },
+        { score: 50, name: "mid" },
+        { score: 150, name: "midhigh" }
+    ]
+    RisHotstringPalette._SortResults(items)
+    AssertEqual(250, items[1].score, "First item should have highest score")
+    AssertEqual(150, items[2].score, "Second item score")
+    AssertEqual(50, items[3].score, "Third item score")
+    AssertEqual(10, items[4].score, "Fourth item score")
+}
+
+Test_FlushPendingSearch() {
+    RisHotstringPalette._cache := [
+        { trigger: "sk", options: "", replacement: "kidney shadow unremarkable", lines: ["kidney shadow unremarkable"], isMultiLine: false, isFunction: false, file: "test.ahk" },
+        { trigger: "sono", options: "", replacement: "ultrasound study", lines: ["ultrasound study"], isMultiLine: false, isFunction: false, file: "test.ahk" }
+    ]
+    RisHotstringPalette._CreateGui()
+    try {
+        editCtrl := RisHotstringPalette._editSearch
+        editCtrl.Value := "sk"
+        RisHotstringPalette._OnSearchChange()
+        AssertTrue(RisHotstringPalette._debounceTimer != 0, "Debounce timer should be active")
+
+        RisHotstringPalette._FlushPendingSearch()
+        AssertEqual(0, RisHotstringPalette._debounceTimer, "Debounce timer should be cleared after flush")
+        AssertEqual(1, RisHotstringPalette._filteredItems.Length, "Should match 1 item")
+        AssertEqual("sk", RisHotstringPalette._filteredItems[1].item.trigger, "Top item should be 'sk'")
     } finally {
         RisHotstringPalette.Close()
     }
