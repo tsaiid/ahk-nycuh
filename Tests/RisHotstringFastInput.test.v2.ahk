@@ -15,6 +15,9 @@ IsTestConditionActive() {
 #HotIf
 
 RegisterTest("RisHotstringFastInput._FormatFullTrigger normalizes colons", Test_FormatFullTrigger)
+RegisterTest("RisHotstringFastInput._CapitalizeFirst capitalizes first character", Test_CapitalizeFirst)
+RegisterTest("RisHotstringFastInput._FormatVariantTrigger generates case-sensitive trigger", Test_FormatVariantTrigger)
+RegisterTest("RisHotstringFastInput._ShouldDeriveCapitalizedVariant filters eligible triggers", Test_ShouldDeriveCapitalizedVariant)
 RegisterTest("RisHotstringFastInput._HasKeyCommands detects special keys", Test_HasKeyCommands)
 RegisterTest("RisHotstringFastInput.Enable filters by minLength, newline, and special keys", Test_EnableFiltering)
 RegisterTest("RisHotstringFastInput.Disable restores state", Test_Disable)
@@ -26,6 +29,31 @@ Test_FormatFullTrigger() {
     AssertEqual(":c:RUL", RisHotstringFastInput._FormatFullTrigger(":c", "RUL"), "Option without trailing colon should append colon")
     AssertEqual("::livok1", RisHotstringFastInput._FormatFullTrigger("::", "livok1"), "Double colon option should remain double colon")
     AssertEqual(":c:RUL", RisHotstringFastInput._FormatFullTrigger(":c:", "RUL"), "Complete option should remain unchanged")
+}
+
+Test_CapitalizeFirst() {
+    AssertEqual("No interval changes.", RisHotstringFastInput._CapitalizeFirst("no interval changes."), "Should capitalize first letter")
+    AssertEqual("Nic0", RisHotstringFastInput._CapitalizeFirst("nic0"), "Should capitalize trigger first letter")
+    AssertEqual("Nic0", RisHotstringFastInput._CapitalizeFirst("Nic0"), "Already capitalized string should remain unchanged")
+    AssertEqual("11", RisHotstringFastInput._CapitalizeFirst("11"), "Digit string should remain unchanged")
+    AssertEqual("", RisHotstringFastInput._CapitalizeFirst(""), "Empty string should return empty string")
+}
+
+Test_FormatVariantTrigger() {
+    AssertEqual(":c:Nic0", RisHotstringFastInput._FormatVariantTrigger(":", "Nic0"), "Colon option should become :c:Nic0")
+    AssertEqual(":c:Nic0", RisHotstringFastInput._FormatVariantTrigger("::", "Nic0"), "Double colon option should become :c:Nic0")
+    AssertEqual(":c*:Nic0", RisHotstringFastInput._FormatVariantTrigger(":*", "Nic0"), "Asterisk option should become :c*:Nic0")
+    AssertEqual(":c?:Nic0", RisHotstringFastInput._FormatVariantTrigger(":?:", "Nic0"), "Question mark option should become :c?:Nic0")
+}
+
+Test_ShouldDeriveCapitalizedVariant() {
+    AssertTrue(RisHotstringFastInput._ShouldDeriveCapitalizedVariant(":", "nic0"), "nic0 should derive variant")
+    AssertTrue(RisHotstringFastInput._ShouldDeriveCapitalizedVariant(":*:", "livok1"), "livok1 should derive variant")
+    AssertFalse(RisHotstringFastInput._ShouldDeriveCapitalizedVariant(":c:", "nic0"), "Case-sensitive option should not derive variant")
+    AssertFalse(RisHotstringFastInput._ShouldDeriveCapitalizedVariant(":C1:", "nic0"), "Case-sensitive C1 option should not derive variant")
+    AssertFalse(RisHotstringFastInput._ShouldDeriveCapitalizedVariant(":", "Nic0"), "Uppercase-first trigger should not derive variant")
+    AssertFalse(RisHotstringFastInput._ShouldDeriveCapitalizedVariant(":", "11"), "Digit-first trigger should not derive variant")
+    AssertFalse(RisHotstringFastInput._ShouldDeriveCapitalizedVariant(":", ""), "Empty trigger should not derive variant")
 }
 
 Test_HasKeyCommands() {
@@ -106,12 +134,18 @@ Test_EnableFiltering() {
     AssertTrue(RisHotstringFastInput._originalHotstrings.Has("::hftest_multiline_nl"), "Should record hftest_multiline_nl")
     AssertFalse(RisHotstringFastInput._originalHotstrings.Has("::hftest_short"), "Should not record hftest_short")
     AssertFalse(RisHotstringFastInput._originalHotstrings.Has("::su"), "Should not record su because it has {Left 11}")
+    AssertEqual(4, RisHotstringFastInput._addedVariants.Length, "Should record 4 variants (lowercase and capitalized for each eligible item)")
+    AssertEqual(":c:hftest_long", RisHotstringFastInput._addedVariants[1], "First variant should be :c:hftest_long")
+    AssertEqual(":c:Hftest_long", RisHotstringFastInput._addedVariants[2], "Second variant should be :c:Hftest_long")
+    AssertEqual(":c:hftest_multiline_nl", RisHotstringFastInput._addedVariants[3], "Third variant should be :c:hftest_multiline_nl")
+    AssertEqual(":c:Hftest_multiline_nl", RisHotstringFastInput._addedVariants[4], "Fourth variant should be :c:Hftest_multiline_nl")
 }
 
 Test_Disable() {
     RisHotstringFastInput.Disable("IsTestConditionActive()")
     AssertFalse(RisHotstringFastInput.isEnabled, "isEnabled should be false after disable")
     AssertEqual(0, RisHotstringFastInput._count, "_count should be 0 after disable")
+    AssertEqual(0, RisHotstringFastInput._addedVariants.Length, "_addedVariants should be cleared after disable")
 }
 
 Test_Toggle() {

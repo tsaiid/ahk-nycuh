@@ -13,6 +13,7 @@ class RisHotstringFastInput {
     static minLength := 20
     static conditionExpr := "IsAnyRisReportWindow()"
     static _originalHotstrings := Map()
+    static _addedVariants := []
     static _count := 0
 
     /**
@@ -22,6 +23,18 @@ class RisHotstringFastInput {
      */
     static _MakePasteCallback(text) {
         return (*) => Paste(text)
+    }
+
+    /**
+     * 將字串首字轉為大寫，其餘字元維持原樣
+     * @param {String} text 輸入字串
+     * @returns {String} 首字大寫後之字串
+     */
+    static _CapitalizeFirst(text) {
+        if (text == "") {
+            return ""
+        }
+        return StrUpper(SubStr(text, 1, 1)) . SubStr(text, 2)
     }
 
     /**
@@ -36,6 +49,33 @@ class RisHotstringFastInput {
             opt .= ":"
         }
         return opt . trigger
+    }
+
+    /**
+     * 產生帶有區分大小寫 (:c:) 選項的完整觸發字串
+     * @param {String} options 原始選項字串 (如 ":" 或 ":*:")
+     * @param {String} trigger 觸發熱字
+     * @returns {String} 合法之 Hotstring 註冊字串
+     */
+    static _FormatVariantTrigger(options, trigger) {
+        innerOpt := StrReplace(options, ":", "")
+        return ":c" . innerOpt . ":" . trigger
+    }
+
+    /**
+     * 判斷熱字是否應派生首字大寫變體
+     * @param {String} options 原始選項字串
+     * @param {String} trigger 觸發熱字
+     * @returns {Boolean} 若應派生首字大寫變體回傳 true
+     */
+    static _ShouldDeriveCapitalizedVariant(options, trigger) {
+        if (RegExMatch(options, "i)c")) {
+            return false
+        }
+        if (trigger == "") {
+            return false
+        }
+        return RegExMatch(SubStr(trigger, 1, 1), "^[a-z]") > 0
     }
 
     /**
@@ -77,6 +117,13 @@ class RisHotstringFastInput {
         }
 
         this._count := 0
+        for variantTrigger in this._addedVariants {
+            try {
+                Hotstring(variantTrigger, , "Off")
+            }
+        }
+        this._addedVariants := []
+
         for item in RisHotstringPalette._cache {
             ; 略過函式呼叫與多行區塊 (多行已有自訂 Paste 邏輯)
             if (item.isFunction || item.isMultiLine) {
@@ -102,7 +149,24 @@ class RisHotstringFastInput {
             }
 
             try {
-                Hotstring(fullTrigger, this._MakePasteCallback(rep))
+                ; 若未限定大小寫且首字為小寫英文，需關閉原不區分大小寫的熱字，
+                ; 並同時註冊 :c: 小寫與首字大寫變體，避免原生 case-insensitive 優先攔截大寫輸入
+                if (this._ShouldDeriveCapitalizedVariant(item.options, item.trigger)) {
+                    Hotstring(fullTrigger, , "Off")
+
+                    lowerVariantTrigger := this._FormatVariantTrigger(item.options, item.trigger)
+                    Hotstring(lowerVariantTrigger, this._MakePasteCallback(rep), "On")
+                    this._addedVariants.Push(lowerVariantTrigger)
+
+                    titleTrigger := this._CapitalizeFirst(item.trigger)
+                    titleRep := this._CapitalizeFirst(rep)
+                    titleVariantTrigger := this._FormatVariantTrigger(item.options, titleTrigger)
+
+                    Hotstring(titleVariantTrigger, this._MakePasteCallback(titleRep), "On")
+                    this._addedVariants.Push(titleVariantTrigger)
+                } else {
+                    Hotstring(fullTrigger, this._MakePasteCallback(rep), "On")
+                }
                 this._count++
             }
         }
@@ -131,9 +195,18 @@ class RisHotstringFastInput {
             HotIf()
         }
 
+        ; 停用動態派生之大小寫變體
+        for variantTrigger in this._addedVariants {
+            try {
+                Hotstring(variantTrigger, , "Off")
+            }
+        }
+        this._addedVariants := []
+
+        ; 還原原始熱字為靜態替換文字
         for fullTrigger, originalRep in this._originalHotstrings {
             try {
-                Hotstring(fullTrigger, originalRep)
+                Hotstring(fullTrigger, originalRep, "On")
             }
         }
 
