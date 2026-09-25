@@ -160,6 +160,7 @@ No definite abnormal mass lesion in the brain noted.
 }
 
 ::nocva::No evidence of acute ischemia infarction in the brain and brainstem noted.
+::nolvi::No obvious large-vessel territory infarction is identified.
 ::noich::No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 ::noich0::No definite acute ICH, SAH, EDH, or SDH.
 ::lka::leukoaraiosis
