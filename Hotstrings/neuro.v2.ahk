@@ -373,7 +373,7 @@ Pre and post-contrast CTA scan of brain:
 Brain CT:
 - No definite area of obvious abnormal density in the brain noted.
 - No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
-- The bilateral lateral ventricles show symmetrical without dilatation.
+- The bilateral lateral ventricles are symmetrical and without dilatation.
 - No definite bony lesion in the skull.
 - The visible paranasal sinuses and mastoids are unremarkable.
 
@@ -474,7 +474,7 @@ FINDINGS:
 
 - No definite abnormal signal intensity tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 - No definite abnormal signal intensity changes in the brain parenchyma.
-- The bilateral lateral ventricles showed symmetrical without dilatation.
+- The bilateral lateral ventricles are symmetrical and without dilatation.
 
 - Post contrast study shows no abnormal enhancing lesion in the brain and no abnormal leptomeningeal enhancement noted.
 - The major dural venous sinuses are patent.
@@ -497,7 +497,7 @@ No evidence of high signal intensity on DWI and lower apparent diffusion coeffic
 
 No definite abnormal signal intensity changes or tumor mass lesion in the brain noted.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 The visible paranasal sinuses, mastoids and skull base are unremarkable.
 
@@ -522,7 +522,7 @@ No evidence of high signal intensity on DWI and lower apparent diffusion coeffic
 
 No definite abnormal signal intensity or tumor mass lesion in the brain noted.
 
-The bilateral lateral ventricles show symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 Post contrast study shows no abnormal enhancing lesion in the brain and no abnormal leptomeningeal enhancement noted.
 

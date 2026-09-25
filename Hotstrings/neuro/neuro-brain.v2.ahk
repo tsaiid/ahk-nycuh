@@ -34,7 +34,7 @@ No definite area of obvious abnormal density in the brain noted.
 
 No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 The bilateral lateral ventricles are symmetrical in shape with acceptable age-dependent ventricular dilatation.
 
 The major dural venous sinuses are patent.
@@ -63,7 +63,7 @@ No definite area of obvious abnormal density in the brain noted.
 
 No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 The bilateral lateral ventricles are symmetrical in shape with acceptable age-dependent ventricular dilatation.
 
 The major dural venous sinuses are patent.
@@ -107,7 +107,7 @@ No definite area of obvious abnormal density in the brain noted.
 
 No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 No obvious dilatation of intraventricular system.
 
@@ -152,7 +152,7 @@ No definite abnormal mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 
 The bilateral lateral ventricles show no dilatation, and no midline shift is noted.
-The bilateral lateral ventricles show symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 The bilateral lateral ventricles are symmetrical in shape with acceptable age-dependent ventricular dilatation.
 No midline shift is noted.
 
@@ -347,7 +347,7 @@ Mild brain atrophy; leukoaraiosis.
   (
 Acute intracranial hemorrhage in the right lentiform nucleus, size about 2.7 x 2.4 x 3 cm, suspicious hypertensive ICH.
 Mild mass effect compressing the right lateral ventricle.
-The bilateral lateral ventricles show symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 No obvious midline shift.
 The suprasellar cistern is preserved.
 
@@ -393,7 +393,7 @@ Possibly hypertensive ICH in the right basal ganglion and thalamus, with IVH.
   (
 Presence of acute subarachnoid hemorrhage in the suprasellar and ambient cisterns, with extension to the interhemispheric fissure and bilateral sylvian fissures, more on right side. Rupture of intracranial aneurysm should be excluded.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 No obvious fracture of the skull base and the skull.
 
@@ -422,7 +422,7 @@ No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, 
 
 No definite area of obvious abnormal density in the brain parenchyma noted.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 The bilateral lateral ventricles are symmetrical in shape with acceptable age-dependent ventricular dilatation.
 
 No obvious fracture of the skull base and the skull.
@@ -454,7 +454,7 @@ Diffuse loss of gray-white matter differentiation over the cerebra and cerebella
 No definite abnormal mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 The bilateral lateral ventricles are symmetrical in shape with acceptable age-dependent ventricular dilatation.
 
 No obvious fracture of the skull base and the skull.
@@ -477,7 +477,7 @@ No definite area of obvious abnormal density in the brain noted.
 No definite abnormal mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 
-The bilateral lateral ventricles show symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 Mild widening of the bifrontal and anterior interhemispheric CSF spaces, without flattening of adjacent gyri, in favor of benign enlargement of the subarachnoid spaces in infancy.
 
 No obvious fracture of the skull base and the skull.
@@ -500,7 +500,7 @@ Benign enlargement of the subarachnoid spaces in infancy.
 No definite abnormal enhancing mass lesion in the brain noted.
 No definite acute intracranial parenchymal hemorrhage or acute epidural or acute subdural hematoma in the brain noted.
 Presence of bilateral periventricular low density noted. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 The major dural venous sinuses are patent.
 No obvious fracture of the skull base and the skull.
 
@@ -630,7 +630,7 @@ No definite abnormal signal intensity changes in the brain parenchyma.
 No definite abnormal tumor mass lesion in the brain noted.
 
 The bilateral lateral ventricles show no dilatation.
-The bilateral lateral ventricles show symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 Post contrast study shows no abnormal enhancing lesion in the brain and no abnormal leptomeningeal enhancement noted.
 The major dural venous sinuses are patent.
@@ -722,7 +722,7 @@ Presence of tiny old ischemic infarction involving bil. basal ganglion region.
 
 Presence of several tiny hyperintensities in the periventricular white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemic due to aging process and chronic hypertension.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 MRA show that no evidence of occlusion or high grade stenosis in the intracranial portion of the internal carotid artery and vertebral basilar artery, and main trunk of both anterior cerebral arteries and middle cerebral arteries.
 
@@ -759,7 +759,7 @@ No definite abnormal signal intensity changes in the brain parenchyma.
 No definite abnormal tumor mass lesion in the brain noted.
 
 The bilateral lateral ventricles show no dilatation.
-The bilateral lateral ventricles show symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 The visible paranasal sinuses, mastoids and skull base are unremarkable.
 
@@ -800,7 +800,7 @@ FINDINGS:
 
 No definite abnormal signal intensity mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 Post contrast study showed no abnormal enhancing lesion in the brain and no abnormal intracranial leptomeningeal enhancement noted.
 
@@ -843,7 +843,7 @@ Presence of several tiny hyperintensities in the periventricular white matter re
 Several nonspecific tiny hyperintensities in both periventricular and subcortical white matter regions on T2WI and FLAIR (unidentified bright objects).
 
 Mild dilatation of ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of mild brain atrophy.
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 The major dural venous sinuses are patent.
 
@@ -892,7 +892,7 @@ No evidence of high signal intensity on DWI and lower apparent diffusion coeffic
 
 No definite abnormal signal intensity lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 
 The major dural venous sinuses are patent.
 
@@ -933,7 +933,7 @@ Presence of mild confluent symmetric periventricular hyperintensity on T2WI and 
 
 No definite abnormal signal intensity tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
-The bilateral lateral ventricles show symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 Mild dilatation of ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of mild brain atrophy.
 
 The visible paranasal sinuses, mastoids and skull base are unremarkable.
@@ -975,7 +975,7 @@ Presence of mild confluent symmetric periventricular hyperintensity on T2WI and 
 
 No definite abnormal signal intensity tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
-The bilateral lateral ventricles show symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 Mild dilatation of ventricular system and sulcal widening of bilateral cerebral hemispheres noted, in favor of mild brain atrophy.
 
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
@@ -1013,7 +1013,7 @@ FINDINGS:
 
 - No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
 - No definite abnormal signal intensity changes or tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
-- The bilateral lateral ventricles showed symmetrical without dilatation. However, enlarged subarachnoid space in the bilateral high fronto-parietal region may still suggest brain atrophy.
+- The bilateral lateral ventricles are symmetrical and without dilatation. However, enlarged subarachnoid space in the bilateral high fronto-parietal region may still suggest brain atrophy.
 - The visible paranasal sinuses, mastoids and skull base are unremarkable.
 
 - MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis regions.
@@ -1208,7 +1208,7 @@ No obvious stenosis of the extracranial carotid arteries and vertebral arteries.
 
 Presence of acute subarachnoid hemorrhage in the suprasellar and ambient cisterns, with extension to the interhemispheric fissure and bilateral sylvian fissures.
 No definite area of obvious abnormal density in the brain parenchyma noted.
-The bilateral lateral ventricles showed symmetrical without dilatation.
+The bilateral lateral ventricles are symmetrical and without dilatation.
 No obvious fracture of the skull base and the skull.
   )"
     RisController.PasteToFinding(MyForm)
