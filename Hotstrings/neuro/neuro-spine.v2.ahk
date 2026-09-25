@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\..\Lib\RisController.v2.ahk
 #Include ..\..\Lib\Paste.v2.ahk
@@ -125,7 +125,7 @@ FINDINGS:
 
 No obvious significant spinal stenosis of the C-spine.
 
-No evidence of focal herniation of nucleus pulposis (HIVD) in the C-spine region noted.
+No evidence of focal herniation of nucleus pulposus (HIVD) in the C-spine region noted.
 
 No evidence of abnormal signal intensity lesion within the spinal cord of the C-spine.
 
@@ -184,7 +184,7 @@ Presence of mild high signal intensity within the cervical cord at the C5 and C6
 Presence of high signal intensity within the spinal cord from C1 to C5 disc level on T2WI noted, which may be due to cord edema, demyelination or gliosis changes.
 
 
-Presence of small meningeal cysts at bilateral C7-T1 and T1-2 and left T2-3 neuroframen regions, maximal dimension about 9mm.
+Presence of small meningeal cysts at bilateral C7-T1 and T1-2 and left T2-3 neuroforaminal regions, maximal dimension about 9mm.
 
 A slitlike syrinx cavity at C1-C2 level, in favor of a persistent central canal.
 
@@ -249,7 +249,7 @@ Presence of diffuse bulging disc noted over the T12-L1 region, and causing mild 
 7. No evidence of fracture of thoracic spine.
 8. Presence of fracture/subluxation at --------------.
 9. Presence of high signal within the spinal cord at ------ level, indicating edema/gliosis/compression with cord signal changes
-10. Presence of infectious osteomylitis involving the ------- spine, combined with epidural/paraspinal soft tissue infection, causing compression of the spinal cord
+10. Presence of infectious osteomyelitis involving the ------- spine, combined with epidural/paraspinal soft tissue infection, causing compression of the spinal cord
 11. Presence of abnormal signal intensity involving the ------spine, and compression of the spinal cord at -------- level, R/O metastasis, myeloma, or lymphoma
 12. No evidence of abnormal signal intensity lesion in the spinal cord of T-spine.
 13. Presence of abnormal signal intensity mass lesion, extradural/intradural extramedullary/intramedullary location, size about ------ cm, over the ------- spine level.
@@ -304,7 +304,7 @@ Post-contrast, sagittal and axial T1WI:
 7. No evidence of fracture of thoracic spine.
 8. Presence of fracture/subluxation at --------------.
 9. Presence of high signal within the spinal cord at -----level, indicating edema/gliosis/compression with cord signal changes
-10. Presence of infectious osteomylitis involving the ------- spine, combined with epidural/paraspinal soft tissue infection, causing compression of the spinal cord
+10. Presence of infectious osteomyelitis involving the ------- spine, combined with epidural/paraspinal soft tissue infection, causing compression of the spinal cord
 11. Presence of abnormal signal intensity involving the -----spine, and compression of the spinal cord at -------- level, R/O metastasis, myeloma, or lymphoma
 12. No evidence of abnormal signal intensity lesion and no evidence of abnormal enhanced in the spinal cord of T-spine.
 13. Presence of abnormal signal intensity mass lesion, extradural/intradural extramedullary/intramedullary location, size about ------- cm, over the ------- spine level
@@ -484,7 +484,7 @@ Post contrast study shows no evidence of abnormal enhanced lesion noted over the
 7. No evidence of fracture of lumbar spine.
 8. Presence of fracture/subluxation at --------------.
 9. Presence of high signal within the spinal cord at ------ level, indicating edema/gliosis/compression with cord signal changes
-10. Presence of infectious osteomylitis involving the ------- spine, combined with epidural/paraspinal soft tissue infection, causing compression of the spinal cord
+10. Presence of infectious osteomyelitis involving the ------- spine, combined with epidural/paraspinal soft tissue infection, causing compression of the spinal cord
 11. Presence of abnormal signal intensity involving the ------- spine, and compression of the spinal cord at -------- level, R/O metastasis, myeloma, or lymphoma
 12. Presence of increased soft tissue at ------------ level, solid/marginal enhancement, post-operative epidural fibrosis/recurrent disc more in favor
 13. No evidence of abnormal signal intensity lesion and no evidence of abnormal enhanced lesion over the spinal canal of L-spine.
@@ -492,7 +492,7 @@ Post contrast study shows no evidence of abnormal enhanced lesion noted over the
 15. Post-contrast studies show enhancement of the abnormal signal lesions.
 
 IMPRESSION:
-No evidence of focal herniation of nucleus pulposis (HIVD) in the L-spine region noted.
+No evidence of focal herniation of nucleus pulposus (HIVD) in the L-spine region noted.
 
 No evidence of abnormal signal intensity tumor mass lesion over the spinal canal of the L-spine noted.
 
@@ -551,7 +551,7 @@ Presence of small linear shape lipoma over the filum terminale, and no evidence 
 
 Presence of several perineural cysts over the spinal canal of the upper sacrum level, the biggest one about 2cm.
 Presence of L6 (lumbarization of S1) noted.
-Suspicious spodylolysis fracture of L5 pars interarticularis.
+Suspicious for a spondylolytic fracture of the L5 pars interarticularis.
 Presence of dessicated disc noted at L4-5 and L5-S1 and L-spine.
 Presence of degenerative end-plate changes noted over the L4-L5.
 Narrowing of bilateral L4-5 and L5-S1 neuroforamina due to the degenerative changes and severe disc space narrowing.

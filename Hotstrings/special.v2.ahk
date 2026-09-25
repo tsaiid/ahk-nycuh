@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
@@ -12,7 +12,7 @@ Voiding cystourethrography was performed under fluoroscopy by using contrast med
 
 1. No evidence of bil. vesico-ureteral reflux during straining, voiding and post-voiding.
 2. Normal contour of urinary bladder without filling defect noted.
-3. No definite structure anomaly or fistula identified in this study.
+3. No definite structural anomaly or fistula identified in this study.
 
 IMPRESSION:
 No vesicoureteral reflux or fistula.
@@ -61,7 +61,7 @@ Normal passage of contrast medium through the ampulla of Vater into the duodenum
 {
     MyForm := "
     (
-Antegrade pyelography was performed under fluoroscope by using contrast medium through right/left/bilateral PCN catheters with prone/supine position:
+Antegrade pyelography was performed under fluoroscopy by using contrast medium through right/left/bilateral PCN catheters with prone/supine position:
 
     )"
     Paste(MyForm)
@@ -82,24 +82,24 @@ Pharyngography
 
 Functional abnormality:
 
-Leakage: Nil. Yes, due to: weak, atrophy or resection of tongue, poor dentures, paralysis of soft palate.
+Leakage: Nil. Yes, due to: weakness, atrophy or resection of tongue, poor dentures, paralysis of soft palate.
 
 Nasal regurgitation: Nil.  Yes, due to: weakness of soft palate, or superior constrictor
 
-Barium aspiration: Nil., Yes, due to : poor or absence of (epiglottic tilting, elevation of larynx, closure of larynx).
+Barium aspiration: Nil., Yes, due to : impairment or absence of (epiglottic tilting, elevation of larynx, closure of larynx).
 
 Retention: Nil.
 
 -Swallowing stages analysis:
   -Control of junction of mouth and pharynx (stage 1): normal, (tongue deficiency, palatal deficiency with compensation; decompensation with leakage).
-  -Closure of the palatopharyngeal isthmus (stage 2): normal, (deficiency of the pharyngeal palate with comensation, decompensation with nasopharyngeal regurgitation).
-  -Compression of the bolus (stage 3): normal, (deficiency of the tongus, constrictor muscle, with barium retention in valleculae or piriform sinuses after swallowing).
+  -Closure of the palatopharyngeal isthmus (stage 2): normal, (deficiency of the pharyngeal palate with compensation, decompensation with nasopharyngeal regurgitation).
+  -Compression of the bolus (stage 3): normal, (deficiency of the tongue, constrictor muscle, with barium retention in valleculae or piriform sinuses after swallowing).
   -Closure of the larynx (stage 4): . normal, laryngeal penetration.
        -Opening of the pharyngoesophageal segment (stage 5): : normal, overflow aspiration, retained bolus.
 
 -Aspiration: Nil. Yes, during stage ///
 
--Structural anomaly: Nil. Yes, diverticulum (lateral pharyngeal pouch, diverticulum, laryngocele, Zenker's diverticulum, brachial cleft fistula, sinus, lymphoid hyperplasia,
+-Structural anomaly: Nil. Yes, diverticulum (lateral pharyngeal pouch, diverticulum, laryngocele, Zenker's diverticulum, branchial cleft fistula, sinus, lymphoid hyperplasia,
     )"
     Paste(MyForm)
 }
@@ -124,7 +124,7 @@ Oral phase:
  - Tongue-palate contact: normal
 
 Pharyngeal phase:
- - Swallowing trigger: general normal
+ - Swallowing trigger: generally normal
  - Vallecular stasis: mild amount
  - Pyriform sinus stasis: no
  - Velar elevation: normal and complete
@@ -152,8 +152,8 @@ Double-contrast upper GI study from esophagus to proximal duodenum was performed
 
 - Normal elasticity and distensibility of stomach.
 - No significant filling defect or mass lesion noted in the stomach.
-- The mucosal fold of esophagus and stomach shows no significant unusual.
-- Well distension of duodenal bulb without obvious mass effect.
+- The mucosal folds of the esophagus and stomach show no significant abnormality.
+- Good distension of the duodenal bulb without obvious mass effect.
 
 IMPRESSION:
 No abnormal findings noted in this UGI study.
@@ -170,9 +170,9 @@ Esophagography was performed under fluoroscopy and showed:
 
 FINDINGS:
 - No significant filling defect or mass lesion noted in the stomach.
-- The mucosal fold of esophagus and stomach shows no significant unusual.
-- Well distension of duodenal bulb without obvious mass effect.
-- Smooth passage of the barium without definite mass effect or abnormal mucosa pattern of the esophagus.
+- The mucosal folds of the esophagus and stomach show no significant abnormality.
+- Good distension of the duodenal bulb without obvious mass effect.
+- Smooth passage of the barium without definite mass effect or abnormal mucosal pattern of the esophagus.
 - Normal elasticity and distensibility of stomach.
 
 IMPRESSION:
@@ -191,9 +191,9 @@ Esophagography was performed under fluoroscopy:
 FINDINGS:
 - Normal elasticity and distensibility of stomach.
 - No significant filling defect or mass lesion noted in the stomach.
-- The mucosal fold of esophagus and stomach shows no significant unusual.
-- Well distension of duodenal bulb without obvious mass effect.
-- Smooth passage of the barium without definite mass effect or abnormal mucosa pattern of the esophagus.
+- The mucosal folds of the esophagus and stomach show no significant abnormality.
+- Good distension of the duodenal bulb without obvious mass effect.
+- Smooth passage of the barium without definite mass effect or abnormal mucosal pattern of the esophagus.
 
 IMPRESSION:
 No abnormal findings noted in this UGI study.
@@ -234,12 +234,12 @@ IMPRESSION:
 {
     MyForm := "
 (
-Double-contrast upper GI study from esophagus to proximal duodenum, and single contrast small intestine and compressed spot view were performed smoothly and showed:
+Double-contrast upper GI study from esophagus to proximal duodenum, and single-contrast small intestine examination with compressed spot views were performed smoothly and showed:
 
 - Normal elasticity and distensibility of stomach.
 - No significant filling defect or mass lesion noted in the stomach.
-- The mucosal fold of esophagus and stomach shows no significant unusual.
-- Well distension of duodenal bulb without obvious mass effect.
+- The mucosal folds of the esophagus and stomach show no significant abnormality.
+- Good distension of the duodenal bulb without obvious mass effect.
 - Normal appearance of mucosa and peristalsis of small intestine without obvious mass lesion.
 
 IMPRESSION: No abnormal findings noted in this UGI and small intestine study.

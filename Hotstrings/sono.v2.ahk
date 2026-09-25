@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
@@ -29,9 +29,9 @@
 ::sgbss::Several echogenic lesions in GB with acoustic shadow, in favor of gallstones.
 ::sgbss1::Several echogenic lesions in GB with postural changes and acoustic shadow, in favor of gallstones.
 ::sgba::Comet tail artifacts from the gallbladder wall, adenomyomatosis should be considered.
-::sgba1::Presence of tiny GB adenomyomatoses with RA (Rokitanski-Aschoff) sinus noted.
+::sgba1::Presence of tiny GB adenomyomatosis with RA (Rokitansky-Aschoff) sinuses noted.
 ::sgbcc::Mild gallbladder wall thickening, suspicious chronic cholecystitis.
-::srbcs::Several renal cysts in the both kidneys, size up to  cm.{Left 4}
+::srbcs::Several renal cysts in both kidneys, size up to  cm.{Left 4}
 ::srrc::A __-cm renal cyst in the right kidney.
 ::srrcs::Several renal cysts in the right kidney, size up to  cm.{Left 4}
 ::srlc::A __-cm renal cyst in the left kidney.
@@ -90,7 +90,7 @@
 ::stgd::{
     MyForm := "
 (
-The thyroid gland is diffusely enlarged and shows hyperechoic, heterogeneous echotexture, and demonstrate a thyroid inferno pattern on color Doppler. Graves disease may be suspected. DDx: other acute or subacute thyroiditis. Suggest correlate with Lab data.
+The thyroid gland is diffusely enlarged and shows hyperechoic, heterogeneous echotexture, and demonstrates a thyroid inferno pattern on color Doppler. Graves disease may be suspected. DDx: other acute or subacute thyroiditis. Suggest correlate with Lab data.
 )"
     Paste(MyForm)
 }
@@ -98,7 +98,7 @@ The thyroid gland is diffusely enlarged and shows hyperechoic, heterogeneous ech
 ::stgd1::{
     MyForm := "
 (
-The thyroid gland is diffusely enlarged and shows hyperechoic, heterogeneous echotexture, and demonstrate an increased vascularity pattern on color Doppler, suspicious thyroiditis.
+The thyroid gland is diffusely enlarged and shows hyperechoic, heterogeneous echotexture, and demonstrates an increased vascularity pattern on color Doppler, suspicious thyroiditis.
 )"
     Paste(MyForm)
 }
@@ -535,7 +535,7 @@ The prostate was measured about __ cc in volume.
     MyForm := "
 (
 Presence of convoluted vascular structure within bilateral hemiscrotums with back flow noted in Valsalva maneuver.
-More promient of the left/right, with the vascular diameter measuring up to __ cm in diameter.
+More prominent on the left/right, with the vascular diameter measuring up to __ cm in diameter.
 Varicoceles considered.
 
 Normal size of the testes. Normal epididymides.
@@ -547,7 +547,7 @@ Normal size of the testes. Normal epididymides.
     MyForm := "
 (
 The maximal thickness of uterine fundus is __ cm. The uterine cervix is __ cm thick.
-The endometrium was mild visible under sonography.
+The endometrium was mildly visible under sonography.
 
 The volume of RT ovary is about __ ml, and LT is about __ ml.
 
@@ -562,8 +562,8 @@ No obvious abnormal soft tissue mass noted under the sonography.
 Color doppler evaluation measured at the segmental arteries of both kidneys shows:
 
 Normal perfusion of bilateral renal parenchyma.
-Normal size and echogenicit of both kidneys.
-Normal accleration time of bilateral renal segmental arteries, measuring between 30-60 msec, with the accleration index about 410-1330 cm/s2.
+Normal size and echogenicity of both kidneys.
+Normal acceleration time of bilateral renal segmental arteries, measuring between 30-60 msec, with the acceleration index about 410-1330 cm/s2.
 No evidence of upstream renal arterial stenosis.
 )"
     Paste(MyForm)
@@ -574,7 +574,7 @@ No evidence of upstream renal arterial stenosis.
 (
 Color doppler evaluation measured at the segmental arteries of both kidneys shows:
 
-Relatively prolonged accleration time of -- renal segmental arteries, measuring between 130-180 msec, with the accleration index about 90-100cm/s2. Tardus-parvus waves suspected. The possibility of ---. upstream renal arterial stenosis can not be R/O.
+Relatively prolonged acceleration time of -- renal segmental arteries, measuring between 130-180 msec, with the acceleration index about 90-100cm/s2. Tardus-parvus waves suspected. The possibility of ---. upstream renal arterial stenosis can not be R/O.
 Further evaluation is suggested.
 )"
     Paste(MyForm)
@@ -583,7 +583,7 @@ Further evaluation is suggested.
 ::scduk::{
     MyForm := "
 (
-Sono CDU Kideny:
+Sono CDU Kidney:
 
 - The kidney graft is at the left iliac fossa.
 - The maximum dimension of the kidney graft is about 13.4 cm.

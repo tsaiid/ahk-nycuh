@@ -15,7 +15,7 @@ PTGBD is indicated and has been arranged.
     currDateStr := FormatTime(, "M/d tt")
     MyForm := Format("
 (
-PTGBD was performed in {1}. A 8 Fr pigtail drain was inserted. 10 ml of aspirated bile was collected for Lab exam.
+PTGBD was performed in {1}. An 8 Fr pigtail drain was inserted. 10 ml of aspirated bile was collected for Lab exam.
 )",
         currDateStr)
     Paste(MyForm)
@@ -27,7 +27,7 @@ PTGBD was performed in {1}. A 8 Fr pigtail drain was inserted. 10 ml of aspirate
 {
     MyForm := "
   (
-CT-guide lung biopsy is indicated and has been scheduled on / PM. If specimen for tissue culture is needed, please prepare other specimen collecting bottles and send to CT room with the patient. Otherwise, only specimen immersed in formalin will be harvested.
+CT-guided lung biopsy is indicated and has been scheduled on / PM. If specimen for tissue culture is needed, please prepare other specimen collecting bottles and send to CT room with the patient. Otherwise, only specimen immersed in formalin will be harvested.
   )"
     Paste(MyForm)
 }
@@ -37,7 +37,7 @@ CT-guide lung biopsy is indicated and has been scheduled on / PM. If specimen fo
     currDateStr := FormatTime(, "M/d tt")
     MyForm := Format("
   (
-CT guide lung biopsy was performed in {1}. Please follow up CXR if pneumothorax develops or progresses.
+CT-guided lung biopsy was performed in {1}. Please follow up CXR if pneumothorax develops or progresses.
   )",
         currDateStr)
     Paste(MyForm)
@@ -48,7 +48,7 @@ CT guide lung biopsy was performed in {1}. Please follow up CXR if pneumothorax 
     currDateStr := FormatTime(, "M/d tt")
     MyForm := Format("
   (
-CT guide biopsy was performed in {1}. Please keep bed rest and check if internal bleeding occurs.
+CT-guided biopsy was performed in {1}. Please keep bed rest and check if internal bleeding occurs.
   )",
         currDateStr)
     Paste(MyForm)
@@ -59,7 +59,7 @@ CT guide biopsy was performed in {1}. Please keep bed rest and check if internal
     currDateStr := FormatTime(, "M/d tt")
     MyForm := Format("
   (
-CT guide drainage was performed in {1}. A 8 Fr pigtail drain was inserted. 10 ml of aspirated pus was collected for Lab exam.
+CT-guided drainage was performed in {1}. An 8 Fr pigtail drain was inserted. 10 ml of aspirated pus was collected for Lab exam.
   )",
         currDateStr)
     Paste(MyForm)
@@ -79,7 +79,7 @@ The temporary HAIC catheter was placed in {1}. Please keep infusion of the cathe
     currDateStr := FormatTime(, "M/d tt")
     MyForm := Format("
 (
-Antegrade double-J ureteral stent placement was performed in {1}. Please keep PCN drainage if hematuria persists. For PCN removal, if needed, please clamp the PCN first, if no discomfort nor fever for hours to a day, arrange antegrade pyelography to check the patency of ureteral stent. If patent, I will remove the PCND at that time.
+Antegrade double-J ureteral stent placement was performed in {1}. Please keep PCN drainage if hematuria persists. For PCN removal, if needed, please clamp the PCN first, if no discomfort or fever for hours to a day, arrange antegrade pyelography to check the patency of ureteral stent. If patent, I will remove the PCND at that time.
 )",
         currDateStr)
     Paste(MyForm)
@@ -112,7 +112,7 @@ Please keep external compression on the puncture site and check if bleeding or h
     currDateStr := FormatTime(, "M/d tt")
     MyForm := Format("
 (
-PTCD was performed in {1}. A 8 Fr pigtail drain was inserted through left / right IHD.
+PTCD was performed in {1}. An 8 Fr pigtail drain was inserted through left / right IHD.
 )", currDateStr)
     Paste(MyForm)
 }

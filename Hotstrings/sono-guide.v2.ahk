@@ -167,7 +167,7 @@ Sono-guiding liver biopsy was successfully performed.
 :*:sg-ld:: {
     MyForm := "
 (
-Percutaneons abscess drainage-PAD:
+Percutaneous abscess drainage-PAD:
 
 Target: right subphrenic biloma.
 Drain: 8F one-step pigtail drain (with string lock), fixed at 17 cm.
@@ -253,13 +253,13 @@ Fine needle aspiration was then performed.
 About 30 ml of light brown serous fluid was aspirated.
 The sample was smeared and fixed.
 The sample was injected into the thin layer cytology fluid.
-The patient tolerated wall, and no immediate complication was noted.
+The patient tolerated the procedure well, and no immediate complication was noted.
 )"
     RisController.PasteToFinding(MyForm)
 
     MyForm := "
 (
-Sono-guiding find needle aspiration of thyroid was successfully performed.
+Sono-guided fine needle aspiration of thyroid was successfully performed.
 )"
     RisController.PasteToImpression(MyForm)
 }
@@ -293,13 +293,13 @@ Sono-Guiding Fine Needle Aspiration of Lymph Node:
 Under sonography, the mass lesion was identified at the left/right neck.
 Fine needle aspiration was then performed.
 The sample was smeared and fixed.
-The patient tolerated wall, and no immediate complication was noted.
+The patient tolerated the procedure well, and no immediate complication was noted.
 )"
     RisController.PasteToFinding(MyForm)
 
     MyForm := "
 (
-Sono-guiding find needle aspiration of lymph node was successfully performed.
+Sono-guided fine needle aspiration of lymph node was successfully performed.
 )"
     RisController.PasteToImpression(MyForm)
 }

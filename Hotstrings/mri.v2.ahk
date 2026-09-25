@@ -12,7 +12,7 @@
 {
     MyForm := "
   (
-CHEST Heart¢AVessels MRI without and with contrast medium:
+CHEST Heart & Vessels MRI without and with contrast medium:
 
 INDICATION: ?
 

@@ -316,8 +316,8 @@
 
 ;; MSK
 ::scm::sternocleidomastoid
-::atfl::anterior tibiofibular ligament
-::ptfl::posterior tibiofibular ligament
+::atfl::anterior talofibular ligament
+::ptfl::posterior talofibular ligament
 ::cfl::calcaneofibular ligament
 
 ;; General

@@ -223,10 +223,10 @@ OA changes of bilateral knees.
     MyForm := "
   (
 Atherosclerotic changes and calcification of the arterial wall, from abdominal aorta to the peripheral arteries of foot.
-Because too small diameter of arteries and the severe calcification, the patency below the popliteal level is difficult to evaluate.
+Because of the small diameter of the arteries and severe calcification, the patency below the popliteal level is difficult to evaluate.
 
 Multifocal luminal stenosis in the bilateral anterior tibial, posterior tibial, and peroneal arteries, c/w peripheral arterial disease. They are relatively patent to at least ankle level.
-Because too small diameter of arteries and the severe calcification, the evaluation may be limited.
+Because of the small diameter of the arteries and severe calcification, the evaluation may be limited.
 
 Atrophic changes of bilateral kidneys, in favor of chronic kidney disease.
 Some small nonobstructive bilateral renal stones.
@@ -236,7 +236,7 @@ No retroperitoneal or mesenteric lymphadenopathy.
 
 IMPRESSION:
 Severe arterial wall calcification from abdominal aorta to feet.
-Because too small diameter of arteries and the severe calcification, the patency below the popliteal level is difficult to evaluate.
+Because of the small diameter of the arteries and severe calcification, the patency below the popliteal level is difficult to evaluate.
   )"
     Paste(MyForm)
 }

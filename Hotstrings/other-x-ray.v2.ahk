@@ -8,10 +8,10 @@
 ::nip0::no obvious improvement.
 ::mip0::mild improvement.
 ::pc0::progressive changes.
-::pc1::progressive changes than previous.
+::pc1::progressive changes compared to the previous study.
 ::mpc0::mild progressive changes.
 ::rc0::regressive changes.
-::rc1::regressive changes than previous.
+::rc1::regressive changes compared to the previous study.
 ::mrc0::mild regressive changes.
 ::nbd::Nature to be determined.
 ::msok::Bilateral maxillary sinuses are well-aerated.

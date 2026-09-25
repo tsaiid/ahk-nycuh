@@ -325,7 +325,7 @@ MRI of the abdomen & pelvis for prostatic cancer evaluation.  It was performed b
 MR protocols: T1WI, T2WI, DWI (b=1000 axial; b=400  coronal ) pulse sequences in axial, coronal, and sagittal views.  T1WI-FS pulse sequence  with iv. contrast administration.
 Prostate:
 1. Size:
-    Zonal demarction: clear (  ).
+    Zonal demarcation: clear (  ).
       Capsule: intact (  ).
 2.  Lesions:
       L:             :-cen/junctional(  ) or peripheral (  ).  Sign of diffusional restriction (    )*. Enhancement (  )
@@ -477,12 +477,12 @@ Lesion 1:
 - DWI/ADC: No abnormality on ADC and high b-valueDWI (score 1)
 - DWI/ADC: Linear/wedge shaped hypointense on ADC and/or linear/wedge shaped hyperintense on high b-value DWI. (score 2)
 - DWI/ADC: Focal (discrete and different from the background) hypointense on ADC and/or focal hyperintense on high b-value DWI; may be markedly hypointense on ADC or markedly hyperintense on high b-value DWI, but not both. (score 3)
-- DWI/ADC: Focal markedly hypontense on ADC and markedly hyperintense on high b-value DWI; <1.5cm in greatest dimension. (score 4)
+- DWI/ADC: Focal markedly hypointense on ADC and markedly hyperintense on high b-value DWI; <1.5cm in greatest dimension. (score 4)
 - DWI/ADC: Same as 4 but ≥1.5cm in greatest dimension or definite extraprostatic extension/invasive behavior. (score 5)
 
 * DCE
 - DCE: no early or contemporaneous enhancement; or diffuse multifocal enhancement NOT corresponding to a focal finding on T2W and/or DWI or focal enhancement corresponding to a lesion demonstrating features of BPH on T2WI (including features of extruded BPH in the PZ) (-)
-- DCE: focal,and; earlierthan or contemporaneously with enhancement ofadjacent normal prostatic tissues, and; corresponds to suspicious finding on T2Wand/orDWI (+)
+- DCE: focal, and earlier than or contemporaneously with enhancement of adjacent normal prostatic tissues, and corresponds to a suspicious finding on T2W and/or DWI (+)
 
 
 Lymphadenopathy:
@@ -793,7 +793,7 @@ Imaging findings of PA, Cardinal signs
 
 Key imaging features of normal placentation
 - Homogeneous T2-intermediate signal intensity of placenta
-- Subtle thin, regularly spaced placental septi
+- Subtle thin, regularly spaced placental septa
 - Normal subplacental vascularity
 - Triple-layered sandwich appearance of myometrium
 - Pear-shape of normal gravid uterus with smooth contour.

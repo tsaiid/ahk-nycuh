@@ -10,7 +10,7 @@
 {
     MyForm := "
   (
-CT guide biopsy was performed under clinical request. The operation procedure and potential risk were well explained. Patient agreement and consensus were obtained.
+CT-guided biopsy was performed under clinical request. The operation procedure and potential risks were well explained. Patient agreement and consensus were obtained.
 Under CT guide, tissue specimens were smoothly taken for pathology examination.
 
 1. Position:
@@ -38,7 +38,7 @@ F/U CXR 6 hours later.
 
     MyForm := "
   (
-CT guide lung biopsy of  tumor was performed.
+CT-guided lung biopsy of  tumor was performed.
 Mild pneumothorax was noted. Follow-up is suggested.
   )"
     RisController.PasteToImpression(MyForm)
@@ -49,7 +49,7 @@ Mild pneumothorax was noted. Follow-up is suggested.
 {
     MyForm := "
   (
-CT guide biopsy was performed under clinical request. The operation procedure and potential risk were well explained. Patient agreement and consensus were obtained.
+CT-guided biopsy was performed under clinical request. The operation procedure and potential risks were well explained. Patient agreement and consensus were obtained.
 Under CT guide, tissue specimens were smoothly taken for pathology examination.
 
 1. Position:
@@ -82,8 +82,8 @@ F/U CXR 6 hours later.
 {
     MyForm := "
   (
-CT guide drainage was performed under clinical request. The operation procedure and potential risk were well explained. Patient agreement and consensus were obtained.
-Under CT guide, tissue specimens were smoothly taken for pathology examination.
+CT-guided drainage was performed under clinical request. The operation procedure and potential risks were well explained. Patient agreement and consensus were obtained.
+Under CT guidance, a 6F one-step pigtail drain was placed and pus was aspirated.
 
 1. Position:
 2. Target lesion:
@@ -98,7 +98,7 @@ The patient was sent back to the ward under stable condition without complaint.
 
     MyForm := "
   (
-CT guide drainage for  was performed.
+CT-guided drainage for  was performed.
   )"
     RisController.PasteToImpression(MyForm)
 }
@@ -108,7 +108,7 @@ CT guide drainage for  was performed.
 {
     MyForm := "
   (
-CT guide biopsy was performed under clinical request. The operation procedure and potential risk were well explained. Patient agreement and consensus were obtained.
+CT-guided biopsy was performed under clinical request. The operation procedure and potential risks were well explained. Patient agreement and consensus were obtained.
 
 Under CT guide, tissue specimens were smoothly taken for pathology examination.
 
@@ -127,7 +127,7 @@ The patient was sent back to the ward under stable condition without complaint. 
 
     MyForm := "
   (
-CT guide biopsy for  was performed.
+CT-guided biopsy for  was performed.
   )"
     RisController.PasteToImpression(MyForm)
 }

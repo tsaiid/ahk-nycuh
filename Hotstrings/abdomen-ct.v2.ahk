@@ -37,16 +37,16 @@
 ::mactckd1::Mild atrophic changes of bilateral kidneys with some renal cysts, in favor of chronic kidney disease.
 ::actrkaml::A __-cm fat-containing tumor at the right kidney, in favor of angiomyolipoma.
 ::actlkaml::A __-cm fat-containing tumor at the left kidney, in favor of angiomyolipoma.
-::actbkaml::Fat-containing tumors at the both kidneys, size up to __ cm, in favor of angiomyolipomas.
+::actbkaml::Fat-containing tumors in both kidneys, size up to __ cm, in favor of angiomyolipomas.
 ::actns::No evidence of high-attenuation stone along the urinary tracts.
 ::actbph::Enlarged prostate is noted, most likely benign prostatic hyperplasia.
 ::actbphpsa::Enlarged prostate is noted, most likely benign prostatic hyperplasia. Clinical correlation and serum PSA level check are recommended.
 ::actbph1::Prostate enlargement with intravesical protrusion.
 ::mactbph1::Mild prostate enlargement with intravesical protrusion.
 ::actbphc::Enlarged prostate with calcification is noted, most likely benign prostatic hyperplasia.
-::mactbph::Mild enlarged prostate is noted, most likely benign prostatic hyperplasia.
+::mactbph::Mildly enlarged prostate is noted, most likely benign prostatic hyperplasia.
 ::mactbphpsa::Mild prostate enlargement, favoring benign prostatic hyperplasia. Clinical correlation and serum PSA evaluation are suggested if clinically indicated.
-::mactbphc::Mild enlarged prostate with calcification is noted, most likely benign prostatic hyperplasia.
+::mactbphc::Mildly enlarged prostate with calcification is noted, most likely benign prostatic hyperplasia.
 ::actpcl::* Note: Evaluation of prostate gland and early-stage prostate cancer is limited on CT scan.
 ::aphe::arterial phase hyperenhancement
 ::actlok::No definite liver tumor. No abnormal enhanced parenchymal lesion.
@@ -54,7 +54,7 @@
 ::actfl::Diffusely decreased attenuation of the liver, suggestive of fatty liver.
 ::actmfl::Diffusely mildly decreased attenuation of the liver, suggestive of mild fatty liver.
 ::actc::Irregular surface of the liver with nodularity, indicating cirrhosis.
-::mactc::Mild irregular surface of the liver with nodularity, suspicious mild cirrhosis.
+::mactc::Mildly irregular surface of the liver with nodularity, suspicious for mild cirrhosis.
 ::actac::Wall thickening of the urinary bladder with perivesical fat stranding, suggestive of acute cystitis.
 ::mactac::Mild wall thickening of the urinary bladder with perivesical fat stranding, suggestive of acute cystitis.
 ::actcc::Wall thickening of the urinary bladder, suspicious for chronic cystitis.
@@ -494,7 +494,7 @@ Hollow organ perforation. Perforated peptic ulcer may be suspected.
 {
     MyForm := "
   (
-Mild wall thickening and submucosal edema in the the ascending colon, with mesocolic fat stranding, most likely diverticulitis.
+Mild wall thickening and submucosal edema in the ascending colon, with mesocolic fat stranding, most likely diverticulitis.
 Small amount of ascites in the pelvis and right paracolic gutter.
 No obvious ascites.
 No evidence of intraperitoneal free air.
@@ -525,8 +525,8 @@ Scanning range: lower abdomen to symphysis, 5-mm contiguous scan.
 Previous abdominal CT: none.
 
 FINDINGS:
-- Several small diverticula noted in the the ascending and sigmoid colon.
-- Wall thickening and edema in the the ascending colon, with pericolic fat stranding, most likely diverticulitis.
+- Several small diverticula noted in the ascending and sigmoid colon.
+- Wall thickening and edema in the ascending colon, with pericolic fat stranding, most likely diverticulitis.
 - Small extraluminal free air is noted nearby, suggestive of perforation.
 - Several regional reactive lymph nodes.
 - Small amount of ascites in the right paracolic gutter.
@@ -563,7 +563,7 @@ Contrast medium: Yes, 80 ml, 1-2 ml/sec, with 100 seconds scanning delay.
 Previous abdominal CT: none.
 
 FINDINGS:
-A small fat-density ovoid structure adjacent to the descending colon (Se/Im: 4/55, 6/23), with a thin high-density rim, surrounding inflammatory fat stranding, and thickening of the adjacent peritoneum. The adjacent colonic wall thickening is minimal and the amount of fat inflammation is out of proportional to colonic wall thickening. Epiploic appendagitis is more favored than diverticulitis.
+A small fat-density ovoid structure adjacent to the descending colon (Se/Im: 4/55, 6/23), with a thin high-density rim, surrounding inflammatory fat stranding, and thickening of the adjacent peritoneum. The adjacent colonic wall thickening is minimal and the amount of fat inflammation is out of proportion to colonic wall thickening. Epiploic appendagitis is more favored than diverticulitis.
 
 The appendix is normal.
 No evidence of intraperitoneal free air.
@@ -902,7 +902,7 @@ Biliary tree: Unremarkable
 Spleen: Unremarkable
 Pancreas: Unremarkable
 GI tract:
-- Mild dilated small bowels, especially distal ileum, in favor of paralytic ileus.
+- Mildly dilated small bowel, especially the distal ileum, in favor of paralytic ileus.
 - High-attenuation materials in the colon, probably medication or food.
 
 No pelvic, retroperitoneal or mesenteric lymphadenopathy.
@@ -978,7 +978,7 @@ FINDINGS:
 
 No definite bleeder or contrast extravasation identified in this study.
 No other apparent focal lesion noted at liver, spleen, pancreas and kidneys.
-The lower abdomen showed no significant unusual.
+The lower abdomen showed no significant abnormality.
 No definite bowel dilatation or wall thickening noted.
 No intraabdominal lymphadenopathy noted.
 
@@ -1204,8 +1204,8 @@ Bony metastases: None in the scanning range.
 
 M0: No distant metastasis (in this study).
 M1a: Metastasis confined to one site or organ is identified without peritoneal metastasis.
-M1b: Metastases to two or more site or organ is identified without peritoneal metastasis.
-M1c: Metastases to the peritoneal surface is identified alone or with other site or organ metastasis.
+M1b: Metastases to two or more sites or organs are identified without peritoneal metastasis.
+M1c: Metastases to the peritoneal surface are identified alone or with other site or organ metastases.
 
 NOTE: in case of mucinous-type of rectal tumor the involved lymph nodes may have fluid-like density.
 
@@ -1274,8 +1274,8 @@ Others:
 
 M0: No distant metastasis (in this study).
 M1a: Metastasis confined to one site or organ is identified without peritoneal metastasis.
-M1b: Metastases to two or more site or organ is identified without peritoneal metastasis.
-M1c: Metastases to the peritoneal surface is identified alone or with other site or organ metastasis.
+M1b: Metastases to two or more sites or organs are identified without peritoneal metastasis.
+M1c: Metastases to the peritoneal surface are identified alone or with other site or organ metastases.
 
 NOTE: in case of mucinous-type of rectal tumor the involved lymph nodes may have fluid-like density.
   )"
@@ -1312,7 +1312,7 @@ Contrast medium: Yes, 80 ml, 1-2 ml/sec, with 100 seconds scanning delay.
 Previous abdominal CT: none.
 
 FINDINGS:
-Enhanced mass lesion at the pyloric ring, causing gastric outlet obstruction and distended stomach with much residual food material. Gastric cancer is suspected. The tumor seems invade to the serosa [T4a].
+Enhanced mass lesion at the pyloric ring, causing gastric outlet obstruction and distended stomach with much residual food material. Gastric cancer is suspected. The tumor seems to invade the serosa [T4a].
 
 Numerous enlarged lymph nodes at the suprapyloric (5), infrapyloric (6), left gastric (7), common hepatic (8), celiac (9), retropancreatic (13), mesenteric root (14) stations, suggestive of regional metastatic lymphadenopathy. [N3b]
 
@@ -1392,7 +1392,7 @@ Diffuse gallbladder wall thickening and edematous changes with gallbladder stone
 Diffuse gallbladder wall thickening and edematous changes with gallbladder stones and GB distention are noted. Acute cholecystitis is considered.
 Diffuse gallbladder wall thickening and edematous changes with pericholecystic fluid accumulation, and tiny gallbladder stones are noted. Even though, no obvious GB distention. Acute cholecystitis is still considered.
 Presence of a high-attenuation gallstone at the orifice of cystic duct, with distended gallbladder, diffuse gallbladder wall thickening and edematous changes, c/w acute calculus cholecystitis.
-Mildly distended gallbladder, with mild GB wall thickening. No obvious pericholecystic fluid accumulation. However, early changes of acute cholecystitis cannot be excluded. Correlate with sonography and Murphy sign is suggested.
+Mildly distended gallbladder, with mild GB wall thickening. No obvious pericholecystic fluid accumulation. However, early changes of acute cholecystitis cannot be excluded. Correlation with sonography and Murphy's sign is suggested.
 
 Several gallbladder stones and mild GB distention. However, no obvious GB wall thickening or pericholecystic fat stranding. Acute cholecystitis may be less likely. Clinical and sonographic correlation is suggested.
 
@@ -1404,7 +1404,7 @@ No CBD or IHD dilatation.
   (
 C/W acute cholecystitis.
 C/W acute calculus cholecystitis.
-Early changes of acute cholecystitis is suspected. Suggest correlate with sonography and Murphy sign.
+Early changes of acute cholecystitis are suspected. Suggest correlation with sonography and Murphy's sign.
   )"
     RisController.PasteToImpression(MyForm)
 }

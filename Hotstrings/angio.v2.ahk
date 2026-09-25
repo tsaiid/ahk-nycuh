@@ -355,7 +355,7 @@ PROCEDURE AND FINDINGS:
 - Selective embolization of the right hepatic artery was performed with mixture of 20 mg Doxorubicin and 4 ml Lipiodol, followed by Gelfoam slurry. Intentionally making reflux of embolizers for LHA embolization.
 - The follow-up common hepatic angiography showed decreased right hepatic arterial flow and no more visible tumor stain.
 - The angiocatheter and sheath were removed, and hemostasis of puncture site was achieved by manual compression. The wound dressing was changed about 2 hours later. No subcutaneous hematoma but mild ecchymosis was noted.
-- The right radial artery was also checked using sonography. Small thrombi were noted with paritial occlusion. It will be rechecked next time.
+- The right radial artery was also checked using sonography. Small thrombi were noted with partial occlusion. It will be rechecked next time.
 
 RECOMMENDATION:
 - Close follow up the vital signs and consciousness.
@@ -381,7 +381,7 @@ Embolizer: DC beads 100-300 micrometer loaded with Doxorubicin 75 mg, Lipiodol, 
 PROCEDURE AND FINDINGS:
 - The angiography of celiac trunk, common hepatic artery, and right hepatic artery show two tumor stains at S1 and S8 of liver.
 - Selective embolization of the S1 tumor feeding artery was performed with DC beads loaded with Doxorubicin. About 6 ml Lipiodol was infused through the RHA. The S1 artery was embolized with Gelfoam slurry.
-- The right inferior phrenic artery also shows a feeding artery to the S1 tumor. It was selectively embolized with Lipiodol about 6 ml, followed by Gelform slurry.
+- The right inferior phrenic artery also shows a feeding artery to the S1 tumor. It was selectively embolized with Lipiodol about 6 ml, followed by Gelfoam slurry.
 - The follow-up angiography shows no more visible tumor stain.
 - The angiocatheter and sheath were removed, and hemostasis of puncture site was achieved by applying PreludeSYNC DISTAL radial compression device. The device was deflated about 30 minutes later. No subcutaneous hematoma was noted.
 
@@ -509,7 +509,7 @@ HCC, S2, 2.6 cm.
 (
 # Lipiodol
 SMA, celiac, superselective hepatic angiograms and TAE are performed via puncture of right femoral artery. The whole procedure was smooth.
-The aim of this procedure is to perform arterial embolozation for treatment of HCC.
+The aim of this procedure is to perform arterial embolization for treatment of HCC.
 
 1. A case of HCC s/p  .
 2. hypervascular tumor stain(s) in   lobe of liver, consistent with HCC.
@@ -526,17 +526,17 @@ The aim of this procedure is to perform deTACE for HCC.
 2. Several large poor-defined hypervascular tumor stains at right lobe of liver.
 3. The portal vein was patent.
 4. extrahepatic tumor feedings from the LGA and RT phrenic artery (from right superior renal and adrenal arteries) were noticed. The LGA was embolized with glue.
-5. The RT phrenic artery angiography was performed to exclude apparent pulmonary shunting, and thent deTACE with DC bead (300-500 um) 2cc+ epirubicin 75 mg was slowly injected, followed by gelfoam pieces until flow stasis.
+5. The RT phrenic artery angiography was performed to exclude apparent pulmonary shunting, and then deTACE with DC bead (300-500 um) 2cc+ epirubicin 75 mg was slowly injected, followed by gelfoam pieces until flow stasis.
 6. deTACE with DC bead (100-300um) 2cc + epirubicin 75 mg was slowly injected into each segmental branches of the RHA.
 7. No tumor stain at final angiography.
 8. Follow up this patient as TAE protocol is suggested.
 
 # Embozene
 SMA, celiac, superselective hepatic angiograms and TAE are performed via puncture of right femoral artery. The whole procedure was smooth.
-The aim of this procedure is to perform arterial embolozation for treatment of HCC.
+The aim of this procedure is to perform arterial embolization for treatment of HCC.
 
 1. A case of HCC s/p HAIC.
-2. The both tumors are hypovascular and poor demonstration on angiography.
+2. Both tumors are hypovascular and poorly demonstrated on angiography.
 3. The portal vein was patent.
 4. TAE with Embozene (75um) 1.5 vial injection into segmental RHA at S7 lesion.
 5. Another Embozene (75 um) 0.5 vial and lipiodol 3 ml injection into segmental RHA at S5 lesion.
@@ -544,7 +544,7 @@ The aim of this procedure is to perform arterial embolozation for treatment of H
 
 # Hepasphere
 SMA, celiac, superselective hepatic angiograms and TAE are performed via puncture of left femoral artery. The whole procedure was smooth.
-The aim of this procedure is to perform arterial embolozation for treatment of HCC.
+The aim of this procedure is to perform arterial embolization for treatment of HCC.
 
 1. A case of HCC s/p TAE.
 2. Hypervascular tumor stain at S3 of liver.
@@ -602,7 +602,7 @@ PROCEDURE AND FINDINGS:
 - Filling defects in the main portal vein with a lot of collateral vessels at the hepatic hilum suggest portal thrombosis.
 - The main portal vein is patent in both celiac and superior mesenteric angiography.
 - The gastroduodenal artery was embolized with microcoils.
-- The patient mensioned about epigastric pain and tarry stool in the previous session of HAIC, and a right gastric artery is noted arising from the left hepatic artery. Therefore, the right gastric artery was embolized with microcoils.
+- The patient mentioned epigastric pain and tarry stool in the previous session of HAIC, and a right gastric artery is noted arising from the left hepatic artery. Therefore, the right gastric artery was embolized with microcoils.
 - The angiocatheter was kept with tip at the common hepatic artery. Abdominal straining and shoulder movement tests showed stability of the catheter.
 - The puncture site was covered with Tegaderm.
 - The catheter was connected with normal saline pump for keeping patency.
@@ -901,13 +901,13 @@ PICC catheter insertion was performed in {1}. A 4 Fr Groshong catheter was place
 (
 Venography of right/left arm and SVC:
 - Puncture: basilic/brachial/cephalic vein
-- Patent of right basilic/brachial/cephalic vein, subclavian vein, brachiocephalic vein and superior vena cava.
+- Patency of right basilic/brachial/cephalic vein, subclavian vein, brachiocephalic vein and superior vena cava.
 - No significant stenosis, vasospasm or abnormal collaterals noted in this study.
 
 The PICC (peripherally inserted central venous catheter) is inserted from right/left arm:
 - puncture: basilic/brachial/cephalic vein
 - tourniquet: applied
-- After sterilizing the puncture site and local anesthesia, a 4-Fr. single lumen close-end catheter is is introduced under sonography guidance using Seldinger technique and advanced with its tip at the superior vena cava.
+- After sterilizing the puncture site and local anesthesia, a 4-Fr. single lumen close-end catheter is introduced under sonography guidance using Seldinger technique and advanced with its tip at the superior vena cava.
 - The whole course is smooth and the patient stood the whole procedure well.
 
 IMPRESSION:
@@ -922,7 +922,7 @@ IMPRESSION:
 (
 Venography of right/left arm and SVC:
 - Puncture: basilic/brachial/cephalic vein
-- Patent of right basilic/brachial/cephalic vein, subclavian vein, brachiocephalic vein and superior vena cava.
+- Patency of right basilic/brachial/cephalic vein, subclavian vein, brachiocephalic vein and superior vena cava.
 - No significant stenosis, vasospasm or abnormal collaterals noted in this study.
 
 The PowerPICC is inserted from left arm:
@@ -930,7 +930,7 @@ The PowerPICC is inserted from left arm:
 - tourniquet: applied
 - After sterilizing the puncture site and local anesthesia, a 5F dual-lumen PowerPICC (cut to 42 cm in length) was introduced using Seldinger technique and advanced with its tip at the superior vena cava level.
 - The redrawing of blood and flushing of catheter were both smooth.
-- Then, the PowerPICC was fixed and the puncture site was drapped.
+- Then, the PowerPICC was fixed and the puncture site was draped.
 
 IMPRESSION:
 1. The PICC is inserted from right/left arm.
@@ -988,7 +988,7 @@ Patent major left lower extremity arteries.
 Percutaneous Transhepatic Cholangiography and Drainage
 
 Devices: 8 Fr Cholangio-Entero-Tube
-Devices: 8 Fr x 25 cm pigtail drain withoug string lock
+Devices: 8 Fr x 25 cm pigtail drain without string lock
 Devices: 8 Fr x 35 cm pigtail drain
 Devices: 8 Fr x 35 cm pigtail drain with string lock
 Devices: 8 Fr x 35 cm pigtail drain with string lock and homemade side holes
@@ -1091,7 +1091,7 @@ FINDINGS:
 - After the examination, the port was flushed with heparinized saline.
 
 - The chemoport had been implanted at the left upper chest wall, and the catheter goes through left internal jugular vein with its tip at the SVC or in the RA.
-- By hand injection of contrast medium, initially, high resistence was encountered and no blood could be drawn. Under flouroscopy guidence, the Huber needle was adjusted. Then, the injection and blood drawing were smooth.
+- By hand injection of contrast medium, initially, high resistance was encountered and no blood could be drawn. Under fluoroscopy guidance, the Huber needle was adjusted. Then, the injection and blood drawing were smooth.
 - The venography shows patent Port-A catheter without stasis, backflow, or leakage of contrast medium.
 
 - The chemoport catheter forms a circle at the left internal jugular vein, with tip at the left innominate vein.
@@ -1131,12 +1131,12 @@ PROCEDURE AND FINDINGS:
 
 - Initially, right femoral artery was approached under US guidance. The angiography of celiac trunk shows patent CHA, PHA, RHA, and LHA.
 - The microcatheter could go forward to RHA and LHA 1st branch. However, the V-18 guide wire could not be steadily positioned, due to the acute angle of celiac trunk and tortuous CHA. Therefore, we shifted to right subclavian artery approach.
-- With subclavian approach, the V-18 guide wire could be steadily positioned with tip in the LHA. However, the Anthron P-U catheter could only advanced to the PHA. In order to prevent the side hole being located in the aorta, the catheter tip was placed in the splenic artery, while the side hole at proximal CHA or celiac trunk.
+- With subclavian approach, the V-18 guide wire could be steadily positioned with tip in the LHA. However, the Anthron P-U catheter could only advance to the PHA. In order to prevent the side hole being located in the aorta, the catheter tip was placed in the splenic artery, while the side hole at proximal CHA or celiac trunk.
 - To reduce the splenic flow, a .018 14-6 Nester coil was deployed to the splenic artery, with partial coil residing in the P-U catheter.
 - A small pocket was created at the right upper chest wall, where the port was fixed, and the catheter was connected to the port with a 2-cm subcutaneous tunnel tract. The wounds were closed with 3-0 Nylon.
 - The final angiography through the port confirmed its functionality, and 2000 IU/2 ml heparin was injected into the port.
 
-- Initially, right femoral artery was approached under US guidance. The angiography of celiac trunk and superior mesenteric artery show a replaced LHA from LGA, communication between celiac and SMA with pancreaticoduodenal artery. Then, CTHA and CTAP were performed to determined the communications.
+- Initially, right femoral artery was approached under US guidance. The angiography of celiac trunk and superior mesenteric artery show a replaced LHA from LGA, communication between celiac and SMA with pancreaticoduodenal artery. Then, CTHA and CTAP were performed to determine the communications.
 - These communications and the LGA were embolized with microcoils.
 - No definite right gastroepiploic artery and right gastric artery is identified in the angiography.
 - The Anthron P-U catheter was placed over the wire with tip in the common hepatic artery. (The tapered end was cut, because it could not reach deep enough for the side hole to be in the celiac trunk.)

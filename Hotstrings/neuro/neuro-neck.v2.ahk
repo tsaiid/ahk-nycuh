@@ -182,7 +182,7 @@ No evidence of soft tissue mass over the cochlear promontory.
 2. No evidence of soft tissue density in the --------- middle ear, aditus, and mastoid antrum, with ossicle chain intact.
 3. No evidence of soft tissue opacification in the --------- mastoid air sinus.
 4. Presence of soft tissue density in the ---------- mastoid air sinus, mastoiditis considered.
-5. Poor pneumonization of the --------- mastoid air sinus.
+5. Poor pneumatization of the --------- mastoid air sinus.
 
 IMPRESSION:
 1. COM with granulation tissue, ----------.

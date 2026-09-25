@@ -256,8 +256,8 @@
 ::nhm::No obvious hypermobility.
 ::noas::No obvious squaring of the vertebral bodies.
 ::gvr::genu varum
-::gvg::genu valgus
-::hvr::hallux varum
+::gvg::genu valgum
+::hvr::hallux varus
 ::hvg::hallux valgus
 ::if::internal fixation
 ::ef::external fixation
@@ -363,10 +363,10 @@ The angle formed by the inferior axis of the calcaneus and 5th metatarsal shaft 
 ::avn4:: {
     MyForm := "
 (
-Collapse of right femoral head is present, and joint space is mild irregular. The findings are consistent with avascular necrosis, stage IV.
+Collapse of right femoral head is present, and joint space is mildly irregular. The findings are consistent with avascular necrosis, stage IV.
 
 Bilateral hips:
-Collapse of femoral heads is present, and joint spaces are mild irregular. The findings are consistent with avascular necrosis, stage IV.
+Collapse of femoral heads is present, and joint spaces are mildly irregular. The findings are consistent with avascular necrosis, stage IV.
 
 Flattening or collapse of femoral head is present.
 Joint space may be irregular.
@@ -397,7 +397,7 @@ Findings include extensive destruction of the femoral head and joint.
 ::sii1::No specific abnormality except "suspicious" changes. (some blurring of the joint margins - suspicious). Grade I (suspicious) sacroiliitis.
 ::sii2::Loss of definition at the edge of the sacroiliac joints. There is some sclerosis and perhaps minimal erosions. There may be some joint space narrowing. Grade II (minimal) sacroiliitis.
 ::sii3::There is definite sclerosis on both sides of the sacroiliac joints, blurring and indistinct margins, and erosive changes with loss of joint space. Grade III (moderate) sacroiliitis.
-::sii4::Complete fusion or ankylosis of the joint with or withoutsome residual sclerosis. Grade IV (ankylosis) sacroiliitis.
+::sii4::Complete fusion or ankylosis of the joint with or without some residual sclerosis. Grade IV (ankylosis) sacroiliitis.
 
 ::djdc::DJD changes of C-spine.
 ::djdc1::DJD changes of C-spine with spur formation.
@@ -523,10 +523,10 @@ TECHNIQUE: Single frontal view of both hands
 
 FINDINGS:
 Sex: {1}
-Choronological Age: {2}
+Chronological Age: {2}
 Estimated Bone Age:
 
-REMARKES:
+REMARKS:
 The estimation of bone age is by the method of Greulich and Pyle.
 )",
         sex, ageText)

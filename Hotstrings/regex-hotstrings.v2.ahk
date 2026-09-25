@@ -160,8 +160,8 @@ ca() {
     ca_degree := hsMatch[1]
     finalStr := Format("
 (
-Cobb angle: {1} degree.
-)", ca_degree)
+Cobb angle: {1} degree{2}.
+)", ca_degree, ca_degree == "1" ? "" : "s")
     Paste(finalStr)
 }
 

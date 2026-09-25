@@ -11,7 +11,7 @@
 ::ist::interlobular septal thickening
 ::6mcct::Follow up chest CT scan 6 months later.
 ::tacal::Atherosclerotic changes and calcification of the aortic wall.
-::tacal1::Atherosclerotic changes and calcification of the aortic and branches walls.
+::tacal1::Atherosclerotic changes and calcification of the aortic and branch walls.
 ::tacalt::Atherosclerotic changes and calcification of the aortic wall with aortic tortuosity.
 ::macal::mild calcification of the aortic wall.
 ::mtacal::mild atherosclerotic changes and calcification of the aortic wall.
@@ -20,8 +20,8 @@
 ::cctcad::Calcification of the coronary arteries, suspicious of coronary artery disease.
 ::cad0::calcification of the coronary arteries.
 ::mcad0::mild calcification of the coronary arteries.
-::cad1::calcification of the coronary arteries, suspicious coronary artery disease.
-::mcad1::mild calcification of the coronary arteries, suspicious coronary artery disease.
+::cad1::calcification of the coronary arteries, suspicious for coronary artery disease.
+::mcad1::mild calcification of the coronary arteries, suspicious for coronary artery disease.
 ::amvcal::calcification of the aortic and mitral valves.
 ::avcal::calcification of the aortic valve.
 ::mvcal::calcification of the mitral valve.
@@ -339,7 +339,7 @@ Measurement of pulmonary solid nodule is based on RECIST 1.1, the largest diamet
 
 If a solid nodule < 6 mm, follow-up at 12 months may be considered.
 If a solid nodule 6-8 mm, a single follow-up at 6-12 months is advised, with a third CT scan at 18-24 months to be considered.
-If a solid nodules > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
+If a solid nodule > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
 If multiple nodules > 6 mm, follow-up at 3-6 months and then 18-24 months.
 
 If ground-glass nodules greater than 6 mm, follow-up at 6-12 months and then every 2 years until the 5-year mark.
@@ -393,7 +393,7 @@ Measurement of pulmonary solid nodule is based on RECIST 1.1, the largest diamet
 
 If a solid nodule < 6 mm, follow-up at 12 months may be considered.
 If a solid nodule 6-8 mm, a single follow-up at 6-12 months is advised, with a third CT scan at 18-24 months to be considered.
-If a solid nodules > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
+If a solid nodule > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
 If multiple nodules > 6 mm, follow-up at 3-6 months and then 18-24 months.
 
 If ground-glass nodules greater than 6 mm, follow-up at 6-12 months and then every 2 years until the 5-year mark.
@@ -418,7 +418,7 @@ Measurement of pulmonary solid nodule is based on RECIST 1.1, the largest diamet
 
 If a solid nodule < 6 mm, follow-up at 12 months may be considered.
 If a solid nodule 6-8 mm, a single follow-up at 6-12 months is advised, with a third CT scan at 18-24 months to be considered.
-If a solid nodules > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
+If a solid nodule > 8 mm, follow-up at 3 months or PET/CT or tissue sampling.
 If multiple nodules > 6 mm, follow-up at 3-6 months and then 18-24 months.
 
 If ground-glass nodules greater than 6 mm, follow-up at 6-12 months and then every 2 years until the 5-year mark.
@@ -646,7 +646,7 @@ CARDIOVASCULAR FINDINGS:
   . Situs: solitus
   . Atrium: Not unusual
   . Ventricle: Not unusual.
-  . Aorta: not usuual, AAo diameter:  mm; DAo: mm.
+  . Aorta: not usual, AAo diameter:  mm; DAo: mm.
   . Pulmonary trunk: not unusual, trunk diameter: mm; RPA: mm; LPA: mm.
   . Collateral to lung: PDA (-); MAPCA(-).
   . Pulmonary vein: Not unusual
@@ -661,9 +661,9 @@ MEASUREMENT:
 
 OTHER FINDINGS:
   . Trachea and bronchus: Not unusual
-  . Lung parenchyma and plerua: No unusual
+  . Lung parenchyma and pleura: Not unusual
   . Pleural: Not unusual
-  . Chest wall: No unusual
+  . Chest wall: Not unusual
   . Presence of thymus gland: (+)
   . Abdomen: Not unusual
 
@@ -701,7 +701,7 @@ A. Tumor Profile
 * Involves main bronchus (T2)
 * Invades visceral pleura (T2)
 * Focal atelectasis or obstructive pneumonitis to hilum (T2)
-* Involves part or anterior longitudinal ligament of the lung (T2)
+* Involves part of the lung or the whole lung (T2)
 
 
 * Invades parietal pleura, chest wall (including superior sulcus tumors), phrenic nerve, parietal pericardium (T3)
@@ -721,7 +721,7 @@ A. Tumor Profile
 * Separate tumor nodule(s) in a contralateral lobe (M1a)
 * Tumor with pleural or pericardial nodules, or malignant pleural (or pericardial) effusion (M1a)
 * Single extrathoracic metastasis in a single organ (M1b):
-* Multiple extrathoracic metastasis in a single organ or multiple organs (M1c):
+* Multiple extrathoracic metastases in a single organ or multiple organs (M1c):
 * Uncertain lesion in the scanned range, which could be metastatic lesion or not, and require further study (Mx)
 
 B. Other Findings
@@ -921,7 +921,7 @@ Lung nodule findings related to cancer screening
 □Nodule with benign features.
 □Lung nodule(s) (<6mm) (選填 SE: , IM:   )
 □Juxtapleural nodule.
-□Lung nodule(s) (≧6mm or enlarging>1.5mm or new≧4mm): total number □1 □2 □3 □≥4, and described as followings:
+□Lung nodule(s) (≧6mm or enlarging>1.5mm or new≧4mm): total number □1 □2 □3 □≥4, and described as follows:
 請依序描述最懷疑之肺結節(至多 3 個) (Describe the most suspicious 3 nodules in order)
 
   □Lung nodule 1 (size, character and location)
@@ -1076,7 +1076,7 @@ Fleischner2017Form() {
         ]
 
         ; 使用 Format 格式化字串
-        MyForm := Format("Fleischner Society 2017 Guidelines recommends: {1}", FsgRecommendations[SelectedIndex])
+        MyForm := Format("Fleischner Society 2017 Guidelines recommend: {1}", FsgRecommendations[SelectedIndex])
 
         RisDialog.CloseAndRestoreFocus(FsgGui, parentWnd)
 

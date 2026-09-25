@@ -613,7 +613,7 @@ Clinical correlation and follow up are suggested.
 {
     MyForm := "
   (
-No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 
 No evidence of high signal intensity lesion in the brain stem on DWI.
 
@@ -640,7 +640,7 @@ The visible paranasal sinuses, mastoids and skull base are unremarkable.
 MRA shows no significant vascular stenosis in the major intracranial arteries or aneurysm near the circle of Willis region.
 No evidence of aneurysm or arterial-venous malformation (AVM) noted near the circle of Willis region.
 
-MRA shows multiple focal mild irregular luminal stenoses over the major intracranial arteries, probably due to atherosclerosis.
+MRA shows multiple focal mildly irregular luminal stenoses over the major intracranial arteries, probably due to atherosclerosis.
 MRA shows multiple foci of stenoses in the intracranial portion of both internal carotid arteries.
 
 MRA shows presence of high grade stenosis or occlusion over the right/left carotid siphon and distal M1 of right/left MCA, with paucity of the branches of the right/left MCA noted.
@@ -680,9 +680,9 @@ Applicable previous CT of brain: no
 
 FINDINGS:
 
-No evidence of hign signal intensity lesion in the brain stem on DWI suggesting acute or recent ischemia infarction.
+No evidence of high signal intensity lesion in the brain stem on DWI suggesting acute or recent ischemic infarction.
 
-Presence of several small old ischemia infarction noted including the pons, bil. basal ganglion and bil. thalamus region noted.
+Presence of several small old ischemic infarctions, including in the pons, bilateral basal ganglia, and bilateral thalamic regions.
 
 Presence of tiny old ischemic infarction or previous brain insult involving bil. basal ganglion, bil. corona radiata and bil. thalami regions.
 
@@ -701,8 +701,8 @@ No definite abnormal signal intensity mass lesion in the brain noted including s
 Post contrast study showed no abnormal enhancing lesion in the brain and no abnormal leptomeningeal enhancement noted.
 
 Imp:
-No evidence of hign signal intensity lesion in the brain stem on DWI suggesting acute or recent ischemia infarction.
-Others as the above discription.
+No evidence of high signal intensity lesion in the brain stem on DWI suggesting acute or recent ischemic infarction.
+Others as the above description.
 
 
 --------------------------------------------------------------------------
@@ -714,9 +714,9 @@ And post Gadolinium enhancement with axial and coronal T1 weighted image showed:
 MRA of the brain with 3D TOF focus on circle of Willis:
 
 -----------------------------------
-No evidence of hign signal intensity lesion in the brain stem on DWI.
+No evidence of high signal intensity lesion in the brain stem on DWI.
 
-Presence of small recent acute ischemic infarction, about 1.4cm in diameter, involving left periventricular white matter, with hign signal intensity on T2WI, FLAIR, and DWI, and lower apparent diffusion coefficeint (ADC).
+Presence of small recent acute ischemic infarction, about 1.4cm in diameter, involving left periventricular white matter, with high signal intensity on T2WI, FLAIR, and DWI, and lower apparent diffusion coefficient (ADC).
 
 Presence of tiny old ischemic infarction involving bil. basal ganglion region.
 
@@ -836,7 +836,7 @@ A 2.8-cm enhancing nodular lesion at the left cerebellar hemisphere, with perifo
 Post contrast study showed no abnormal enhancing lesion in the brain and no abnormal leptomeningeal enhancement noted.
 No definite abnormal signal intensity tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
-No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 No abnormal signal intensity changes in the brain and brainstem noted.
 
 Presence of several tiny hyperintensities in the periventricular white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
@@ -888,7 +888,7 @@ Previous MRI of brain: none
 FINDINGS:
 Post contrast study showed no abnormal enhanced tumor mass lesion in the brain and no abnormal leptomeningeal enhancement noted.
 
-No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 
 No definite abnormal signal intensity lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
@@ -924,7 +924,7 @@ Previous MRI of brain: none
 FINDINGS:
 The high resolution SWI shows absence of the normal appearance of nigrosome-1 within the substantia nigra (absent swallow tail sign).  C/W Parkinson disease. DDx: dementia with Lewy bodies.
 
-No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 
 Multiple tiny T2 hyperintensity spots over both basal ganglia, in favor of dilated perivascular spaces.
 
@@ -967,7 +967,7 @@ Previous MRI of brain: none
 FINDINGS:
 The high resolution SWI shows normal appearance of the substantia nigra (present swallow tail sign).  No strong evidence of Parkinson disease.
 
-No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 
 Multiple tiny T2 hyperintensity spots over both basal ganglia, in favor of dilated perivascular spaces.
 
@@ -1011,7 +1011,7 @@ FINDINGS:
 - The dural venous sinuses show slightly engorgement.
 > Intracranial hypotension still may be suspected.
 
-- No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+- No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 - No definite abnormal signal intensity changes or tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 - The bilateral lateral ventricles are symmetrical and without dilatation. However, enlarged subarachnoid space in the bilateral high fronto-parietal region may still suggest brain atrophy.
 - The visible paranasal sinuses, mastoids and skull base are unremarkable.
@@ -1037,7 +1037,7 @@ Mild atrophy of right hippocampus (Se/Im: 7/9) with increased T2 signal intensit
 
 No evidence of hippocampal atrophy or abnormal signal intensity.
 
-No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 
 No definite abnormal signal intensity changes or tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
@@ -1090,7 +1090,7 @@ No evidence of abnormal enhanced mass lesion noted over the suprasellar region n
 
 No evidence of low signal intensity nodule noted within the pituitary gland in the conventional and dynamic scan. Suggest correlate with prolactin level.
 
-1. Presence of enhanced cystic/mass lesion in the sellar and suprasellar arer, size about---------cm.
+1. Presence of enhanced cystic/mass lesion in the sellar and suprasellar area, size about---------cm.
 2. Pituitary gland height about--------mm.
 3. No evidence of mass lesion on the sellar or suprasellar or hypothalamus regions.
 4. Presence of hyposignal intensity nodule over the right/left pituitary gland in the conventional/dynamic scan

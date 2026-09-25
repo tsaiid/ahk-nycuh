@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
@@ -32,9 +32,9 @@
 ::lfcvp::Central venous catheter is in place via the left femoral vein.
 ::bfcvp::Central venous catheters are in place via both femoral veins.
 ::ki::Obvious small bowel gas, may be due to paralytic ileus.
-::ki2::Focal dilated bowel loops, probably ileus or partial bowel obstruction.
+::ki2::Focally dilated bowel loops, probably ileus or partial bowel obstruction.
 ::kiafl::Mildly dilated bowel loops with several air-fluid levels, probably partial bowel obstruction or ileus.
-::kbo::Obvious dilated bowel loops, suspicious bowel obstruction.
+::kbo::Obviously dilated bowel loops, suspicious for bowel obstruction.
 ::kmi::Mildly distended small bowel gas, may be due to mild paralytic ileus.
 ::rdj::Status post right side double-J ureteral stent.
 ::ldj::Status post left side double-J ureteral stent.
@@ -55,10 +55,10 @@
 ::ka::Increased opacity of the abdomen with centralization of the bowel gas, probably due to ascites.
 ::kc::Contrast medium retention in the urinary tract, may be due to recent imaging study.
 ::kns::No definite stone-like radiopacity along the urinary tract.
-::kbrs::Several tiny radiopacities superimposed on bilateral renal shadows, suspicious renal stones.
-::kbrss::Several small radiopacities superimposed on bilateral renal shadows, suspicious renal stones.
+::kbrs::Several tiny radiopacities superimposed on bilateral renal shadows, suspicious for renal stones.
+::kbrss::Several small radiopacities superimposed on bilateral renal shadows, suspicious for renal stones.
 ::klrs::A tiny radiopacity superimposed on left renal shadow, suspicious for a renal stone.
-::klrss::Small radiopacities superimposed on left renal shadow, suspicious renal stones.
+::klrss::Small radiopacities superimposed on left renal shadow, suspicious for renal stones.
 ::krrs::A tiny radiopacity superimposed on right renal shadow, suspicious for a renal stone.
 ::krrss::Small radiopacities superimposed on right renal shadow, suspicious for renal stones.
 ::klus::A small stone-like opacity at left paraspinal region at L3 level, possibly a ureter stone.

@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 
@@ -25,7 +25,7 @@ A 2.1 cm nodular lesion at 12 o'clock position of right breast, 2 cm from the ni
 A 6 mm nodule at 12 o'clock position of left breast, 2 cm from the nipple. Follow-up is suggested.
 
 No definite lymphadenopathy at both axillae noted.
-No definite lymphadenopathy at the both axillae or internal mammary regions noted.
+No definite lymphadenopathy at both axillae or internal mammary regions noted.
 
 )"
     Paste(MyForm)

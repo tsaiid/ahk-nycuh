@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\Paste.v2.ahk
 #Include lib\ris-common.v2.ahk
@@ -16,7 +16,7 @@
 ::bcms::Borderline enlarged cardiac shadow, possibly supine position related.
 ::cm::cardiomegaly
 ::cm1::enlarged cardiac shadow.
-::cm2::Enlarged cardiac shadow. However, it could be due to supine.
+::cm2::Enlarged cardiac shadow. However, it could be due to the supine position.
 ;::np::No abnormal patch opacity in lung fields.
 ::nn::No nodular opacities (> 1cm) noted in both lung fields.
 ::cpok::Bilateral CP angles are clear and sharp.
@@ -94,7 +94,7 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
     MyForm := "
 (
 Slightly enlarged cardiac shadow.
-Prominent lung markings at bilateral lowers, may be due to insufficient inspiration and/or supine. Clinical correlation is suggested.
+Prominent lung markings at bilateral lowers, may be due to insufficient inspiration and/or the supine position. Clinical correlation is suggested.
 
 )"
     Paste(MyForm)
@@ -147,7 +147,7 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
 ::licvp::Central venous catheter in place via the left internal jugular vein, with the tip at the superior vena cava.
 ::bicvp::Central venous catheters in place via both internal jugular veins, with the tips at the superior vena cava.
 ::rscvp::Central venous catheter in place via the right subclavian vein, with the tip at the superior vena cava.
-::lscvp::Central venous catheter in place via the right subclavian vein, with the tip at the superior vena cava.
+::lscvp::Central venous catheter in place via the left subclavian vein, with the tip at the superior vena cava.
 ::ridl::Double-lumen catheter in place via the right internal jugular vein.
 ::lidl::Double-lumen catheter in place via the left internal jugular vein.
 ::rsdl::Double-lumen catheter in place via the right subclavian vein.
@@ -277,7 +277,7 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
 ::ldia0::Elevation of the left hemidiaphragm.
 ::copd::Hyperinflation with flattening of both hemidiaphragms, suggestive of the possibility of COPD.
 ::tta::Tortuous thoracic descending aorta.
-::mtta::Mild tortuous thoracic descending aorta.
+::mtta::Mildly tortuous thoracic descending aorta.
 ::bronchio::Increased linear opacity and peribronchial thickening over both lung fields, r/o bronchiolitis.
 ::ilo::increased linear opacity `
 ::ao::acinar opacity `
@@ -317,11 +317,11 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
 ::aak::Atherosclerotic changes of the aortic knob.
 ::maak::Mild atherosclerotic changes of the aortic knob.
 ::rci::Anterior interposition of the colon to the liver reaching the under-surface of the right hemidiaphragm.
-::cpftl::Compression fracture of several lower T- and L-spine.
+::cpftl::Compression fractures of several lower thoracic and lumbar vertebrae.
 ::mw::Mediastinal widening, possibly due to tortuosity of the thoracic aorta. Clinical correlation is suggested.
-::rotb::Fibrilinear and nodular opacities in the right apical region, in favor of old TB.
-::lotb::Fibrilinear and nodular opacities in the left apical region, in favor of old TB.
-::botb::Fibrilinear and nodular opacities in both apical regions, in favor of old TB.
+::rotb::Fibrolinear and nodular opacities in the right apical region, in favor of old TB.
+::lotb::Fibrolinear and nodular opacities in the left apical region, in favor of old TB.
+::botb::Fibrolinear and nodular opacities in both apical regions, in favor of old TB.
 ::splm::status post left mastectomy.
 ::splpm::status post left partial mastectomy.
 ::sprm::status post right mastectomy.

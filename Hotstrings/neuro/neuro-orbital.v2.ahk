@@ -47,8 +47,8 @@ Symmetrical size of bilateral orbital retroocular optic nerves.
 No evidence of high density foreign body noted at the bilateral intraocular and retroocular regions.
 No evidence of bony fragment noted near optic canal region.
 No evidence of orbital emphysema noted.
-Measurement of proptosis by the distance between interzygomatic line and posterior sclera, and anterior global surface, are within normal limits (<23 mm).
-Measurement of proptosis by the distance between interzygomatic line and posterior sclera are within normal limits (>11 mm).
+Measurement of proptosis by the distance between interzygomatic line and posterior sclera, and anterior global surface, is within normal limits (<23 mm).
+Measurement of proptosis by the distance between interzygomatic line and posterior sclera is within normal limits (>11 mm).
 No abnormal thickening of the extraocular muscles.
 )"
     RisController.PasteToFinding(MyForm)
@@ -77,7 +77,7 @@ FINDINGS:
 - Symmetrical enlargement of bilateral extraocular muscles, especially inferior rectus, medial rectus, superior rectus, with sparing the anterior tendon, c/w thyroid-associated orbitopathy.
 
 - Exophthalmos at left side.
-- Enlargement of left inferior rectus muscle, with sparing the anterior tendon, c/w thyroid-associated orbitopathy. However, due to it's unilateral and asymmetrical, orbital pseudotumor may also be considered. Suggest correlate with thyroid function test.
+- Enlargement of left inferior rectus muscle, with sparing the anterior tendon, c/w thyroid-associated orbitopathy. However, because it is unilateral and asymmetrical, orbital pseudotumor may also be considered. Suggest correlation with thyroid function tests.
 
 - No obvious fracture of bilateral orbits.
 - Symmetrical size of bilateral orbital retroocular optic nerves.
@@ -88,7 +88,7 @@ FINDINGS:
     MyForm := "
 (
 C/W thyroid-associated orbitopathy.
-Possibly thyroid-associated orbitopathy, left side. DDx: orbital pseudotumor. Suggest correlate with thyroid function test.
+Possibly thyroid-associated orbitopathy, left side. DDx: orbital pseudotumor. Suggest correlation with thyroid function tests.
 )"
     RisController.PasteToImpression(MyForm)
 }

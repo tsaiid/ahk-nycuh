@@ -62,7 +62,7 @@
 ::bmdp::Decreased pneumatization of the bilateral mastoid air cells.
 ::lmdp::Decreased pneumatization of the left mastoid air cells.
 ::rmdp::Decreased pneumatization of the right mastoid air cells.
-::ctcmast::Underdeveloped pneumatization and sclerotic changes of right/left/bilateral mastoid air cells, suspicious chronic mastoiditis.
+::ctcmast::Underdeveloped pneumatization and sclerotic changes of right/left/bilateral mastoid air cells, suspicious for chronic mastoiditis.
 ::atrv::Diffuse atrophy of bilateral cerebral hemispheres, with compensatory dilatation of bilateral lateral ventricles, deepening and widening of cortical sulci.
 ::matrv::Mild enlargement of the ventricular system, in favor of mild brain atrophy.
 ::atrvs::Enlargement of the ventricular system and sulcal widening of bilateral cerebral hemispheres are noted, in favor of brain atrophy.
@@ -159,7 +159,7 @@ No definite abnormal mass lesion in the brain noted.
     Paste(MyForm)
 }
 
-::nocva::No evidence of acute ischemia infarction in the brain and brainstem noted.
+::nocva::No evidence of acute ischemic infarction in the brain and brainstem noted.
 ::nolvi::No obvious large-vessel territory infarction is identified.
 ::noich::No definite acute intracranial parenchymal hemorrhage, subarachnoid hemorrhage, epidural or subdural hematoma in the brain noted.
 ::noich0::No definite acute ICH, SAH, EDH, or SDH.
@@ -493,7 +493,7 @@ FINDINGS:
 {
     MyForm := "
   (
-No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 
 No definite abnormal signal intensity changes or tumor mass lesion in the brain noted.
 
@@ -507,7 +507,7 @@ MRA shows no significant vascular stenosis in the major intracranial arteries or
 
     MyForm := "
   (
-No evidence of high signal intensity on DWI suggesting acute or recent ischemia infarction in the brain noted.
+No evidence of high signal intensity on DWI suggesting acute or recent ischemic infarction in the brain noted.
 No remarkable intracranial findings.
   )"
     RisController.PasteToImpression(MyForm)
@@ -518,7 +518,7 @@ No remarkable intracranial findings.
 {
     MyForm := "
   (
-No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+No evidence of high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 
 No definite abnormal signal intensity or tumor mass lesion in the brain noted.
 
@@ -557,10 +557,10 @@ Previous MRI of brain: none
 Findings:
 - A 5.9 x 3 x 3.7 cm hematoma, in subacute stage, with peripheral hemosiderin deposition, in the left temporo-parieto-occipital area.
 - No evidence of mass lesion nearby that may be contribute to the ICH. (*noncontrast-enhanced study has lower sensitivity for subtle lesion)
-- No evidence of microhemorrhage nor cortical superficial siderosis on the GET2*WI, that suggestive of cerebral amyloid angiopathy.
+- No evidence of microhemorrhage or cortical superficial siderosis on GET2*WI, suggestive of cerebral amyloid angiopathy.
 - MRA shows no evidence of aneurysm or arterial-venous malformation (AVM) noted near the circle of Willis regions.
 
-- No other high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemia infarction in the brain and brainstem noted.
+- No other high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
 - Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, the subcortical arteriosclerotic encephalopathy considered.
 - Presence of small hyperintensities in the right occipital cortical region on T2WI and FLAIR, which may be gliosis, or old ischemia or previous brain insult.
 - Mild dilatation of intraventricular system with widening of subarachnoid space of bilateral cerebral hemispheres, in favor of aging process and mild brain atrophy.

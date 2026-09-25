@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 #Include ..\Lib\RisController.v2.ahk
 #Include ..\Lib\Paste.v2.ahk
@@ -7,7 +7,7 @@
 ::lt::left `
 ::rt::right `
 ::ifo::in favor of `
-::mfo::more favor of `
+::mfo::more in favor of `
 :c:C::compared to `
 ::cpf::compression fracture
 ::vcpf::vertebral compression fracture
@@ -148,7 +148,7 @@
 ::ep::equilibrium phase
 ::hbp::hepatobiliary phase
 ::bd::bone density
-::ndlg::Nearly dislodgement is considered.
+::ndlg::Near dislodgement is considered.
 ::eva::evaluation
 ::fb::foreign body
 ::ifb::ingested foreign body
@@ -300,7 +300,7 @@
 ::cegd::Correlation with esophagogastroduodenoscopy is suggested.
 ::csono::Correlation with sonography is suggested.
 ::ccsono::Clinical and sonographic correlation is suggested.
-::ctrus::Correlate with transrectal ultrasonography is suggested.
+::ctrus::Correlation with transrectal ultrasonography is suggested.
 ::cdsa::Correlation with DSA is suggested.
 ::clab::Correlation with Lab data is suggested.
 ::coi::Correlation with other imaging modalities is suggested.
@@ -338,7 +338,7 @@
 ::obv::obvious `
 ::sig::significant `
 ::nob::no obvious `
-::nobl::no obviously `
+::nobl::not obviously `
 ::nod::no definite `
 ::noe::no evident `
 ::nos::no significant `
@@ -467,8 +467,8 @@ Additional report on {1}:
 ::rcs::renal cysts
 ::rcs1::renal cysts, size up to `
 ::rss::renal stones
-::lrc::A -cm renal cyst at the left kidney.
-::rrc::A -cm renal cyst at the right kidney.
+::lrc::A -cm renal cyst in the left kidney.
+::rrc::A -cm renal cyst in the right kidney.
 ::srcs::Some small renal cysts in both kidneys.
 ::shcs::Some small hepatic cysts.
 ::fcs::fibrocysts
