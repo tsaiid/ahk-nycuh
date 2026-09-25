@@ -12,6 +12,55 @@
 // @grant        unsafeWindow
 // ==/UserScript==
 
+/**
+ * ============================================================================
+ * DeepRad Helpers (胸部電腦斷層肺結節判讀輔助 Userscript)
+ * ============================================================================
+ *
+ * 【專案簡介】
+ * 本腳本專為輔助放射科醫師操作 DeepRad.AI（胸部電腦斷層肺結節 AI 輔助判讀系統）
+ * 設計，主要解決報告系統文字轉換整合、連線 Session 維持、防跳轉與消除干擾通知等問題。
+ *
+ * 【核心功能與特色】
+ *
+ * 1. 結節快速擷取與格式化報告 (Nodule Reporting Helpers)：
+ *    - 國健署肺癌篩檢格式 (HPA Format, 快速鍵：Ctrl + Shift + C)：
+ *      - 自動統計並聚合已選取（勾選）的肺結節，依肺葉歸納 Image 編號。
+ *      - 保證解剖肺葉輸出順序：RUL -> RML -> RLL -> LUL -> LLL。
+ *      - 自動去重 (De-duplicate) 並依影像序號由小到大排序，輸出如：RUL:12;15;LUL:45;LLL:88。
+ *    - 健檢與臨床完整格式 (Health Check Format, 快速鍵：Alt + Shift + C)：
+ *      - 輸出結構化英文章句（如：A 6.5 mm (6.2 x 6.8 mm) sub-solid nodule (solid part: 3.2 mm) in the RUL of lung (Srs/Img: 2/45).）。
+ *      - 智慧長短軸量測 (Axis Auto-detection)：結節分級達 Lung-RADS 3 或以上時，自動自 .key-film 讀取雙軸數據並填入。
+ *      - 實質成分萃取 (Solid Part Auto-detection)：對 subsolid / part-solid 結節，自動擷取表單中的實質成分大小 (solid part: X mm)。
+ *      - 純磨玻璃結節 (Pure GGO) 正規化為 non-solid。
+ *      - 批次查詢最佳化：同時需要長短軸與實質成分時僅模擬切換一次點擊，讀取後自動點選復原原本畫面選取狀態。
+ *    - RIS 換行相容性：報告行尾採用 CRLF (\r\n)，確保直接貼入醫院 RIS 報告系統時不會遺失換行。
+ *    - 剪貼簿支援：支援 GM_setClipboard、navigator.clipboard 與 textarea fallback。
+ *
+ * 2. 智慧 Session 防呆與 Token 自動保活 (Session & Token Watchdog)：
+ *    - 攔截 localStorage 清除：監聽並防範前端閒置定時器刪除 token，若非手動登出則自動從備份復原。
+ *    - 阻擋前端跳轉至登入頁：攔截 pushState / replaceState，防止有登入憑證時被強制轉向 /login。
+ *    - 記錄最後瀏覽頁面：於登入頁面載入且成功復原 Token 時，自動 replace 回原本工作路徑。
+ *    - 區分主動登出：監聽使用者點擊 .logout 按鈕，手動登出時放行正常登出流程，不硬阻擋。
+ *    - API 鑑權標頭修補 (Auth Header Patching)：攔截 fetch 與 XMLHttpRequest，確保所有 API 請求攜帶最新 Authorization Header。
+ *    - 背景定期展延 (Token Refresh)：每 10 分鐘自動向 /auth/refresh_token 要求新 Token，並分發 storage 與自訂事件。
+ *    - 前端活動模擬 (Keep-Alive)：每 5 分鐘模擬發送 mousemove、Shift 鍵與 focus 事件，防止前端純 UI 閒置超時。
+ *
+ * 3. 靜音式逾時通知自動關閉 (Session Expired Notification Auto-dismissal)：
+ *    - 使用 MutationObserver 監控頁面 Sonner / Toast 通知。
+ *    - 偵測到「session expired」或「please login again」時，透過 CSS display: none 隱藏並觸發關閉按鈕。
+ *    - 避免直接操作刪除 DOM 節點，防止引發 React Virtual DOM unmount 崩潰 (removeChild 錯誤)。
+ *
+ * 4. 操作介面與回饋 (User Interface & Feedback)：
+ *    - 畫面居中 HUD 狀態通知提示框 (Status Toast)，1.8 ~ 2.4 秒後自動淡出，不阻礙閱片視野。
+ *    - 註冊 Tampermonkey / 油猴擴充腳本選單指令，提供手動觸發複製與即時 Token 刷新選項。
+ *
+ * 【快速鍵對照】
+ * - Ctrl + Shift + C : 複製國健署篩檢格式結節 (Copy HPA nodules)
+ * - Alt + Shift + C  : 複製健檢 / 完整描述格式結節 (Copy Health check nodules)
+ * ============================================================================
+ */
+
 (function() {
     'use strict';
 
