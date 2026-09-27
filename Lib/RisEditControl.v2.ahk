@@ -439,7 +439,7 @@ class RisEditControl {
                 return false
             }
 
-            if (previousEnd && (previousEnd.Region != start.Region || previousEnd.Number != start.Number)) {
+            if (previousEnd && this._GetVertebraOrder(start.Region, start.Number) < this._GetVertebraOrder(previousEnd.Region, previousEnd.Number)) {
                 return false
             }
 
@@ -490,6 +490,21 @@ class RisEditControl {
         }
 
         return false
+    }
+
+    static _GetVertebraOrder(region, number) {
+        switch StrUpper(region) {
+            case "C":
+                return (number >= 1 && number <= 7) ? number : 0
+            case "T":
+                return (number >= 1 && number <= 12) ? 7 + number : 0
+            case "L":
+                return (number >= 1 && number <= 5) ? 19 + number : 0
+            case "S":
+                return (number == 1) ? 25 : 0
+        }
+
+        return 0
     }
 
     static KillLine(hCtrl) {
