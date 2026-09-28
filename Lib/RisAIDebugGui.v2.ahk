@@ -8,18 +8,24 @@
  */
 class RisAIDebugGui {
     static comparisonGuiHwnd := 0
+    static applyOriginalChoiceFunc := 0
     static applyFirstChoiceFunc := 0
     static applySecondChoiceFunc := 0
+    static applyCustomChoiceFunc := 0
 
     /**
-     * 套用三欄比對視窗中的選項 (1: 第一個結果/OpenAI, 2: 第二個結果/Google AI)
+     * 套用三欄比對視窗中的選項 (0: 原始, 1: 第一個結果/OpenAI, 2: 第二個結果/Google AI, 3: 自訂所選組合)
      * @param {Integer} index
      */
     static ApplyPolishProviderChoice(index) {
-        if (index == 1 && this.applyFirstChoiceFunc) {
+        if (index == 0 && this.applyOriginalChoiceFunc) {
+            (this.applyOriginalChoiceFunc)()
+        } else if (index == 1 && this.applyFirstChoiceFunc) {
             (this.applyFirstChoiceFunc)()
         } else if (index == 2 && this.applySecondChoiceFunc) {
             (this.applySecondChoiceFunc)()
+        } else if (index == 3 && this.applyCustomChoiceFunc) {
+            (this.applyCustomChoiceFunc)()
         }
     }
 
@@ -249,52 +255,55 @@ class RisAIDebugGui {
     }
 
     /**
-     * 顯示雙 AI 潤色結果比對視窗 (三欄)
+     * 顯示雙 AI 潤色結果比對視窗 (三欄卡片式，支援段落挑選與保留原始文字)
      */
     static ShowPolishProviderComparisonGui(hEdit, original, openAIResult, googleResult, sel, options := 0) {
         notify := (IsObject(options) && options.HasOwnProp("Notify")) ? options.Notify : (*) => 0
-        applyFont := (IsObject(options) && options.HasOwnProp("ApplyFont")) ? options.ApplyFont : (*) => 0
         onAccept := (IsObject(options) && options.HasOwnProp("OnAccept")) ? options.OnAccept : (*) => 0
 
-        layout := this.GetThreeColumnComparisonLayout()
-        colW := layout.ColumnWidth
-        gap := layout.Gap
+        MonitorGetWorkArea(, &left, &top, &right, &bottom)
+        workWidth := right - left
+        workHeight := bottom - top
+        windowWidth := Min(1180, Floor(workWidth * 0.94))
+        windowHeight := Min(680, Floor(workHeight * 0.88))
 
-        myGui := RisDialog.Create("AI 潤色結果三欄比對", "+AlwaysOnTop +ToolWindow +Resize", {MarginX: layout.MarginX, MarginY: 12})
+        myGui := RisDialog.Create("AI 潤色結果三欄比對", "+AlwaysOnTop +ToolWindow +Resize", {MarginX: 0, MarginY: 0})
 
-        myGui.Add("Text", Format("w{}", colW), "原始文字 (Original):")
-        myGui.Add("Text", Format("x+{} yp w{}", gap, colW), "OpenAI:")
-        myGui.Add("Text", Format("x+{} yp w{}", gap, colW), "Google AI:")
-
-        originalEdit := myGui.Add("Edit", Format("xm w{} r18 ReadOnly Multi -WantReturn", colW), original)
-        openAIEdit := myGui.Add("Edit", Format("x+{} yp w{} r18 ReadOnly Multi -WantReturn", gap, colW), openAIResult.Text)
-        googleEdit := myGui.Add("Edit", Format("x+{} yp w{} r18 ReadOnly Multi -WantReturn", gap, colW), googleResult.Text)
-        applyFont(originalEdit.Hwnd, openAIEdit.Hwnd, googleEdit.Hwnd)
-
-        myGui.SetFont("s9", "Consolas")
-        myGui.Add("Text", Format("xm y+10 w{} Center", colW), "")
-        myGui.Add("Text", Format("x+{} yp w{} Center", gap, colW), this.FormatProviderDebugLine(openAIResult))
-        myGui.Add("Text", Format("x+{} yp w{} Center", gap, colW), this.FormatProviderDebugLine(googleResult))
-        myGui.SetFont("s11", "Microsoft JhengHei UI")
-
-        buttonWidth := Min(180, colW)
-        buttonOffset := Floor((colW - buttonWidth) / 2)
-        openAIButtonX := layout.MarginX + colW + gap + buttonOffset
-        googleButtonX := layout.MarginX + (colW * 2) + (gap * 2) + buttonOffset
-        btnUseOpenAI := myGui.Add("Button", Format("Default w{} x{} y+18", buttonWidth, openAIButtonX), "Use OpenAI (Alt+&1)")
-        btnUseGoogle := myGui.Add("Button", Format("w{} x{} yp", buttonWidth, googleButtonX), "Use Google (Alt+&2)")
-
-        if (!openAIResult.Success) {
-            btnUseOpenAI.Enabled := false
+        browserCtrl := myGui.Add("ActiveX", Format("x0 y0 w{1} h{2}", windowWidth, windowHeight), "Shell.Explorer")
+        browser := browserCtrl.Value
+        try {
+            browser.Silent := true
         }
-        if (!googleResult.Success) {
-            btnUseGoogle.Enabled := false
+
+        monoFont := this._GetReportMonospaceFont()
+        fontSize := this._GetReportFontSize()
+        openAIText := (IsObject(openAIResult) && openAIResult.HasOwnProp("Text")) ? openAIResult.Text : ""
+        googleText := (IsObject(googleResult) && googleResult.HasOwnProp("Text")) ? googleResult.Text : ""
+
+        align := this._AlignParagraphs(original, openAIText, googleText)
+        html := this._BuildProviderComparisonHtml(original, openAIResult, googleResult, align, monoFont, fontSize)
+
+        browser.Navigate("about:blank")
+        while (browser.Busy || browser.ReadyState < 4) {
+            Sleep(10)
+        }
+
+        doc := browser.Document
+        doc.Open()
+        doc.Write(html)
+        doc.Close()
+
+        trailingNewlines := ""
+        if RegExMatch(original, "(\r?\n)+$", &m) {
+            trailingNewlines := m[0]
         }
 
         cleanupGui() {
             RisAIDebugGui.comparisonGuiHwnd := 0
+            RisAIDebugGui.applyOriginalChoiceFunc := 0
             RisAIDebugGui.applyFirstChoiceFunc := 0
             RisAIDebugGui.applySecondChoiceFunc := 0
+            RisAIDebugGui.applyCustomChoiceFunc := 0
         }
 
         closeGui(*) {
@@ -302,31 +311,341 @@ class RisAIDebugGui {
             myGui.Destroy()
         }
 
-        applyResult(editCtrl, label, *) {
-            finalText := editCtrl.Value
+        applyResult(finalText, label) {
+            if (trailingNewlines != "" && !RegExMatch(finalText, "(\r?\n)+$")) {
+                finalText .= trailingNewlines
+            }
             closeGui()
             onAccept(hEdit, finalText, sel)
             notify("已套用 " . label . " 版本")
         }
 
-        btnUseOpenAI.OnEvent("Click", (*) => (openAIResult.Success ? applyResult(openAIEdit, "OpenAI") : 0))
-        btnUseGoogle.OnEvent("Click", (*) => (googleResult.Success ? applyResult(googleEdit, "Google AI") : 0))
+        doc.parentWindow.ahkAccept := (finalText, label) => applyResult(finalText, label)
+        doc.parentWindow.ahkClose := () => closeGui()
+
+        myGui.OnEvent("Size", (gui, minMax, w, h) => (
+            (minMax != -1 && browserCtrl) ? browserCtrl.Move(0, 0, w, h) : 0
+        ))
         myGui.OnEvent("Close", closeGui)
         myGui.OnEvent("Escape", closeGui)
 
-        this.comparisonGuiHwnd := myGui.Hwnd
-        this.applyFirstChoiceFunc := () => (openAIResult.Success ? applyResult(openAIEdit, "OpenAI") : 0)
-        this.applySecondChoiceFunc := () => (googleResult.Success ? applyResult(googleEdit, "Google AI") : 0)
-
-        RisDialog.ShowCenter(myGui, Format("w{}", layout.WindowWidth))
-
-        if (openAIResult.Success) {
-            openAIEdit.Focus()
-            SendMessage(0x00B1, 0, 0, openAIEdit.Hwnd)
-        } else if (googleResult.Success) {
-            googleEdit.Focus()
-            SendMessage(0x00B1, 0, 0, googleEdit.Hwnd)
+        applyOriginalChoice(*) {
+            try doc.parentWindow.applyAll(0)
         }
+        applyFirstChoice(*) {
+            if (openAIResult.Success) {
+                try doc.parentWindow.applyAll(1)
+            }
+        }
+        applySecondChoice(*) {
+            if (googleResult.Success) {
+                try doc.parentWindow.applyAll(2)
+            }
+        }
+        applyCustomChoice(*) {
+            try doc.parentWindow.applyCustom()
+        }
+
+        this.comparisonGuiHwnd := myGui.Hwnd
+        this.applyOriginalChoiceFunc := applyOriginalChoice
+        this.applyFirstChoiceFunc := applyFirstChoice
+        this.applySecondChoiceFunc := applySecondChoice
+        this.applyCustomChoiceFunc := applyCustomChoice
+
+        RisDialog.ShowCenter(myGui, Format("w{1} h{2}", windowWidth, windowHeight))
+        try browserCtrl.Focus()
+    }
+
+    static _GetReportMonospaceFont() {
+        try {
+            risCtrl := (%("RisController")%)
+            if (HasProp(risCtrl, "EnforcedFontName") && risCtrl.EnforcedFontName != "") {
+                return risCtrl.EnforcedFontName
+            }
+        }
+        return "Maple Mono Normal NF CN"
+    }
+
+    static _GetReportFontSize() {
+        try {
+            risCtrl := (%("RisController")%)
+            if (HasProp(risCtrl, "EnforcedFontSize") && risCtrl.EnforcedFontSize > 0) {
+                return risCtrl.EnforcedFontSize . "pt"
+            }
+        }
+        return "11pt"
+    }
+
+    static _AlignParagraphs(original, openAIText, googleText) {
+        origNorm := StrReplace(StrReplace(original, "`r`n", "`n"), "`r", "`n")
+        openAINorm := StrReplace(StrReplace(openAIText, "`r`n", "`n"), "`r", "`n")
+        googleNorm := StrReplace(StrReplace(googleText, "`r`n", "`n"), "`r", "`n")
+
+        origTrim := Trim(origNorm, "`n")
+        openAITrim := Trim(openAINorm, "`n")
+        googleTrim := Trim(googleNorm, "`n")
+
+        if (origTrim != "" && openAITrim != "" && googleTrim != "") {
+            ; 1. 嘗試以雙換行分段 (\n\n+)
+            if (RegExMatch(origTrim, "\n{2,}") || RegExMatch(openAITrim, "\n{2,}") || RegExMatch(googleTrim, "\n{2,}")) {
+                origDbl := StrSplit(RegExReplace(origTrim, "\n{2,}", "`f"), "`f")
+                openAIDbl := StrSplit(RegExReplace(openAITrim, "\n{2,}", "`f"), "`f")
+                googleDbl := StrSplit(RegExReplace(googleTrim, "\n{2,}", "`f"), "`f")
+                if (origDbl.Length == openAIDbl.Length && openAIDbl.Length == googleDbl.Length && origDbl.Length > 1) {
+                    return { IsMulti: true, Separator: "`r`n`r`n", Orig: origDbl, OpenAI: openAIDbl, Google: googleDbl }
+                }
+            }
+
+            ; 2. 嘗試以單換行分段 (\n)
+            if (InStr(origTrim, "`n") || InStr(openAITrim, "`n") || InStr(googleTrim, "`n")) {
+                origSingle := StrSplit(origTrim, "`n")
+                openAISingle := StrSplit(openAITrim, "`n")
+                googleSingle := StrSplit(googleTrim, "`n")
+                if (origSingle.Length == openAISingle.Length && openAISingle.Length == googleSingle.Length && origSingle.Length > 1) {
+                    return { IsMulti: true, Separator: "`r`n", Orig: origSingle, OpenAI: openAISingle, Google: googleSingle }
+                }
+            }
+        }
+
+        ; Fallback: 整篇模式
+        return { IsMulti: false, Separator: "", Orig: [original], OpenAI: [openAIText], Google: [googleText] }
+    }
+
+    static _EscapeHtml(text) {
+        text := StrReplace(text, "&", "&amp;")
+        text := StrReplace(text, "<", "&lt;")
+        text := StrReplace(text, ">", "&gt;")
+        text := StrReplace(text, '"', "&quot;")
+        text := StrReplace(text, "'", "&#39;")
+        return text
+    }
+
+    static _EscapeJsString(str) {
+        str := StrReplace(str, "\", "\\")
+        str := StrReplace(str, "`r", "\r")
+        str := StrReplace(str, "`n", "\n")
+        str := StrReplace(str, '"', '\"')
+        return '"' . str . '"'
+    }
+
+    static _BuildProviderComparisonHtml(original, openAIResult, googleResult, align, monoFont, fontSize := "11pt") {
+        origParts := align.Orig
+        openAIParts := align.OpenAI
+        googleParts := align.Google
+        rowCount := origParts.Length
+        isMulti := align.IsMulti
+        separator := align.Separator
+
+        openAISuccess := (IsObject(openAIResult) && openAIResult.HasOwnProp("Success")) ? openAIResult.Success : false
+        googleSuccess := (IsObject(googleResult) && googleResult.HasOwnProp("Success")) ? googleResult.Success : false
+
+        defaultChoice := openAISuccess ? 1 : (googleSuccess ? 2 : 0)
+
+        jsOrigParts := "["
+        jsOpenAIParts := "["
+        jsGoogleParts := "["
+        jsSelections := "["
+        for i, part in origParts {
+            jsOrigParts .= (i > 1 ? "," : "") . this._EscapeJsString(part)
+            jsOpenAIParts .= (i > 1 ? "," : "") . this._EscapeJsString(openAIParts[i])
+            jsGoogleParts .= (i > 1 ? "," : "") . this._EscapeJsString(googleParts[i])
+            jsSelections .= (i > 1 ? "," : "") . defaultChoice
+        }
+        jsOrigParts .= "]"
+        jsOpenAIParts .= "]"
+        jsGoogleParts .= "]"
+        jsSelections .= "]"
+        jsSeparator := this._EscapeJsString(separator)
+
+        openAIDebug := this.FormatProviderDebugLine(openAIResult)
+        googleDebug := this.FormatProviderDebugLine(googleResult)
+
+        rowsHtml := ""
+        loop rowCount {
+            r := A_Index - 1
+            rowNum := A_Index
+            origText := this._EscapeHtml(origParts[A_Index])
+            openAIText := this._EscapeHtml(openAIParts[A_Index])
+            googleText := this._EscapeHtml(googleParts[A_Index])
+
+            origSelected := (defaultChoice == 0)
+            openAISelected := (defaultChoice == 1)
+            googleSelected := (defaultChoice == 2)
+
+            origClass := "card card-orig" . (origSelected ? " selected" : "")
+            openAIClass := "card card-ai" . (!openAISuccess ? " disabled" : (openAISelected ? " selected" : ""))
+            googleClass := "card card-ai" . (!googleSuccess ? " disabled" : (googleSelected ? " selected" : ""))
+
+            rowTitleHtml := isMulti ? Format("<div class='row-title'>【段落 {1}】</div>", rowNum) : ""
+
+            rowsHtml .= "<div class='row-container'>" . rowTitleHtml
+                . "<table class='card-grid-table'><tr>"
+                . "<td class='col-cell'>"
+                . Format("<div class='{1}' id='card_0_{2}' onclick='selectCard({2}, 0)'>", origClass, r)
+                . "<div class='card-head'>"
+                . "<span class='provider-badge badge-orig'>📄 原始文字</span>"
+                . Format("<span class='check-icon' id='check_0_{1}' style='visibility:{2};'>✔</span>", r, origSelected ? "visible" : "hidden")
+                . "</div>"
+                . Format("<div class='card-body'>{1}</div>", origText)
+                . "</div>"
+                . "</td>"
+                . "<td class='col-cell'>"
+                . Format("<div class='{1}' id='card_1_{2}' {3}>", openAIClass, r, openAISuccess ? Format("onclick='selectCard({1}, 1)'", r) : "")
+                . "<div class='card-head'>"
+                . "<span class='provider-badge badge-openai'>OpenAI</span>"
+                . Format("<span class='check-icon' id='check_1_{1}' style='visibility:{2};'>✔</span>", r, openAISelected ? "visible" : "hidden")
+                . "</div>"
+                . Format("<div class='card-body'>{1}</div>", openAIText)
+                . "</div>"
+                . "</td>"
+                . "<td class='col-cell'>"
+                . Format("<div class='{1}' id='card_2_{2}' {3}>", googleClass, r, googleSuccess ? Format("onclick='selectCard({1}, 2)'", r) : "")
+                . "<div class='card-head'>"
+                . "<span class='provider-badge badge-google'>Google AI</span>"
+                . Format("<span class='check-icon' id='check_2_{1}' style='visibility:{2};'>✔</span>", r, googleSelected ? "visible" : "hidden")
+                . "</div>"
+                . Format("<div class='card-body'>{1}</div>", googleText)
+                . "</div>"
+                . "</td>"
+                . "</tr></table></div>"
+        }
+
+        html := "<!doctype html><html><head><meta http-equiv='X-UA-Compatible' content='IE=edge'>"
+            . "<meta charset='utf-8'>"
+            . "<style>"
+            . "* { box-sizing: border-box; }"
+            . "html { margin:0; padding:0; }"
+            . "body { margin:0; padding:12px 18px 75px 18px; background:#F8FAFC; color:#1E293B; font-family:'Microsoft JhengHei UI','Segoe UI',sans-serif; font-size:13px; overflow-y:scroll; user-select:none; -ms-user-select:none; }"
+            . ".col-header-wrapper { margin-bottom:26px; }"
+            . ".col-header-box { padding:6px 10px; background:#F1F5F9; border:1px solid #E2E8F0; border-radius:6px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }"
+            . ".col-header-title { font-weight:700; color:#334155; margin-right:6px; font-size:12px; }"
+            . ".col-header-meta { font-family:'Cascadia Mono',Consolas,monospace; font-size:11px; color:#64748B; }"
+            . ".row-container { margin-bottom:14px; }"
+            . ".row-title { font-size:12px; font-weight:700; color:#475569; margin-bottom:6px; padding-left:2px; }"
+            . ".card-grid-table { width:100%; table-layout:fixed; border-collapse:separate; border-spacing:12px 0; margin:0; padding:0; }"
+            . ".col-cell { width:33.333%; vertical-align:top; padding:0; }"
+            . ".card { border:2px solid #CBD5E1; border-radius:8px; background:#FFFFFF; padding:10px 12px; cursor:pointer; margin:0; outline:none; }"
+            . ".card:hover { border-color:#0F766E; }"
+            . ".card.selected { border-color:#0F766E; background:#F0FDF4; }"
+            . ".card.card-orig { background:#F8FAFC; border-color:#E2E8F0; }"
+            . ".card.card-orig:hover { border-color:#64748B; }"
+            . ".card.card-orig.selected { border-color:#475569; background:#F1F5F9; }"
+            . ".card.disabled { opacity:0.45; filter:alpha(opacity=45); cursor:not-allowed; }"
+            . ".card-head { height:22px; line-height:22px; margin-bottom:8px; overflow:hidden; clear:both; }"
+            . ".provider-badge { float:left; font-size:11px; font-weight:700; padding:2px 7px; border-radius:4px; letter-spacing:0.3px; line-height:16px; margin-top:1px; }"
+            . ".badge-orig { background:#E2E8F0; color:#475569; }"
+            . ".badge-openai { background:#E0E7FF; color:#3730A3; }"
+            . ".badge-google { background:#E0F2FE; color:#0369A1; }"
+            . ".check-icon { float:right; font-size:11px; font-weight:bold; color:#0F766E; background:#CCFBF1; border-radius:9px; width:18px; height:18px; line-height:18px; text-align:center; }"
+            . ".card.card-orig.selected .check-icon { color:#334155; background:#E2E8F0; }"
+            . ".card-body { clear:both; font-family:'" . monoFont . "','Maple Mono CN','Cascadia Code','Consolas',monospace; font-size:" . fontSize . "; line-height:1.55; color:#1E293B; white-space:pre-wrap; word-wrap:break-word; word-break:break-word; user-select:text; -ms-user-select:text; }"
+            . ".bottom-bar { position:fixed; bottom:0; left:0; right:0; width:100%; height:52px; background:#FFFFFF; border-top:1px solid #CBD5E1; z-index:9999; }"
+            . ".bottom-table { width:100%; height:52px; border-collapse:collapse; }"
+            . ".btn { display:inline-block; padding:6px 14px; border-radius:6px; font-size:13px; font-weight:500; font-family:'Microsoft JhengHei UI','Segoe UI',sans-serif; cursor:pointer; outline:none; margin-right:6px; }"
+            . ".btn-secondary { background:#F1F5F9; border:1px solid #CBD5E1; color:#334155; }"
+            . ".btn-secondary:hover { background:#E2E8F0; border-color:#94A3B8; }"
+            . ".btn-secondary:disabled { opacity:0.4; filter:alpha(opacity=40); cursor:not-allowed; }"
+            . ".btn-cancel { background:transparent; border:1px solid #CBD5E1; color:#64748B; }"
+            . ".btn-cancel:hover { background:#F8FAFC; color:#334155; }"
+            . ".btn-primary { background:#0F766E; border:1px solid #0F766E; color:#FFFFFF; font-weight:700; padding:6px 18px; }"
+            . ".btn-primary:hover { background:#115E59; border-color:#115E59; }"
+            . "</style>"
+            . "<script>"
+            . "var origParts = " . jsOrigParts . ";"
+            . "var openAIParts = " . jsOpenAIParts . ";"
+            . "var googleParts = " . jsGoogleParts . ";"
+            . "var selections = " . jsSelections . ";"
+            . "var separator = " . jsSeparator . ";"
+            . "var openAISuccess = " . (openAISuccess ? "true" : "false") . ";"
+            . "var googleSuccess = " . (googleSuccess ? "true" : "false") . ";"
+            . "function selectCard(rowIdx, providerIdx) {"
+            . "  selections[rowIdx] = providerIdx;"
+            . "  for (var p = 0; p < 3; p++) {"
+            . "    var card = document.getElementById('card_' + p + '_' + rowIdx);"
+            . "    var check = document.getElementById('check_' + p + '_' + rowIdx);"
+            . "    if (card) {"
+            . "      if (p === providerIdx) {"
+            . "        card.className = (p === 0 ? 'card card-orig selected' : 'card card-ai selected');"
+            . "        if (check) check.style.visibility = 'visible';"
+            . "      } else {"
+            . "        card.className = (p === 0 ? 'card card-orig' : 'card card-ai');"
+            . "        if (check) check.style.visibility = 'hidden';"
+            . "      }"
+            . "    }"
+            . "  }"
+            . "}"
+            . "function applyAll(providerIdx) {"
+            . "  if (providerIdx === 1 && !openAISuccess) return;"
+            . "  if (providerIdx === 2 && !googleSuccess) return;"
+            . "  var parts = (providerIdx === 0) ? origParts : (providerIdx === 1 ? openAIParts : googleParts);"
+            . "  var label = (providerIdx === 0) ? '原始' : (providerIdx === 1 ? 'OpenAI' : 'Google AI');"
+            . "  var fullText = parts.join(separator);"
+            . "  if (window.ahkAccept) window.ahkAccept(fullText, label);"
+            . "}"
+            . "function applyCustom() {"
+            . "  var resultParts = [];"
+            . "  for (var i = 0; i < selections.length; i++) {"
+            . "    var p = selections[i];"
+            . "    if (p === 0) resultParts.push(origParts[i]);"
+            . "    else if (p === 1) resultParts.push(openAIParts[i]);"
+            . "    else if (p === 2) resultParts.push(googleParts[i]);"
+            . "  }"
+            . "  var fullText = resultParts.join(separator);"
+            . "  if (window.ahkAccept) window.ahkAccept(fullText, '自訂組合');"
+            . "}"
+            . "function cancel() {"
+            . "  if (window.ahkClose) window.ahkClose();"
+            . "}"
+            . "document.onkeydown = function(e) {"
+            . "  e = e || window.event;"
+            . "  var code = e.keyCode || 0;"
+            . "  if (code === 27) { cancel(); return false; }"
+            . "  if (code === 13) { applyCustom(); return false; }"
+            . "  if (e.altKey) {"
+            . "    if (e.key === '0' || code === 48 || code === 96) { applyAll(0); return false; }"
+            . "    if (e.key === '1' || code === 49 || code === 97) { applyAll(1); return false; }"
+            . "    if (e.key === '2' || code === 50 || code === 98) { applyAll(2); return false; }"
+            . "  }"
+            . "};"
+            . "</script>"
+            . "</head><body>"
+            . "<div class='col-header-wrapper'>"
+            . "<table class='card-grid-table'><tr>"
+            . "<td class='col-cell'>"
+            . "<div class='col-header-box'>"
+            . "<span class='col-header-title'>原始文字 (Original)</span>"
+            . "</div>"
+            . "</td>"
+            . "<td class='col-cell'>"
+            . "<div class='col-header-box'>"
+            . "<span class='col-header-title'>OpenAI</span>"
+            . (openAIDebug != "" ? "<span class='col-header-meta'>" . this._EscapeHtml(openAIDebug) . "</span>" : "")
+            . "</div>"
+            . "</td>"
+            . "<td class='col-cell'>"
+            . "<div class='col-header-box'>"
+            . "<span class='col-header-title'>Google AI</span>"
+            . (googleDebug != "" ? "<span class='col-header-meta'>" . this._EscapeHtml(googleDebug) . "</span>" : "")
+            . "</div>"
+            . "</td>"
+            . "</tr></table>"
+            . "</div>"
+            . rowsHtml
+            . "<div class='bottom-bar'>"
+            . "<table class='bottom-table'><tr>"
+            . "<td style='text-align:left;vertical-align:middle;padding-left:18px;'>"
+            . "<button class='btn btn-secondary' onclick='applyAll(0)'>保留原始 (Alt+0)</button>"
+            . "<button class='btn btn-secondary' onclick='applyAll(1)' " . (!openAISuccess ? "disabled" : "") . ">全部 OpenAI (Alt+1)</button>"
+            . "<button class='btn btn-secondary' onclick='applyAll(2)' " . (!googleSuccess ? "disabled" : "") . ">全部 Google (Alt+2)</button>"
+            . "</td>"
+            . "<td style='text-align:right;vertical-align:middle;padding-right:18px;'>"
+            . "<button class='btn btn-cancel' onclick='cancel()'>取消 (Esc)</button>"
+            . "<button class='btn btn-primary' onclick='applyCustom()'>✔ 套用所選組合 (Enter)</button>"
+            . "</td>"
+            . "</tr></table>"
+            . "</div></body></html>"
+
+        return html
     }
 
     static GetThreeColumnComparisonLayout() {
@@ -356,7 +675,17 @@ class RisAIDebugGui {
         }
 
         debugInfo := result.DebugInfo
-        return "API Key: " . debugInfo.APIKeyName . " | Model: " . debugInfo.Model . " | Time: " . debugInfo.ApiTime
+        modelStr := (IsObject(debugInfo) && debugInfo.HasOwnProp("Model")) ? debugInfo.Model : ""
+        timeStr := (IsObject(debugInfo) && debugInfo.HasOwnProp("ApiTime")) ? debugInfo.ApiTime : ""
+
+        if (modelStr != "" && timeStr != "") {
+            return "Model: " . modelStr . " | Time: " . timeStr
+        } else if (modelStr != "") {
+            return "Model: " . modelStr
+        } else if (timeStr != "") {
+            return "Time: " . timeStr
+        }
+        return ""
     }
 
     /**
@@ -385,6 +714,8 @@ class RisAIDebugGui {
 }
 
 #HotIf (RisAIDebugGui.comparisonGuiHwnd && WinActive("ahk_id " . RisAIDebugGui.comparisonGuiHwnd))
+!0::RisAIDebugGui.ApplyPolishProviderChoice(0)
 !1::RisAIDebugGui.ApplyPolishProviderChoice(1)
 !2::RisAIDebugGui.ApplyPolishProviderChoice(2)
+Enter::RisAIDebugGui.ApplyPolishProviderChoice(3)
 #HotIf

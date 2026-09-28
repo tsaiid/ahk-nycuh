@@ -328,13 +328,6 @@ RisHotstringFastInput.Enable(20)
         }
         Hotstring("Reset")
     }
-
-    $NumpadEnter:: {
-        if (!hotstrings("#TriggerKey#", "NumpadEnter")) {
-            RisController.SmartListEnter()
-        }
-        Hotstring("Reset")
-    }
 #HotIf
 
 
