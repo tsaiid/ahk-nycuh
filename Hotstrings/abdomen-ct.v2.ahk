@@ -474,7 +474,7 @@ C/W acute appendicitis with rupture.
 {
     MyForm := "
   (
-Presence of intraperitoneal free air with turbid ascites, predominantly at the upper abdomen, suggestive of hollow organ perforation.
+Large volume of intraperitoneal free air with turbid ascites, predominantly in the upper abdomen, suggestive of hollow viscus perforation.
 Abnormal wall thickness over the duodenal bulb region with loss of wall integrity. Perforated peptic ulcer is suspected.
 
 The liver, spleen, pancreas, adrenals, and kidneys are unremarkable.
