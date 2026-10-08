@@ -18,6 +18,7 @@ RegisterTest("RisHotstringPalette.CopySelection handles Edit and HTML selection 
 RegisterTest("RisHotstringPalette._ParseFileContent parses same-line brace hotstrings", Test_ParseSameLineBrace)
 RegisterTest("RisHotstringPalette._SortResults sorts matches in descending score order", Test_SortResultsDescending)
 RegisterTest("RisHotstringPalette._FlushPendingSearch executes pending search immediately", Test_FlushPendingSearch)
+RegisterTest("RisHotstringPalette.SubmitSelection pastes directly to target control and closes", Test_SubmitSelection_DirectPaste)
 
 Test_ParseSingleLine() {
     sample := "
@@ -282,6 +283,30 @@ Test_FlushPendingSearch() {
         AssertEqual("sk", RisHotstringPalette._filteredItems[1].item.trigger, "Top item should be 'sk'")
     } finally {
         RisHotstringPalette.Close()
+    }
+}
+
+Test_SubmitSelection_DirectPaste() {
+    hostGui := Gui()
+    hostEdit := hostGui.Add("Edit", "w200 h50", "")
+    hostGui.Show("Hide")
+
+    try {
+        RisHotstringPalette._filteredItems := [
+            { item: { trigger: "testtrig", options: "", replacement: "Pasted text content", isFunction: false } }
+        ]
+        RisHotstringPalette._selectedIndex := 1
+        RisHotstringPalette._CreateGui()
+        RisHotstringPalette._parentWnd := hostGui.Hwnd
+        RisHotstringPalette._parentCtrl := hostEdit.Hwnd
+
+        RisHotstringPalette.SubmitSelection()
+
+        AssertEqual("Pasted text content", hostEdit.Value, "Host edit should receive pasted text")
+        AssertEqual(0, RisHotstringPalette._gui, "Palette Gui should be destroyed/closed")
+    } finally {
+        RisHotstringPalette.Close()
+        hostGui.Destroy()
     }
 }
 

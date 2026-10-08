@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-Paste(text, convertCRLF := true) {
+Paste(text, convertCRLF := true, targetCtrl := 0) {
     ; --- 0. 內容前處理 ---
     if (convertCRLF) {
         ; 確保換行符號是 Windows 標準 (CRLF)
@@ -8,10 +8,12 @@ Paste(text, convertCRLF := true) {
         text := StrReplace(text, "`n", "`r`n")
     }
 
-    ; --- 1. 嘗試取得焦點 Control 的 Hwnd ---
-    hCtl := 0
-    try {
-        hCtl := ControlGetFocus("A")
+    ; --- 1. 嘗試取得目標或焦點 Control 的 Hwnd ---
+    hCtl := targetCtrl
+    if (!hCtl) {
+        try {
+            hCtl := ControlGetFocus("A")
+        }
     }
 
     ; --- 2. 策略 A: 直接訊息貼上 (優先使用) ---

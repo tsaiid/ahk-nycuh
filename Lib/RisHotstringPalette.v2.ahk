@@ -18,6 +18,7 @@ class RisHotstringPalette {
     static _searchTerms := []
     static _selectedIndex := 1
     static _parentWnd := 0
+    static _parentCtrl := 0
     static _searchSeq := 0
     static _debounceTimer := 0
 
@@ -28,6 +29,10 @@ class RisHotstringPalette {
      */
     static Show() {
         this._parentWnd := WinActive("A")
+        this._parentCtrl := 0
+        try {
+            this._parentCtrl := ControlGetFocus("A")
+        }
 
         if (!this._isLoaded) {
             this._LoadCache()
@@ -97,8 +102,13 @@ class RisHotstringPalette {
         if (this._parentWnd && WinExist("ahk_id " . this._parentWnd)) {
             try {
                 WinActivate("ahk_id " . this._parentWnd)
+                if (this._parentCtrl && WinExist("ahk_id " . this._parentCtrl)) {
+                    ControlFocus(this._parentCtrl)
+                }
             }
         }
+        this._parentWnd := 0
+        this._parentCtrl := 0
     }
 
     /**
@@ -201,23 +211,34 @@ class RisHotstringPalette {
 
         selected := this._filteredItems[row].item
         parentWnd := this._parentWnd
+        parentCtrl := this._parentCtrl
 
-        this.Close()
-
-        if (parentWnd && WinExist("ahk_id " . parentWnd)) {
-            try {
-                WinActivate("ahk_id " . parentWnd)
-                WinWaitActive("ahk_id " . parentWnd, , 1)
-                Sleep 30
-            }
+        ; 立即隱藏命令列視窗，消除視覺延遲
+        try {
+            this._gui.Hide()
         }
 
-        if (selected.isFunction) {
-            SendInput("{Raw}" . selected.trigger . "`t")
-        } else if (!RegExMatch(selected.options, "i)[RT]") && RegExMatch(selected.replacement, "\{[^}]+\}")) {
-            SendInput(selected.replacement)
-        } else {
-            Paste(selected.replacement)
+        try {
+            ; 還原原視窗與目標輸入控制項之焦點
+            if (parentWnd && WinExist("ahk_id " . parentWnd)) {
+                try {
+                    WinActivate("ahk_id " . parentWnd)
+                    if (parentCtrl && WinExist("ahk_id " . parentCtrl)) {
+                        ControlFocus(parentCtrl)
+                    }
+                }
+            }
+
+            ; 輸出文字 (優先直通原生訊息 EditPaste，達成 0 延遲)
+            if (selected.isFunction) {
+                SendInput("{Raw}" . selected.trigger . "`t")
+            } else if (!RegExMatch(selected.options, "i)[RT]") && RegExMatch(selected.replacement, "\{[^}]+\}")) {
+                SendInput(selected.replacement)
+            } else {
+                Paste(selected.replacement, true, parentCtrl)
+            }
+        } finally {
+            this.Close()
         }
     }
 
