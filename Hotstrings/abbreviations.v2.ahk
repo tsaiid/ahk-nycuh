@@ -266,6 +266,7 @@
 ::icra::intracranial `
 ::wad::Wallerian degeneration
 ::cso::centrum semiovale
+::crd::corona radiata
 ::svd::small vessel disease
 ::wld::Wallerian degeneration
 ::ba::basilar artery
