@@ -69,6 +69,17 @@ class NoduleTracker {
         return num
     }
 
+    static GetQuickSetRange(itemCount, isMpr, enableOffset) {
+        if (!IsNumber(itemCount) || Integer(itemCount) <= 0) {
+            return {min: 1, max: 0, text: ""}
+        }
+        count := Integer(itemCount)
+        isMprOffset := enableOffset && isMpr
+        rangeMin := isMprOffset ? 2 : 1
+        rangeMax := isMprOffset ? (count + 1) : count
+        return {min: rangeMin, max: rangeMax, text: rangeMin . " ~ " . rangeMax}
+    }
+
     ; --- 資料屬性 (Data Properties) ---
     NoduleData := Map("RUL", [], "RML", [], "RLL", [], "LUL", [], "LLL", [])
     LobeOrder := ["RUL", "RML", "RLL", "LUL", "LLL"]
@@ -754,16 +765,143 @@ class NoduleTracker {
     }
 
     QuickSetImage() {
-        targetHwnd := WinActive("A")
         MouseGetPos(&mX, &mY, &mHwnd, &mCtrlNN)
-        targetFocusHwnd := ControlGetFocus("ahk_id " targetHwnd)
-        if (!targetFocusHwnd && mHwnd == targetHwnd) {
-            try targetFocusHwnd := ControlGetHwnd(mCtrlNN, "ahk_id " targetHwnd)
+
+        ; 檢查滑鼠是否在 PACS 視窗上
+        isMouseOverPacs := false
+        try isMouseOverPacs := (WinGetProcessName("ahk_id " mHwnd) = "G3PACS.exe")
+
+        ctrlHwnd := 0
+        if (isMouseOverPacs) {
+            ; 自動激活滑鼠底下的 Series Viewport (與 Up/Down/r/g 熱鍵機制一致，確保控制項處於活動狀態)
+            try G3PacsProbe.FocusSeriesUnderMouse(&targetHwnd, &ctrlHwnd)
         }
-        if (!targetFocusHwnd) {
+
+        targetHwnd := WinActive("A")
+        if (!targetHwnd || WinGetProcessName(targetHwnd) != "G3PACS.exe") {
+            if (WinExist("ahk_exe G3PACS.exe")) {
+                targetHwnd := WinExist("ahk_exe G3PACS.exe")
+            }
+        }
+        if (!targetHwnd) {
+            G3PacsNotify.Show("❌ 無法鎖定目標視窗", 1500)
+            return
+        }
+
+        targetCombo := ""
+        method := ""
+        descVal := ""
+        focusNN := ""
+
+        ; 1. 若滑鼠在 PACS 上，優先比對滑鼠所在控制項
+        if (isMouseOverPacs) {
+            if (ctrlHwnd) {
+                try focusNN := ControlGetClassNN(ctrlHwnd)
+            }
+            if (focusNN == "" && mCtrlNN != "") {
+                focusNN := mCtrlNN
+            }
+            if (focusNN != "") {
+                match := G3PacsProbe.GetSeriesMatchForFocusClassNN(focusNN, targetHwnd, this.PatternList)
+                if (match) {
+                    targetCombo := match.candidate.img
+                    method := "Probe (" match.name ")" (match.isOffset ? " [PACS +1 容錯]" : "")
+                    descVal := match.HasOwnProp("desc") ? match.desc : ""
+                    if (descVal == "" && match.candidate.HasOwnProp("desc")) {
+                        try descVal := ControlGetText(match.candidate.desc, targetHwnd)
+                    }
+                }
+            }
+        }
+
+        ; 2. 若未命中，嘗試當前視窗焦點控制項
+        targetFocusHwnd := 0
+        if (targetCombo == "") {
+            targetFocusHwnd := ControlGetFocus("ahk_id " targetHwnd)
+            if (targetFocusHwnd) {
+                try altNN := ControlGetClassNN(targetFocusHwnd)
+                if (altNN != "" && altNN != focusNN) {
+                    focusNN := altNN
+                    match := G3PacsProbe.GetSeriesMatchForFocusClassNN(focusNN, targetHwnd, this.PatternList)
+                    if (match) {
+                        targetCombo := match.candidate.img
+                        method := "Probe (" match.name ")" (match.isOffset ? " [PACS +1 容錯]" : "")
+                        descVal := match.HasOwnProp("desc") ? match.desc : ""
+                        if (descVal == "" && match.candidate.HasOwnProp("desc")) {
+                            try descVal := ControlGetText(match.candidate.desc, targetHwnd)
+                        }
+                    }
+                }
+            }
+        }
+
+        ; 3. 若探針仍未命中，嘗試 Acc 模式 (嚴格限制在 PACS 視窗範圍內，防範遍歷 Desktop 死鎖)
+        if (targetCombo == "" && this.EnableAccFallback) {
+            accTargetHwnd := 0
+            if (ctrlHwnd) {
+                accTargetHwnd := ctrlHwnd
+            } else if (isMouseOverPacs && mCtrlNN != "") {
+                try accTargetHwnd := ControlGetHwnd(mCtrlNN, "ahk_id " targetHwnd)
+            }
+            if (!accTargetHwnd && targetFocusHwnd) {
+                accTargetHwnd := targetFocusHwnd
+            }
+
+            if (accTargetHwnd) {
+                try {
+                    pacsRoot := Acc.ElementFromHandle(targetHwnd)
+                    ControlGetPos(,, &cW, &cH, accTargetHwnd, "ahk_id " targetHwnd)
+                    pt := Buffer(8), NumPut("int", 0, pt, 0), NumPut("int", 0, pt, 4)
+                    DllCall("ClientToScreen", "ptr", accTargetHwnd, "ptr", pt)
+                    tX := NumGet(pt, 0, "int") + (cW // 2)
+                    tY := NumGet(pt, 4, "int") + (cH // 2)
+                    focusedEl := Acc.ElementFromPoint(tX, tY)
+                    if (focusedEl && focusedEl.WinID == pacsRoot.WinID) {
+                        fullPath := this.GetRelativePath(focusedEl, pacsRoot)
+                        if (fullPath != "") {
+                            pathParts := StrSplit(fullPath, ",")
+                            if (pathParts.Length >= 2) {
+                                targetIdx := pathParts.Length - 1
+                                pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
+                                basePath := ""
+                                Loop targetIdx {
+                                    basePath .= pathParts[A_Index] ","
+                                }
+                                comboPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
+                                try {
+                                    comboEl := pacsRoot[comboPath]
+                                    loc := comboEl.Location
+                                    targetCombo := ControlGetClassNN(this.WindowFromPoint(loc.x + 10, loc.y + 10))
+                                    method := "Acc Path Calculation"
+                                }
+                                pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
+                                basePath := ""
+                                Loop targetIdx {
+                                    basePath .= pathParts[A_Index] ","
+                                }
+                                srsPath := basePath . pathParts[pathParts.Length]
+                                try {
+                                    descPath := srsPath . ",2,4"
+                                    descEl := pacsRoot[descPath]
+                                    descVal := Trim(descEl.Value)
+                                    if (descVal == "") {
+                                        descVal := Trim(descEl.Name)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (targetCombo == "") {
             G3PacsNotify.Show("❌ 無法鎖定目標控制項", 1500)
             return
         }
+
+        itemCount := -1
+        try itemCount := SendMessage(0x0146, 0, 0, targetCombo, "ahk_id " targetHwnd) ; CB_GETCOUNT
+
         ; 偵測螢幕 DPI 與 Windows 文字縮放比率
         dpi := 0
         try dpi := G3PacsNotify._GetDpiAtPoint(mX, mY)
@@ -784,12 +922,22 @@ class NoduleTracker {
         }
 
         effectiveScale := dpiScale * textFactor
-        fontSize := Max(10, Round(12 * effectiveScale))
-        pad := Round(2 * effectiveScale)
-        editW := Round(68 * effectiveScale)
-        editH := Round(32 * effectiveScale)
-        totalW := editW + pad * 2
-        totalH := editH + pad * 2
+        padX := Round(8 * effectiveScale)
+        gap := Round(6 * effectiveScale)
+        badgeW := Round(14 * effectiveScale)
+        editW := Round(46 * effectiveScale)
+        editH := Round(24 * effectiveScale)
+        totalH := Round(34 * effectiveScale)
+
+        isMpr := NoduleTracker.IsMprSeries(descVal)
+        rangeInfo := NoduleTracker.GetQuickSetRange(itemCount, isMpr, this.EnableMprImgOffset)
+        rangeText := rangeInfo.text
+        rangeW := 0
+        if (rangeText != "") {
+            rangeW := Round((StrLen(rangeText) * 7 + 4) * effectiveScale)
+        }
+
+        totalW := padX + badgeW + gap + editW + (rangeText != "" ? (gap + rangeW) : 0) + padX
 
         offsetGap := Round(6 * effectiveScale)
         guiX := Round(mX - totalW - offsetGap)
@@ -809,18 +957,51 @@ class NoduleTracker {
             guiY := Max(workArea.top, Min(guiY, workArea.bottom - totalH))
         }
 
-        inputGui := Gui("+AlwaysOnTop -Caption +Border -DPIScale", "Jump to Image")
-        inputGui.MarginX := pad
-        inputGui.MarginY := pad
-        inputGui.SetFont("s" fontSize " Bold", "Segoe UI")
-        inputGui.BackColor := "White"
-        editNum := inputGui.Add("Edit", Format("w{1} h{2} Center Number Limit4", editW, editH))
+        inputGui := Gui("+AlwaysOnTop -Caption +ToolWindow -DPIScale", "Jump to Image")
+        inputGui.BackColor := "1E1E22"
+        inputGui.MarginX := 0
+        inputGui.MarginY := 0
+
+        badgeY := Round((totalH - Round(18 * effectiveScale)) // 2)
+        inputGui.SetFont("s" Round(11 * effectiveScale) " Bold c38BDF8", "Segoe UI")
+        inputGui.Add("Text", Format("x{1} y{2} w{3} Center BackgroundTrans", padX, badgeY, badgeW), "#")
+
+        editX := padX + badgeW + gap
+        editY := Round((totalH - editH) // 2)
+        inputGui.SetFont("s" Round(11 * effectiveScale) " Bold cFFFFFF", "Segoe UI")
+        editNum := inputGui.Add("Edit", Format("x{1} y{2} w{3} h{4} Center Number Limit4 Background28282D -Border -E0x200", editX, editY, editW, editH))
+
+        if (rangeText != "") {
+            rangeX := editX + editW + gap
+            rangeY := Round((totalH - Round(16 * effectiveScale)) // 2)
+            inputGui.SetFont("s" Round(9 * effectiveScale) " Norm c94A3B8", "Segoe UI")
+            inputGui.Add("Text", Format("x{1} y{2} w{3} Center BackgroundTrans", rangeX, rangeY, rangeW), rangeText)
+        }
+
         btnOk := inputGui.Add("Button", "Default w0 h0 Hidden", "OK")
         btnOk.OnEvent("Click", (*) => ProcessJump(editNum.Value))
-        inputGui.OnEvent("Escape", (*) => inputGui.Destroy())
-        inputGui.Show(Format("x{1} y{2}", guiX, guiY))
-        editNum.Focus()
+
+        DismissInputGui(*) {
+            SetTimer(WatchFocus, 0)
+            try inputGui.Destroy()
+        }
+
+        inputGui.OnEvent("Close", DismissInputGui)
+        inputGui.OnEvent("Escape", DismissInputGui)
+
+        inputGui.Show(Format("x{1} y{2} w{3} h{4}", guiX, guiY, totalW, totalH))
         guiHwnd := inputGui.Hwnd
+
+        try {
+            r := Round(8 * effectiveScale)
+            WinSetRegion(Format("0-0 w{1} h{2} r{3}-{3}", totalW, totalH, r), guiHwnd)
+            style := DllCall("GetClassLongPtr", "Ptr", guiHwnd, "Int", -26, "Ptr")
+            DllCall("SetClassLongPtr", "Ptr", guiHwnd, "Int", -26, "Ptr", style | 0x00020000)
+            WinSetTransparent(245, guiHwnd)
+        }
+
+        editNum.Focus()
+
         SetTimer(WatchFocus, 100)
         WatchFocus() {
             try {
@@ -829,87 +1010,34 @@ class NoduleTracker {
                     return
                 }
                 if (!WinActive("ahk_id " guiHwnd)) {
-                    SetTimer(WatchFocus, 0)
-                    inputGui.Destroy()
+                    DismissInputGui()
                 }
             } catch {
                 SetTimer(WatchFocus, 0)
             }
         }
+
         ProcessJump(val) {
             if (val == "" || !IsNumber(val)) {
-                inputGui.Destroy()
+                DismissInputGui()
                 return
             }
             inputNum := Integer(val)
             if (inputNum < 1) {
-                inputGui.Destroy()
+                DismissInputGui()
                 G3PacsNotify.Show("❌ 影像編號需大於 0", 1500)
                 return
             }
-            inputGui.Destroy()
+            if (rangeInfo.max > 0 && inputNum > rangeInfo.max) {
+                DismissInputGui()
+                G3PacsNotify.Show(Format("❌ 影像編號超出範圍 (最大: {1})", rangeInfo.max), 1800)
+                return
+            }
+            DismissInputGui()
+
             msg := "【Ctrl+G 執行除錯】`n輸入影像編號: " inputNum "`n"
             try {
-                focusNN := ControlGetClassNN(targetFocusHwnd)
                 msg .= "- 目標焦點: " focusNN "`n"
-                targetCombo := ""
-                method := ""
-                descVal := ""
-                match := G3PacsProbe.GetSeriesMatchForFocusClassNN(focusNN, targetHwnd, this.PatternList)
-                if (match) {
-                    targetCombo := match.candidate.img
-                    method := "Probe (" match.name ")" (match.isOffset ? " [PACS +1 容錯]" : "")
-                    descVal := match.HasOwnProp("desc") ? match.desc : ""
-                    if (descVal == "" && match.candidate.HasOwnProp("desc")) {
-                        try descVal := ControlGetText(match.candidate.desc, targetHwnd)
-                    }
-                }
-                if (targetCombo == "" && this.EnableAccFallback) {
-                    msg .= "- 探針未命中，嘗試 Acc 模式...`n"
-                    pacsRoot := Acc.ElementFromHandle(targetHwnd)
-                    ControlGetPos(,, &cW, &cH, targetFocusHwnd, "ahk_id " targetHwnd)
-                    pt := Buffer(8), NumPut("int", 0, pt, 0), NumPut("int", 0, pt, 4)
-                    DllCall("ClientToScreen", "ptr", targetFocusHwnd, "ptr", pt)
-                    tX := NumGet(pt, 0, "int") + (cW // 2)
-                    tY := NumGet(pt, 4, "int") + (cH // 2)
-                    focusedEl := Acc.ElementFromPoint(tX, tY)
-                    fullPath := this.GetRelativePath(focusedEl, pacsRoot)
-                    if (fullPath != "") {
-                        pathParts := StrSplit(fullPath, ",")
-                        if (pathParts.Length >= 2) {
-                            targetIdx := pathParts.Length - 1
-                            pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
-                            basePath := ""
-                            Loop targetIdx {
-                                basePath .= pathParts[A_Index] ","
-                            }
-                            comboPath := basePath . pathParts[pathParts.Length] . ",1,4,2,4"
-                            try {
-                                comboEl := pacsRoot[comboPath]
-                                loc := comboEl.Location
-                                targetCombo := ControlGetClassNN(this.WindowFromPoint(loc.x + 10, loc.y + 10))
-                                method := "Acc Path Calculation"
-                            }
-                            pathParts[targetIdx] := Integer(pathParts[targetIdx]) + 1
-                            basePath := ""
-                            Loop targetIdx {
-                                basePath .= pathParts[A_Index] ","
-                            }
-                            srsPath := basePath . pathParts[pathParts.Length]
-                            try {
-                                descPath := srsPath . ",2,4"
-                                descEl := pacsRoot[descPath]
-                                descVal := Trim(descEl.Value)
-                                if (descVal == "") {
-                                    descVal := Trim(descEl.Name)
-                                }
-                            }
-                        }
-                    }
-                }
-                if (targetCombo == "") {
-                    throw Error("無法定位目標 ComboBox")
-                }
                 msg .= "- 定位成功: " targetCombo " (方法: " method ")`n"
                 if (descVal != "") {
                     msg .= "- 序列描述: " descVal "`n"
@@ -923,12 +1051,8 @@ class NoduleTracker {
                     msg .= "- 目標影像編號: " targetNum "`n"
                 }
 
-                itemCount := SendMessage(0x0146, 0, 0, targetCombo, "ahk_id " targetHwnd) ; CB_GETCOUNT
                 if (itemCount != -1) {
                     msg .= "- ComboBox 項目數: " itemCount "`n"
-                    if (targetNum > itemCount) {
-                        throw Error("影像編號超過範圍 (最大: " itemCount ")")
-                    }
                 } else {
                     msg .= "- ComboBox 項目數: 無法讀取，改用寫入後驗證`n"
                 }
@@ -1606,11 +1730,14 @@ class NoduleTracker {
         maxDepth := 50
         timeoutMs := 2500
         try {
+            if (targetEl.WinID != rootEl.WinID) {
+                return ""
+            }
             Loop maxDepth {
                 if (curr.IsEqual(rootEl)) {
                     break
                 }
-                if (!curr.Parent) {
+                if (!curr.Parent || curr.WinID != rootEl.WinID) {
                     return ""
                 }
                 if (A_TickCount - startTime > timeoutMs) {
@@ -1833,7 +1960,13 @@ global tracker := NoduleTracker()
 ; ==============================================================================
 ; ★ 快捷鍵區域
 ; ==============================================================================
-#HotIf WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS")
+IsMouseOverG3PacsWindow() {
+    MouseGetPos(,, &hwnd)
+    try return WinGetProcessName("ahk_id " hwnd) = "G3PACS.exe"
+    return false
+}
+
+#HotIf (WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS")) || IsMouseOverG3PacsWindow()
 
 ; F11: 效能測試
 F11::tracker.RunSmartBenchmark()

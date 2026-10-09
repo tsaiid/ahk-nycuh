@@ -8,6 +8,7 @@ RegisterTest("IsPositionInScreen detects in-bound and out-of-bound positions", T
 RegisterTest("GetPrimaryTopRightPos calculates valid position on primary monitor", Test_GetPrimaryTopRightPos)
 RegisterTest("IsMprSeries identifies MPR series and ignores MRI sequences", Test_IsMprSeries)
 RegisterTest("CalculateQuickSetTarget applies reverse compensation for MPR", Test_CalculateQuickSetTarget)
+RegisterTest("GetQuickSetRange calculates shifted range for MPR compensation", Test_GetQuickSetRange)
 RegisterTest("FormatSentenceReport formats single nodule as full sentence", Test_FormatSentenceReport_Single)
 RegisterTest("FormatSentenceReport formats multiple nodules across lobes with plural form", Test_FormatSentenceReport_MultipleLobes)
 RegisterTest("FormatSentenceReport formats multiple nodules in single lobe with plural form", Test_FormatSentenceReport_SingleLobeMultiple)
@@ -250,6 +251,43 @@ Test_CalculateQuickSetTarget() {
     ; 無效輸入
     AssertEqual(0, CalculateQuickSetTarget(0, true, true), "0 should be invalid (0)")
     AssertEqual(0, CalculateQuickSetTarget("abc", true, true), "Non-number should be invalid (0)")
+}
+
+GetQuickSetRange(itemCount, isMpr, enableOffset) {
+    if (!IsNumber(itemCount) || Integer(itemCount) <= 0) {
+        return {min: 1, max: 0, text: ""}
+    }
+    count := Integer(itemCount)
+    isMprOffset := enableOffset && isMpr
+    rangeMin := isMprOffset ? 2 : 1
+    rangeMax := isMprOffset ? (count + 1) : count
+    return {min: rangeMin, max: rangeMax, text: rangeMin . " ~ " . rangeMax}
+}
+
+Test_GetQuickSetRange() {
+    ; 當選項啟用且為 MPR 序列：控制項 97 應顯示 2 ~ 98，最大合法輸入為 98
+    r1 := GetQuickSetRange(97, true, true)
+    AssertEqual(2, r1.min, "MPR enabled min should be 2")
+    AssertEqual(98, r1.max, "MPR enabled max should be 98")
+    AssertEqual("2 ~ 98", r1.text, "MPR enabled text should be 2 ~ 98")
+
+    ; 當選項未啟用但為 MPR 序列：維持 1 ~ 97
+    r2 := GetQuickSetRange(97, true, false)
+    AssertEqual(1, r2.min, "MPR disabled min should be 1")
+    AssertEqual(97, r2.max, "MPR disabled max should be 97")
+    AssertEqual("1 ~ 97", r2.text, "MPR disabled text should be 1 ~ 97")
+
+    ; 非 MPR 序列：維持 1 ~ 97
+    r3 := GetQuickSetRange(97, false, true)
+    AssertEqual(1, r3.min, "Non-MPR min should be 1")
+    AssertEqual(97, r3.max, "Non-MPR max should be 97")
+    AssertEqual("1 ~ 97", r3.text, "Non-MPR text should be 1 ~ 97")
+
+    ; 無效或 0
+    r4 := GetQuickSetRange(0, true, true)
+    AssertEqual("", r4.text, "0 itemCount should have empty text")
+    r5 := GetQuickSetRange(-1, true, true)
+    AssertEqual("", r5.text, "Negative itemCount should have empty text")
 }
 
 JoinLobeParts(reportParts) {
