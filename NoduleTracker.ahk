@@ -1960,13 +1960,11 @@ global tracker := NoduleTracker()
 ; ==============================================================================
 ; ★ 快捷鍵區域
 ; ==============================================================================
-IsMouseOverG3PacsWindow() {
-    MouseGetPos(,, &hwnd)
-    try return WinGetProcessName("ahk_id " hwnd) = "G3PACS.exe"
-    return false
+IsG3PacsActiveWindow() {
+    return WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS")
 }
 
-#HotIf (WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS")) || IsMouseOverG3PacsWindow()
+#HotIf IsG3PacsActiveWindow()
 
 ; F11: 效能測試
 F11::tracker.RunSmartBenchmark()
