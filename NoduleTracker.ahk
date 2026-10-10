@@ -16,8 +16,9 @@
 ;    - Alt + Q/A/Z : 抓取並記錄至 RUL / RML / RLL (右肺)
 ;    - Alt + W/S   : 抓取並記錄至 LUL / LLL (左肺)
 ; 3. 直接複製 (不存入 GUI)：
-;    - Shift + Alt + Q/A/Z/W/S : 抓取單筆並帶入肺葉名稱 (e.g., RUL of lung...)
-;    - m                       : 僅抓取並格式化為 (Srs/Img: 3/69)
+;    - Shift + Alt + Q/A/Z/W/S        : 抓取單筆並帶入肺葉名稱 (e.g., RUL of lung (Srs/Img: 5/27))
+;    - Ctrl + Alt + Shift + Q/A/Z/W/S : 抓取單筆並帶入完整句子 (e.g., A tiny nodule in the RUL of lung (Srs/Img: 5/27).)
+;    - m                              : 僅抓取並格式化為 (Srs/Img: 3/69)
 ; 4. 輔助工具：
 ;    - Ctrl + G    : 快速跳至指定影像編號 (透過定位 PACS 控制項寫入，支援 MPR 反向補償)
 ;    - F11         : 執行效能基準測試 (Benchmark)，驗證探針模式命中率。
@@ -459,15 +460,26 @@ class NoduleTracker {
         }
     }
 
-    DirectCopy(location) {
+    static FormatDirectCopy(location, srs, img, asSentence := false) {
+        if (asSentence) {
+            return "A tiny nodule in the " . location . " of lung (Srs/Img: " . srs . "/" . img . ")."
+        }
+        return location . " of lung (Srs/Img: " . srs . "/" . img . ")"
+    }
+
+    DirectCopy(location, asSentence := false) {
         info := this.GetSmartInfo()
         if (!info.valid) {
             G3PacsNotify.Show("⚠️ 複製失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2500)
             return
         }
-        reportStr := location . " of lung (Srs/Img: " . info.srs . "/" . info.img . ")"
+        reportStr := NoduleTracker.FormatDirectCopy(location, info.srs, info.img, asSentence)
         A_Clipboard := reportStr
         G3PacsNotify.Show("📋 Copied:`n" reportStr, 2000)
+    }
+
+    DirectSentenceCopy(location) {
+        this.DirectCopy(location, true)
     }
 
     SimpleDirectCopy() {
@@ -2010,6 +2022,36 @@ F12::tracker.ProbeControl()
 +!s:: {
     Send("{Blind}{vkE8}")
     tracker.DirectCopy("LLL")
+    Send("{Blind}{vkE8}")
+}
+
+^!+q:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectSentenceCopy("RUL")
+    Send("{Blind}{vkE8}")
+}
+
+^!+a:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectSentenceCopy("RML")
+    Send("{Blind}{vkE8}")
+}
+
+^!+z:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectSentenceCopy("RLL")
+    Send("{Blind}{vkE8}")
+}
+
+^!+w:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectSentenceCopy("LUL")
+    Send("{Blind}{vkE8}")
+}
+
+^!+s:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectSentenceCopy("LLL")
     Send("{Blind}{vkE8}")
 }
 

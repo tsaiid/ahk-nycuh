@@ -14,6 +14,7 @@ RegisterTest("FormatSentenceReport formats multiple nodules across lobes with pl
 RegisterTest("FormatSentenceReport formats multiple nodules in single lobe with plural form", Test_FormatSentenceReport_SingleLobeMultiple)
 RegisterTest("FormatSentenceReport formats 3 lobes with Oxford comma", Test_FormatSentenceReport_ThreeLobes)
 RegisterTest("FormatSentenceReport returns empty string when no nodules", Test_FormatSentenceReport_Empty)
+RegisterTest("FormatDirectCopy formats lobe or full sentence", Test_FormatDirectCopy)
 
 IsPositionInScreen(x, y, w := 320, h := 300) {
     if (x == "" || y == "") {
@@ -362,6 +363,18 @@ Test_FormatSentenceReport_ThreeLobes() {
 Test_FormatSentenceReport_Empty() {
     entries := []
     AssertEqual("", FormatSentenceReport(entries), "Empty entries should return empty string")
+}
+
+FormatDirectCopy(location, srs, img, asSentence := false) {
+    if (asSentence) {
+        return "A tiny nodule in the " . location . " of lung (Srs/Img: " . srs . "/" . img . ")."
+    }
+    return location . " of lung (Srs/Img: " . srs . "/" . img . ")"
+}
+
+Test_FormatDirectCopy() {
+    AssertEqual("RML of lung (Srs/Img: 5/27)", FormatDirectCopy("RML", "5", "27", false), "Direct copy format mismatch")
+    AssertEqual("A tiny nodule in the RML of lung (Srs/Img: 5/27).", FormatDirectCopy("RML", "5", "27", true), "Direct sentence copy format mismatch")
 }
 
 RunRegisteredTests()
