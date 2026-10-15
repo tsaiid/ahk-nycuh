@@ -36,6 +36,7 @@ global PRESERVE_CLIPBOARD := 0
 #Include <RisHotstringPalette.v2>
 #Include <RisHotstringFastInput.v2>
 #Include Lib\Hotstrings.v2.ahk
+#Include <ImeGuard.v2>
 ;#Include <UIA.v2>
 ;#Include <Paste.v2>
 ;#Include <Edit.v2>
@@ -463,12 +464,6 @@ ToggleFastPaste(*) {
     } else {
         A_TrayMenu.Uncheck(TRAY_FAST_PASTE_ITEM)
     }
-}
-
-WithImeGuard(action) {
-    Send("{Blind}{vkE8}")
-    try action.Call()
-    finally Send("{Blind}{vkE8}")
 }
 
 IsRisReportWindow() {

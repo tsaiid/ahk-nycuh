@@ -42,6 +42,7 @@
 #Include <RisDialog.v2>
 #Include <G3PacsNotify.v2>
 #Include <G3PacsProbe.v2>
+#Include <ImeGuard.v2>
 
 ; ==============================================================================
 ; ★ 類別定義 (階段一：架構與狀態遷移)
@@ -2018,165 +2019,39 @@ F12::tracker.ProbeControl()
 ; ★ 新增：Ctrl+G 快速跳至指定影像編號 (Image Number)
 ^g::tracker.QuickSetImage()
 
-; 使用大括號語法 (AHK v2)，並加入 vkE8 阻斷語言切換偵測
+; 透過 WithImeGuard 防止輸入法狀態切換 (Alt+Shift / Ctrl+Shift)
 
-+!q:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectCopy("RUL")
-    Send("{Blind}{vkE8}")
-}
++!q::WithImeGuard(() => tracker.DirectCopy("RUL"))
++!a::WithImeGuard(() => tracker.DirectCopy("RML"))
++!z::WithImeGuard(() => tracker.DirectCopy("RLL"))
++!w::WithImeGuard(() => tracker.DirectCopy("LUL"))
++!s::WithImeGuard(() => tracker.DirectCopy("LLL"))
 
-+!a:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectCopy("RML")
-    Send("{Blind}{vkE8}")
-}
-
-+!z:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectCopy("RLL")
-    Send("{Blind}{vkE8}")
-}
-
-+!w:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectCopy("LUL")
-    Send("{Blind}{vkE8}")
-}
-
-+!s:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectCopy("LLL")
-    Send("{Blind}{vkE8}")
-}
-
-^!+q:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectSentenceCopy("RUL")
-    Send("{Blind}{vkE8}")
-}
-
-^!+a:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectSentenceCopy("RML")
-    Send("{Blind}{vkE8}")
-}
-
-^!+z:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectSentenceCopy("RLL")
-    Send("{Blind}{vkE8}")
-}
-
-^!+w:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectSentenceCopy("LUL")
-    Send("{Blind}{vkE8}")
-}
-
-^!+s:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectSentenceCopy("LLL")
-    Send("{Blind}{vkE8}")
-}
+^!+q::WithImeGuard(() => tracker.DirectSentenceCopy("RUL"))
+^!+a::WithImeGuard(() => tracker.DirectSentenceCopy("RML"))
+^!+z::WithImeGuard(() => tracker.DirectSentenceCopy("RLL"))
+^!+w::WithImeGuard(() => tracker.DirectSentenceCopy("LUL"))
+^!+s::WithImeGuard(() => tracker.DirectSentenceCopy("LLL"))
 
 ; --- Hepatic Nodule 快捷鍵 (S1 ~ S8) ---
 
-+!1:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticCopy(1)
-    Send("{Blind}{vkE8}")
-}
++!1::WithImeGuard(() => tracker.DirectHepaticCopy(1))
++!2::WithImeGuard(() => tracker.DirectHepaticCopy(2))
++!3::WithImeGuard(() => tracker.DirectHepaticCopy(3))
++!4::WithImeGuard(() => tracker.DirectHepaticCopy(4))
++!5::WithImeGuard(() => tracker.DirectHepaticCopy(5))
++!6::WithImeGuard(() => tracker.DirectHepaticCopy(6))
++!7::WithImeGuard(() => tracker.DirectHepaticCopy(7))
++!8::WithImeGuard(() => tracker.DirectHepaticCopy(8))
 
-+!2:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticCopy(2)
-    Send("{Blind}{vkE8}")
-}
-
-+!3:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticCopy(3)
-    Send("{Blind}{vkE8}")
-}
-
-+!4:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticCopy(4)
-    Send("{Blind}{vkE8}")
-}
-
-+!5:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticCopy(5)
-    Send("{Blind}{vkE8}")
-}
-
-+!6:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticCopy(6)
-    Send("{Blind}{vkE8}")
-}
-
-+!7:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticCopy(7)
-    Send("{Blind}{vkE8}")
-}
-
-+!8:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticCopy(8)
-    Send("{Blind}{vkE8}")
-}
-
-^!+1:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticSentenceCopy(1)
-    Send("{Blind}{vkE8}")
-}
-
-^!+2:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticSentenceCopy(2)
-    Send("{Blind}{vkE8}")
-}
-
-^!+3:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticSentenceCopy(3)
-    Send("{Blind}{vkE8}")
-}
-
-^!+4:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticSentenceCopy(4)
-    Send("{Blind}{vkE8}")
-}
-
-^!+5:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticSentenceCopy(5)
-    Send("{Blind}{vkE8}")
-}
-
-^!+6:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticSentenceCopy(6)
-    Send("{Blind}{vkE8}")
-}
-
-^!+7:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticSentenceCopy(7)
-    Send("{Blind}{vkE8}")
-}
-
-^!+8:: {
-    Send("{Blind}{vkE8}")
-    tracker.DirectHepaticSentenceCopy(8)
-    Send("{Blind}{vkE8}")
-}
+^!+1::WithImeGuard(() => tracker.DirectHepaticSentenceCopy(1))
+^!+2::WithImeGuard(() => tracker.DirectHepaticSentenceCopy(2))
+^!+3::WithImeGuard(() => tracker.DirectHepaticSentenceCopy(3))
+^!+4::WithImeGuard(() => tracker.DirectHepaticSentenceCopy(4))
+^!+5::WithImeGuard(() => tracker.DirectHepaticSentenceCopy(5))
+^!+6::WithImeGuard(() => tracker.DirectHepaticSentenceCopy(6))
+^!+7::WithImeGuard(() => tracker.DirectHepaticSentenceCopy(7))
+^!+8::WithImeGuard(() => tracker.DirectHepaticSentenceCopy(8))
 
 m:: {
     ;Send("{Blind}{vkE8}")
