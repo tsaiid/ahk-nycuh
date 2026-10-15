@@ -15,6 +15,7 @@ RegisterTest("FormatSentenceReport formats multiple nodules in single lobe with 
 RegisterTest("FormatSentenceReport formats 3 lobes with Oxford comma", Test_FormatSentenceReport_ThreeLobes)
 RegisterTest("FormatSentenceReport returns empty string when no nodules", Test_FormatSentenceReport_Empty)
 RegisterTest("FormatDirectCopy formats lobe or full sentence", Test_FormatDirectCopy)
+RegisterTest("FormatHepaticDirectCopy formats liver segment or full sentence", Test_FormatHepaticDirectCopy)
 
 IsPositionInScreen(x, y, w := 320, h := 300) {
     if (x == "" || y == "") {
@@ -375,6 +376,22 @@ FormatDirectCopy(location, srs, img, asSentence := false) {
 Test_FormatDirectCopy() {
     AssertEqual("RML of lung (Srs/Img: 5/27)", FormatDirectCopy("RML", "5", "27", false), "Direct copy format mismatch")
     AssertEqual("A tiny nodule in the RML of lung (Srs/Img: 5/27).", FormatDirectCopy("RML", "5", "27", true), "Direct sentence copy format mismatch")
+}
+
+FormatHepaticDirectCopy(segment, srs, img, asSentence := false) {
+    segStr := RegExMatch(String(segment), "i)^S") ? String(segment) : ("S" . segment)
+    if (asSentence) {
+        return "A nodule is noted in " . segStr . " of the liver (Srs/Img: " . srs . "/" . img . ")."
+    }
+    return segStr . " of the liver (Srs/Img: " . srs . "/" . img . ")"
+}
+
+Test_FormatHepaticDirectCopy() {
+    AssertEqual("S1 of the liver (Srs/Img: 2/1)", FormatHepaticDirectCopy(1, "2", "1", false), "Direct copy format mismatch for S1")
+    AssertEqual("A nodule is noted in S1 of the liver (Srs/Img: 2/1).", FormatHepaticDirectCopy(1, "2", "1", true), "Direct sentence copy format mismatch for S1")
+    AssertEqual("S8 of the liver (Srs/Img: 3/45)", FormatHepaticDirectCopy(8, "3", "45", false), "Direct copy format mismatch for S8")
+    AssertEqual("A nodule is noted in S8 of the liver (Srs/Img: 3/45).", FormatHepaticDirectCopy(8, "3", "45", true), "Direct sentence copy format mismatch for S8")
+    AssertEqual("S2 of the liver (Srs/Img: 4/12)", FormatHepaticDirectCopy("S2", "4", "12", false), "Direct copy format mismatch for S2 string input")
 }
 
 RunRegisteredTests()

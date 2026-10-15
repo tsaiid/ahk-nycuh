@@ -18,6 +18,8 @@
 ; 3. 直接複製 (不存入 GUI)：
 ;    - Shift + Alt + Q/A/Z/W/S        : 抓取單筆並帶入肺葉名稱 (e.g., RUL of lung (Srs/Img: 5/27))
 ;    - Ctrl + Alt + Shift + Q/A/Z/W/S : 抓取單筆並帶入完整句子 (e.g., A tiny nodule in the RUL of lung (Srs/Img: 5/27).)
+;    - Shift + Alt + 1~8              : 抓取單筆並帶入肝小葉 (e.g., S1 of the liver (Srs/Img: 2/1))
+;    - Ctrl + Alt + Shift + 1~8       : 抓取單筆並帶入肝小葉完整句子 (e.g., A nodule is noted in S1 of the liver (Srs/Img: 2/1).)
 ;    - m                              : 僅抓取並格式化為 (Srs/Img: 3/69)
 ; 4. 輔助工具：
 ;    - Ctrl + G    : 快速跳至指定影像編號 (透過定位 PACS 控制項寫入，支援 MPR 反向補償)
@@ -480,6 +482,29 @@ class NoduleTracker {
 
     DirectSentenceCopy(location) {
         this.DirectCopy(location, true)
+    }
+
+    static FormatHepaticDirectCopy(segment, srs, img, asSentence := false) {
+        segStr := RegExMatch(String(segment), "i)^S") ? String(segment) : ("S" . segment)
+        if (asSentence) {
+            return "A nodule is noted in " . segStr . " of the liver (Srs/Img: " . srs . "/" . img . ")."
+        }
+        return segStr . " of the liver (Srs/Img: " . srs . "/" . img . ")"
+    }
+
+    DirectHepaticCopy(segment, asSentence := false) {
+        info := this.GetSmartInfo()
+        if (!info.valid) {
+            G3PacsNotify.Show("⚠️ 複製失敗: " . (info.HasOwnProp("error") ? info.error : "無法抓取"), 2500)
+            return
+        }
+        reportStr := NoduleTracker.FormatHepaticDirectCopy(segment, info.srs, info.img, asSentence)
+        A_Clipboard := reportStr
+        G3PacsNotify.Show("📋 Copied:`n" reportStr, 2000)
+    }
+
+    DirectHepaticSentenceCopy(segment) {
+        this.DirectHepaticCopy(segment, true)
     }
 
     SimpleDirectCopy() {
@@ -2052,6 +2077,104 @@ F12::tracker.ProbeControl()
 ^!+s:: {
     Send("{Blind}{vkE8}")
     tracker.DirectSentenceCopy("LLL")
+    Send("{Blind}{vkE8}")
+}
+
+; --- Hepatic Nodule 快捷鍵 (S1 ~ S8) ---
+
++!1:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticCopy(1)
+    Send("{Blind}{vkE8}")
+}
+
++!2:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticCopy(2)
+    Send("{Blind}{vkE8}")
+}
+
++!3:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticCopy(3)
+    Send("{Blind}{vkE8}")
+}
+
++!4:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticCopy(4)
+    Send("{Blind}{vkE8}")
+}
+
++!5:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticCopy(5)
+    Send("{Blind}{vkE8}")
+}
+
++!6:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticCopy(6)
+    Send("{Blind}{vkE8}")
+}
+
++!7:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticCopy(7)
+    Send("{Blind}{vkE8}")
+}
+
++!8:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticCopy(8)
+    Send("{Blind}{vkE8}")
+}
+
+^!+1:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticSentenceCopy(1)
+    Send("{Blind}{vkE8}")
+}
+
+^!+2:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticSentenceCopy(2)
+    Send("{Blind}{vkE8}")
+}
+
+^!+3:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticSentenceCopy(3)
+    Send("{Blind}{vkE8}")
+}
+
+^!+4:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticSentenceCopy(4)
+    Send("{Blind}{vkE8}")
+}
+
+^!+5:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticSentenceCopy(5)
+    Send("{Blind}{vkE8}")
+}
+
+^!+6:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticSentenceCopy(6)
+    Send("{Blind}{vkE8}")
+}
+
+^!+7:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticSentenceCopy(7)
+    Send("{Blind}{vkE8}")
+}
+
+^!+8:: {
+    Send("{Blind}{vkE8}")
+    tracker.DirectHepaticSentenceCopy(8)
     Send("{Blind}{vkE8}")
 }
 
