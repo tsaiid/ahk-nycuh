@@ -46,6 +46,7 @@ class RisMesaService {
         try {
             ; 1. GET 取得 ASP.NET ViewState 與 EventValidation
             reqGet := ComObject("WinHttp.WinHttpRequest.5.1")
+            reqGet.SetTimeouts(5000, 5000, 10000, 15000)
             reqGet.Open("GET", this.CalculatorUrl, false)
             reqGet.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
             reqGet.Send()
@@ -74,6 +75,7 @@ class RisMesaService {
                 . "&Calculate=Calculate"
 
             reqPost := ComObject("WinHttp.WinHttpRequest.5.1")
+            reqPost.SetTimeouts(5000, 5000, 10000, 15000)
             reqPost.Open("POST", this.CalculatorUrl, false)
             reqPost.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
             reqPost.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
