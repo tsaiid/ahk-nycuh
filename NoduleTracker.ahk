@@ -37,12 +37,12 @@
 ; ------------------------------------------------------------------------------
 
 #Requires AutoHotkey v2.0
-#Include <Acc.v2>
-#Include <OCR.v2>
-#Include <RisDialog.v2>
-#Include <G3PacsNotify.v2>
-#Include <G3PacsProbe.v2>
-#Include <ImeGuard.v2>
+#Include Lib\Acc.v2.ahk
+#Include Lib\OCR.v2.ahk
+#Include Lib\RisDialog.v2.ahk
+#Include Lib\G3PacsNotify.v2.ahk
+#Include Lib\G3PacsProbe.v2.ahk
+#Include Lib\ImeGuard.v2.ahk
 
 ; ==============================================================================
 ; ★ 類別定義 (階段一：架構與狀態遷移)
@@ -198,7 +198,7 @@ class NoduleTracker {
         }
     }
 
-    Sort(arr, compareFunc := "") {
+    static Sort(arr, compareFunc := "") {
         if (arr.Length < 2) {
             return arr
         }
@@ -215,6 +215,10 @@ class NoduleTracker {
             }
         }
         return arr
+    }
+
+    Sort(arr, compareFunc := "") {
+        return NoduleTracker.Sort(arr, compareFunc)
     }
 
     RecordPatternHit(patternName) {
@@ -1616,7 +1620,7 @@ class NoduleTracker {
         }
     }
 
-    ParseSrs(text) {
+    static ParseSrs(text) {
         splitText := StrSplit(text, ",")
         if (splitText.Length > 0) {
             if (RegExMatch(Trim(splitText[1]), "^(\d+)", &match)) {
@@ -1624,6 +1628,10 @@ class NoduleTracker {
             }
         }
         return ""
+    }
+
+    ParseSrs(text) {
+        return NoduleTracker.ParseSrs(text)
     }
 
     CaptureOcr(x, y, w, h, scale := 3) {
@@ -1671,7 +1679,6 @@ class NoduleTracker {
         }
 
         ; 多選項投票機制 (Majority Voting)
-        votes := Map()
         variantResults := []
         firstResult := {Text: "", srs: "", method: variants[1].method}
 
@@ -1683,15 +1690,31 @@ class NoduleTracker {
             if (A_Index == 1) {
                 firstResult := item
             }
-            if (srsVal != "") {
-                votes[srsVal] := votes.Has(srsVal) ? votes[srsVal] + 1 : 1
+        }
+
+        chosenMethod := ""
+        bestSrs := NoduleTracker.SelectBestSrsFromVotes(variantResults, &chosenMethod)
+        if (bestSrs != "") {
+            for item in variantResults {
+                if (item.srs == bestSrs) {
+                    item.method := chosenMethod
+                    return item
+                }
             }
         }
+        return firstResult
+    }
 
-        if (votes.Count == 0) {
-            return firstResult
+    static SelectBestSrsFromVotes(candidates, &outMethod := "") {
+        votes := Map()
+        for item in candidates {
+            if (item.srs != "") {
+                votes[item.srs] := votes.Has(item.srs) ? votes[item.srs] + 1 : 1
+            }
         }
-
+        if (votes.Count == 0) {
+            return ""
+        }
         bestSrs := ""
         maxVotes := 0
         for srsVal, count in votes {
@@ -1700,14 +1723,13 @@ class NoduleTracker {
                 bestSrs := srsVal
             }
         }
-
-        for item in variantResults {
+        for item in candidates {
             if (item.srs == bestSrs) {
-                item.method .= " (投票: " maxVotes "/" variants.Length ")"
-                return item
+                outMethod := item.method " (投票: " maxVotes "/" candidates.Length ")"
+                return item.srs
             }
         }
-        return firstResult
+        return ""
     }
 
     BuildOcrDebugReport(x, y, w, h, label := "") {
@@ -1982,14 +2004,18 @@ class NoduleTracker {
     }
 }
 
-; 建立全域執行個體
-global tracker := NoduleTracker()
+; 建立全域執行個體（僅在作為主腳本直接執行時自動初始化）
+global tracker
+if (A_LineFile == A_ScriptFullPath) {
+    tracker := NoduleTracker()
+}
 
 ; ==============================================================================
 ; ★ 快捷鍵區域
 ; ==============================================================================
 IsG3PacsActiveWindow() {
-    return WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS")
+    global tracker
+    return WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS") && IsSet(tracker) && IsObject(tracker)
 }
 
 #HotIf IsG3PacsActiveWindow()

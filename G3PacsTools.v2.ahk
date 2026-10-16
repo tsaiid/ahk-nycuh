@@ -15,6 +15,7 @@
 #Include <RisAIModelHealth.v2>
 #Include <RisAIOrchestration.v2>
 
+global tracker := NoduleTracker()
 #Include NoduleTracker.ahk
 #Include Hotkeys\g3pacs-tools.v2.ahk
 
