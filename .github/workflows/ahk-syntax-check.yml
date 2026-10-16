@@ -1,4 +1,4 @@
-name: AHK Syntax Check
+name: AHK CI
 
 on:
   push:
@@ -6,19 +6,39 @@ on:
       - main
     paths:
       - '**.ahk'
-      - '.github/workflows/ahk-syntax-check.yml'
+      - '**.ps1'
+      - '.github/workflows/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.ahk'
+      - '**.ps1'
+      - '.github/workflows/**'
 
 env:
   AHK_VERSION: '2.0.23'
   AHK_ZIP_URL: 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v2.0.23/AutoHotkey_2.0.23.zip'
 
 jobs:
-  syntax-check:
+  ci:
     runs-on: windows-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+
+      - name: Check line endings
+        shell: pwsh
+        run: |
+          $eolOutput = git ls-files --eol
+          $mixedLines = $eolOutput | Where-Object { $_ -match '\bw/mixed\b' }
+          if ($mixedLines) {
+            Write-Error "Detected files with mixed line endings (w/mixed):"
+            $mixedLines | ForEach-Object { Write-Host $_ }
+            exit 1
+          }
+          Write-Host "Line ending check passed: No mixed line endings detected."
 
       - name: Download AutoHotkey v${{ env.AHK_VERSION }}
         shell: pwsh
@@ -41,3 +61,8 @@ jobs:
         shell: pwsh
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps1 -AhkExe "$env:AHK_EXE"
+
+      - name: Run unit tests
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\test.ps1 -AhkExe "$env:AHK_EXE"

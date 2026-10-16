@@ -317,7 +317,8 @@ function New-ValidationWrapper {
         ('#Include "{0}"' -f $escapedEntryPath)
     )
 
-    Set-Content -LiteralPath $wrapperPath -Value $wrapperContent -Encoding ascii
+    $utf8Bom = [System.Text.UTF8Encoding]::new($true)
+    [System.IO.File]::WriteAllLines($wrapperPath, $wrapperContent, $utf8Bom)
     return $wrapperPath
 }
 
