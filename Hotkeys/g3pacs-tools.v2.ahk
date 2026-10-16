@@ -266,6 +266,9 @@ AnalyzeG3PacsCalciumScoreFromClipboard() {
     showDebugWindow := RisConfig.AI.CalciumScoreImage.HasOwnProp("ShowDebugWindow")
         ? RisConfig.AI.CalciumScoreImage.ShowDebugWindow
         : false
+    keepDebugImage := RisConfig.AI.CalciumScoreImage.HasOwnProp("KeepDebugImage")
+        ? RisConfig.AI.CalciumScoreImage.KeepDebugImage
+        : false
 
     try {
         NotifyG3PacsAIStatus("G3PACS: 複製影像到 clipboard...", 2500)
@@ -298,7 +301,7 @@ AnalyzeG3PacsCalciumScoreFromClipboard() {
         apiTime := A_TickCount - apiStart
 
         resultText := RisAIOrchestration.NormalizeResult(response.Result)
-        tempFileStatus := DeleteTempImageFile(pngPath)
+        tempFileStatus := keepDebugImage ? "retained: " . pngPath : DeleteTempImageFile(pngPath)
         debugInfo := {
             APIKeyName: response.APIKeyName,
             Model: response.Model,
@@ -327,10 +330,17 @@ AnalyzeG3PacsCalciumScoreFromClipboard() {
     } catch as err {
         errMsg := "G3PACS Calcium Score AI 失敗：" . err.Message
         if (pngPath != "" && FileExist(pngPath)) {
-            errMsg .= "`r`n`r`nTemp image retained:`r`n" . pngPath
+            if keepDebugImage {
+                errMsg .= "`r`n`r`nTemp image retained:`r`n" . pngPath
+            } else {
+                DeleteTempImageFile(pngPath)
+            }
         }
         RisAIDebugGui.ShowDebugError(errMsg, { Notify: NotifyG3PacsAIStatus })
     } finally {
+        if (!keepDebugImage && pngPath != "" && FileExist(pngPath)) {
+            DeleteTempImageFile(pngPath)
+        }
         isRunning := false
     }
 }
@@ -398,12 +408,18 @@ try {
         FileDelete(psPath)
     FileAppend(psScript, psPath, "UTF-8")
 
-    exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -STA -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(pngPath), , "Hide")
-    if (exitCode != 0 || !FileExist(pngPath)) {
-        throw Error("clipboard 影像轉 PNG 失敗 (PowerShell exit code: " . exitCode . ")")
-    }
+    try {
+        exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -STA -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(pngPath), , "Hide")
+        if (exitCode != 0 || !FileExist(pngPath)) {
+            throw Error("clipboard 影像轉 PNG 失敗 (PowerShell exit code: " . exitCode . ")")
+        }
 
-    return pngPath
+        return pngPath
+    } finally {
+        if FileExist(psPath) {
+            try FileDelete(psPath)
+        }
+    }
 }
 
 GetImageFileInfo(filePath) {
@@ -425,15 +441,20 @@ try {
         FileDelete(psPath)
     FileAppend(psScript, psPath, "UTF-8")
 
-    exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(filePath) " " QuoteCmdArg(outputPath), , "Hide")
-    if (exitCode != 0 || !FileExist(outputPath)) {
-        return "Image info unavailable (PowerShell exit code: " . exitCode . ")"
-    }
-
     try {
+        exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(filePath) " " QuoteCmdArg(outputPath), , "Hide")
+        if (exitCode != 0 || !FileExist(outputPath)) {
+            return "Image info unavailable (PowerShell exit code: " . exitCode . ")"
+        }
+
         return Trim(FileRead(outputPath, "UTF-8"), "`r`n `t")
     } finally {
-        try FileDelete(outputPath)
+        if FileExist(psPath) {
+            try FileDelete(psPath)
+        }
+        if FileExist(outputPath) {
+            try FileDelete(outputPath)
+        }
     }
 }
 
