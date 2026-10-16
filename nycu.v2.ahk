@@ -104,9 +104,6 @@ RisHotstringFastInput.Enable(20)
     ; --- Triple Click Handler ---
     ~LButton:: RisController.HandleTripleClick()
 
-    ^9:: {
-    }
-
     ; --- History And Clinical Filter Switching ---
     ^1:: {
         RisController.SelectRightTab(2)
@@ -173,9 +170,6 @@ RisHotstringFastInput.Enable(20)
     !d:: RisController.InsertCopiedReportDate()
 
     ; Ctrl+Alt+E: 插入目前選取的歷史報告名稱
-    ^!+e:: {
-    }
-
     ^!e:: RisController.InsertSelectedHistoryName()
 
     ; --- Pathology Or MRN Copy ---

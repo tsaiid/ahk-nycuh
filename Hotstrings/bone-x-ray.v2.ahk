@@ -322,8 +322,6 @@ The epiglottis is normal.
 ::beoa::OA changes of bilateral elbows.
 ::rsct::A linear calcification in the superolateral aspect of right shoulder, suspicious for calcific tendinopathy.
 ::lsct::A linear calcification in the superolateral aspect of left shoulder, suspicious for calcific tendinopathy.
-::lasts::Soft tissue swelling in the left ankle region.
-::rasts::Soft tissue swelling in the right ankle region.
 ::basts::Soft tissue swelling in both ankle regions.
 ::lammf::Medial malleolar fracture of left ankle.
 ::lalmf::Lateral malleolar fracture of left ankle.
