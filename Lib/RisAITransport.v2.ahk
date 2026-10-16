@@ -14,17 +14,37 @@ class RisAITransport {
         }
     }
 
-    static SendGoogleAsync(url, payload) {
+    static SendGoogleAsync(requestOrUrl, payload := "", apiKey := "") {
         req := ComObject("WinHttp.WinHttpRequest.5.1")
         req.SetTimeouts(5000, 5000, 10000, 60000)
+
+        if IsObject(requestOrUrl) {
+            url := requestOrUrl.Url
+            body := requestOrUrl.Payload
+            key := requestOrUrl.HasOwnProp("APIKey") ? requestOrUrl.APIKey : ""
+        } else {
+            url := requestOrUrl
+            body := payload
+            key := apiKey
+        }
+
         req.Open("POST", url, True)
         req.SetRequestHeader("Content-Type", "application/json")
-        req.Send(payload)
+        if (key != "") {
+            req.SetRequestHeader("x-goog-api-key", key)
+        }
+        req.Send(body)
         return req
     }
 
-    static SendGoogle(url, payload, timeoutMs := 60000) {
-        req := this.SendGoogleAsync(url, payload)
+    static SendGoogle(requestOrUrl, payloadOrTimeout := "", maybeTimeout := 60000) {
+        if IsObject(requestOrUrl) {
+            timeoutMs := (payloadOrTimeout != "") ? payloadOrTimeout : 60000
+            req := this.SendGoogleAsync(requestOrUrl)
+        } else {
+            timeoutMs := maybeTimeout
+            req := this.SendGoogleAsync(requestOrUrl, payloadOrTimeout)
+        }
         this.WaitForResponse(req, timeoutMs)
 
         return {

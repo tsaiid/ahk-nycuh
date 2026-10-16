@@ -52,7 +52,7 @@ class RisAIService {
         for index, modelName in models {
             request := this._BuildGoogleAIRequest(promptText, aiConfig, modelName, options, inlineImage)
             waitStart := A_TickCount
-            response := RisAITransport.SendGoogle(request.Url, request.Payload)
+            response := RisAITransport.SendGoogle(request)
             request.Metrics.WaitForResponseTime := A_TickCount - waitStart
             this._MaybeShowGoogleDebugCurl(showCurl, options, request.Url, request.Payload, response, request)
 
@@ -234,7 +234,7 @@ class RisAIService {
         if (task.Provider == "google") {
             providerRequest := this._BuildGoogleAIRequest(task.Prompt, task.Config, modelName, options)
             startedAt := A_TickCount
-            req := RisAITransport.SendGoogleAsync(providerRequest.Url, providerRequest.Payload)
+            req := RisAITransport.SendGoogleAsync(providerRequest)
         } else if (task.Provider == "openai") {
             providerRequest := this._BuildOpenAIRequest(task.Prompt, task.Config, modelName, options)
             startedAt := A_TickCount

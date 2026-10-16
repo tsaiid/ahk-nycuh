@@ -2,7 +2,7 @@
 
 class RisAIPayload {
     static BuildGoogleUrl(options) {
-        return "https://generativelanguage.googleapis.com/v1beta/models/" . options.Model . ":generateContent?key=" . options.APIKey
+        return "https://generativelanguage.googleapis.com/v1beta/models/" . options.Model . ":generateContent"
     }
 
     static BuildGooglePayload(promptText, options, inlineImage := 0) {
