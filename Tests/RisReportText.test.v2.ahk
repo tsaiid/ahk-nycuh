@@ -29,6 +29,14 @@ Test_RisReportText_DeidentifyText() {
     AssertTrue(InStr(actualText, "[ID_REDACTED]"), "ID should be redacted")
     AssertTrue(InStr(actualText, "[DATE]"), "date should be redacted")
     AssertTrue(InStr(actualText, "[PHONE_REDACTED]"), "phone should be redacted")
+
+    ; 年齡去識別化測試：單一年齡、100歲以上、多個年齡各別計算年代
+    AssertEqual("20s-yo", RisReportText.DeidentifyText("29 歲 9 月"))
+    AssertEqual("100s-yo", RisReportText.DeidentifyText("102 歲 3 個月"))
+    AssertEqual("Patient A is 20s-yo, while Patient B is 70s-yo and C is 100s-yo.",
+        RisReportText.DeidentifyText("Patient A is 29 歲 9 月, while Patient B is 75 y and C is 102 歲."))
+    AssertEqual("70s-yo male, 70s-yo female, 70s-yo man",
+        RisReportText.DeidentifyText("75-year-old male, 75yo female, 75 y/o man"))
 }
 
 Test_RisReportText_ReorderSelectedText() {

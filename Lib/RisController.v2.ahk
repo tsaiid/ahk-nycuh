@@ -2760,6 +2760,7 @@ class RisController {
     }
 
     static _BuildRefineRequest(selectedText) {
+        selectedText := RisReportText.DeidentifyText(selectedText)
         conf := RisConfig.AI.Refine
         prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
 
@@ -2933,7 +2934,8 @@ class RisController {
 
             this.Notify("AI 潤色中...", 3000)
 
-            request := this._BuildRefineRequest(context.SelectedText)
+            cleanSelectedText := RisReportText.DeidentifyText(context.SelectedText)
+            request := this._BuildRefineRequest(cleanSelectedText)
             response := this._RunRefineRequest(request)
             result := RisAIOrchestration.NormalizePolishResult(response.Result, context.TrailingNewlines)
 
@@ -2960,7 +2962,8 @@ class RisController {
             }
 
             this.Notify("OpenAI / Google AI 潤色中...", 3000)
-            results := RisAIService.RunRefineProvidersParallel(context.SelectedText, [
+            cleanSelectedText := RisReportText.DeidentifyText(context.SelectedText)
+            results := RisAIService.RunRefineProvidersParallel(cleanSelectedText, [
                 {Provider: "openai", DisplayName: "OpenAI"},
                 {Provider: "google", DisplayName: "Google"}
             ], context.TrailingNewlines, this._GetAIServiceOptions())

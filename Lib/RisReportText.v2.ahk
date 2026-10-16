@@ -52,10 +52,15 @@ class RisReportText {
 
         ; 3. 處理年齡：將 "29 歲 9 月" 轉換為 "20s-yo"
         ; 保留大致年齡段對放射科診斷有臨床價值，但移除精確月分
-        if (RegExMatch(text, "(\d{1,2})\s*(歲|y|years?)", &m)) {
+        ; 逐一匹配並各別計算年代，支援 100 歲以上與多種中英文年齡格式
+        pos := 1
+        agePattern := "i)(?<!\d)(\d{1,3})(?:\s*歲|(?:\s*|-)(?:years?|yrs?|y\/o|yo|y)(?:(?:\s*|-)old)?\b)(?:\s*\d{1,2}\s*(?:個?月|m(?:onths?)?\b))?"
+        while RegExMatch(text, agePattern, &m, pos) {
             matchedAge := Number(m[1])
             decade := Floor(matchedAge / 10) * 10
-            text := RegExReplace(text, "\d{1,2}\s*(歲|y|years?)\s*(\d{1,2}\s*(月|m|months?))?", decade . "s-yo")
+            replacement := decade . "s-yo"
+            text := SubStr(text, 1, m.Pos - 1) . replacement . SubStr(text, m.Pos + m.Len)
+            pos := m.Pos + StrLen(replacement)
         }
 
         ; 4. 處理身分證字號 (台灣格式：首位字母 + 9位數字，涵蓋本國人 1/2 與外籍人士 8/9)
