@@ -481,45 +481,27 @@ class ShuttleProController {
     }
 
     ToggleSync() {
-        this.ClickButtonIfTextMatches("INFINITT PACS", ["Button1", "Button85", "Button90", "Button102"], [" Auto sync", "自動同步"])
+        if (btn := G3PacsProbe.ToggleSync()) {
+            this.Log("Clicked " . btn)
+            return btn
+        }
+        return ""
     }
 
     ToggleDiffExamSync() {
-        this.ClickButtonIfTextMatches("INFINITT PACS", ["Button2", "Button86", "Button91", "Button103"], [" Sync with other exams", "不同檢查同步 "])
+        if (btn := G3PacsProbe.ToggleDiffExamSync()) {
+            this.Log("Clicked " . btn)
+            return btn
+        }
+        return ""
     }
 
     ClickButtonIfTextMatches(winTitle, btnList, targetText) {
-        if !WinActive(winTitle)
-            return
-
-        focusedHwnd := ControlGetFocus("A")
-        if (!focusedHwnd || SubStr(ControlGetClassNN(focusedHwnd), 1, 3) != "Afx")
-            return
-
-        for btn in btnList {
-            try {
-                curText := ControlGetText(btn, "A")
-                isMatch := false
-
-                if (Type(targetText) = "Array") {
-                    for t in targetText {
-                        if (curText = t) {
-                            isMatch := true
-                            break
-                        }
-                    }
-                } else {
-                    if (curText = targetText)
-                        isMatch := true
-                }
-
-                if (isMatch) {
-                    ControlClick btn, "A"
-                    this.Log("Clicked " . btn)
-                    return
-                }
-            }
+        if (btn := G3PacsProbe.ClickButtonIfTextMatches(btnList, targetText, winTitle)) {
+            this.Log("Clicked " . btn)
+            return btn
         }
+        return ""
     }
 
     ; ==========================================================================

@@ -591,28 +591,8 @@ ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
 #HotIf WinActive("ahk_exe G3PACS.exe")
 w::
 {
-    try {
-        ; v2 的 ControlGetFocus 回傳 HWND，需轉為 ClassNN 才能做字串比對
-        hCtl := ControlGetFocus("A")
-        FocusedControl := ControlGetClassNN(hCtl)
-    } catch {
-        FocusedControl := ""
-    }
-
-    OutputVar := WinGetTitle("A")
-    ;MsgBox(OutputVar)
-
-    if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) = "Afx") {
-        DiffSyncBtns := ["Button1", "Button85", "Button90", "Button102"]
-        for idx, btn in DiffSyncBtns {
-            try {
-                t := ControlGetText(btn)
-                if (t == " Auto sync" || t == "自動同步") {
-                    ControlClick(btn)
-                    break
-                }
-            }
-        }
+    if G3PacsProbe.IsPacsImageViewActive() {
+        G3PacsProbe.ToggleSync()
     } else {
         Send("w")
     }
@@ -620,27 +600,8 @@ w::
 
 f::
 {
-    try {
-        hCtl := ControlGetFocus("A")
-        FocusedControl := ControlGetClassNN(hCtl)
-    } catch {
-        FocusedControl := ""
-    }
-
-    OutputVar := WinGetTitle("A")
-    ;MsgBox(OutputVar)
-
-    if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) = "Afx") {
-        DiffSyncBtns := ["Button2", "Button86", "Button91", "Button103"]
-        for idx, btn in DiffSyncBtns {
-            try {
-                t := ControlGetText(btn)
-                if (t == " Sync with other exams" || t == "不同檢查同步 ") {
-                    ControlClick(btn)
-                    break
-                }
-            }
-        }
+    if G3PacsProbe.IsPacsImageViewActive() {
+        G3PacsProbe.ToggleDiffExamSync()
     } else {
         Send("f")
     }
@@ -648,26 +609,8 @@ f::
 
 e::
 {
-    try {
-        hCtl := ControlGetFocus("A")
-        FocusedControl := ControlGetClassNN(hCtl)
-    } catch {
-        FocusedControl := ""
-    }
-    ;MsgBox(FocusedControl)
-
-    OutputVar := WinGetTitle("A")
-    if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) = "Afx") {
-        DiffSyncBtns := ["Button4", "Button78"]
-        for idx, btn in DiffSyncBtns {
-            try {
-                t := ControlGetText(btn)
-                if (t = " Scout lines") { ; 注意這裡原代碼有一個前導空白
-                    ControlClick(btn)
-                    break
-                }
-            }
-        }
+    if G3PacsProbe.IsPacsImageViewActive() {
+        G3PacsProbe.ToggleScoutLines()
     } else {
         Send("e")
     }
