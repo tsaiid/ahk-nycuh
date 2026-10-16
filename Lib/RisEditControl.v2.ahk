@@ -176,7 +176,17 @@ class RisEditControl {
         } else if (bounds.Start == 0) {
             this.SetSel(hCtrl, 0, bounds.FullEnd)
         } else {
-            this.SetSel(hCtrl, bounds.Start - 2, bounds.FullEnd)
+            delimiterLen := 1
+            try {
+                fullText := ControlGetText(hCtrl)
+                if (bounds.Start >= 2 && SubStr(fullText, bounds.Start, 1) == "`n" && SubStr(fullText, bounds.Start - 1, 1) == "`r") {
+                    delimiterLen := 2
+                }
+            } catch {
+                delimiterLen := 2
+            }
+            removeStart := Max(0, bounds.Start - delimiterLen)
+            this.SetSel(hCtrl, removeStart, bounds.FullEnd)
         }
     }
 
@@ -510,10 +520,8 @@ class RisEditControl {
     static KillLine(hCtrl) {
         sel := this.GetSel(hCtrl)
         currentPos := sel.Start
-        text := ControlGetText(hCtrl)
-
-        foundPos := InStr(text, "`r", , currentPos + 1)
-        targetPos := (foundPos == 0) ? StrLen(text) : foundPos - 1
+        bounds := this.GetLogicalLineBoundaries(hCtrl, currentPos)
+        targetPos := bounds.ContentEnd
 
         if (targetPos > currentPos) {
             this.SetRedraw(hCtrl, false)
