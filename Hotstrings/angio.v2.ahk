@@ -1159,6 +1159,27 @@ Single blood supply (blockage of SMA supply) for pancreatic cancer was achieved.
     Paste(MyForm)
 }
 
+::xachkhaicport:: {
+    finding := "
+(
+Angiography to check HAIC Port-A:
+
+PROCEDURES AND FINDINGS:
+- The HAIC port was implanted in the left upper chest wall, with the catheter coursing through the left subclavian artery and terminating in the common hepatic artery.
+- Under fluoroscopic guidance, a 1-inch Huber needle was inserted, and blood return was confirmed.
+- Hand injection and DSA angiography demonstrated no contrast extravasation at the port site, a patent catheter, and patent major hepatic arteries.
+- The port was flushed with 2,000 U of heparin.
+)"
+    RisController.PasteToFinding(finding)
+
+    impression := "
+(
+1. Successful insertion of the Huber needle.
+2. Patent HAIC port catheter with no contrast extravasation.
+)"
+    RisController.PasteToImpression(impression)
+}
+
 ::xanj:: {
     MyForm := "
 (
