@@ -188,23 +188,13 @@ class NoduleTracker {
 
     OptimizePatternOrder() {
         try {
-            this.Sort(this.PatternList, (a, b) => b.hits - a.hits)
-            /*
-            for patternData in this.PatternList {
-                patternData.hits := Integer(IniRead(this.StatsFile, "Hits", patternData.name, 0))
-            }
-            Loop this.PatternList.Length {
-                i := A_Index
-                Loop this.PatternList.Length - i {
-                    j := A_Index
-                    if (this.PatternList[j].hits < this.PatternList[j+1].hits) {
-                        temp := this.PatternList[j]
-                        this.PatternList[j] := this.PatternList[j+1]
-                        this.PatternList[j+1] := temp
-                    }
+            if FileExist(this.StatsFile) {
+                for patternData in this.PatternList {
+                    rawHits := IniRead(this.StatsFile, "Hits", patternData.name, 0)
+                    patternData.hits := IsInteger(rawHits) ? Integer(rawHits) : 0
                 }
             }
-            */
+            this.Sort(this.PatternList, (a, b) => (b.HasOwnProp("hits") ? b.hits : 0) - (a.HasOwnProp("hits") ? a.hits : 0))
         }
     }
 

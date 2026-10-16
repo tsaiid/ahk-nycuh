@@ -58,7 +58,7 @@ class G3PacsProbe {
                         type: pName
                     }
                 }
-                patterns.Push({name: pName, map: pMap, isOffset: isOffset})
+                patterns.Push({name: pName, map: pMap, isOffset: isOffset, hits: 0})
             }
         }
         return patterns

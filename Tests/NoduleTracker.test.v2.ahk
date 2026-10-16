@@ -1,7 +1,10 @@
 #Requires AutoHotkey v2.0
 
 #Include TestLib.v2.ahk
+#Include ..\Lib\G3PacsProbe.v2.ahk
 
+RegisterTest("G3PacsProbe.GetPatternList initializes all patterns with hits property", Test_GetPatternList_HitsProperty)
+RegisterTest("SortPatternsByHits sorts patterns in descending order of hits", Test_SortPatternsByHits)
 RegisterTest("ParseSrs parses leading series number", Test_ParseSrs)
 RegisterTest("Majority voting algorithm selects consensus series", Test_MajorityVotingAlgorithm)
 RegisterTest("IsPositionInScreen detects in-bound and out-of-bound positions", Test_IsPositionInScreen)
@@ -392,6 +395,48 @@ Test_FormatHepaticDirectCopy() {
     AssertEqual("S8 of the liver (Srs/Img: 3/45)", FormatHepaticDirectCopy(8, "3", "45", false), "Direct copy format mismatch for S8")
     AssertEqual("A nodule is noted in S8 of the liver (Srs/Img: 3/45).", FormatHepaticDirectCopy(8, "3", "45", true), "Direct sentence copy format mismatch for S8")
     AssertEqual("S2 of the liver (Srs/Img: 4/12)", FormatHepaticDirectCopy("S2", "4", "12", false), "Direct copy format mismatch for S2 string input")
+}
+
+SortPatterns(arr, compareFunc := "") {
+    if (arr.Length < 2) {
+        return arr
+    }
+    if (compareFunc == "") {
+        compareFunc := (a, b) => (a > b ? 1 : a < b ? -1 : 0)
+    }
+    Loop arr.Length {
+        i := A_Index
+        Loop arr.Length - i {
+            j := A_Index
+            if (compareFunc(arr[j], arr[j+1]) > 0) {
+                temp := arr[j], arr[j] := arr[j+1], arr[j+1] := temp
+            }
+        }
+    }
+    return arr
+}
+
+Test_GetPatternList_HitsProperty() {
+    patterns := G3PacsProbe.GetPatternList()
+    AssertTrue(patterns.Length > 0, "PatternList should not be empty")
+    for pattern in patterns {
+        AssertTrue(pattern.HasOwnProp("hits"), "Pattern " . pattern.name . " should have hits property")
+        AssertEqual(0, pattern.hits, "Pattern " . pattern.name . " hits should default to 0")
+    }
+}
+
+Test_SortPatternsByHits() {
+    testPatterns := [
+        {name: "p1", hits: 5},
+        {name: "p2", hits: 20},
+        {name: "p3", hits: 0},
+        {name: "p4", hits: 15}
+    ]
+    SortPatterns(testPatterns, (a, b) => (b.HasOwnProp("hits") ? b.hits : 0) - (a.HasOwnProp("hits") ? a.hits : 0))
+    AssertEqual("p2", testPatterns[1].name, "First pattern should be highest hit (p2)")
+    AssertEqual("p4", testPatterns[2].name, "Second pattern should be p4")
+    AssertEqual("p1", testPatterns[3].name, "Third pattern should be p1")
+    AssertEqual("p3", testPatterns[4].name, "Fourth pattern should be lowest hit (p3)")
 }
 
 RunRegisteredTests()
