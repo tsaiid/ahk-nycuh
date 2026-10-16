@@ -47,7 +47,7 @@ class RisAIProviderPolicy {
     }
 
     static ShouldRetryModelStatus(status) {
-        return status == 500 || status == 503
+        return status == 429 || status == 500 || status == 502 || status == 503 || status == 504
     }
 
     static ParseConfigBool(value, defaultValue := false) {

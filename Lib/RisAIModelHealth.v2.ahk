@@ -1,4 +1,6 @@
 #Requires AutoHotkey v2.0
+#Include .\RisAIProviderPolicy.v2.ahk
+#Include .\RisConfig.v2.ahk
 
 class RisAIModelHealth {
     static _googleModelHttpErrors := Map()
@@ -35,7 +37,10 @@ class RisAIModelHealth {
         return pruned
     }
 
-    static RecordGoogleHttpError(modelName, policy) {
+    static RecordGoogleHttpError(modelName, policy, status := 0) {
+        if (status != 0 && !RisAIProviderPolicy.ShouldRetryModelStatus(status)) {
+            return
+        }
         nowTick := A_TickCount
         errors := this.PruneGoogleHttpErrors(modelName, nowTick, policy)
         errors.Push(nowTick)

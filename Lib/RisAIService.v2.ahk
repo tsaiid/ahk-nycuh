@@ -59,7 +59,9 @@ class RisAIService {
             if (response.Status != 200) {
                 request.Metrics.ResponseParseTime := 0
                 RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
-                RisAIModelHealth.RecordGoogleHttpError(request.Model, healthPolicy)
+                if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status)) {
+                    RisAIModelHealth.RecordGoogleHttpError(request.Model, healthPolicy, response.Status)
+                }
                 lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
                 if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status) && index < models.Length) {
                     notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
@@ -269,7 +271,9 @@ class RisAIService {
             if (task.Provider == "google") {
                 request.Metrics.ResponseParseTime := 0
                 RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
-                RisAIModelHealth.RecordGoogleHttpError(request.Model, task.HealthPolicy)
+                if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status)) {
+                    RisAIModelHealth.RecordGoogleHttpError(request.Model, task.HealthPolicy, response.Status)
+                }
             }
             throw Error(task.LastError)
         }
