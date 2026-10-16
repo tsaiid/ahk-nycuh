@@ -2921,28 +2921,30 @@ class RisController {
     }
 
     static PolishSelectionWithAI() {
+        if (!this._BeginForegroundAIRequest()) {
+            return
+        }
+
         try {
             context := this._GetPolishSelectionContext(true)
             if (!context) {
                 return
             }
 
-            RisVisualFeedback.ShowWaitCursor()
             this.Notify("AI 潤色中...", 3000)
 
             request := this._BuildRefineRequest(context.SelectedText)
             response := this._RunRefineRequest(request)
             result := RisAIOrchestration.NormalizePolishResult(response.Result, context.TrailingNewlines)
 
-            RisVisualFeedback.RestoreCursor()
-
             ; 顯示比對視窗
             debugInfo := RisAIOrchestration.FormatPolishComparisonDebugInfo(response)
             this._ShowPolishComparisonGui(context.Hwnd, context.SelectedText, result, context.Selection, debugInfo)
 
         } catch as err {
-            RisVisualFeedback.RestoreCursor()
             this.Notify("AI 潤色失敗: " . err.Message)
+        } finally {
+            this._FinishForegroundAIRequest()
         }
     }
 
