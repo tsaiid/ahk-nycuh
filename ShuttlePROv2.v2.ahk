@@ -72,7 +72,7 @@ class ShuttleProController {
 
         ; 2. Remote Desktop (RDP)
         rdpSpeeds := [1000, 800, 500, 300, 200, 100, 50]
-        this.RegisterApp("RDP", "172.17.12.174 - 遠端桌面連線", Map(
+        this.RegisterApp("RDP", "遠端桌面連線", Map(
             1, "q",
             2, "7",
             3, "5",

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         DeepRad helpers
 // @namespace    http://tsai.it/
-// @version      20260917.1
+// @version      20261016.1
 // @description  Add reporting helpers to DeepRad.AI.
 // @author       I-Ta Tsai
 // @match        http://172.17.15.97:17000/
@@ -123,6 +123,15 @@
         }
     }
 
+    function isSameOriginUrl(input) {
+        try {
+            const rawUrl = input instanceof Request ? input.url : String(input);
+            return new URL(rawUrl, location.origin).origin === location.origin;
+        } catch {
+            return false;
+        }
+    }
+
     function patchPageAuthHeaders() {
         const pageWindow = typeof unsafeWindow === 'object' ? unsafeWindow : window;
 
@@ -130,7 +139,7 @@
             const originalFetch = pageWindow.fetch.bind(pageWindow);
             const patchedFetch = (input, init = {}) => {
                 const authHeader = getLatestAuthHeader();
-                if (!authHeader) {
+                if (!authHeader || !isSameOriginUrl(input)) {
                     return originalFetch(input, init);
                 }
 
@@ -149,10 +158,22 @@
         }
 
         const xhrPrototype = pageWindow.XMLHttpRequest?.prototype;
+        if (xhrPrototype && !xhrPrototype.open?._deepradPatched) {
+            const originalOpen = xhrPrototype.open;
+            xhrPrototype.open = function(method, url, ...args) {
+                this._deepradUrl = url;
+                return originalOpen.call(this, method, url, ...args);
+            };
+            xhrPrototype.open._deepradPatched = true;
+        }
+
         if (xhrPrototype && !xhrPrototype.setRequestHeader._deepradPatched) {
             const originalSetRequestHeader = xhrPrototype.setRequestHeader;
             xhrPrototype.setRequestHeader = function(name, value) {
                 if (String(name).toLowerCase() === 'authorization') {
+                    if (this._deepradUrl && !isSameOriginUrl(this._deepradUrl)) {
+                        return originalSetRequestHeader.call(this, name, value);
+                    }
                     const authHeader = getLatestAuthHeader();
                     return originalSetRequestHeader.call(this, name, authHeader || value);
                 }
