@@ -94,6 +94,7 @@ class RisWorklist {
 
         try {
             req := ComObject("WinHttp.WinHttpRequest.5.1")
+            req.SetTimeouts(5000, 5000, 10000, 15000)
             req.Open("POST", url, False)
             req.SetRequestHeader("Content-Type", "application/json")
 

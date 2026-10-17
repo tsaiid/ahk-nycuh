@@ -266,6 +266,9 @@ AnalyzeG3PacsCalciumScoreFromClipboard() {
     showDebugWindow := RisConfig.AI.CalciumScoreImage.HasOwnProp("ShowDebugWindow")
         ? RisConfig.AI.CalciumScoreImage.ShowDebugWindow
         : false
+    keepDebugImage := RisConfig.AI.CalciumScoreImage.HasOwnProp("KeepDebugImage")
+        ? RisConfig.AI.CalciumScoreImage.KeepDebugImage
+        : false
 
     try {
         NotifyG3PacsAIStatus("G3PACS: 複製影像到 clipboard...", 2500)
@@ -298,7 +301,7 @@ AnalyzeG3PacsCalciumScoreFromClipboard() {
         apiTime := A_TickCount - apiStart
 
         resultText := RisAIOrchestration.NormalizeResult(response.Result)
-        tempFileStatus := DeleteTempImageFile(pngPath)
+        tempFileStatus := keepDebugImage ? "retained: " . pngPath : DeleteTempImageFile(pngPath)
         debugInfo := {
             APIKeyName: response.APIKeyName,
             Model: response.Model,
@@ -327,10 +330,17 @@ AnalyzeG3PacsCalciumScoreFromClipboard() {
     } catch as err {
         errMsg := "G3PACS Calcium Score AI 失敗：" . err.Message
         if (pngPath != "" && FileExist(pngPath)) {
-            errMsg .= "`r`n`r`nTemp image retained:`r`n" . pngPath
+            if keepDebugImage {
+                errMsg .= "`r`n`r`nTemp image retained:`r`n" . pngPath
+            } else {
+                DeleteTempImageFile(pngPath)
+            }
         }
         RisAIDebugGui.ShowDebugError(errMsg, { Notify: NotifyG3PacsAIStatus })
     } finally {
+        if (!keepDebugImage && pngPath != "" && FileExist(pngPath)) {
+            DeleteTempImageFile(pngPath)
+        }
         isRunning := false
     }
 }
@@ -398,12 +408,18 @@ try {
         FileDelete(psPath)
     FileAppend(psScript, psPath, "UTF-8")
 
-    exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -STA -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(pngPath), , "Hide")
-    if (exitCode != 0 || !FileExist(pngPath)) {
-        throw Error("clipboard 影像轉 PNG 失敗 (PowerShell exit code: " . exitCode . ")")
-    }
+    try {
+        exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -STA -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(pngPath), , "Hide")
+        if (exitCode != 0 || !FileExist(pngPath)) {
+            throw Error("clipboard 影像轉 PNG 失敗 (PowerShell exit code: " . exitCode . ")")
+        }
 
-    return pngPath
+        return pngPath
+    } finally {
+        if FileExist(psPath) {
+            try FileDelete(psPath)
+        }
+    }
 }
 
 GetImageFileInfo(filePath) {
@@ -425,15 +441,20 @@ try {
         FileDelete(psPath)
     FileAppend(psScript, psPath, "UTF-8")
 
-    exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(filePath) " " QuoteCmdArg(outputPath), , "Hide")
-    if (exitCode != 0 || !FileExist(outputPath)) {
-        return "Image info unavailable (PowerShell exit code: " . exitCode . ")"
-    }
-
     try {
+        exitCode := RunWait("powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File " QuoteCmdArg(psPath) " " QuoteCmdArg(filePath) " " QuoteCmdArg(outputPath), , "Hide")
+        if (exitCode != 0 || !FileExist(outputPath)) {
+            return "Image info unavailable (PowerShell exit code: " . exitCode . ")"
+        }
+
         return Trim(FileRead(outputPath, "UTF-8"), "`r`n `t")
     } finally {
-        try FileDelete(outputPath)
+        if FileExist(psPath) {
+            try FileDelete(psPath)
+        }
+        if FileExist(outputPath) {
+            try FileDelete(outputPath)
+        }
     }
 }
 
@@ -570,28 +591,8 @@ ShowG3PacsCalciumScoreResult(resultText, debugInfo, showDebugWindow := false) {
 #HotIf WinActive("ahk_exe G3PACS.exe")
 w::
 {
-    try {
-        ; v2 的 ControlGetFocus 回傳 HWND，需轉為 ClassNN 才能做字串比對
-        hCtl := ControlGetFocus("A")
-        FocusedControl := ControlGetClassNN(hCtl)
-    } catch {
-        FocusedControl := ""
-    }
-
-    OutputVar := WinGetTitle("A")
-    ;MsgBox(OutputVar)
-
-    if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) = "Afx") {
-        DiffSyncBtns := ["Button1", "Button85", "Button90", "Button102"]
-        for idx, btn in DiffSyncBtns {
-            try {
-                t := ControlGetText(btn)
-                if (t == " Auto sync" || t == "自動同步") {
-                    ControlClick(btn)
-                    break
-                }
-            }
-        }
+    if G3PacsProbe.IsPacsImageViewActive() {
+        G3PacsProbe.ToggleSync()
     } else {
         Send("w")
     }
@@ -599,27 +600,8 @@ w::
 
 f::
 {
-    try {
-        hCtl := ControlGetFocus("A")
-        FocusedControl := ControlGetClassNN(hCtl)
-    } catch {
-        FocusedControl := ""
-    }
-
-    OutputVar := WinGetTitle("A")
-    ;MsgBox(OutputVar)
-
-    if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) = "Afx") {
-        DiffSyncBtns := ["Button2", "Button86", "Button91", "Button103"]
-        for idx, btn in DiffSyncBtns {
-            try {
-                t := ControlGetText(btn)
-                if (t == " Sync with other exams" || t == "不同檢查同步 ") {
-                    ControlClick(btn)
-                    break
-                }
-            }
-        }
+    if G3PacsProbe.IsPacsImageViewActive() {
+        G3PacsProbe.ToggleDiffExamSync()
     } else {
         Send("f")
     }
@@ -627,26 +609,8 @@ f::
 
 e::
 {
-    try {
-        hCtl := ControlGetFocus("A")
-        FocusedControl := ControlGetClassNN(hCtl)
-    } catch {
-        FocusedControl := ""
-    }
-    ;MsgBox(FocusedControl)
-
-    OutputVar := WinGetTitle("A")
-    if (OutputVar = "INFINITT PACS" && SubStr(FocusedControl, 1, 3) = "Afx") {
-        DiffSyncBtns := ["Button4", "Button78"]
-        for idx, btn in DiffSyncBtns {
-            try {
-                t := ControlGetText(btn)
-                if (t = " Scout lines") { ; 注意這裡原代碼有一個前導空白
-                    ControlClick(btn)
-                    break
-                }
-            }
-        }
+    if G3PacsProbe.IsPacsImageViewActive() {
+        G3PacsProbe.ToggleScoutLines()
     } else {
         Send("e")
     }

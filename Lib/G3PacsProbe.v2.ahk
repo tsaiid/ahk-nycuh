@@ -58,7 +58,7 @@ class G3PacsProbe {
                         type: pName
                     }
                 }
-                patterns.Push({name: pName, map: pMap, isOffset: isOffset})
+                patterns.Push({name: pName, map: pMap, isOffset: isOffset, hits: 0})
             }
         }
         return patterns
@@ -322,5 +322,71 @@ class G3PacsProbe {
             && !RegExMatch(descVal, "i)t1|t2|dwi|adc|dual|stir|fl2d|pd") {
             Send("y")
         }
+    }
+
+    ; ==========================================================================
+    ; PACS Toolbar 同步與輔助按鈕巡覽
+    ; ==========================================================================
+    static SyncButtons := ["Button1", "Button85", "Button90", "Button102"]
+    static SyncTexts := [" Auto sync", "自動同步"]
+
+    static DiffExamSyncButtons := ["Button2", "Button86", "Button91", "Button103"]
+    static DiffExamSyncTexts := [" Sync with other exams", "不同檢查同步 "]
+
+    static ScoutLineButtons := ["Button4", "Button78"]
+    static ScoutLineTexts := [" Scout lines"]
+
+    static IsPacsImageViewActive(winTitle := "INFINITT PACS") {
+        if !WinActive(winTitle) {
+            return false
+        }
+
+        try {
+            focusedHwnd := ControlGetFocus("A")
+            focusedClassNN := ControlGetClassNN(focusedHwnd)
+            return SubStr(focusedClassNN, 1, 3) == "Afx"
+        }
+        return false
+    }
+
+    static IsTextMatch(text, targetText) {
+        if (targetText is Array) {
+            for t in targetText {
+                if (text == t || Trim(text) == Trim(t)) {
+                    return true
+                }
+            }
+            return false
+        }
+        return (text == targetText || Trim(text) == Trim(targetText))
+    }
+
+    static ToggleSync(winTitle := "INFINITT PACS") {
+        return this.ClickButtonIfTextMatches(this.SyncButtons, this.SyncTexts, winTitle)
+    }
+
+    static ToggleDiffExamSync(winTitle := "INFINITT PACS") {
+        return this.ClickButtonIfTextMatches(this.DiffExamSyncButtons, this.DiffExamSyncTexts, winTitle)
+    }
+
+    static ToggleScoutLines(winTitle := "INFINITT PACS") {
+        return this.ClickButtonIfTextMatches(this.ScoutLineButtons, this.ScoutLineTexts, winTitle)
+    }
+
+    static ClickButtonIfTextMatches(btnList, targetText, winTitle := "INFINITT PACS") {
+        if !this.IsPacsImageViewActive(winTitle) {
+            return ""
+        }
+
+        for btn in btnList {
+            try {
+                curText := ControlGetText(btn, "A")
+                if this.IsTextMatch(curText, targetText) {
+                    ControlClick(btn, "A")
+                    return btn
+                }
+            }
+        }
+        return ""
     }
 }

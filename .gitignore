@@ -220,4 +220,6 @@ MyScripts/private.ahk
 config/private.ini
 PatternStats.ini
 config/worklist-controls.ini
+logs/
+*.old
 

@@ -18,6 +18,7 @@
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 #Include .\RisMesaService.v2.ahk
+#Include .\Paste.v2.ahk
 
 class RisController {
     ; =================================================================
@@ -217,6 +218,7 @@ class RisController {
     static _isIndicationPending := false ; [新增] indication 產生中旗標
     static _pendingIndicationInsert := false ; [新增] indication 完成後插入請求
     static _pendingIndicationInsertAfter := ""
+    static _pendingIndicationContext := { Hwnd: 0, ReqNo: "" } ; [新增] indication 請求 Context (綁定 Hwnd 與 ReqNo)
     static _isShellHookEnabled := false ; [新增] ShellHook 狀態旗標
     static _shellTrack := Map()         ; [新增] 用於紀錄每個 HWND 的處理狀態 {time: TickCount, timer: Func}
     static _shellTrackTTL := 15000
@@ -658,46 +660,7 @@ class RisController {
         if (text == "") {
             return
         }
-
-        text := StrReplace(text, "`r`n", "`n")
-        text := StrReplace(text, "`n", "`r`n")
-
-        isNativeSuccess := false
-        try {
-            hwnd := targetEl.NativeWindowHandle
-            if (hwnd && (targetEl.FrameworkId == "Win32" || targetEl.FrameworkId == "WinForm")) {
-                EditPaste(text, hwnd)
-                isNativeSuccess := true
-            }
-        }
-
-        if (isNativeSuccess) {
-            return
-        }
-
-        try {
-            targetEl.SetFocus()
-        } catch {
-            this.Notify("無法聚焦目標欄位")
-            return
-        }
-
-        if (StrLen(text) < 50) {
-            SendText(text)
-            return
-        }
-
-        SavedClip := ClipboardAll()
-        A_Clipboard := text
-        if !ClipWait(1) {
-            this.Notify("複製失敗")
-            A_Clipboard := SavedClip
-            return
-        }
-        SetKeyDelay 50, 50
-        SendEvent "^v"
-        Sleep 300
-        A_Clipboard := SavedClip
+        Paste(text, true, targetEl)
     }
 
     static AppendPreviousReport() {
@@ -1370,7 +1333,7 @@ class RisController {
             return
         }
 
-        if (this._aiCache.Has("_AI_Indication") || this._isIndicationPending || this._indicationPreloadTask) {
+        if (this._GetValidCachedIndication() || this._isIndicationPending || this._indicationPreloadTask) {
             return
         }
 
@@ -1390,7 +1353,7 @@ class RisController {
             SetTimer(currentTask, 0)
         }
 
-        if (this._aiCache.Has("_AI_Indication") || this._isIndicationPending) {
+        if (this._GetValidCachedIndication() || this._isIndicationPending) {
             return
         }
 
@@ -2128,8 +2091,13 @@ class RisController {
         this._stateCache := Map()
         this._aiCache := Map()
         this._stateCache["_Hwnd"] := currentHwnd
+        this._compContext := {ReqNo: "", Date: ""}
         this._preloadQueue := []
         this._StopPreloadTasks()
+        this._isIndicationPending := false
+        this._pendingIndicationInsert := false
+        this._pendingIndicationInsertAfter := ""
+        this._pendingIndicationContext := { Hwnd: 0, ReqNo: "" }
     }
 
     static _GetOrUpdateNode(nodeName) {
@@ -2398,12 +2366,36 @@ class RisController {
     }
 
     ; 10.0.1 Indication
-    static _TryInsertCachedIndication(isPreloadOnly, insertAfter := "") {
-        if (!this._aiCache.Has("_AI_Indication") || isPreloadOnly) {
-            return false
+    static _GetValidCachedIndication() {
+        if (!this._aiCache.Has("_AI_Indication")) {
+            return 0
         }
 
         cached := this._aiCache["_AI_Indication"]
+        currentHwnd := WinExist(this.WinTitle)
+        currentReqNo := this._GetCurrentReqNo()
+
+        isHwndMismatch := (cached.HasOwnProp("hwnd") && cached.hwnd != 0 && cached.hwnd != currentHwnd)
+        isReqNoMismatch := (currentReqNo != "" && cached.HasOwnProp("reqNo") && cached.reqNo != "" && cached.reqNo != currentReqNo)
+
+        if (isHwndMismatch || isReqNoMismatch) {
+            this._aiCache.Delete("_AI_Indication")
+            return 0
+        }
+
+        return cached
+    }
+
+    static _TryInsertCachedIndication(isPreloadOnly, insertAfter := "") {
+        if (isPreloadOnly) {
+            return false
+        }
+
+        cached := this._GetValidCachedIndication()
+        if (!cached) {
+            return false
+        }
+
         apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
         modelName := cached.HasOwnProp("modelName") ? cached.modelName : "Model"
         this._InsertAIResult(cached.text, insertAfter)
@@ -2413,6 +2405,20 @@ class RisController {
 
     static _TryHandlePendingIndication(isPreloadOnly, insertAfter := "") {
         if (!this._isIndicationPending) {
+            return false
+        }
+
+        currentHwnd := WinExist(this.WinTitle)
+        currentReqNo := this._GetCurrentReqNo()
+
+        isHwndMismatch := (this._pendingIndicationContext.Hwnd != 0 && this._pendingIndicationContext.Hwnd != currentHwnd)
+        isReqNoMismatch := (currentReqNo != "" && this._pendingIndicationContext.ReqNo != "" && this._pendingIndicationContext.ReqNo != currentReqNo)
+
+        if (isHwndMismatch || isReqNoMismatch) {
+            this._isIndicationPending := false
+            this._pendingIndicationInsert := false
+            this._pendingIndicationInsertAfter := ""
+            this._pendingIndicationContext := { Hwnd: 0, ReqNo: "" }
             return false
         }
 
@@ -2434,12 +2440,16 @@ class RisController {
             return false
         }
 
+        currentHwnd := WinExist(this.WinTitle)
+        currentReqNo := this._GetCurrentReqNo()
+
         if (!isPreloadOnly) {
             RisVisualFeedback.ShowWaitCursor()
             this._pendingIndicationInsert := true
             this._pendingIndicationInsertAfter := insertAfter
         }
 
+        this._pendingIndicationContext := { Hwnd: currentHwnd, ReqNo: currentReqNo }
         this._isAIPending := true
         this._isIndicationPending := true
         return true
@@ -2455,13 +2465,15 @@ class RisController {
         return result
     }
 
-    static _CacheIndicationResult(result, apiTime, extractTime, apiKeyName, modelName) {
+    static _CacheIndicationResult(result, apiTime, extractTime, apiKeyName, modelName, hwnd := 0, reqNo := "") {
         this._aiCache["_AI_Indication"] := {
             text: result,
             apiTime: apiTime,
             extractTime: extractTime,
             apiKeyName: apiKeyName,
-            modelName: modelName
+            modelName: modelName,
+            hwnd: hwnd,
+            reqNo: reqNo
         }
     }
 
@@ -2477,9 +2489,25 @@ class RisController {
         })
     }
 
-    static _HandleIndicationSuccess(isPreloadOnly, result, apiTime, extractTime, apiKeyName, modelName, debugMode := false) {
+    static _HandleIndicationSuccess(isPreloadOnly, result, apiTime, extractTime, apiKeyName, modelName, debugMode := false, requestContext := 0) {
+        currentHwnd := WinExist(this.WinTitle)
+        currentReqNo := this._GetCurrentReqNo()
+
+        ; 檢查請求返回時，視窗與病例是否已變更
+        if IsObject(requestContext) {
+            isHwndMismatch := (requestContext.Hwnd != 0 && requestContext.Hwnd != currentHwnd)
+            isReqNoMismatch := (requestContext.ReqNo != "" && currentReqNo != "" && requestContext.ReqNo != currentReqNo)
+            if (isHwndMismatch || isReqNoMismatch) {
+                OutputDebug("[RisController] 拋棄過期 Indication 回應 (發起 ReqNo: " . requestContext.ReqNo . ", 當前 ReqNo: " . currentReqNo . ")`n")
+                return
+            }
+        }
+
+        reqHwnd := IsObject(requestContext) ? requestContext.Hwnd : currentHwnd
+        reqNo := IsObject(requestContext) ? requestContext.ReqNo : currentReqNo
+
         normalized := this._NormalizeIndicationResult(result)
-        this._CacheIndicationResult(normalized, apiTime, extractTime, apiKeyName, modelName)
+        this._CacheIndicationResult(normalized, apiTime, extractTime, apiKeyName, modelName, reqHwnd, reqNo)
 
         if (debugMode && !isPreloadOnly) {
             RisAIDebugGui.ShowResponseDebug(
@@ -2502,7 +2530,7 @@ class RisController {
         }
     }
 
-    static _FinishIndicationRequest(requestMode, isPreloadOnly) {
+    static _FinishIndicationRequest(requestMode, isPreloadOnly, requestContext := 0) {
         this._isAIPending := false
         this._isIndicationPending := false
 
@@ -2510,20 +2538,40 @@ class RisController {
             RisVisualFeedback.RestoreCursor()
         }
 
-        shouldInsert := this._pendingIndicationInsert && this._aiCache.Has("_AI_Indication")
+        currentHwnd := WinExist(this.WinTitle)
+        currentReqNo := this._GetCurrentReqNo()
+
+        isStale := false
+        if IsObject(requestContext) {
+            isHwndMismatch := (requestContext.Hwnd != 0 && requestContext.Hwnd != currentHwnd)
+            isReqNoMismatch := (requestContext.ReqNo != "" && currentReqNo != "" && requestContext.ReqNo != currentReqNo)
+            if (isHwndMismatch || isReqNoMismatch) {
+                isStale := true
+            }
+        }
+
+        shouldInsert := !isStale && this._pendingIndicationInsert && this._aiCache.Has("_AI_Indication")
         if (shouldInsert) {
-            insertAfter := this.HasOwnProp("_pendingIndicationInsertAfter") ? this._pendingIndicationInsertAfter : ""
-            this._InsertAIResult(this._aiCache["_AI_Indication"].text, insertAfter)
-            if (requestMode == "preload") {
-                cached := this._aiCache["_AI_Indication"]
-                apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
-                modelName := cached.HasOwnProp("modelName") ? cached.modelName : "Model"
-                this.Notify(RisAIOrchestration.FormatCompleteNotify("Indication 已完成並插入", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
+            cached := this._aiCache["_AI_Indication"]
+            cachedReqNoMismatch := (cached.HasOwnProp("reqNo") && cached.reqNo != "" && currentReqNo != "" && cached.reqNo != currentReqNo)
+            cachedHwndMismatch := (cached.HasOwnProp("hwnd") && cached.hwnd != 0 && cached.hwnd != currentHwnd)
+
+            if (cachedReqNoMismatch || cachedHwndMismatch) {
+                shouldInsert := false
+            } else {
+                insertAfter := this.HasOwnProp("_pendingIndicationInsertAfter") ? this._pendingIndicationInsertAfter : ""
+                this._InsertAIResult(cached.text, insertAfter)
+                if (requestMode == "preload") {
+                    apiKeyName := cached.HasOwnProp("apiKeyName") ? cached.apiKeyName : "APIKey"
+                    modelName := cached.HasOwnProp("modelName") ? cached.modelName : "Model"
+                    this.Notify(RisAIOrchestration.FormatCompleteNotify("Indication 已完成並插入", apiKeyName, modelName, Format("API:{}ms", cached.apiTime)), 2500)
+                }
             }
         }
 
         this._pendingIndicationInsert := false
         this._pendingIndicationInsertAfter := ""
+        this._pendingIndicationContext := { Hwnd: 0, ReqNo: "" }
     }
 
     static _HandleImpressionDebugPrompt(debugMode, fullPrompt, title := "AI Debug - Impression Prompt") {
@@ -2674,6 +2722,7 @@ class RisController {
     }
 
     static _BuildRefineRequest(selectedText) {
+        selectedText := RisReportText.DeidentifyText(selectedText)
         conf := RisConfig.AI.Refine
         prompt := conf.SystemPrompt . "`n`nInput Text:`n" . selectedText
 
@@ -2684,9 +2733,9 @@ class RisController {
         return this._BuildAIRequestResult(request.Prompt, request.Config)
     }
 
-    static _RunIndicationRequest(request, debugMode, isPreloadOnly) {
+    static _RunIndicationRequest(request, debugMode, isPreloadOnly, requestContext := 0) {
         response := this._RunAIRequest(request)
-        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, response.APIKeyName, response.Model, debugMode)
+        this._HandleIndicationSuccess(isPreloadOnly, response.Result, response.ApiTime, request.ExtractTime, response.APIKeyName, response.Model, debugMode, requestContext)
     }
 
     static _RunImpressionRequest(request, debugMode := false) {
@@ -2717,6 +2766,11 @@ class RisController {
             return
         }
 
+        requestContext := {
+            Hwnd: WinExist(this.WinTitle),
+            ReqNo: this._GetCurrentReqNo()
+        }
+
         try {
             request := this._BuildIndicationRequest()
             if (!request) {
@@ -2729,7 +2783,7 @@ class RisController {
                 return
             }
 
-            this._RunIndicationRequest(request, debugMode, isPreloadOnly)
+            this._RunIndicationRequest(request, debugMode, isPreloadOnly, requestContext)
 
         } catch as err {
             if (!isPreloadOnly) {
@@ -2737,7 +2791,7 @@ class RisController {
                 this._ShowDebugError(fullErrorMsg)
             }
         } finally {
-            this._FinishIndicationRequest(requestMode, isPreloadOnly)
+            this._FinishIndicationRequest(requestMode, isPreloadOnly, requestContext)
         }
     }
 
@@ -2830,28 +2884,31 @@ class RisController {
     }
 
     static PolishSelectionWithAI() {
+        if (!this._BeginForegroundAIRequest()) {
+            return
+        }
+
         try {
             context := this._GetPolishSelectionContext(true)
             if (!context) {
                 return
             }
 
-            RisVisualFeedback.ShowWaitCursor()
             this.Notify("AI 潤色中...", 3000)
 
-            request := this._BuildRefineRequest(context.SelectedText)
+            cleanSelectedText := RisReportText.DeidentifyText(context.SelectedText)
+            request := this._BuildRefineRequest(cleanSelectedText)
             response := this._RunRefineRequest(request)
             result := RisAIOrchestration.NormalizePolishResult(response.Result, context.TrailingNewlines)
-
-            RisVisualFeedback.RestoreCursor()
 
             ; 顯示比對視窗
             debugInfo := RisAIOrchestration.FormatPolishComparisonDebugInfo(response)
             this._ShowPolishComparisonGui(context.Hwnd, context.SelectedText, result, context.Selection, debugInfo)
 
         } catch as err {
-            RisVisualFeedback.RestoreCursor()
             this.Notify("AI 潤色失敗: " . err.Message)
+        } finally {
+            this._FinishForegroundAIRequest()
         }
     }
 
@@ -2867,7 +2924,8 @@ class RisController {
             }
 
             this.Notify("OpenAI / Google AI 潤色中...", 3000)
-            results := RisAIService.RunRefineProvidersParallel(context.SelectedText, [
+            cleanSelectedText := RisReportText.DeidentifyText(context.SelectedText)
+            results := RisAIService.RunRefineProvidersParallel(cleanSelectedText, [
                 {Provider: "openai", DisplayName: "OpenAI"},
                 {Provider: "google", DisplayName: "Google"}
             ], context.TrailingNewlines, this._GetAIServiceOptions())

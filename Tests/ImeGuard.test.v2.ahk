@@ -18,14 +18,11 @@ ThrowTestError() {
 }
 
 Test_WithImeGuard_PropagatesException() {
-    caught := false
-    try {
+    RunProtected() {
         WithImeGuard(ThrowTestError)
-    } catch ValueError as e {
-        caught := true
-        AssertEqual("Test error", e.Message)
     }
-    AssertTrue(caught, "Exception should be propagated")
+    err := AssertThrows(ValueError, RunProtected)
+    AssertEqual("Test error", err.Message)
 }
 
 RunRegisteredTests()

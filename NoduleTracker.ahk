@@ -37,12 +37,12 @@
 ; ------------------------------------------------------------------------------
 
 #Requires AutoHotkey v2.0
-#Include <Acc.v2>
-#Include <OCR.v2>
-#Include <RisDialog.v2>
-#Include <G3PacsNotify.v2>
-#Include <G3PacsProbe.v2>
-#Include <ImeGuard.v2>
+#Include Lib\Acc.v2.ahk
+#Include Lib\OCR.v2.ahk
+#Include Lib\RisDialog.v2.ahk
+#Include Lib\G3PacsNotify.v2.ahk
+#Include Lib\G3PacsProbe.v2.ahk
+#Include Lib\ImeGuard.v2.ahk
 
 ; ==============================================================================
 ; ★ 類別定義 (階段一：架構與狀態遷移)
@@ -104,23 +104,35 @@ class NoduleTracker {
     txtStatus := ""
     GuiStatusMsg := "Ready"
     debugGuis := []
+    hasTrayMenu := false
+    trayMenu := ""
 
-    __New() {
-        ; [新增] 設定工作列 (Tray) 上的 Icon
-        iconPath := A_ScriptDir "\assets\NoduleTracker_icon.png"
-        if FileExist(iconPath) {
-            TraySetIcon(iconPath)
+    __New(options := {}) {
+        isStandalone := (A_LineFile == A_ScriptFullPath)
+        initTray := options.HasOwnProp("initTray") ? options.initTray : isStandalone
+        setDpi := options.HasOwnProp("setDpi") ? options.setDpi : (isStandalone ? -3 : 0)
+        showGui := options.HasOwnProp("showGui") ? options.showGui : isStandalone
+
+        if (initTray) {
+            iconPath := A_ScriptDir "\assets\NoduleTracker_icon.png"
+            if FileExist(iconPath) {
+                TraySetIcon(iconPath)
+            }
+            this.InitTrayMenu()
         }
-        this.InitTrayMenu()
 
-        DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")
+        if (setDpi != 0) {
+            DllCall("SetThreadDpiAwarenessContext", "ptr", setDpi, "ptr")
+        }
         CoordMode("Mouse", "Screen")
         CoordMode("ToolTip", "Screen")
 
         this.PatternList := G3PacsProbe.GetPatternList()
         this.OptimizePatternOrder() ; 初始化時依照歷史命中率重新排序 PatternList
 
-        this.UpdateGUI()
+        if (showGui) {
+            this.UpdateGUI()
+        }
     }
 
     InitGUI() {
@@ -151,64 +163,66 @@ class NoduleTracker {
         this.MyGui.Add("Text", "x10 y+15 w300 h1 0x10")
     }
 
-    InitTrayMenu() {
-        A_TrayMenu.Add()
-        A_TrayMenu.Add("啟用 MPR/MIP/COR/SAG Img +1 補償", this.ToggleMprImgOffset.Bind(this))
-        A_TrayMenu.Add("啟用 OCR 多選項投票機制", this.ToggleOcrVoting.Bind(this))
+    InitTrayMenu(menuObj := "") {
+        this.trayMenu := (menuObj != "") ? menuObj : A_TrayMenu
+        this.trayMenu.Add()
+        this.trayMenu.Add("啟用 MPR/MIP/COR/SAG Img +1 補償", this.ToggleMprImgOffset.Bind(this))
+        this.trayMenu.Add("啟用 OCR 多選項投票機制", this.ToggleOcrVoting.Bind(this))
+        this.hasTrayMenu := true
         this.UpdateTrayMenu()
     }
 
     ToggleMprImgOffset(*) {
         this.EnableMprImgOffset := !this.EnableMprImgOffset
         this.UpdateTrayMenu()
-        this.UpdateGUI()
+        if (this.MyGui != "" && WinExist("ahk_id " this.MyGui.Hwnd)) {
+            this.UpdateGUI()
+        }
     }
 
     ToggleOcrVoting(*) {
         this.EnableOcrVoting := !this.EnableOcrVoting
         this.UpdateTrayMenu()
-        this.UpdateGUI()
+        if (this.MyGui != "" && WinExist("ahk_id " this.MyGui.Hwnd)) {
+            this.UpdateGUI()
+        }
     }
 
     UpdateTrayMenu() {
-        itemNameMpr := "啟用 MPR/MIP/COR/SAG Img +1 補償"
-        if (this.EnableMprImgOffset) {
-            A_TrayMenu.Check(itemNameMpr)
-        } else {
-            A_TrayMenu.Uncheck(itemNameMpr)
+        if (!this.hasTrayMenu || !IsObject(this.trayMenu)) {
+            return
         }
-
+        itemNameMpr := "啟用 MPR/MIP/COR/SAG Img +1 補償"
+        try {
+            if (this.EnableMprImgOffset) {
+                this.trayMenu.Check(itemNameMpr)
+            } else {
+                this.trayMenu.Uncheck(itemNameMpr)
+            }
+        }
         itemNameVoting := "啟用 OCR 多選項投票機制"
-        if (this.EnableOcrVoting) {
-            A_TrayMenu.Check(itemNameVoting)
-        } else {
-            A_TrayMenu.Uncheck(itemNameVoting)
+        try {
+            if (this.EnableOcrVoting) {
+                this.trayMenu.Check(itemNameVoting)
+            } else {
+                this.trayMenu.Uncheck(itemNameVoting)
+            }
         }
     }
 
     OptimizePatternOrder() {
         try {
-            this.Sort(this.PatternList, (a, b) => b.hits - a.hits)
-            /*
-            for patternData in this.PatternList {
-                patternData.hits := Integer(IniRead(this.StatsFile, "Hits", patternData.name, 0))
-            }
-            Loop this.PatternList.Length {
-                i := A_Index
-                Loop this.PatternList.Length - i {
-                    j := A_Index
-                    if (this.PatternList[j].hits < this.PatternList[j+1].hits) {
-                        temp := this.PatternList[j]
-                        this.PatternList[j] := this.PatternList[j+1]
-                        this.PatternList[j+1] := temp
-                    }
+            if FileExist(this.StatsFile) {
+                for patternData in this.PatternList {
+                    rawHits := IniRead(this.StatsFile, "Hits", patternData.name, 0)
+                    patternData.hits := IsInteger(rawHits) ? Integer(rawHits) : 0
                 }
             }
-            */
+            this.Sort(this.PatternList, (a, b) => (b.HasOwnProp("hits") ? b.hits : 0) - (a.HasOwnProp("hits") ? a.hits : 0))
         }
     }
 
-    Sort(arr, compareFunc := "") {
+    static Sort(arr, compareFunc := "") {
         if (arr.Length < 2) {
             return arr
         }
@@ -225,6 +239,10 @@ class NoduleTracker {
             }
         }
         return arr
+    }
+
+    Sort(arr, compareFunc := "") {
+        return NoduleTracker.Sort(arr, compareFunc)
     }
 
     RecordPatternHit(patternName) {
@@ -1626,7 +1644,7 @@ class NoduleTracker {
         }
     }
 
-    ParseSrs(text) {
+    static ParseSrs(text) {
         splitText := StrSplit(text, ",")
         if (splitText.Length > 0) {
             if (RegExMatch(Trim(splitText[1]), "^(\d+)", &match)) {
@@ -1634,6 +1652,10 @@ class NoduleTracker {
             }
         }
         return ""
+    }
+
+    ParseSrs(text) {
+        return NoduleTracker.ParseSrs(text)
     }
 
     CaptureOcr(x, y, w, h, scale := 3) {
@@ -1681,7 +1703,6 @@ class NoduleTracker {
         }
 
         ; 多選項投票機制 (Majority Voting)
-        votes := Map()
         variantResults := []
         firstResult := {Text: "", srs: "", method: variants[1].method}
 
@@ -1693,15 +1714,31 @@ class NoduleTracker {
             if (A_Index == 1) {
                 firstResult := item
             }
-            if (srsVal != "") {
-                votes[srsVal] := votes.Has(srsVal) ? votes[srsVal] + 1 : 1
+        }
+
+        chosenMethod := ""
+        bestSrs := NoduleTracker.SelectBestSrsFromVotes(variantResults, &chosenMethod)
+        if (bestSrs != "") {
+            for item in variantResults {
+                if (item.srs == bestSrs) {
+                    item.method := chosenMethod
+                    return item
+                }
             }
         }
+        return firstResult
+    }
 
-        if (votes.Count == 0) {
-            return firstResult
+    static SelectBestSrsFromVotes(candidates, &outMethod := "") {
+        votes := Map()
+        for item in candidates {
+            if (item.srs != "") {
+                votes[item.srs] := votes.Has(item.srs) ? votes[item.srs] + 1 : 1
+            }
         }
-
+        if (votes.Count == 0) {
+            return ""
+        }
         bestSrs := ""
         maxVotes := 0
         for srsVal, count in votes {
@@ -1710,14 +1747,13 @@ class NoduleTracker {
                 bestSrs := srsVal
             }
         }
-
-        for item in variantResults {
+        for item in candidates {
             if (item.srs == bestSrs) {
-                item.method .= " (投票: " maxVotes "/" variants.Length ")"
-                return item
+                outMethod := item.method " (投票: " maxVotes "/" candidates.Length ")"
+                return item.srs
             }
         }
-        return firstResult
+        return ""
     }
 
     BuildOcrDebugReport(x, y, w, h, label := "") {
@@ -1992,14 +2028,18 @@ class NoduleTracker {
     }
 }
 
-; 建立全域執行個體
-global tracker := NoduleTracker()
+; 建立全域執行個體（僅在作為主腳本直接執行時自動初始化）
+global tracker
+if (A_LineFile == A_ScriptFullPath) {
+    tracker := NoduleTracker()
+}
 
 ; ==============================================================================
 ; ★ 快捷鍵區域
 ; ==============================================================================
 IsG3PacsActiveWindow() {
-    return WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS")
+    global tracker
+    return WinActive("ahk_exe G3PACS.exe") && WinActive("INFINITT PACS") && IsSet(tracker) && IsObject(tracker)
 }
 
 #HotIf IsG3PacsActiveWindow()

@@ -52,14 +52,16 @@ class RisAIService {
         for index, modelName in models {
             request := this._BuildGoogleAIRequest(promptText, aiConfig, modelName, options, inlineImage)
             waitStart := A_TickCount
-            response := RisAITransport.SendGoogle(request.Url, request.Payload)
+            response := RisAITransport.SendGoogle(request)
             request.Metrics.WaitForResponseTime := A_TickCount - waitStart
             this._MaybeShowGoogleDebugCurl(showCurl, options, request.Url, request.Payload, response, request)
 
             if (response.Status != 200) {
                 request.Metrics.ResponseParseTime := 0
                 RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
-                RisAIModelHealth.RecordGoogleHttpError(request.Model, healthPolicy)
+                if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status)) {
+                    RisAIModelHealth.RecordGoogleHttpError(request.Model, healthPolicy, response.Status)
+                }
                 lastError := "HTTP " . response.Status . " (" . request.Model . ") - " . response.ResponseText
                 if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status) && index < models.Length) {
                     notify("AI model 發生 HTTP " . response.Status . "，改用 " . models[index + 1] . " 重試", 2500)
@@ -232,7 +234,7 @@ class RisAIService {
         if (task.Provider == "google") {
             providerRequest := this._BuildGoogleAIRequest(task.Prompt, task.Config, modelName, options)
             startedAt := A_TickCount
-            req := RisAITransport.SendGoogleAsync(providerRequest.Url, providerRequest.Payload)
+            req := RisAITransport.SendGoogleAsync(providerRequest)
         } else if (task.Provider == "openai") {
             providerRequest := this._BuildOpenAIRequest(task.Prompt, task.Config, modelName, options)
             startedAt := A_TickCount
@@ -269,7 +271,9 @@ class RisAIService {
             if (task.Provider == "google") {
                 request.Metrics.ResponseParseTime := 0
                 RisAIDebug.LogGoogleBlockingMetrics(request.Metrics, response.Status)
-                RisAIModelHealth.RecordGoogleHttpError(request.Model, task.HealthPolicy)
+                if (RisAIProviderPolicy.ShouldRetryModelStatus(response.Status)) {
+                    RisAIModelHealth.RecordGoogleHttpError(request.Model, task.HealthPolicy, response.Status)
+                }
             }
             throw Error(task.LastError)
         }

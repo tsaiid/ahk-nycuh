@@ -46,6 +46,7 @@ class RisMesaService {
         try {
             ; 1. GET 取得 ASP.NET ViewState 與 EventValidation
             reqGet := ComObject("WinHttp.WinHttpRequest.5.1")
+            reqGet.SetTimeouts(5000, 5000, 10000, 15000)
             reqGet.Open("GET", this.CalculatorUrl, false)
             reqGet.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
             reqGet.Send()
@@ -74,6 +75,7 @@ class RisMesaService {
                 . "&Calculate=Calculate"
 
             reqPost := ComObject("WinHttp.WinHttpRequest.5.1")
+            reqPost.SetTimeouts(5000, 5000, 10000, 15000)
             reqPost.Open("POST", this.CalculatorUrl, false)
             reqPost.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
             reqPost.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded")
@@ -84,40 +86,7 @@ class RisMesaService {
             }
 
             resHtml := reqPost.ResponseText
-
-            percentile := ""
-            if RegExMatch(resHtml, 'i)id="percLabel"[^>]*>([^<]+)<', &mPerc) {
-                percentile := Trim(mPerc[1])
-            }
-
-            nonZeroProb := ""
-            if RegExMatch(resHtml, 'i)id="Label10"[^>]*>([^<]+)<', &mProb) {
-                nonZeroProb := Trim(mProb[1], " `t`r`n.%") . "%"
-            }
-
-            isOutOfRange := InStr(resHtml, "Out of Range") && (percentile == "")
-
-            summary := ""
-            if (percentile != "") {
-                summary := "MESA CAC Percentile: " . percentile . "% (Estimated non-zero CAC probability: " . nonZeroProb . " for age " . numAge . ", " . genderLabel . ", Chinese)"
-            } else if (isOutOfRange) {
-                summary := "Patient is outside MESA reference range (Age 45-84, Score <= 10000)."
-            } else if (numScore == 0) {
-                summary := "CAC score is 0 (No identifiable calcification; estimated non-zero CAC probability for age " . numAge . ", " . genderLabel . ", Chinese is " . nonZeroProb . ")."
-            }
-
-            return {
-                IsSuccess: true,
-                IsOutOfRange: isOutOfRange,
-                Age: numAge,
-                Gender: genderLabel,
-                Race: "Chinese",
-                TotalScore: numScore,
-                Percentile: percentile,
-                NonZeroProbability: nonZeroProb,
-                Summary: summary,
-                Error: ""
-            }
+            return this.ParseResultHtml(resHtml, numAge, genderLabel, numScore, "Chinese")
 
         } catch as err {
             return {
@@ -135,7 +104,58 @@ class RisMesaService {
         }
     }
 
-    static _ExtractHiddenField(html, name) {
+    /**
+     * 解析 MESA 計算結果 HTML 內容
+     * @param resHtml MESA 回應之 HTML 字串
+     * @param numAge 病患年齡數值
+     * @param genderLabel 性別標籤 (如 "Male" 或 "Female")
+     * @param numScore 鈣化積分數值
+     * @param raceName 種族名稱 (預設 "Chinese")
+     * @returns { IsSuccess: bool, IsOutOfRange: bool, Age: int, Gender: string, Race: string, TotalScore: number, Percentile: string, NonZeroProbability: string, Summary: string, Error: string }
+     */
+    static ParseResultHtml(resHtml, numAge, genderLabel, numScore, raceName := "Chinese") {
+        percentile := ""
+        if RegExMatch(resHtml, 'i)id="percLabel"[^>]*>([^<]+)<', &mPerc) {
+            percentile := Trim(mPerc[1])
+        }
+
+        nonZeroProb := ""
+        if RegExMatch(resHtml, 'i)id="Label10"[^>]*>([^<]+)<', &mProb) {
+            nonZeroProb := Trim(mProb[1], " `t`r`n.%") . "%"
+        }
+
+        isOutOfRange := InStr(resHtml, "Out of Range") && (percentile == "")
+
+        summary := ""
+        if (percentile != "") {
+            summary := "MESA CAC Percentile: " . percentile . "% (Estimated non-zero CAC probability: " . nonZeroProb . " for age " . numAge . ", " . genderLabel . ", " . raceName . ")"
+        } else if (isOutOfRange) {
+            summary := "Patient is outside MESA reference range (Age 45-84, Score <= 10000)."
+        } else if (numScore == 0) {
+            summary := "CAC score is 0 (No identifiable calcification; estimated non-zero CAC probability for age " . numAge . ", " . genderLabel . ", " . raceName . " is " . nonZeroProb . ")."
+        }
+
+        return {
+            IsSuccess: true,
+            IsOutOfRange: isOutOfRange,
+            Age: numAge,
+            Gender: genderLabel,
+            Race: raceName,
+            TotalScore: numScore,
+            Percentile: percentile,
+            NonZeroProbability: nonZeroProb,
+            Summary: summary,
+            Error: ""
+        }
+    }
+
+    /**
+     * 從 HTML 中提取指定名稱之 hidden input value
+     * @param html HTML 字串
+     * @param name 欄位名稱 (例如 __VIEWSTATE)
+     * @returns {string} 欄位值
+     */
+    static ExtractHiddenField(html, name) {
         if RegExMatch(html, 'i)name="' . name . '"[^>]*value="([^"]*)"', &m) {
             return m[1]
         }
@@ -144,6 +164,8 @@ class RisMesaService {
         }
         return ""
     }
+
+    static _ExtractHiddenField(html, name) => this.ExtractHiddenField(html, name)
 
     static _UrlEncode(str) {
         static doc := 0

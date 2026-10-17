@@ -47,11 +47,37 @@ LogMessage(msg, isDebugOnly := false) {
     }
     logFile := logDir . "\worklist-update.log"
     
+    ; 檢查並執行日誌輪替 (上限 2 MB)
+    RotateLogIfNeeded(logFile)
+    
     timestamp := FormatTime(, "yyyy-MM-dd HH:mm:ss")
     logLine := timestamp . " " . msg . "`n"
     
     OutputDebug("[RisAuto] " . logLine)
     FileAppend(logLine, logFile, "UTF-8")
+}
+
+/**
+ * 檢查日誌檔案大小，若超過上限則自動進行日誌輪替 (Log Rotation)
+ * 將原檔案重命名備份為 .old 並重新開始記錄
+ * @param {String} logFile 日誌完整路徑
+ * @param {Integer} maxBytes 允許的最大位元組數 (預設 2 MB = 2097152 bytes)
+ */
+RotateLogIfNeeded(logFile, maxBytes := 2097152) {
+    try {
+        if (FileExist(logFile) && FileGetSize(logFile) >= maxBytes) {
+            backupFile := logFile . ".old"
+            if FileExist(backupFile) {
+                try FileDelete(backupFile)
+            }
+            FileMove(logFile, backupFile, 1)
+            rotatedNotice := FormatTime(, "yyyy-MM-dd HH:mm:ss") . " [Log Rotated] 前次日誌已達上限 (" . maxBytes . " bytes)，已備份至: " . backupFile . "`n"
+            FileAppend(rotatedNotice, logFile, "UTF-8")
+            OutputDebug("[RisAuto] " . rotatedNotice)
+        }
+    } catch as err {
+        OutputDebug("[RisAuto] 日誌輪替失敗: " . err.Message . "`n")
+    }
 }
 
 RunUpdate() {

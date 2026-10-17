@@ -104,9 +104,6 @@ RisHotstringFastInput.Enable(20)
     ; --- Triple Click Handler ---
     ~LButton:: RisController.HandleTripleClick()
 
-    ^9:: {
-    }
-
     ; --- History And Clinical Filter Switching ---
     ^1:: {
         RisController.SelectRightTab(2)
@@ -172,10 +169,12 @@ RisHotstringFastInput.Enable(20)
     ; Alt+D: 插入以複製的歷史報告日期 (自動轉西元)
     !d:: RisController.InsertCopiedReportDate()
 
-    ; Ctrl+Alt+E: 插入目前選取的歷史報告名稱
+    ; Ctrl+Alt+Shift+E: 覆蓋 (Override) RIS 原生快捷鍵，避免誤按時觸發原始 hotkey（請保留，勿當成無作用的空熱鍵移除）
     ^!+e:: {
+        WithImeGuard(() => 0)
     }
 
+    ; Ctrl+Alt+E: 插入目前選取的歷史報告名稱
     ^!e:: RisController.InsertSelectedHistoryName()
 
     ; --- Pathology Or MRN Copy ---

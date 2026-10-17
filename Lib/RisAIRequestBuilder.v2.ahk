@@ -9,6 +9,7 @@ class RisAIRequestBuilder {
         return {
             Url: RisAIPayload.BuildGoogleUrl(options),
             Payload: RisAIPayload.BuildGooglePayload(promptText, options, inlineImage),
+            APIKey: options.APIKey,
             APIKeyName: options.APIKeyName,
             Model: options.Model,
             Metrics: {

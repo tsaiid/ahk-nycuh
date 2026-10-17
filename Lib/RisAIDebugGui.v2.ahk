@@ -79,9 +79,13 @@ class RisAIDebugGui {
      * @param options 選項 { Notify: func, FontHwnd: handle }
      */
     static ShowGoogleAIDebugCurl(url, payload, response, request := 0, options := 0) {
-        curlCommand := RisAIDebug.BuildGoogleCurlCommand(url, payload)
+        apiKey := (IsObject(request) && request.HasOwnProp("APIKey")) ? request.APIKey : ""
+        curlCommand := RisAIDebug.BuildGoogleCurlCommand(url, payload, apiKey)
         modelText := IsObject(request) && request.HasOwnProp("Model") ? request.Model : "(unknown)"
         apiKeyName := IsObject(request) && request.HasOwnProp("APIKeyName") ? request.APIKeyName : "(unknown)"
+        if (apiKey != "") {
+            apiKeyName .= " (" . RisAIDebug.MaskApiKey(apiKey) . ")"
+        }
         waitText := ""
         if (IsObject(request) && request.HasOwnProp("Metrics") && request.Metrics.HasOwnProp("WaitForResponseTime")) {
             waitText := "`r`nWaitForResponse: " . request.Metrics.WaitForResponseTime . " ms"
@@ -107,7 +111,7 @@ class RisAIDebugGui {
 
         btnCopyAll := debugGui.Add("Button", "w180 x+10 yp", "複製完整 debug")
         btnCopyAll.OnEvent("Click", (*) => (
-            A_Clipboard := "URL: " . url . "`r`n`r`nPayload:`r`n" . payload . "`r`n`r`nResponse:`r`n" . response.ResponseText . "`r`n`r`nCurl:`r`n" . curlCommand,
+            A_Clipboard := "URL: " . RisAIDebug.SanitizeUrl(url) . "`r`n`r`nPayload:`r`n" . payload . "`r`n`r`nResponse:`r`n" . response.ResponseText . "`r`n`r`nCurl:`r`n" . curlCommand,
             notify("已複製完整 debug 資訊", 2000)
         ))
 

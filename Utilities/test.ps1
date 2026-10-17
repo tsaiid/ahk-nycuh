@@ -95,7 +95,8 @@ foreach ($testFile in $testFiles) {
             "#ErrorStdOut"
             ('#Include "{0}"' -f $escapedTestPath)
         )
-        Set-Content -LiteralPath $wrapperPath -Value $wrapperContent -Encoding ascii
+        $utf8Bom = [System.Text.UTF8Encoding]::new($true)
+        [System.IO.File]::WriteAllLines($wrapperPath, $wrapperContent, $utf8Bom)
 
         $testProcess = Start-Process `
             -FilePath $AhkExe `

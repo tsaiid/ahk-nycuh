@@ -198,6 +198,7 @@ class RisConfig {
             TopP: 0.95,
             EnableGoogleSearch: false,
             ShowDebugWindow: false,
+            KeepDebugImage: false,
             Prompt: "
             (
                 # 角色任務

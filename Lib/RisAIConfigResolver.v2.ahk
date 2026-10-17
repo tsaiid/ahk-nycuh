@@ -47,15 +47,17 @@ class RisAIConfigResolver {
     }
 
     static ResolveOpenAIOptions(cfg, aiConfig := 0, modelOverride := "") {
+        modelName := (IsObject(aiConfig) && aiConfig.HasOwnProp("Model")) ? aiConfig.Model : ""
         temperature := (IsObject(aiConfig) && aiConfig.HasOwnProp("Temperature")) ? aiConfig.Temperature : cfg.Temperature
         reasoningEffort := (IsObject(aiConfig) && aiConfig.HasOwnProp("ReasoningEffort")) ? aiConfig.ReasoningEffort : cfg.ReasoningEffort
         apiKey := this.ResolveAPIKey(cfg, aiConfig, "OpenAI")
+        resolvedModel := (modelOverride != "") ? modelOverride : ((modelName != "") ? modelName : cfg.Model)
 
         return {
             APIKey: apiKey.Value,
             APIKeyName: apiKey.Name,
             BaseUrl: cfg.BaseUrl,
-            Model: modelOverride,
+            Model: resolvedModel,
             Temperature: temperature,
             ReasoningEffort: reasoningEffort
         }
