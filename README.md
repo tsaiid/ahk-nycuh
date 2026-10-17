@@ -55,7 +55,6 @@ ShuttlePRO v2 控制器整合腳本。
 - `Utilities/`: 驗證、測試與小工具腳本
 - `config/`: 設定檔，目前包含相似檢查分組
 - `assets/`: tray icon 與其他靜態資源
-- `releases/`: 舊版或獨立釋出腳本
 - `others/`: 其他輔助檔，例如 WebRIS userscript / style
 
 ## 環境需求
