@@ -15,7 +15,12 @@
 #Include <RisAIModelHealth.v2>
 #Include <RisAIOrchestration.v2>
 
-global tracker := NoduleTracker()
+; 初始化 NoduleTracker（不覆蓋 Tray 圖示、啟動時不強制彈窗、統一 DPI Awareness 為 -3）
+global tracker := NoduleTracker({initTray: false, showGui: false, setDpi: -3})
+A_TrayMenu.Add()
+A_TrayMenu.Add("顯示 Nodule Tracker`tAlt+Q", (*) => tracker.UpdateGUI())
+tracker.InitTrayMenu(A_TrayMenu)
+
 #Include NoduleTracker.ahk
 #Include Hotkeys\g3pacs-tools.v2.ahk
 

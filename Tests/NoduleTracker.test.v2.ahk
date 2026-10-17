@@ -20,6 +20,7 @@ RegisterTest("NoduleTracker.FormatSentenceReport formats 3 lobes with Oxford com
 RegisterTest("NoduleTracker.FormatSentenceReport returns empty string when no nodules", Test_FormatSentenceReport_Empty)
 RegisterTest("NoduleTracker.FormatDirectCopy formats lobe or full sentence", Test_FormatDirectCopy)
 RegisterTest("NoduleTracker.FormatHepaticDirectCopy formats liver segment or full sentence", Test_FormatHepaticDirectCopy)
+RegisterTest("NoduleTracker initialization supports decoupled options without side effects", Test_InstanceInitialization_DecoupledOptions)
 
 Test_GetPatternList_HitsProperty() {
     patterns := G3PacsProbe.GetPatternList()
@@ -273,6 +274,24 @@ Test_FormatHepaticDirectCopy() {
     AssertEqual("S8 of the liver (Srs/Img: 3/45)", NoduleTracker.FormatHepaticDirectCopy(8, "3", "45", false), "Direct copy format mismatch for S8")
     AssertEqual("A nodule is noted in S8 of the liver (Srs/Img: 3/45).", NoduleTracker.FormatHepaticDirectCopy(8, "3", "45", true), "Direct sentence copy format mismatch for S8")
     AssertEqual("S2 of the liver (Srs/Img: 4/12)", NoduleTracker.FormatHepaticDirectCopy("S2", "4", "12", false), "Direct copy format mismatch for S2 string input")
+}
+
+Test_InstanceInitialization_DecoupledOptions() {
+    inst := NoduleTracker({initTray: false, showGui: false, setDpi: 0})
+    AssertFalse(inst.hasTrayMenu, "hasTrayMenu should be false when initTray is false")
+    AssertEqual("", inst.MyGui, "MyGui should remain empty when showGui is false")
+    AssertTrue(inst.PatternList.Length > 0, "PatternList should be initialized")
+
+    inst.UpdateTrayMenu()
+
+    customMenu := Menu()
+    inst.InitTrayMenu(customMenu)
+    AssertTrue(inst.hasTrayMenu, "hasTrayMenu should be true after InitTrayMenu")
+    AssertTrue(IsObject(inst.trayMenu), "trayMenu should be an object")
+
+    ; Clean up menu callbacks to prevent circular reference on exit
+    inst.trayMenu := ""
+    customMenu.Delete()
 }
 
 RunRegisteredTests()

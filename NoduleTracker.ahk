@@ -104,23 +104,35 @@ class NoduleTracker {
     txtStatus := ""
     GuiStatusMsg := "Ready"
     debugGuis := []
+    hasTrayMenu := false
+    trayMenu := ""
 
-    __New() {
-        ; [新增] 設定工作列 (Tray) 上的 Icon
-        iconPath := A_ScriptDir "\assets\NoduleTracker_icon.png"
-        if FileExist(iconPath) {
-            TraySetIcon(iconPath)
+    __New(options := {}) {
+        isStandalone := (A_LineFile == A_ScriptFullPath)
+        initTray := options.HasOwnProp("initTray") ? options.initTray : isStandalone
+        setDpi := options.HasOwnProp("setDpi") ? options.setDpi : (isStandalone ? -3 : 0)
+        showGui := options.HasOwnProp("showGui") ? options.showGui : isStandalone
+
+        if (initTray) {
+            iconPath := A_ScriptDir "\assets\NoduleTracker_icon.png"
+            if FileExist(iconPath) {
+                TraySetIcon(iconPath)
+            }
+            this.InitTrayMenu()
         }
-        this.InitTrayMenu()
 
-        DllCall("SetThreadDpiAwarenessContext", "ptr", -4, "ptr")
+        if (setDpi != 0) {
+            DllCall("SetThreadDpiAwarenessContext", "ptr", setDpi, "ptr")
+        }
         CoordMode("Mouse", "Screen")
         CoordMode("ToolTip", "Screen")
 
         this.PatternList := G3PacsProbe.GetPatternList()
         this.OptimizePatternOrder() ; 初始化時依照歷史命中率重新排序 PatternList
 
-        this.UpdateGUI()
+        if (showGui) {
+            this.UpdateGUI()
+        }
     }
 
     InitGUI() {
@@ -151,38 +163,50 @@ class NoduleTracker {
         this.MyGui.Add("Text", "x10 y+15 w300 h1 0x10")
     }
 
-    InitTrayMenu() {
-        A_TrayMenu.Add()
-        A_TrayMenu.Add("啟用 MPR/MIP/COR/SAG Img +1 補償", this.ToggleMprImgOffset.Bind(this))
-        A_TrayMenu.Add("啟用 OCR 多選項投票機制", this.ToggleOcrVoting.Bind(this))
+    InitTrayMenu(menuObj := "") {
+        this.trayMenu := (menuObj != "") ? menuObj : A_TrayMenu
+        this.trayMenu.Add()
+        this.trayMenu.Add("啟用 MPR/MIP/COR/SAG Img +1 補償", this.ToggleMprImgOffset.Bind(this))
+        this.trayMenu.Add("啟用 OCR 多選項投票機制", this.ToggleOcrVoting.Bind(this))
+        this.hasTrayMenu := true
         this.UpdateTrayMenu()
     }
 
     ToggleMprImgOffset(*) {
         this.EnableMprImgOffset := !this.EnableMprImgOffset
         this.UpdateTrayMenu()
-        this.UpdateGUI()
+        if (this.MyGui != "" && WinExist("ahk_id " this.MyGui.Hwnd)) {
+            this.UpdateGUI()
+        }
     }
 
     ToggleOcrVoting(*) {
         this.EnableOcrVoting := !this.EnableOcrVoting
         this.UpdateTrayMenu()
-        this.UpdateGUI()
+        if (this.MyGui != "" && WinExist("ahk_id " this.MyGui.Hwnd)) {
+            this.UpdateGUI()
+        }
     }
 
     UpdateTrayMenu() {
-        itemNameMpr := "啟用 MPR/MIP/COR/SAG Img +1 補償"
-        if (this.EnableMprImgOffset) {
-            A_TrayMenu.Check(itemNameMpr)
-        } else {
-            A_TrayMenu.Uncheck(itemNameMpr)
+        if (!this.hasTrayMenu || !IsObject(this.trayMenu)) {
+            return
         }
-
+        itemNameMpr := "啟用 MPR/MIP/COR/SAG Img +1 補償"
+        try {
+            if (this.EnableMprImgOffset) {
+                this.trayMenu.Check(itemNameMpr)
+            } else {
+                this.trayMenu.Uncheck(itemNameMpr)
+            }
+        }
         itemNameVoting := "啟用 OCR 多選項投票機制"
-        if (this.EnableOcrVoting) {
-            A_TrayMenu.Check(itemNameVoting)
-        } else {
-            A_TrayMenu.Uncheck(itemNameVoting)
+        try {
+            if (this.EnableOcrVoting) {
+                this.trayMenu.Check(itemNameVoting)
+            } else {
+                this.trayMenu.Uncheck(itemNameVoting)
+            }
         }
     }
 
