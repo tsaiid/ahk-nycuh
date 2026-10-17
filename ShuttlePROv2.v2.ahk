@@ -38,6 +38,7 @@ class ShuttleProController {
 
     GuiObj := unset
     LbxLog := unset
+    MaxLogLines := 300
     AppList := []
 
     __New() {
@@ -513,22 +514,40 @@ class ShuttleProController {
         this.GuiObj.SetFont("w700 s8", "Courier New")
         this.LbxLog := this.GuiObj.Add("ListBox", "h300 w600")
 
-        ; 在右下方新增 Reload 按鈕 (X 座標設為 510 以對齊 ListBox 右邊界)
-        btnReload := this.GuiObj.Add("Button", "w100 x510", "Reload Script")
+        ; 在右下方新增 Copy Log 與 Reload 按鈕 (X 座標 400 與 510 以對齊 ListBox 右邊界)
+        btnCopy := this.GuiObj.Add("Button", "w100 x400", "Copy Log")
+        btnCopy.OnEvent("Click", (*) => this.CopyLog())
+
+        btnReload := this.GuiObj.Add("Button", "w100 x510 yp", "Reload Script")
         btnReload.OnEvent("Click", (*) => Reload())
 
         this.GuiObj.OnEvent("Close", (*) => ExitApp())
         this.GuiObj.Show()
     }
 
+    CopyLog() {
+        try {
+            items := ControlGetItems(this.LbxLog.Hwnd)
+            text := ""
+            for item in items {
+                text .= item . "`r`n"
+            }
+            A_Clipboard := text
+        }
+    }
+
     Log(msg) {
         timestamp := Format("{:02}:{:02}:{:02}", A_Hour, A_Min, A_Sec)
         try {
             this.LbxLog.Add([timestamp . " " . msg])
-            SendMessage(0x018B, 0, 0, this.LbxLog.Hwnd)
-            count := SendMessage(0x018B, 0, 0, this.LbxLog.Hwnd)
-            if (count > 0)
-                SendMessage(0x0186, count - 1, 0, this.LbxLog.Hwnd)
+            count := SendMessage(0x018B, 0, 0, this.LbxLog.Hwnd) ; LB_GETCOUNT
+            while (count > this.MaxLogLines) {
+                this.LbxLog.Delete(1)
+                count--
+            }
+            if (count > 0) {
+                SendMessage(0x0186, count - 1, 0, this.LbxLog.Hwnd) ; LB_SETCURSEL
+            }
         }
     }
 }
