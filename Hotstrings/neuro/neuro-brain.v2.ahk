@@ -1029,6 +1029,29 @@ Although not fully fit the typical image findings, intracranial hypotension stil
     RisController.PasteToImpression(MyForm)
 }
 
+;; MRB - Physical check-up
+::mrbpcu::
+{
+    MyForm := "
+  (
+- Normal brain parenchyma without acute infarction, hemorrhage, or mass effect.
+- Preserved gray-white matter differentiation; midline structures remain centered.
+- Cerebellum and brainstem demonstrate unremarkable morphology and signal intensity.
+- Ventricular system and subarachnoid spaces are symmetric and normal for age.
+- Bilateral mastoid air cells, paranasal sinuses, and orbital contents are clear.
+- 3D TOF MRA shows patent major intracranial arteries (bilateral ICA, ACA, MCA, VA, BA, and PCA).
+- No hemodynamically significant stenosis, occlusion, vascular malformation, or definite intracranial aneurysm.
+  )"
+    RisController.PasteToFinding(MyForm)
+
+    MyForm := "
+  (
+- Unremarkable brain MRI: No acute intracranial pathology or space-occupying lesion.
+- Patent intracranial arterial system: No evidence of significant stenosis or aneurysm.
+  )"
+    RisController.PasteToImpression(MyForm)
+}
+
 ::mriseizure::
 {
     MyForm := "
