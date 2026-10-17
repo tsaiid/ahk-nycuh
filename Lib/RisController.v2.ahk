@@ -18,6 +18,7 @@
 #Include .\RisDate.v2.ahk
 #Include .\RisReportText.v2.ahk
 #Include .\RisMesaService.v2.ahk
+#Include .\Paste.v2.ahk
 
 class RisController {
     ; =================================================================
@@ -659,46 +660,7 @@ class RisController {
         if (text == "") {
             return
         }
-
-        text := StrReplace(text, "`r`n", "`n")
-        text := StrReplace(text, "`n", "`r`n")
-
-        isNativeSuccess := false
-        try {
-            hwnd := targetEl.NativeWindowHandle
-            if (hwnd && (targetEl.FrameworkId == "Win32" || targetEl.FrameworkId == "WinForm")) {
-                EditPaste(text, hwnd)
-                isNativeSuccess := true
-            }
-        }
-
-        if (isNativeSuccess) {
-            return
-        }
-
-        try {
-            targetEl.SetFocus()
-        } catch {
-            this.Notify("無法聚焦目標欄位")
-            return
-        }
-
-        if (StrLen(text) < 50) {
-            SendText(text)
-            return
-        }
-
-        SavedClip := ClipboardAll()
-        A_Clipboard := text
-        if !ClipWait(1) {
-            this.Notify("複製失敗")
-            A_Clipboard := SavedClip
-            return
-        }
-        SetKeyDelay 50, 50
-        SendEvent "^v"
-        Sleep 300
-        A_Clipboard := SavedClip
+        Paste(text, true, targetEl)
     }
 
     static AppendPreviousReport() {
