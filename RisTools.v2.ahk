@@ -19,7 +19,7 @@ SetKeyDelay -1
 ; [新增] 設定工作列 (Tray) 上的 Icon
 global TRAY_DEBUG_MODE_ITEM := "RIS Debug Mode"
 global TRAY_FAST_PASTE_ITEM := "Hotstring 快速貼上模式"
-TraySetIcon(A_ScriptDir "\assets\nycu_icon.png")
+TraySetIcon(A_ScriptDir "\assets\RisTools_icon.png")
 A_TrayMenu.Add()
 A_TrayMenu.Add(TRAY_DEBUG_MODE_ITEM, ToggleRisDebugMode)
 A_TrayMenu.Uncheck(TRAY_DEBUG_MODE_ITEM)

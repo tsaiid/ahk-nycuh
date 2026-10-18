@@ -71,7 +71,7 @@ if ([string]::IsNullOrWhiteSpace($AhkCompiler)) {
 }
 
 $entryList = @(
-    "nycu.v2.ahk",
+    "RisTools.v2.ahk",
     "G3PacsTools.v2.ahk",
     "NoduleTracker.ahk",
     "ShuttlePROv2.v2.ahk",

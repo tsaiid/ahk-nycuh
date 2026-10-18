@@ -11,7 +11,7 @@
 
 ## 主要入口
 
-### `nycu.v2.ahk`
+### `RisTools.v2.ahk`
 
 主力 RIS 腳本。
 
@@ -76,7 +76,7 @@ OpenAI API key 請放在 `config/private.ini` 的 `[OpenAI]` 區段，可共用 
 
 依需求執行對應入口腳本即可，例如：
 
-- `nycu.v2.ahk`
+- `RisTools.v2.ahk`
 - `G3PacsTools.v2.ahk`
 - `NoduleTracker.ahk`
 - `ShuttlePROv2.v2.ahk`
@@ -105,7 +105,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps
 
 目前預設驗證的入口為：
 
-- `nycu.v2.ahk`
+- `RisTools.v2.ahk`
 - `G3PacsTools.v2.ahk`
 - `NoduleTracker.ahk`
 - `ShuttlePROv2.v2.ahk`
@@ -113,4 +113,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Utilities\compile-check.ps
 ## 注意事項
 
 - 這些腳本高度依賴實際視窗標題、控制項名稱與院內工作流程。
-- 修改 `Lib/RisController.v2.ahk`、`Hotstrings/` 或 `Hotkeys/` 後，通常會影響 `nycu.v2.ahk`。
+- 修改 `Lib/RisController.v2.ahk`、`Hotstrings/` 或 `Hotkeys/` 後，通常會影響 `RisTools.v2.ahk`。
