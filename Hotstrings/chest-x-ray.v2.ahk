@@ -103,12 +103,12 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
 ::2::Increased linear opacity in both lower lungs, in favor of chronic inflammatory changes. {Enter}No cardiomegaly.+{Tab}No active lung lesion.
 ::3::No abnormal patch opacity in lung fields.{Enter}No cardiomegaly.{Enter}The bowel gas pattern is normal.+{Tab}Normal.
 ::4::Increased linear opacity and peribronchial thickening in both lung fields, r/o bronchiolitis.{Enter}No cardiomegaly.+{Tab}Suspicious bronchiolitis.
-::clnic::The condition of lung shows no obvious changes compared to the previous study.
+::clnic::The condition of the lung shows no obvious changes compared to the previous study.
 ::clat::Correlation with lateral view is suggested.
 ::ett0::Endotracheal tube in place.
 ::ett::Endotracheal tube in place, with the tip at an appropriate position.
 ::ett-c::Endotracheal tube in place. The tip is near the carina. Adjusting the depth is suggested.
-::ett-b::Endotracheal tube in place. The tip is in right main bronchus. Adjusting the depth is suggested.
+::ett-b::Endotracheal tube in place. The tip is in the right main bronchus. Adjusting the depth is suggested.
 ::ett-t::Endotracheal tube in place. The tip is in the upper trachea. Adjusting the depth is suggested.
 ::tr::Tracheostomy tube in place.
 ::ng::NG tube in place.
@@ -142,7 +142,7 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
 ::spc0::Status post cholecystectomy.
 ::spc1::Status post cholecystectomy, with mild secondary dilatation of the biliary tract.
 ::sptae::Lipiodol retention in the liver, probably due to previous TACE.
-::p/tae::Lipiodol retention in liver.
+::p/tae::Lipiodol retention in the liver.
 ::ricvp::Central venous catheter in place via the right internal jugular vein, with the tip at the superior vena cava.
 ::licvp::Central venous catheter in place via the left internal jugular vein, with the tip at the superior vena cava.
 ::bicvp::Central venous catheters in place via both internal jugular veins, with the tips at the superior vena cava.
@@ -184,8 +184,8 @@ Prominent lung markings at bilateral lowers, may be due to insufficient inspirat
 ::pe0::pulmonary edema
 ::mpe0::mild pulmonary edema
 ::clc::Increased interstitial markings in both lower lung fields, in favor of chronic inflammatory changes.
-::lla::Linear atelectasis of left lower lung.
-::rla::Linear atelectasis of right lower lung.
+::lla::Linear atelectasis of the left lower lung.
+::rla::Linear atelectasis of the right lower lung.
 ::bla::Linear atelectasis of bilateral lower lungs.
 ::plef::pleural effusion
 ::inef::interlobar effusion

@@ -20,7 +20,7 @@
 :c:LUL::left upper lobe
 :c:LLL::left lower lobe
 :c:LLnL::left lingular lobe
-:c:llnl::lingula of left lung
+:c:llnl::lingula of the left lung
 ::ppm::permanent pacemaker
 ::pmf::progressive massive fibrosis
 ::aip::acute interstitial pneumonia
@@ -122,7 +122,7 @@
 ::hme::hereditary multiple exostoses
 ::ddd::degenerative disc disease
 ::slap::superior labral anterior posterior
-::lhbt::long head of biceps tendon
+::lhbt::long head of the biceps tendon
 ::gt::greater tuberosity
 
 ;; Abdomen

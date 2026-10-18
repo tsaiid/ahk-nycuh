@@ -37,7 +37,7 @@
 ::srlc::A __-cm renal cyst in the left kidney.
 ::srlcs::Several renal cysts in the left kidney, size up to  cm.{Left 4}
 ::spb::The pancreas can not be well evaluated because of gas blockage.
-::spaok::The visualized portion of pancreas is normal.
+::spaok::The visualized portion of the pancreas is normal.
 ::bsm::Borderline splenomegaly, size about  cm.{Left 4}
 ::rllv::right lobe of liver
 ::lllv::left lobe of liver
@@ -49,10 +49,10 @@
 
 ;; Sono, Lower Abdomen
 ::s-foley::status post Foley catheterization. The urinary bladder is not distended enough for evaluation.
-::sruus::A tiny stone at upper third of right ureter, with mild hydronephrosis.
-::srlus::A tiny stone at lower third of right ureter, with mild hydronephrosis and hydroureter.
-::sluus::A tiny stone at upper third of left ureter, with mild hydronephrosis.
-::sllus::A tiny stone at lower third of left ureter, with mild hydronephrosis and hydroureter.
+::sruus::A tiny stone at the upper third of the right ureter, with mild hydronephrosis.
+::srlus::A tiny stone at the lower third of the right ureter, with mild hydronephrosis and hydroureter.
+::sluus::A tiny stone at the upper third of the left ureter, with mild hydronephrosis.
+::sllus::A tiny stone at the lower third of the left ureter, with mild hydronephrosis and hydroureter.
 ::sscrok::The size and vascularity of bilateral testes and epididymides are within normal limits.
 
 ;; Sono, Thyroid
@@ -197,10 +197,10 @@ Small bilateral neck lymph nodes noted with hila, favored benign lymph nodes.
 ::sbblnok2::No definite lymphadenopathy in both axillae.
 ::sbrs::A scar at the right breast.
 ::sbls::A scar at the left breast.
-::sbrc::Presence of an anechoic cyst at __ o'clock position of right breast, measuring about __ cm in size. Fibrocystic disease considered.
-::sblc::Presence of an anechoic cyst at __ o'clock position of left breast, measuring about __ cm in size. Fibrocystic disease considered.
-::sbrcs::Presence of several small anechoic cysts at right breast noted. Fibrocystic changes considered.
-::sblcs::Presence of several small anechoic cysts at left breast noted. Fibrocystic changes considered.
+::sbrc::Presence of an anechoic cyst at __ o'clock position of the right breast, measuring about __ cm in size. Fibrocystic disease considered.
+::sblc::Presence of an anechoic cyst at __ o'clock position of the left breast, measuring about __ cm in size. Fibrocystic disease considered.
+::sbrcs::Presence of several small anechoic cysts at the right breast noted. Fibrocystic changes considered.
+::sblcs::Presence of several small anechoic cysts at the left breast noted. Fibrocystic changes considered.
 ;::sbbcs::Presence of several small anechoic cysts at bilateral breasts noted. Fibrocystic changes considered.
 ::sbrfc::Small fibrocysts in the right breast.
 ::sblfc::Small fibrocysts in the left breast.
@@ -226,8 +226,8 @@ Small bilateral neck lymph nodes noted with hila, favored benign lymph nodes.
 ::sbb4c::ACR-BIRADS 5th ed., category 4c. Highly suspicious malignancy. Biopsy recommended.
 ::sbb5::ACR-BIRADS 5th ed., category 5. Highly suspicious malignancy. Biopsy recommended.
 ::sbb6::ACR-BIRADS 5th ed., category 6: Known biopsy-proven malignancy.
-::sbrfa::Presence of an oval, smooth-bordered, hypoechoic nodular lesion, measuring about __ x __ cm in size, at __ o'clock position of right breast, __ cm from the nipple. More likely benign nature such as fibroadenoma.
-::sblfa::Presence of an oval, smooth-bordered, hypoechoic nodular lesion, measuring about __ x __ cm in size, at __ o'clock position of left breast, __ cm from the nipple. More likely benign nature such as fibroadenoma.
+::sbrfa::Presence of an oval, smooth-bordered, hypoechoic nodular lesion, measuring about __ x __ cm in size, at __ o'clock position of the right breast, __ cm from the nipple. More likely benign nature such as fibroadenoma.
+::sblfa::Presence of an oval, smooth-bordered, hypoechoic nodular lesion, measuring about __ x __ cm in size, at __ o'clock position of the left breast, __ cm from the nipple. More likely benign nature such as fibroadenoma.
 ::sbrfas::Presence of several oval, smooth-bordered, hypoechoic nodular lesions, up to __ cm in size, in the right breast. More likely benign nature such as fibroadenomas.
 ::sblfas::Presence of several oval, smooth-bordered, hypoechoic nodular lesions, up to __ cm in size, in the left breast. More likely benign nature such as fibroadenomas.
 ::sbbfas::Presence of several oval, smooth-bordered, hypoechoic nodular lesions, up to __ cm in size, in both breasts. More likely benign nature such as fibroadenomas.
@@ -237,13 +237,13 @@ Small bilateral neck lymph nodes noted with hila, favored benign lymph nodes.
 ::sblok1::No focal lesion in the left breast.
 ::sbrok1::No focal lesion in the right breast.
 ::sbbok1::No focal lesion in both breasts.
-::sbrl::at __ o'clock position of right breast, __ cm from the nipple.
-::sbll::at __ o'clock position of left breast, __ cm from the nipple.
+::sbrl::at __ o'clock position of the right breast, __ cm from the nipple.
+::sbll::at __ o'clock position of the left breast, __ cm from the nipple.
 
 ::sbrca::{
     MyForm := "
 (
-An irregular, hypoechoic nodule, measuring about __ cm in size, is noted at right breast, __ o'clock position / __  cm from nipple.
+An irregular, hypoechoic nodule, measuring about __ cm in size, is noted at the right breast, __ o'clock position / __  cm from the nipple.
 Relatively increased intratumoral flow noted.
 Breast cancer is suspected.
 )"
@@ -253,7 +253,7 @@ Breast cancer is suspected.
 ::sblca::{
     MyForm := "
 (
-An irregular, hypoechoic nodule, measuring about __ cm in size, is noted at left breast, __ o'clock position / __  cm from nipple.
+An irregular, hypoechoic nodule, measuring about __ cm in size, is noted at the left breast, __ o'clock position / __  cm from the nipple.
 Relatively increased intratumoral flow noted.
 Breast cancer is suspected.
 )"
@@ -320,7 +320,7 @@ No obvious bulky retroperitoneal mass lesion.
 Right renal size about {1}; left renal size about {2}.
 Normal size and echogenicity of bilateral kidneys without hydronephrosis nor nephrolithiasis noted.
 
-Normal appearance of urinary bladder. No stones nor sludge is noted.
+Normal appearance of the urinary bladder. No stones nor sludge is noted.
 
 )", RightKidney, LeftKidney)
 
@@ -338,14 +338,14 @@ Normal appearance of urinary bladder. No stones nor sludge is noted.
 
     MyForm := Format("
 (
-The visualized portion of pancreas is normal.
+The visualized portion of the pancreas is normal.
 
 Normal liver parenchyma echo pattern without focal lesion noted.
 
 The gallbladder is well distended with smooth wall.
 No abnormal dilatation of IHDs and CBD noted.
 
-The visualized portion of spleen is normal. Spleen size about {1}.
+The visualized portion of the spleen is normal. Spleen size about {1}.
 
 Bilateral kidneys are normal in echogenicity.
 Right kidney size about {2}; left kidney size about {3}.
@@ -364,8 +364,8 @@ Normal liver parenchyma echo pattern without focal lesion noted.
 The gallbladder is well distended with smooth wall.
 No abnormal dilatation of IHDs and CBD noted.
 
-The visualized portion of spleen is normal.
-The visualized portion of pancreas is normal.
+The visualized portion of the spleen is normal.
+The visualized portion of the pancreas is normal.
 
 Bilateral kidneys are normal in size and echogenicity.
 No abnormal dilatation of bilateral urinary collecting systems noted.
@@ -551,7 +551,7 @@ The endometrium was mildly visible under sonography.
 
 The volume of RT ovary is about __ ml, and LT is about __ ml.
 
-No obvious abnormal soft tissue mass noted under the sonography.
+No obvious abnormal soft tissue mass noted under sonography.
 )"
     Paste(MyForm)
 }

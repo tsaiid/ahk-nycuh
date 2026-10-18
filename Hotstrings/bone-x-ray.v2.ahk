@@ -285,50 +285,50 @@ The epiglottis is normal.
 ::dmlr::Mildly limited ROM.
 ::iaiv::intra-articular involvement
 ::bkcppd::Linear calcifications along the joint space of the medial and lateral compartments of bilateral knees, in favor of chondrocalcinosis, probably due to CPPD deposition.
-::rkcppd::Linear calcifications along the joint space of the medial and lateral compartments of right knee, in favor of chondrocalcinosis, probably due to CPPD deposition.
-::lkcppd::Linear calcifications along the joint space of the medial and lateral compartments of left knee, in favor of chondrocalcinosis, probably due to CPPD deposition.
+::rkcppd::Linear calcifications along the joint space of the medial and lateral compartments of the right knee, in favor of chondrocalcinosis, probably due to CPPD deposition.
+::lkcppd::Linear calcifications along the joint space of the medial and lateral compartments of the left knee, in favor of chondrocalcinosis, probably due to CPPD deposition.
 ::nbok::No evidence of nasal bone fracture.
 ::spvcpf::Old vertebral compression fracture, status post vertebroplasty.
 ::spv::status post vertebroplasty at `
 ::spv0::status post vertebroplasty
 ::pif::pars interarticularis fracture
 ::pif1::pars interarticularis fracture and spondylolisthesis at L5-S1.
-::ritf::intertrochanteric fracture of right femur.
-::litf::intertrochanteric fracture of left femur.
-::rhoa::OA changes of right hip.
-::lhoa::OA changes of left hip.
+::ritf::intertrochanteric fracture of the right femur.
+::litf::intertrochanteric fracture of the left femur.
+::rhoa::OA changes of the right hip.
+::lhoa::OA changes of the left hip.
 ::bhoa::OA changes of bilateral hips.
-::mrhoa::Mild OA changes of right hip.
-::mlhoa::Mild OA changes of left hip.
+::mrhoa::Mild OA changes of the right hip.
+::mlhoa::Mild OA changes of the left hip.
 ::mbhoa::Mild OA changes of bilateral hips.
-::rkoa::OA changes of right knee.
-::lkoa::OA changes of left knee.
+::rkoa::OA changes of the right knee.
+::lkoa::OA changes of the left knee.
 ::bkoa::OA changes of bilateral knees.
-::mrkoa::Mild OA changes of right knee.
-::mlkoa::Mild OA changes of left knee.
+::mrkoa::Mild OA changes of the right knee.
+::mlkoa::Mild OA changes of the left knee.
 ::mbkoa::Mild OA changes of bilateral knees.
-::raoa::OA changes of right ankle.
-::laoa::OA changes of left ankle.
-::mraoa::Mild OA changes of right ankle.
-::mlaoa::Mild OA changes of left ankle.
-::rwoa::OA changes of right wrist.
-::mrwoa::Mild OA changes of right wrist.
-::lwoa::OA changes of left wrist.
-::mlwoa::Mild OA changes of left wrist.
+::raoa::OA changes of the right ankle.
+::laoa::OA changes of the left ankle.
+::mraoa::Mild OA changes of the right ankle.
+::mlaoa::Mild OA changes of the left ankle.
+::rwoa::OA changes of the right wrist.
+::mrwoa::Mild OA changes of the right wrist.
+::lwoa::OA changes of the left wrist.
+::mlwoa::Mild OA changes of the left wrist.
 ::bwoa::OA changes of bilateral wrists.
 ::mbwoa::Mild OA changes of bilateral wrists.
-::reoa::OA changes of right elbow.
-::leoa::OA changes of left elbow.
+::reoa::OA changes of the right elbow.
+::leoa::OA changes of the left elbow.
 ::beoa::OA changes of bilateral elbows.
-::rsct::A linear calcification in the superolateral aspect of right shoulder, suspicious for calcific tendinopathy.
-::lsct::A linear calcification in the superolateral aspect of left shoulder, suspicious for calcific tendinopathy.
+::rsct::A linear calcification in the superolateral aspect of the right shoulder, suspicious for calcific tendinopathy.
+::lsct::A linear calcification in the superolateral aspect of the left shoulder, suspicious for calcific tendinopathy.
 ::basts::Soft tissue swelling in both ankle regions.
-::lammf::Medial malleolar fracture of left ankle.
-::lalmf::Lateral malleolar fracture of left ankle.
-::labmf::Bimalleolar fracture of left ankle.
-::rammf::Medial malleolar fracture of right ankle.
-::ralmf::Lateral malleolar fracture of right ankle.
-::rabmf::Bimalleolar fracture of right ankle.
+::lammf::Medial malleolar fracture of the left ankle.
+::lalmf::Lateral malleolar fracture of the left ankle.
+::labmf::Bimalleolar fracture of the left ankle.
+::rammf::Medial malleolar fracture of the right ankle.
+::ralmf::Lateral malleolar fracture of the right ankle.
+::rabmf::Bimalleolar fracture of the right ankle.
 ::rsas::status post anchor screw fixation at the right shoulder.
 ::lsas::status post anchor screw fixation at the left shoulder.
 ::snb::In the process of spinal nerve block.

@@ -26,10 +26,10 @@
 ::actgba::Hourglass configuration of the gallbladder, suggestive of segmental adenomyomatosis.
 ::actncok::The liver, spleen, pancreas, adrenals, kidneys, and bowels are normal. Due to non-contrast study, the evaluation of solid organs is limited.
 ::bpleat::Bilateral pleural effusion with atelectasis of lower lungs.
-::actaps::A small wedge-shaped subcapsular arterial hyperenhancement at S_ of liver with isoenhancement in the portal venous and delay phases, in favor of AP shunting.
+::actaps::A small wedge-shaped subcapsular arterial hyperenhancement at S_ of the liver with isoenhancement in the portal venous and delay phases, in favor of AP shunting.
 ::acthh::A _ cm nodule in S of the liver demonstrates discontinuous, nodular, peripheral enhancement during the arterial phase, with progressive peripheral enhancement and centripetal fill-in during the portal venous phase. Findings are suggestive of a hepatic hemangioma.
-::actrn::A -cm nodule in the S of liver, shows enhancement in arterial phase, and isodense in portal venous phase, in favor of regenerative nodule.
-::acthcc::A -cm nodule in the S of liver, shows arterial phase hyperenhancement, washout and enhancing capsule in portal venous phase, suggestive of hepatocellular carcinoma.
+::actrn::A -cm nodule in the S of the liver, shows enhancement in the arterial phase, and isodense in the portal venous phase, in favor of regenerative nodule.
+::acthcc::A -cm nodule in the S of the liver, shows arterial phase hyperenhancement, washout and enhancing capsule in the portal venous phase, suggestive of hepatocellular carcinoma.
 ::actraa::A  cm fat-containing enhanced nodular lesion in the right adrenal gland, in favor of adenoma.
 ::actlaa::A  cm fat-containing enhanced nodular lesion in the left adrenal gland, in favor of adenoma.
 ::actckd::Atrophic changes of bilateral kidneys, in favor of chronic kidney disease.
@@ -1475,7 +1475,7 @@ The major mesenteric vessels are patent, without filling defect.
 DDx: Portal hypertensive gastropathy / enteropathy / colopathy, acute gastroenterocolitis, pseudomembranous colitis (may not involve stomach and small intestine). Clinical correlation is suggested.
 
 A few tiny gallbladder stones.
-Mild GB wall edema is noted, without GB distention, probably also secondary to the portal hypertension.
+Mild GB wall edema is noted, without GB distention, probably also secondary to portal hypertension.
 
 The adrenals and kidneys are unremarkable.
 s/p Foley catheterization.

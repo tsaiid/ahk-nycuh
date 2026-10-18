@@ -8,10 +8,10 @@
 {
     MyForm := "
     (
-Voiding cystourethrography was performed under fluoroscopy by using contrast medium dripping into urinary bladder through Foley catheter with supine position:
+Voiding cystourethrography was performed under fluoroscopy by using contrast medium dripping into the urinary bladder through Foley catheter with supine position:
 
 1. No evidence of bil. vesico-ureteral reflux during straining, voiding and post-voiding.
-2. Normal contour of urinary bladder without filling defect noted.
+2. Normal contour of the urinary bladder without filling defect noted.
 3. No definite structural anomaly or fistula identified in this study.
 
 IMPRESSION:
@@ -20,11 +20,11 @@ No vesicoureteral reflux or fistula.
     Paste(MyForm)
 }
 
-::vur1::Reflux limited to ureter. Grade 1 vesicoureteric reflux is considered.
+::vur1::Reflux limited to the ureter. Grade 1 vesicoureteric reflux is considered.
 ::vur2::Reflux up to the renal pelvis. Grade 2 vesicoureteric reflux is considered.
-::vur3::Reflux with mild dilatation of ureter and pelvicalyceal system. Grade 3 vesicoureteric reflux is considered.
+::vur3::Reflux with mild dilatation of the ureter and pelvicalyceal system. Grade 3 vesicoureteric reflux is considered.
 ::vur4::Reflux with moderately dilated, tortuous ureter and blunting of fornices but preserved papillary impressions. Grade 4 vesicoureteric reflux is considered.
-::vur5::Reflux with severely dilated, tortuous ureter, dilatation of pelvicalyceal system, and loss of fornices and papillary impressions. Grade 5 vesicoureteric reflux is considered.
+::vur5::Reflux with severely dilated, tortuous ureter, dilatation of the pelvicalyceal system, and loss of fornices and papillary impressions. Grade 5 vesicoureteric reflux is considered.
 
 ::hsg::
 {
@@ -150,7 +150,7 @@ Pharyngeal phase:
 (
 Double-contrast upper GI study from esophagus to proximal duodenum was performed smoothly and showed:
 
-- Normal elasticity and distensibility of stomach.
+- Normal elasticity and distensibility of the stomach.
 - No significant filling defect or mass lesion noted in the stomach.
 - The mucosal folds of the esophagus and stomach show no significant abnormality.
 - Good distension of the duodenal bulb without obvious mass effect.
@@ -173,7 +173,7 @@ FINDINGS:
 - The mucosal folds of the esophagus and stomach show no significant abnormality.
 - Good distension of the duodenal bulb without obvious mass effect.
 - Smooth passage of the barium without definite mass effect or abnormal mucosal pattern of the esophagus.
-- Normal elasticity and distensibility of stomach.
+- Normal elasticity and distensibility of the stomach.
 
 IMPRESSION:
 No abnormal findings noted in this UGI study.
@@ -189,7 +189,7 @@ Double-contrast upper GI study from esophagus to proximal duodenum was performed
 Esophagography was performed under fluoroscopy:
 
 FINDINGS:
-- Normal elasticity and distensibility of stomach.
+- Normal elasticity and distensibility of the stomach.
 - No significant filling defect or mass lesion noted in the stomach.
 - The mucosal folds of the esophagus and stomach show no significant abnormality.
 - Good distension of the duodenal bulb without obvious mass effect.
@@ -236,7 +236,7 @@ IMPRESSION:
 (
 Double-contrast upper GI study from esophagus to proximal duodenum, and single-contrast small intestine examination with compressed spot views were performed smoothly and showed:
 
-- Normal elasticity and distensibility of stomach.
+- Normal elasticity and distensibility of the stomach.
 - No significant filling defect or mass lesion noted in the stomach.
 - The mucosal folds of the esophagus and stomach show no significant abnormality.
 - Good distension of the duodenal bulb without obvious mass effect.

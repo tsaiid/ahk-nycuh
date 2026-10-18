@@ -5,7 +5,7 @@
 ; MS MRI Forms
 
 ;; Hotstrings
-::mrarok::No arthrographic evidence of full-thickness tear of rotator cuff or adhesive capsulitis.
+::mrarok::No arthrographic evidence of full-thickness tear of the rotator cuff or adhesive capsulitis.
 ::pt::partial tear
 ::ct::complete tear
 ::ftt::full-thickness tear
@@ -34,8 +34,8 @@
 ::ssptt::partial-thickness tear of the supraspinatus.
 ::isptt::partial-thickness tear of the infraspinatus.
 ::scptt::partial-thickness tear of the subscapularis.
-::lhbtt::intrasubstance tear of the long head of biceps tendon
-::mroa::marginal osteophyte formation, irregular joint space narrowing, cartilage loss, subchondral signal intensity changes in the pancompartment of knee, especially the medial compartment, in favor of osteoarthrosis.
+::lhbtt::intrasubstance tear of the long head of the biceps tendon
+::mroa::marginal osteophyte formation, irregular joint space narrowing, cartilage loss, subchondral signal intensity changes in the pancompartment of the knee, especially the medial compartment, in favor of osteoarthrosis.
 ::bb::bone bruise
 ::bmok::No abnormal signal intensity changes in the bone marrow space.
 ::mcs::meniscocapsular separation
@@ -44,7 +44,7 @@
 ::mmte::Medial meniscal tear, including posterior root, with meniscal extrusion.
 ::lmt::Lateral meniscal tear.
 ::lmht::Horizontal tear of the lateral meniscus.
-::kmroa::marginal osteophyte formation, irregular joint space narrowing, cartilage erosions in the pan-compartment of knee, especially the medial compartment, in favor of osteoarthrosis.
+::kmroa::marginal osteophyte formation, irregular joint space narrowing, cartilage erosions in the pan-compartment of the knee, especially the medial compartment, in favor of osteoarthrosis.
 ::kmrok::
 {
     MyForm := "

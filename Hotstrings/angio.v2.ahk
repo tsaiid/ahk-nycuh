@@ -554,7 +554,7 @@ The aim of this procedure is to perform arterial embolization for treatment of H
 6. Follow up this patient as TAE protocol is suggested.
 
 # Huang
-Transarterial embolization for the was performed under the request of the clinician.
+Transarterial embolization was performed under the request of the clinician.
 The benefits and potential risk of the procedure, and the alternative managements were all well explained.
 Written informed consent was obtained.
 
@@ -613,7 +613,7 @@ RECOMMENDATION:
 - If any oozing from the puncture wound, please check any migration of catheter by KUB.
 - Delicate wound care and prevent kinking of the catheter.
 - Further embolization of the tumor with Lipiodol may be arranged after this HAIC session, according to clinical considerations.
-- After HAIC session and removal of the catheter, the hemostasis of puncture wound should be securely achieved.
+- After HAIC session and removal of the catheter, hemostasis of the puncture wound should be securely achieved.
 
 OTHERS:
 
@@ -679,7 +679,7 @@ RECOMMENDATION:
 - Keep continuous infusion of the catheter to prevent thrombosis.
 - If any oozing from the puncture wound, please check any migration of catheter by KUB.
 - Further embolization of the tumor with Lipiodol may be arranged after this HAIC session, according to clinical considerations.
-- After HAIC session and removal of the catheter, the hemostasis of puncture wound should be securely achieved.
+- After HAIC session and removal of the catheter, hemostasis of the puncture wound should be securely achieved.
 
 IMPRESSION:
 The infusion catheter for HAIC was exchanged.
@@ -1028,7 +1028,7 @@ Materials: 8 Fr x 25 cm pigtail drain
 Materials: 8 F Cholangio-Entero Tube
 
 Procedure and Findings:
-The fluoroscopy shows outward migration of the bilateral PTCD tubes.
+Fluoroscopy shows outward migration of the bilateral PTCD tubes.
 Leakage of contrast media into the peritoneal cavity is also noted.
 These tubes were revised with new 8F pigtail (right: 35 cm, left 25 cm; tips at the distal CBD.)
 The whole procedure was smooth, the patient tolerated well, and no immediate complication was noted.

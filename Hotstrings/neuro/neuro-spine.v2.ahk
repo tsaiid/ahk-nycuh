@@ -11,7 +11,7 @@
 ::lllc::Loss of lumbar lordotic curve.
 ::pedf::prominent epidural fat
 ::aarst1::Atlantoaxial rotary subluxation is noted. The atlas is rotated on the odontoid with no anterior displacement, suggestive of Fielding and Hawkins type 1.
-::mrspm::Presence of mild high signal intensity within the cervical cord at the C5 and C6 spine level on T2WI noted, probably due to the spinal stenosis and/or prior cord injury edema and/or prior cord insult with cord gliosis or small cystic changes.
+::mrspm::Presence of mild high signal intensity within the cervical cord at the C5 and C6 spine level on T2WI noted, probably due to spinal stenosis and/or prior cord injury edema and/or prior cord insult with cord gliosis or small cystic changes.
 ::mrspsmn::Schmorl's node (vertical intravertebral disc herniation) over the
 ::mrspma::Presence of metallic artifact may limit the evaluation in this area.
 ::mrspnom::No evidence of abnormal signal intensity within the visible spinal cord.
@@ -69,7 +69,7 @@ There is moderate degree degenerative disc disease, L1 through S1.
   MyForm := "
   (
 No obvious fracture or dislocation of the cervical spine.
-No evidence of the C1-C2 anterior and lateral subluxation.
+No evidence of C1-C2 anterior and lateral subluxation.
 No obvious hyperdense hematoma in the prevertebral region and epidural space.
 The lung fields within the scanning range appear normal.
   )"
@@ -180,7 +180,7 @@ No evidence of abnormal tumor mass lesion within the dural sac of the C-spine.
 No evidence of abnormal tumor mass lesion over the spinal canal of the C-spine.
 
 Suspicious high signal intensity within the cervical cord at the C4 and C5 level on T2WI noted, DDx: contusion edema, prior cord insult with cord gliosis, and/or artifact.
-Presence of mild high signal intensity within the cervical cord at the C5 and C6 spine level on T2WI noted, probably due to the spinal stenosis and/or prior cord injury edema and/or prior cord insult with cord gliosis or small cystic changes.
+Presence of mild high signal intensity within the cervical cord at the C5 and C6 spine level on T2WI noted, probably due to spinal stenosis and/or prior cord injury edema and/or prior cord insult with cord gliosis or small cystic changes.
 Presence of high signal intensity within the spinal cord from C1 to C5 disc level on T2WI noted, which may be due to cord edema, demyelination or gliosis changes.
 
 
@@ -554,7 +554,7 @@ Presence of L6 (lumbarization of S1) noted.
 Suspicious for a spondylolytic fracture of the L5 pars interarticularis.
 Presence of dessicated disc noted at L4-5 and L5-S1 and L-spine.
 Presence of degenerative end-plate changes noted over the L4-L5.
-Narrowing of bilateral L4-5 and L5-S1 neuroforamina due to the degenerative changes and severe disc space narrowing.
+Narrowing of bilateral L4-5 and L5-S1 neuroforamina due to degenerative changes and severe disc space narrowing.
 
 Presence of small hemangiomas at L1 and L4 spine vertebral bodies.
 Presence of benign hemangioma noted over the L2 vertebral body, size about 2.1 cm.

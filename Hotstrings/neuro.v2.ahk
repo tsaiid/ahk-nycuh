@@ -26,7 +26,7 @@
 ::msae::Mild bilateral periventricular low densities are present. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
 ::sae2::Presence of mild/moderate/severe confluent symmetric periventricular hyperintensity on T2WI and FLAIR suggests subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 ::msae2::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR suggests mild subcortical arteriosclerotic encephalopathy (leukoaraiosis).
-::sae3::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, the subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered. Several tiny hyperintensities in the bilateral subcortical and deep white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
+::sae3::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered. Several tiny hyperintensities in the bilateral subcortical and deep white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
 
 ; 方案一：依檢查類別 (CT/MRI) 與嚴重度區分
 ::saect::Bilateral periventricular hypodensities are noted, compatible with leukoaraiosis (subcortical arteriosclerotic encephalopathy).
@@ -74,7 +74,7 @@
 ::matrs2::Mild brain atrophy with enlarged subarachnoid spaces of bilateral cerebral convexities.
 ::ctabi::A small ill-defined low density in the left frontal subcortical white matter, could be old or recent ischemic infarction. Clinical correlation is suggested.
 ::ctpbi::Presence of tiny/small low densities involving ___ basal ganglion, ___ thalamus, and ___ periventricular white matter; previous brain ischemic insult, such as an old tiny ischemic infarction, is considered.
-::ctpbi2::Presence of brain tissue loss changes involving right temporal, right parietal, and left frontal regions, with compensatory dilatation of left lateral ventricle, in favor of previous brain insult, such as old ischemic infarction.
+::ctpbi2::Presence of brain tissue loss changes involving right temporal, right parietal, and left frontal regions, with compensatory dilatation of the left lateral ventricle, in favor of previous brain insult, such as old ischemic infarction.
 ::mrpbi::Presence of several tiny hyperintensities in the periventricular white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
 ::ctepvs::Small low density near right/left side of anterior commissure, in favor of enlarged perivascular space.
 ::mrepvs::Some tiny T2 hyperintensity spots in both basal ganglia, in favor of enlarged perivascular spaces.
@@ -85,7 +85,7 @@
 ::rtpaok::No focal hypodensity or early ischemic change is identified. ASPECTS: 10.
 ::noaa::No evidence of aneurysm or arterial-venous malformation (AVM) noted near the circle of Willis regions.
 ::sdsa::Suggest correlate with DSA if clinically indicated.
-::bbgt1h::Symmetrical T1-hyperintensity involving the bilateral globus pallidus, cerebral peduncles, and the dorsal aspect of pons. These areas show no obvious abnormal signal intensity on T2WI. Chronic hepatic encephalopathy is suspected. Suggest clinical correlation if chronic liver disease is present. DDx (less likely): hyperalimentation, Wilson disease, hyper-/hypoparathyroidism.
+::bbgt1h::Symmetrical T1-hyperintensity involving the bilateral globus pallidus, cerebral peduncles, and the dorsal aspect of the pons. These areas show no obvious abnormal signal intensity on T2WI. Chronic hepatic encephalopathy is suspected. Suggest clinical correlation if chronic liver disease is present. DDx (less likely): hyperalimentation, Wilson disease, hyper-/hypoparathyroidism.
 ::pfsdh::Presence of fusiform high-attenuation lesion extending over the right anterior falx cerebri, suggestive of an acute parafalcine subdural hematoma.
 ::bsde::Bilateral subdural effusions are observed along the frontoparietal convexities, measuring up to ___ mm in maximal thickness.
 ::lfpca::left fetal type posterior cerebral artery
@@ -102,7 +102,7 @@ The visible paranasal sinuses and mastoids are unremarkable.
     Paste(MyForm)
 }
 
-::rfvps::status post ventriculo-peritoneal shunt from right frontal area, with tip at left lateral ventricle.
+::rfvps::status post ventriculo-peritoneal shunt from right frontal area, with tip at the left lateral ventricle.
 ::lgwd::loss of gray-white matter differentiation
 ::mdr::midline deviation to right side.
 ::mdl::midline deviation to left side.
@@ -561,7 +561,7 @@ Findings:
 - MRA shows no evidence of aneurysm or arterial-venous malformation (AVM) noted near the circle of Willis regions.
 
 - No other high signal intensity on DWI and lower apparent diffusion coefficient suggesting acute ischemic infarction in the brain and brainstem noted.
-- Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, the subcortical arteriosclerotic encephalopathy considered.
+- Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, subcortical arteriosclerotic encephalopathy considered.
 - Presence of small hyperintensities in the right occipital cortical region on T2WI and FLAIR, which may be gliosis, or old ischemia or previous brain insult.
 - Mild dilatation of intraventricular system with widening of subarachnoid space of bilateral cerebral hemispheres, in favor of aging process and mild brain atrophy.
 - Incidental finding of right side fetal type posterior cerebral artery (PCA) from right internal carotid artery (ICA) with hypoplasia changes at P1 segment of right PCA noted.

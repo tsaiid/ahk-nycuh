@@ -22,7 +22,7 @@
     MyForm := "
   (
 A 1.3-cm enhancing nodule in the left paramedian cerebellar hemisphere is noted, suggestive of brain metastasis.
-Tiny enhancing nodule at the tip of left sylvian fissure, possibly leptomeningeal metastasis.
+Tiny enhancing nodule at the tip of the left sylvian fissure, possibly leptomeningeal metastasis.
 
 Brain tissue loss and encephalomalacia in the right cerebellar hemisphere, in favor of previous brain insults.
 
@@ -686,13 +686,13 @@ Presence of several small old ischemic infarctions, including in the pons, bilat
 
 Presence of tiny old ischemic infarction or previous brain insult involving bil. basal ganglion, bil. corona radiata and bil. thalami regions.
 
-Presence of brain tissue loss changes involving right temporal, right parietal, and left frontal regions, with compensatory dilatation of left lateral ventricle, in favor of previous brain insult, such as old ischemic infarction.
+Presence of brain tissue loss changes involving right temporal, right parietal, and left frontal regions, with compensatory dilatation of the left lateral ventricle, in favor of previous brain insult, such as old ischemic infarction.
 
-Presence of small old intracranial hemorrhage (ICH) hemosiderin noted including the pons, bil. basal ganglion and bil. thalamus region and bilateral cerebral and cerebellar hemispheres noted. From the above image finding and clinical history, more in favor of due to the hypertensive ICH. DDx:amyloid angiopathy.
+Presence of small old intracranial hemorrhage (ICH) hemosiderin noted including the pons, bil. basal ganglion and bil. thalamus region and bilateral cerebral and cerebellar hemispheres noted. From the above image finding and clinical history, more in favor of due to hypertensive ICH. DDx:amyloid angiopathy.
 
 Presence of several tiny hyperintensities in the periventricular white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemic due to aging process and chronic hypertension.
 
-Presence of mild/moderate/severe periventricular hyperintensity on T2WI noted, the subcortical arteriosclerotic encephalopathy considered.
+Presence of mild/moderate/severe periventricular hyperintensity on T2WI noted, subcortical arteriosclerotic encephalopathy considered.
 
 Mild dilatation of intraventricular system with widening of subarachnoid space of bilateral cerebral hemispheres, in favor of aging process and mild brain atrophy.
 
@@ -929,7 +929,7 @@ No evidence of high signal intensity on DWI and lower apparent diffusion coeffic
 Multiple tiny T2 hyperintensity spots over both basal ganglia, in favor of dilated perivascular spaces.
 
 Several nonspecific tiny hyperintensities in both subcortical and deep white matter regions on T2WI and FLAIR (unidentified bright objects).
-Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, the subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
+Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
 
 No definite abnormal signal intensity tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
@@ -971,7 +971,7 @@ No evidence of high signal intensity on DWI and lower apparent diffusion coeffic
 
 Multiple tiny T2 hyperintensity spots over both basal ganglia, in favor of dilated perivascular spaces.
 
-Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, the subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
+Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered.
 
 No definite abnormal signal intensity tumor mass lesion in the brain noted including supratentorial cerebral hemisphere and infratentorial cerebellum and brain stem region.
 
@@ -1056,7 +1056,7 @@ Although not fully fit the typical image findings, intracranial hypotension stil
 {
     MyForm := "
   (
-Mild atrophy of right hippocampus (Se/Im: 7/9) with increased T2 signal intensity and enlargement of the temporal horn of the lateral ventricle. Mesial temporal sclerosis may be suspected.
+Mild atrophy of the right hippocampus (Se/Im: 7/9) with increased T2 signal intensity and enlargement of the temporal horn of the lateral ventricle. Mesial temporal sclerosis may be suspected.
 
 No evidence of hippocampal atrophy or abnormal signal intensity.
 

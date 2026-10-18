@@ -194,7 +194,7 @@ No CT evidence of space occupying lesion in the orbital, retro-ocular, sella, su
 
 No obvious soft tissue density in the bilateral frontal sinus, sphenoid sinus, ethmoid sinus, maxillary sinus.
 
-Presence of mild exophthalmos of left eye.
+Presence of mild exophthalmos of the left eye.
 
 Presence of soft tissue thickening in the nasopharynx, with bone erosion of the anterior portion of clivus, nasopharynx lesion should be R/O, suggest ENT check up.
 

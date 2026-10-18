@@ -49,24 +49,24 @@
 ::spa::Surgical clips at RLQ of abdomen, in favor of post appendectomy.
 ::spa0::Status post appendectomy.
 ::sphaic::Coils at the upper abdomen, may be due to previous hepatic arterial infusion chemotherapy.
-::maacal::Mild calcification of abdominal aortic wall.
-::aacal::Calcification of abdominal aortic wall.
+::maacal::Mild calcification of the abdominal aortic wall.
+::aacal::Calcification of the abdominal aortic wall.
 ::aacal1::Calcification of the abdominal aorta and its branches.
 ::ka::Increased opacity of the abdomen with centralization of the bowel gas, probably due to ascites.
 ::kc::Contrast medium retention in the urinary tract, may be due to recent imaging study.
 ::kns::No definite stone-like radiopacity along the urinary tract.
 ::kbrs::Several tiny radiopacities superimposed on bilateral renal shadows, suspicious for renal stones.
 ::kbrss::Several small radiopacities superimposed on bilateral renal shadows, suspicious for renal stones.
-::klrs::A tiny radiopacity superimposed on left renal shadow, suspicious for a renal stone.
-::klrss::Small radiopacities superimposed on left renal shadow, suspicious for renal stones.
-::krrs::A tiny radiopacity superimposed on right renal shadow, suspicious for a renal stone.
-::krrss::Small radiopacities superimposed on right renal shadow, suspicious for renal stones.
-::klus::A small stone-like opacity at left paraspinal region at L3 level, possibly a ureter stone.
-::krus::A small stone-like opacity at right paraspinal region at L3 level, possibly a ureter stone.
-::kllus::A small stone-like opacity superimposed on left sacral ala region, suspicious for a lower ureter stone.
-::krlus::A small stone-like opacity superimposed on right sacral ala region, possibly a lower ureter stone.
-::kluvjs::A small stone-like opacity at left side of pelvis, possibly a UVJ stone.
-::kruvjs::A small stone-like opacity at right side of pelvis, possibly a UVJ stone.
+::klrs::A tiny radiopacity superimposed on the left renal shadow, suspicious for a renal stone.
+::klrss::Small radiopacities superimposed on the left renal shadow, suspicious for renal stones.
+::krrs::A tiny radiopacity superimposed on the right renal shadow, suspicious for a renal stone.
+::krrss::Small radiopacities superimposed on the right renal shadow, suspicious for renal stones.
+::klus::A small stone-like opacity at the left paraspinal region at L3 level, possibly a ureter stone.
+::krus::A small stone-like opacity at the right paraspinal region at L3 level, possibly a ureter stone.
+::kllus::A small stone-like opacity superimposed on the left sacral ala region, suspicious for a lower ureter stone.
+::krlus::A small stone-like opacity superimposed on the right sacral ala region, possibly a lower ureter stone.
+::kluvjs::A small stone-like opacity at the left side of the pelvis, possibly a UVJ stone.
+::kruvjs::A small stone-like opacity at the right side of the pelvis, possibly a UVJ stone.
 ::kuf::Calcified nodules in the pelvis, suspicious for degenerated uterine fibroids.
 ::lptcd::status post PTCD via left side approach.
 ::rptcd::status post PTCD via right side approach.

@@ -205,7 +205,7 @@ Non-contrast study.
 Scanning from pelvis to foot, axial, coronal, sagittal views
 
 FINDINGS:
-- Bilateral knees show joint space narrowing, marginal osteophyte formation, subchondral sclerosis, especially at medial compartment of knee joint, consistent with osteoarthrosis.
+- Bilateral knees show joint space narrowing, marginal osteophyte formation, subchondral sclerosis, especially at the medial compartment of the knee joint, consistent with osteoarthrosis.
 - Left moderate and right small suprapatellar effusion.
 - Mild bilateral genu varum is noted.
 - No obvious dislocation or fracture.
