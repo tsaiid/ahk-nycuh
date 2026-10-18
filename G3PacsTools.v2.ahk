@@ -15,6 +15,11 @@
 #Include <RisAIModelHealth.v2>
 #Include <RisAIOrchestration.v2>
 
+; 設定工作列 (Tray) 上的 Icon
+if FileExist(A_ScriptDir "\assets\G3PacsTools_icon.png") {
+    TraySetIcon(A_ScriptDir "\assets\G3PacsTools_icon.png")
+}
+
 ; 初始化 NoduleTracker（不覆蓋 Tray 圖示、啟動時不強制彈窗、統一 DPI Awareness 為 -3）
 global tracker := NoduleTracker({initTray: false, showGui: false, setDpi: -3})
 A_TrayMenu.Add()
