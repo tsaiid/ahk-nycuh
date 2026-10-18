@@ -1,5 +1,6 @@
 #Requires AutoHotkey v2.0
 #SingleInstance force
+Persistent True
 SetWorkingDir A_ScriptDir
 SetControlDelay -1
 CoordMode "Mouse", "Screen"
@@ -47,6 +48,7 @@ class ShuttleProController {
         this.StartupTimerObj := ObjBindMethod(this, "ExecuteStartup")
 
         this.InitGui()
+        this.InitTrayMenu()
         this.InitConfig()
         this.RegisterHID()
     }
@@ -521,7 +523,17 @@ class ShuttleProController {
         btnReload := this.GuiObj.Add("Button", "w100 x510 yp", "Reload Script")
         btnReload.OnEvent("Click", (*) => Reload())
 
-        this.GuiObj.OnEvent("Close", (*) => ExitApp())
+        ; 關閉視窗時僅隱藏，不結束腳本
+        this.GuiObj.OnEvent("Close", (gui) => gui.Hide())
+    }
+
+    InitTrayMenu() {
+        A_TrayMenu.Add()
+        A_TrayMenu.Add("顯示除錯視窗", (*) => this.ShowGui())
+        A_TrayMenu.Default := "顯示除錯視窗"
+    }
+
+    ShowGui() {
         this.GuiObj.Show()
     }
 
