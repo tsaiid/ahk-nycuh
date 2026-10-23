@@ -206,6 +206,13 @@ RisHotstringFastInput.Enable(20)
     ; --- Jump to FINDINGS ---
     #f:: RisController.JumpToFindings()
 
+    ; Alt+S: 在 finding/impression edit 執行 AI impression；在其他位置攔截避免觸發 RIS 內建功能
+    !s:: {
+        if RisController.IsTargetFocused() {
+            RisController.GenerateAndInsertImpression()
+        }
+    }
+
 #HotIf ; IsRisReportWindow()
 
 ; 只有在「標準 RIS」且「焦點在輸入框內」時，這些熱鍵才存在
@@ -213,8 +220,6 @@ RisHotstringFastInput.Enable(20)
     ; Insert Indication by AI
     !i:: RisController.GenerateAndInsertIndication()
 
-    ; Insert Impression by AI (Summary of Findings)
-    !s:: RisController.GenerateAndInsertImpression()
     !+s:: {
         WithImeGuard(() => RisController.GenerateAndInsertImpression(true))
     }
