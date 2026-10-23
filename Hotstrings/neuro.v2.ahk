@@ -22,15 +22,13 @@
 ::mathv::Mild atherosclerotic changes with calcification of intracranial portion of vertebrobasilar arteries.
 ;--- Subcortical Arteriosclerotic Encephalopathy (SAE) / Leukoaraiosis / CSVD ---
 ; 舊版保留與優化
-::sae::Bilateral periventricular low densities are present. Subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
-::msae::Mild bilateral periventricular low densities are present. Mild subcortical arteriosclerotic encephalopathy (leukoaraiosis) is considered.
+::sae::Bilateral periventricular hypodensities are noted, compatible with leukoaraiosis (subcortical arteriosclerotic encephalopathy).
+::msae::Mild bilateral periventricular hypodensities are noted, compatible with mild leukoaraiosis (subcortical arteriosclerotic encephalopathy).
 ::sae2::Presence of mild/moderate/severe confluent symmetric periventricular hyperintensity on T2WI and FLAIR suggests subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 ::msae2::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR suggests mild subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 ::sae3::Presence of mild confluent symmetric periventricular hyperintensity on T2WI and FLAIR noted, subcortical arteriosclerotic encephalopathy (leukoaraiosis) considered. Several tiny hyperintensities in the bilateral subcortical and deep white matter regions on T2WI and FLAIR, which may be gliosis, demyelination or tiny old ischemia or tiny previous brain insult.
 
-; 方案一：依檢查類別 (CT/MRI) 與嚴重度區分
-::saect::Bilateral periventricular hypodensities are noted, compatible with leukoaraiosis (subcortical arteriosclerotic encephalopathy).
-::msaect::Mild bilateral periventricular hypodensities are noted, compatible with mild leukoaraiosis (subcortical arteriosclerotic encephalopathy).
+; 方案一：MRI 與嚴重度區分
 ::saemr::Bilateral periventricular and subcortical white matter hyperintensities on T2WI and FLAIR, compatible with subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 ::msaemr::Mild bilateral periventricular and subcortical white matter hyperintensities on T2WI and FLAIR, compatible with mild subcortical arteriosclerotic encephalopathy (leukoaraiosis).
 
