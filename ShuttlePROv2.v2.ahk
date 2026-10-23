@@ -76,21 +76,21 @@ class ShuttleProController {
         ; 2. Remote Desktop (RDP)
         rdpSpeeds := [1000, 800, 500, 300, 200, 100, 50]
         this.RegisterApp("RDP", "遠端桌面連線", Map(
-            1, "q",
+            1, "8",
             2, "7",
             3, "5",
             4, "6",
-            5, "d",
+            5, "r",
             6, "8",
             7, "1",
             8, "9",
             9, "4",
-            10, "z",
+            10, "y",
             11, "f",
-            12, "+z",
+            12, "g",
             13, "w",
-            14, "o",
-            15, "{Down}"
+            14, "{Home}",
+            15, "0"
         ), rdpSpeeds)
 
         ; 3. G3PACS (Infinitt)
