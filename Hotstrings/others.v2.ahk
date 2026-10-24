@@ -303,6 +303,7 @@
 ::ctrus::Correlation with transrectal ultrasonography is suggested.
 ::cdsa::Correlation with DSA is suggested.
 ::clab::Correlation with Lab data is suggested.
+::cpsa::Clinical correlation and serum PSA evaluation are suggested if clinically indicated.
 ::coi::Correlation with other imaging modalities is suggested.
 ::cbs::Correlation with bone scan is suggested.
 ::cercp::Correlation with ERCP is suggested.
