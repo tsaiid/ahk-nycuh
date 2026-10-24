@@ -288,7 +288,7 @@ GetUnremarkableOrgans(searchText) {
     organRules["bowel"]           := ["bowel", "appendix", "duodenum", "duodenal", "jejunum", "jejunal",
                                       "ileum", "ileal", "colon", "colonic",
                                       "diverticulitis", "diverticulum", "diverticula", "diverticulosis",
-                                      "hiatal hernia"]
+                                      "hiatal hernia", "gastrostomy", "jejunostomy", "colostomy", "ileostomy"]
 
     orderedKeys := ["liver", "gallbladder", "spleen", "pancreas", "adrenals", "kidneys", "urinary bladder", "bowel"]
     safeOrgans := []
