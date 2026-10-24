@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0
 
 #Include TestLib.v2.ahk
+#Include ..\Lib\G3PacsProbe.v2.ahk
 #Include ..\NoduleTracker.ahk
 
 RegisterTest("G3PacsProbe.GetPatternList initializes all patterns with hits property", Test_GetPatternList_HitsProperty)
