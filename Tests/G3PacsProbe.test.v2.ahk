@@ -8,6 +8,9 @@ RegisterTest("G3PacsProbe.IsTextMatch with string target", Test_IsTextMatch_Stri
 RegisterTest("G3PacsProbe.IsTextMatch with array target and trims", Test_IsTextMatch_Array)
 RegisterTest("G3PacsProbe.IsPacsImageViewActive handles non-existent window safely", Test_IsPacsImageViewActive_Safe)
 RegisterTest("G3PacsProbe.ClickButtonIfTextMatches handles inactive window safely", Test_ClickButtonIfTextMatches_Safe)
+RegisterTest("G3PacsProbe.GetDpiScale returns valid positive scale", Test_GetDpiScale_Valid)
+RegisterTest("G3PacsProbe.HasConfig detects existing and tolerant patterns", Test_HasConfig_Patterns)
+RegisterTest("G3PacsProbe.GetMatchingDiagnostics handles non-configured and configured patterns safely", Test_GetMatchingDiagnostics_Safe)
 
 Test_ButtonArraysDefinition() {
     AssertEqual(4, G3PacsProbe.SyncButtons.Length, "SyncButtons should contain 4 buttons")
@@ -52,6 +55,29 @@ Test_ClickButtonIfTextMatches_Safe() {
     ; Safe fallback without throwing exception
     btn := G3PacsProbe.ClickButtonIfTextMatches(["Button1"], [" Auto sync"], "__NON_EXISTENT_WINDOW_TITLE_12345__")
     AssertEqual("", btn, "Should return empty string when window inactive")
+}
+
+Test_GetDpiScale_Valid() {
+    scale := G3PacsProbe.GetDpiScale(0)
+    AssertTrue(scale >= 1.0, "DpiScale should be at least 1.0")
+}
+
+Test_HasConfig_Patterns() {
+    AssertTrue(G3PacsProbe.HasConfig([3, 10, 39, 101]), "[3, 10, 39, 101] should be recognized as existing")
+    AssertTrue(G3PacsProbe.HasConfig([3, 10, 39, 102]), "[3, 10, 39, 102] should be recognized under +1 fault tolerance")
+    AssertTrue(G3PacsProbe.HasConfig([5, 57, 29, 185]), "[5, 57, 29, 185] should be recognized as existing")
+    AssertTrue(G3PacsProbe.HasConfig([5, 57, 29, 186]), "[5, 57, 29, 186] should be recognized under +1 fault tolerance")
+    AssertFalse(G3PacsProbe.HasConfig([999, 999, 999, 999]), "Non-existent config should return false")
+    AssertFalse(G3PacsProbe.HasConfig("invalid"), "Non-array should return false")
+}
+
+Test_GetMatchingDiagnostics_Safe() {
+    diagUnk := G3PacsProbe.GetMatchingDiagnostics("AfxNonExistentClassNN", 0)
+    AssertTrue(InStr(diagUnk, "未包含在任何已配置 Pattern") > 0, "Unconfigured ClassNN should be reported as not included")
+
+    diagCandidate := G3PacsProbe.GetMatchingDiagnostics(G3PacsProbe.ClassPrefix . "3", 0)
+    AssertTrue(InStr(diagCandidate, "候選規則") > 0, "Known focus ClassNN should list candidates")
+    AssertTrue(InStr(diagCandidate, "Pattern_3_10_") > 0, "Candidate report should include Pattern name")
 }
 
 RunRegisteredTests()

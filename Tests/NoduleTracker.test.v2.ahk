@@ -21,6 +21,7 @@ RegisterTest("NoduleTracker.FormatSentenceReport returns empty string when no no
 RegisterTest("NoduleTracker.FormatDirectCopy formats lobe or full sentence", Test_FormatDirectCopy)
 RegisterTest("NoduleTracker.FormatHepaticDirectCopy formats liver segment or full sentence", Test_FormatHepaticDirectCopy)
 RegisterTest("NoduleTracker initialization supports decoupled options without side effects", Test_InstanceInitialization_DecoupledOptions)
+RegisterTest("NoduleTracker.BuildSuggestedProbeReport distinguishes existing vs new patterns", Test_BuildSuggestedProbeReport)
 
 Test_GetPatternList_HitsProperty() {
     patterns := G3PacsProbe.GetPatternList()
@@ -292,6 +293,25 @@ Test_InstanceInitialization_DecoupledOptions() {
     ; Clean up menu callbacks to prevent circular reference on exit
     inst.trayMenu := ""
     customMenu.Delete()
+}
+
+Test_BuildSuggestedProbeReport() {
+    inst := NoduleTracker({initTray: false, showGui: false, setDpi: 0})
+
+    ; 1. 已存在的規則 [3, 10, 39, 101] 應標記為已存在
+    existingNums := {focus: 3, img: 10, srs: 39, desc: 101}
+    reportExist := inst.BuildSuggestedProbeReport(existingNums)
+    AssertTrue(InStr(reportExist, "已存在於 G3PacsProbe.Configs 中") > 0, "Existing probe should be recognized as already in Configs")
+    AssertFalse(InStr(reportExist, "💡 建議新增 probe") > 0, "Existing probe should not suggest adding")
+
+    ; 2. 真正未配置的新規則應建議新增
+    newNums := {focus: 3, img: 10, srs: 999, desc: 999}
+    reportNew := inst.BuildSuggestedProbeReport(newNums)
+    AssertTrue(InStr(reportNew, "💡 建議新增 probe: [3, 10, 999, 999]") > 0, "New probe should be suggested")
+
+    ; 3. 欄位不完整時應回傳空字串
+    emptyNums := {focus: 3, img: 10, srs: "", desc: 101}
+    AssertEqual("", inst.BuildSuggestedProbeReport(emptyNums), "Incomplete nums should return empty report")
 }
 
 RunRegisteredTests()

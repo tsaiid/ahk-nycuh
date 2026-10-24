@@ -645,7 +645,7 @@ class NoduleTracker {
         }
         if (!matchFound) {
             msg .= "❌ 狀態：未命中任何完整 Pattern 規則。`n"
-            msg .= "  (請確認該控制項是否已加入 GenerateMaps 的配置中)`n"
+            msg .= G3PacsProbe.GetMatchingDiagnostics(ctrlClassNN, hwnd, this.PatternList)
             msg .= "{SuggestedProbeReport}`n"
         }
         msg .= "`n====================`n【Acc 備用方案除錯】`n"
@@ -1974,7 +1974,13 @@ class NoduleTracker {
             if (offset >= 0 && offset < 8) {
                 expectedImg := family.img + (offset * 6)
                 if (nums.img == expectedImg) {
-                    candidates.Push({text: "[" family.focus ", " family.img ", " (nums.srs - (offset * 3)) ", " (nums.desc - (offset * 5)) "]", offset: offset})
+                    baseSrs := nums.srs - (offset * 3)
+                    baseDesc := nums.desc - (offset * 5)
+                    candidates.Push({
+                        text: "[" family.focus ", " family.img ", " baseSrs ", " baseDesc "]",
+                        raw: [family.focus, family.img, baseSrs, baseDesc],
+                        offset: offset
+                    })
                 }
             }
         }
@@ -1983,14 +1989,33 @@ class NoduleTracker {
             return "   ⚠️ 無法回推建議 probe: " directProbe " (警告：不符合 [3, 10, ?, ?] 或 [5, 57, ?, ?]，請人工確認)`n"
         }
 
-        msg := "   💡 建議新增 probe: "
-        for idx, candidate in candidates {
-            msg .= (idx > 1 ? " 或 " : "") candidate.text
+        existingProbes := []
+        newProbes := []
+        for candidate in candidates {
+            if (G3PacsProbe.HasConfig(candidate.raw)) {
+                existingProbes.Push(candidate)
+            } else {
+                newProbes.Push(candidate)
+            }
         }
-        if (candidates[1].offset > 0) {
-            msg .= " (註：從 focus " nums.focus " 回推)"
+
+        msg := ""
+        if (newProbes.Length > 0) {
+            msg .= "   💡 建議新增 probe: "
+            for idx, candidate in newProbes {
+                msg .= (idx > 1 ? " 或 " : "") candidate.text
+            }
+            if (newProbes[1].offset > 0) {
+                msg .= " (註：從 focus " nums.focus " 回推)"
+            }
+            msg .= "`n"
         }
-        msg .= "`n"
+        if (existingProbes.Length > 0) {
+            for candidate in existingProbes {
+                msg .= "   ⚠️ 規則 " candidate.text " 已存在於 G3PacsProbe.Configs 中！`n"
+                msg .= "      (未命中原因請參閱上方候選比對詳情：通常為幾何公差或標籤文字未通過)`n"
+            }
+        }
         return msg
     }
 

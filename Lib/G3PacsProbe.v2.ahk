@@ -109,21 +109,146 @@ class G3PacsProbe {
             && this.IsSpatialControlMatch(candidate.desc, focusClassNN, hwnd)
     }
 
-    static IsSpatialControlMatch(childClassNN, focusClassNN, hwnd) {
+    static GetDpiScale(hwnd := 0) {
+        dpi := 0
+        if (hwnd) {
+            try {
+                dpi := DllCall("User32\GetDpiForWindow", "Ptr", hwnd, "UInt")
+            }
+        }
+        if (!dpi) {
+            try {
+                dpi := A_ScreenDPI
+            }
+        }
+        return (dpi > 0) ? (dpi / 96) : 1.0
+    }
+
+    static HasConfig(cfg) {
+        if !(cfg is Array) || (cfg.Length < 4) {
+            return false
+        }
+        for c in this.Configs {
+            descMatches := (c[4] == cfg[4]) || ((c[4] == 101 && cfg[4] == 102) || (c[4] == 185 && cfg[4] == 186))
+            if (c[1] == cfg[1] && c[2] == cfg[2] && c[3] == cfg[3] && descMatches) {
+                return true
+            }
+        }
+        return false
+    }
+
+    static IsSpatialControlMatch(childClassNN, focusClassNN, hwnd, &diag := unset) {
         try {
             ControlGetPos(&childX, &childY, &childW, &childH, childClassNN, hwnd)
             ControlGetPos(&focusX, &focusY, &focusW, &focusH, focusClassNN, hwnd)
-            if (childW <= 0 || childH <= 0 || focusW <= 0 || focusH <= 0)
+            if (childW <= 0 || childH <= 0 || focusW <= 0 || focusH <= 0) {
+                if (IsSet(diag)) {
+                    diag := Format("尺寸無效: child={1}x{2}, focus={3}x{4}", childW, childH, focusW, focusH)
+                }
                 return false
+            }
+
+            dpiScale := this.GetDpiScale(hwnd)
+            vTolerance := Round(50 * dpiScale)
+            hMargin := Round(10 * dpiScale)
 
             childBottom := childY + childH
-            if (Abs(focusY - childBottom) > 50)
+            vDiff := Abs(focusY - childBottom)
+            if (vDiff > vTolerance) {
+                if (IsSet(diag)) {
+                    diag := Format("垂直差距 {1}px 超過公差 {2}px (DPI {3}%)", vDiff, vTolerance, Round(dpiScale * 100))
+                }
                 return false
+            }
 
             childCenterX := childX + (childW / 2)
-            return childCenterX >= (focusX - 10) && childCenterX <= (focusX + focusW + 10)
+            if (childCenterX < (focusX - hMargin) || childCenterX > (focusX + focusW + hMargin)) {
+                if (IsSet(diag)) {
+                    diag := Format("水平中心 {1}px 超出範圍 [{2}, {3}] (DPI {4}%)", Round(childCenterX), focusX - hMargin, focusX + focusW + hMargin, Round(dpiScale * 100))
+                }
+                return false
+            }
+
+            if (IsSet(diag)) {
+                diag := Format("幾何相符: 垂直差距 {1}px <= {2}px, 水平中心 {3}px (DPI {4}%)", vDiff, vTolerance, Round(childCenterX), Round(dpiScale * 100))
+            }
+            return true
+        } catch Error as e {
+            if (IsSet(diag)) {
+                diag := "取得控制項座標失敗: " . e.Message
+            }
+            return false
         }
-        return false
+    }
+
+    static GetMatchingDiagnostics(focusClassNN, hwnd, patterns := "") {
+        if (patterns == "") {
+            patterns := this.GetPatternList()
+        }
+
+        matchedCandidates := []
+        for patternData in patterns {
+            pMap := patternData.map
+            if (!pMap.Has(focusClassNN)) {
+                continue
+            }
+            matchedCandidates.Push({name: patternData.name, candidate: pMap[focusClassNN], isOffset: patternData.HasOwnProp("isOffset") ? patternData.isOffset : false})
+        }
+
+        if (matchedCandidates.Length == 0) {
+            return "  ⚠️ 控制項 " . focusClassNN . " 未包含在任何已配置 Pattern 的焦點清單中。`n"
+        }
+
+        dpiScale := this.GetDpiScale(hwnd)
+        vTolerance := Round(50 * dpiScale)
+        hMargin := Round(10 * dpiScale)
+
+        report := "  🔍 焦點控制項 " . focusClassNN . " 在配置中找到 " . matchedCandidates.Length . " 組候選規則，詳細比對結果：`n"
+        report .= "  (螢幕 DPI 縮放: " . Round(dpiScale * 100) . "% | 垂直門檻: " . vTolerance . "px | 水平容差: " . hMargin . "px)`n"
+
+        for item in matchedCandidates {
+            cand := item.candidate
+            report .= "  --------------------------------------------------`n"
+            report .= "  📌 候選模式: " . item.name . (item.isOffset ? " (+1 容錯)" : "") . "`n"
+
+            ; 1. Srs 文字
+            srsText := ""
+            srsOk := false
+            try {
+                srsText := ControlGetText(cand.srs, hwnd)
+                srsOk := InStr(srsText, "VMTool") > 0
+            } catch Error as e {
+                srsText := "讀取失敗: " . e.Message
+            }
+            report .= "    • Srs 文字 (" . cand.srs . "): [" . Trim(srsText) . "] -> " . (srsOk ? "✅ 符合 (含 VMTool)" : "❌ 不符 (未含 VMTool)") . "`n"
+
+            ; 2. Desc 文字
+            descText := ""
+            descOk := false
+            try {
+                descText := ControlGetText(cand.desc, hwnd)
+                descOk := RegExMatch(descText, "i)^\([a-z0-9]+\)\s") > 0
+            } catch Error as e {
+                descText := "讀取失敗: " . e.Message
+            }
+            report .= "    • Desc 文字 (" . cand.desc . "): [" . Trim(descText) . "] -> " . (descOk ? "✅ 符合序號格式" : "❌ 不符序號格式") . "`n"
+
+            ; 3. Srs 空間幾何
+            diagSrs := ""
+            srsSpatial := this.IsSpatialControlMatch(cand.srs, focusClassNN, hwnd, &diagSrs)
+            report .= "    • Srs 幾何 (" . cand.srs . "): " . (srsSpatial ? "✅ " : "❌ ") . diagSrs . "`n"
+
+            ; 4. Img 空間幾何
+            diagImg := ""
+            imgSpatial := this.IsSpatialControlMatch(cand.img, focusClassNN, hwnd, &diagImg)
+            report .= "    • Img 幾何 (" . cand.img . "): " . (imgSpatial ? "✅ " : "❌ ") . diagImg . "`n"
+
+            ; 5. Desc 空間幾何
+            diagDesc := ""
+            descSpatial := this.IsSpatialControlMatch(cand.desc, focusClassNN, hwnd, &diagDesc)
+            report .= "    • Desc 幾何 (" . cand.desc . "): " . (descSpatial ? "✅ " : "❌ ") . diagDesc . "`n"
+        }
+        return report
     }
 
     static FocusSeriesUnderMouse(&hwnd := 0, &controlHwnd := 0) {
